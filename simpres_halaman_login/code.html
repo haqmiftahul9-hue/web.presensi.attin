@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Masuk - SimPres</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --font-heading: 'Plus Jakarta Sans', sans-serif;
+      --font-body: 'Inter', sans-serif;
+    }
+    body {
+      font-family: var(--font-body);
+      color: #1A2333;
+      background-color: #F5F7FA;
+    }
+    h1, h2, h3, .font-heading {
+      font-family: var(--font-heading);
+    }
+    .custom-shadow {
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+    }
+    .focus-ring:focus-within {
+      border-color: #2563EB;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col md:flex-row bg-[#F5F7FA] antialiased selection:bg-[#2563EB] selection:text-white">
+
+  <!-- Sisi Kiri (Desktop) / Banner Atas (Mobile): Navy Branding Panel -->
+  <aside class="w-full md:w-5/12 lg:w-[46%] bg-[#0B1F3D] text-white flex flex-col justify-between p-8 sm:p-10 md:p-14 lg:p-16 relative overflow-hidden shrink-0 border-b md:border-b-0 md:border-r border-[#132C54]">
+    
+    <!-- Background Geometris Minimalis / Garis Abstrak Halus -->
+    <div class="absolute inset-0 pointer-events-none overflow-hidden opacity-[0.06]">
+      <svg class="w-full h-full" viewBox="0 0 600 800" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="500" cy="150" r="300" stroke="#FFFFFF" stroke-width="1.5" stroke-dasharray="6 6" />
+        <circle cx="100" cy="700" r="250" stroke="#FFFFFF" stroke-width="1.5" />
+        <path d="M-50 400 L650 300" stroke="#FFFFFF" stroke-width="1.5" />
+        <path d="M-50 460 L650 360" stroke="#FFFFFF" stroke-width="1.5" stroke-dasharray="8 8" />
+        <rect x="350" y="450" width="180" height="180" rx="24" stroke="#FFFFFF" stroke-width="1.5" />
+      </svg>
+    </div>
+
+    <!-- Header Logo & Tagline -->
+    <div class="relative z-10">
+      <div class="flex items-center gap-3.5 mb-6 md:mb-12">
+        <!-- Logo Icon SimPres: Pin Lokasi + Centang (Gaya Garis Minimalis) -->
+        <div class="w-11 h-11 rounded-[10px] bg-[#132C54] border border-[#2563EB]/40 flex items-center justify-center shadow-sm">
+          <svg class="w-6 h-6 text-[#2563EB]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <!-- Pin Lokasi -->
+            <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+            <!-- Tanda Centang di Dalam Pin -->
+            <path d="m9 10 2 2 4-4" stroke="#FFFFFF" stroke-width="2.2" />
+          </svg>
+        </div>
+        <div class="flex flex-col">
+          <span class="font-heading text-2xl md:text-3xl font-bold tracking-tight text-white flex items-center gap-1.5">
+            SimPres
+            <span class="w-2 h-2 rounded-full bg-[#2563EB] inline-block"></span>
+          </span>
+          <span class="text-[11px] font-medium tracking-wider text-slate-300 uppercase">Sistem Presensi Digital</span>
+        </div>
+      </div>
+
+      <!-- Tagline & Informasi Khusus Layar Tablet/Desktop -->
+      <div class="hidden md:block mt-8 space-y-4 max-w-md">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#132C54]/80 border border-slate-700/60 text-xs font-medium text-slate-200">
+          <span class="w-1.5 h-1.5 rounded-full bg-[#16A34A]"></span>
+          Platform Multi-Unit Terintegrasi
+        </div>
+        <h2 class="font-heading text-2xl lg:text-3xl font-semibold leading-tight text-slate-100">
+          Presensi Cerdas, Data Akurat, Sekolah Modern.
+        </h2>
+        <p class="text-sm text-slate-300 leading-relaxed font-normal">
+          Kelola absensi harian, verifikasi izin & cuti pendidik serta tenaga kependidikan lintas jenjang unit dengan transparansi real-time.
+        </p>
+      </div>
+    </div>
+
+    <!-- Fitur Sorotan di Panel Kiri (Khusus Desktop) -->
+    <div class="hidden md:block relative z-10 my-8 space-y-3 pt-6 border-t border-[#132C54]">
+      <div class="flex items-center gap-3 text-xs text-slate-300">
+        <svg class="w-4 h-4 text-[#2563EB] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        <span>Geofencing & Verifikasi Presensi Presisi</span>
+      </div>
+      <div class="flex items-center gap-3 text-xs text-slate-300">
+        <svg class="w-4 h-4 text-[#2563EB] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        <span>Sinkronisasi Otomatis Rekap Bulanan & Laporan SKP</span>
+      </div>
+      <div class="flex items-center gap-3 text-xs text-slate-300">
+        <svg class="w-4 h-4 text-[#2563EB] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        <span>Akses Multi-Role: Guru, Verifikator, & Superadmin</span>
+      </div>
+    </div>
+
+    <!-- Footer Kiri (Info Keamanan) -->
+    <div class="relative z-10 pt-4 text-xs text-slate-400 flex items-center justify-between border-t border-[#132C54]/50 md:border-none">
+      <span class="inline-flex items-center gap-1.5">
+        <svg class="w-3.5 h-3.5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+        Koneksi Terenkripsi SSL 256-bit
+      </span>
+      <span class="text-[11px] text-slate-500 font-mono">v2.6.4</span>
+    </div>
+  </aside>
+
+  <!-- Sisi Kanan: Form Login (Terpusat & Rapi) -->
+  <main class="flex-1 flex flex-col justify-between items-center px-6 py-10 sm:px-12 md:px-14 lg:px-20 bg-white">
+    
+    <!-- Top Bar Placeholder / Unit Badge -->
+    <div class="w-full max-w-[400px] flex items-center justify-end">
+      <div class="inline-flex items-center gap-1.5 text-xs text-[#64748B] bg-[#F5F7FA] px-3 py-1 rounded-[8px] border border-[#E2E8F0]">
+        <svg class="w-3.5 h-3.5 text-[#64748B]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="2" x2="22" y1="12" y2="12"/>
+          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+        </svg>
+        <span>Portal Resmi Pegawai</span>
+      </div>
+    </div>
+
+    <!-- Form Wrapper Max 400px Center -->
+    <div class="w-full max-w-[400px] my-auto py-8">
+      
+      <!-- Judul & Subteks -->
+      <div class="mb-8">
+        <h1 class="font-heading text-2xl sm:text-[28px] font-bold text-[#1A2333] tracking-tight mb-2">
+          Masuk ke SimPres
+        </h1>
+        <p class="text-sm text-[#64748B]">
+          Masukkan Nomor Induk Yayasan (NIY) atau email dinas Anda untuk melanjutkan.
+        </p>
+      </div>
+
+      <!-- Form Input -->
+      <form class="space-y-5" onsubmit="event.preventDefault();">
+        
+        <!-- Field 1: NIY / Email -->
+        <div>
+          <label for="identifier" class="block text-xs font-semibold text-[#1A2333] mb-1.5 uppercase tracking-wide">
+            NIY / Email Dinas
+          </label>
+          <div class="relative rounded-[10px] border border-[#E2E8F0] bg-[#FFFFFF] transition-all duration-150 focus-ring">
+            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#64748B]">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
+            </div>
+            <input 
+              id="identifier" 
+              name="identifier" 
+              type="text" 
+              placeholder="Contoh: 049005069 atau nama@sekolah.sch.id" 
+              value="049005069"
+              class="w-full pl-10 pr-3.5 py-2.5 text-sm text-[#1A2333] placeholder-[#94A3B8] rounded-[10px] bg-transparent outline-none font-normal"
+              required
+            >
+          </div>
+        </div>
+
+        <!-- Field 2: Kata Sandi -->
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <label for="password" class="block text-xs font-semibold text-[#1A2333] uppercase tracking-wide">
+              Kata Sandi
+            </label>
+            <a href="#lupa-password" class="text-xs font-medium text-[#2563EB] hover:text-[#1d4ed8] hover:underline transition-colors">
+              Lupa password?
+            </a>
+          </div>
+          <div class="relative rounded-[10px] border border-[#E2E8F0] bg-[#FFFFFF] transition-all duration-150 focus-ring">
+            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#64748B]">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+            </div>
+            <input 
+              id="password" 
+              name="password" 
+              type="password" 
+              placeholder="••••••••••••" 
+              value="SimPresSecure2026!"
+              class="w-full pl-10 pr-10 py-2.5 text-sm text-[#1A2333] placeholder-[#94A3B8] rounded-[10px] bg-transparent outline-none font-normal"
+              required
+            >
+            <!-- Toggle Show/Hide Password Button -->
+            <button 
+              type="button" 
+              id="togglePassword"
+              class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[#64748B] hover:text-[#1A2333] focus:outline-none"
+              aria-label="Tampilkan atau sembunyikan kata sandi"
+              onclick="const passInput = document.getElementById('password'); const isPass = passInput.type === 'password'; passInput.type = isPass ? 'text' : 'password';"
+            >
+              <!-- Eye Outline Icon -->
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Ingat Saya & Info Device -->
+        <div class="flex items-center justify-between pt-1">
+          <label class="flex items-center gap-2 cursor-pointer select-none">
+            <input 
+              type="checkbox" 
+              checked
+              class="w-4 h-4 rounded-[4px] border-[#E2E8F0] text-[#0B1F3D] accent-[#0B1F3D] focus:ring-0 focus:ring-offset-0 cursor-pointer"
+            >
+            <span class="text-xs text-[#64748B] font-normal">Ingat saya di perangkat ini</span>
+          </label>
+        </div>
+
+        <!-- Tombol Masuk Solid Navy (Rounded 10px) -->
+        <button 
+          type="submit" 
+          class="w-full bg-[#0B1F3D] hover:bg-[#132C54] active:bg-[#08172e] text-white font-medium text-sm py-3 px-4 rounded-[10px] transition-colors duration-150 flex items-center justify-center gap-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:ring-offset-2"
+        >
+          <span>Masuk ke Akun</span>
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12h14"/>
+            <path d="m12 5 7 7-7 7"/>
+          </svg>
+        </button>
+
+      </form>
+
+      <!-- Informasi Bantuan / Verifikator Unit -->
+      <div class="mt-8 pt-6 border-t border-[#E2E8F0] text-center">
+        <p class="text-xs text-[#64748B]">
+          Belum memiliki akun atau kendala NIY? 
+          <a href="#kontak-admin" class="text-[#2563EB] font-medium hover:underline inline-flex items-center gap-1 ml-0.5">
+            Hubungi Biro Kepegawaian
+          </a>
+        </p>
+      </div>
+
+    </div>
+
+    <!-- Footer Copyright Bawah Form -->
+    <div class="w-full max-w-[400px] text-center pt-6 pb-2 border-t border-[#F1F5F9]">
+      <p class="text-[12px] text-[#64748B]">
+        Sistem Presensi Digital Sekolah &copy; 2026. Hak Cipta Dilindungi.
+      </p>
+    </div>
+
+  </main>
+
+</body>
+</html>

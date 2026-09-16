@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+
+<html lang="id"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SimPres - Pengaturan Global</title>
+<!-- Fonts: Plus Jakarta Sans & Inter -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS v3 -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              navy: '#0B1F3D',
+              navyHover: '#132C54',
+              blue: '#2563EB',
+              blueHover: '#1D4ED8',
+              surface: '#F5F7FA',
+              border: '#E2E8F0',
+              textPrimary: '#1A2333',
+              textSecondary: '#64748B',
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            heading: ['"Plus Jakarta Sans"', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+<!-- BEGIN: Custom CSS -->
+<style data-purpose="custom-typography-and-scroll">
+    body {
+      font-family: 'Inter', sans-serif;
+      color: #1A2333;
+      background-color: #F5F7FA;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    /* Custom scrollbar for subtle appearance */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94A3B8;
+    }
+  </style>
+<!-- END: Custom CSS -->
+</head>
+<body class="bg-brand-surface min-h-screen flex antialiased">
+<!-- BEGIN: LeftSidebar -->
+<aside class="w-[260px] bg-brand-navy flex flex-col shrink-0 min-h-screen text-slate-300 select-none border-r border-slate-800" data-purpose="sidebar">
+<!-- Sidebar Header: Brand & Multi-Unit System -->
+<div class="px-5 pt-6 pb-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-brand-blue flex items-center justify-center text-white font-bold shadow-sm">
+<!-- Logo Icon: Checked Presence / Calendar -->
+<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<div>
+<h1 class="text-white font-heading font-extrabold text-xl leading-none tracking-tight">SimPres</h1>
+<p class="text-[11px] text-slate-400 font-medium mt-1">Multi-Unit System</p>
+</div>
+</div>
+<!-- Unit Selector Dropdown Box -->
+<div class="mt-5 p-2.5 bg-slate-900/60 rounded-lg border border-slate-700/60 flex items-center justify-between cursor-pointer hover:border-slate-600 transition">
+<div class="flex items-center gap-2.5 overflow-hidden">
+<svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<div class="truncate">
+<span class="block text-[10px] uppercase font-bold tracking-wider text-slate-400">UNIT TERPILIH</span>
+<span class="text-xs font-semibold text-white truncate block">Semua Unit (Pusat)</span>
+</div>
+</div>
+<svg class="w-4 h-4 text-slate-400 shrink-0 ml-1" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</div>
+</div>
+<!-- Main Navigation Section -->
+<nav aria-label="Menu Utama" class="flex-1 px-3 py-2 space-y-1 overflow-y-auto">
+<div class="px-3 pb-2 pt-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Navigasi Utama</div>
+<a class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/60 transition" href="#">
+<svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+        Dashboard
+      </a>
+<a class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/60 transition" href="#">
+<svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+        Manajemen Unit
+      </a>
+<a class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/60 transition" href="#">
+<svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+        Manajemen Admin &amp; User
+      </a>
+<a class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/60 transition" href="#">
+<svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+        Data Guru/Pegawai
+      </a>
+<a class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/60 transition" href="#">
+<svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+        Presensi
+      </a>
+<a class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/60 transition" href="#">
+<svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+        Rekap &amp; Laporan
+      </a>
+<a class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/60 transition" href="#">
+<svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+        Ranking Kehadiran
+      </a>
+<a class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/60 transition" href="#">
+<svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+        Pengajuan Izin/Cuti
+      </a>
+<a class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/60 transition" href="#">
+<svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+        Kalender Libur
+      </a>
+<a class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/60 transition" href="#">
+<svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+        Log Aktivitas
+      </a>
+<!-- ACTIVE ITEM: Pengaturan Global -->
+<a class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg bg-brand-blue text-white shadow-sm transition" href="#">
+<svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+<path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+        Pengaturan Global
+      </a>
+</nav>
+<!-- Sidebar Bottom User Profile Card -->
+<div class="p-3 border-t border-slate-800/80 mt-auto">
+<div class="flex items-center justify-between p-2 rounded-lg bg-slate-900/50 hover:bg-slate-800/70 transition">
+<div class="flex items-center gap-2.5 overflow-hidden">
+<div class="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-xs shrink-0 ring-2 ring-blue-400/30">
+<svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</div>
+<div class="truncate leading-tight">
+<p class="text-xs font-semibold text-white truncate">Superadmin Pusat</p>
+<p class="text-[10px] text-slate-400 truncate">superadmin@simpres...</p>
+</div>
+</div>
+<button class="p-1.5 text-slate-400 hover:text-white rounded-md transition hover:bg-slate-700/50" title="Logout" type="button">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</button>
+</div>
+</div>
+</aside>
+<!-- END: LeftSidebar -->
+<!-- BEGIN: MainContentWrapper -->
+<div class="flex-1 flex flex-col min-w-0">
+<!-- BEGIN: TopBar -->
+<header class="h-16 bg-white border-b border-brand-border flex items-center justify-between px-8 sticky top-0 z-30 shadow-[0_1px_2px_rgba(0,0,0,0.03)]" data-purpose="top-header">
+<!-- Search Box Area -->
+<div class="w-full max-w-lg relative">
+<span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</span>
+<input class="w-full pl-9 pr-4 py-2 bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg text-sm text-brand-textPrimary placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-brand-blue transition" placeholder="Cari parameter, konfigurasi, atau data pegawai..." type="search"/>
+</div>
+<!-- Right Header Actions -->
+<div class="flex items-center gap-4 shrink-0">
+<!-- Central Server Status Badge -->
+<div class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200">
+<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+<span class="text-xs font-semibold text-emerald-700">Server Pusat: Normal</span>
+</div>
+<div class="h-6 w-px bg-slate-200"></div>
+<!-- Chat Notification Icon -->
+<button class="p-2 text-slate-600 hover:text-brand-textPrimary hover:bg-slate-100 rounded-lg transition" title="Pesan Sistem" type="button">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</button>
+<!-- Alert Notification with Red Badge Dot -->
+<button class="p-2 text-slate-600 hover:text-brand-textPrimary hover:bg-slate-100 rounded-lg relative transition" title="Notifikasi Aktivitas" type="button">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span class="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full ring-2 ring-white"></span>
+</button>
+<!-- User Dropdown Area -->
+<div class="flex items-center gap-3 pl-2 cursor-pointer">
+<div class="w-9 h-9 rounded-full bg-brand-navy flex items-center justify-center text-white font-heading font-semibold text-xs ring-1 ring-slate-300">
+            SA
+          </div>
+<div class="hidden lg:block text-left">
+<p class="text-xs font-bold text-brand-textPrimary leading-none">Superadmin</p>
+<p class="text-[11px] text-brand-textSecondary mt-0.5">Yayasan Pendidikan</p>
+</div>
+<svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</div>
+</div>
+</header>
+<!-- END: TopBar -->
+<!-- BEGIN: MainContent -->
+<main class="flex-1 p-8 overflow-y-auto">
+<!-- Breadcrumb Navigation -->
+<div class="flex items-center gap-2 text-xs text-brand-textSecondary mb-2 font-medium">
+<a class="hover:text-brand-textPrimary transition" href="#">Home</a>
+<span>/</span>
+<a class="hover:text-brand-textPrimary transition" href="#">Superadmin</a>
+<span>/</span>
+<span class="text-brand-textPrimary font-semibold">Pengaturan Global</span>
+</div>
+<!-- Page Header with Gear Icon -->
+<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+<div>
+<div class="flex items-center gap-2.5">
+<div class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center text-brand-blue">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+<path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</div>
+<h1 class="text-2xl font-heading font-bold text-brand-textPrimary tracking-tight">Pengaturan Global</h1>
+</div>
+<p class="text-sm text-brand-textSecondary mt-1">Konfigurasi identitas sistem, parameter keamanan yayasan, dan pengaturan default operasional untuk seluruh unit sekolah.</p>
+</div>
+</div>
+<!-- BEGIN: UnderlineTabs -->
+<div class="border-b border-brand-border flex items-center gap-2 mb-6">
+<!-- Tab 1 (Active) -->
+<button class="border-b-2 border-brand-blue pb-3 px-2 mr-6 text-sm font-semibold text-brand-blue flex items-center gap-2 focus:outline-none" type="button">
+<svg class="w-4 h-4 text-brand-blue" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+          Informasi Aplikasi
+        </button>
+<!-- Tab 2 -->
+<button class="border-b-2 border-transparent pb-3 px-2 mr-6 text-sm font-medium text-brand-textSecondary hover:text-brand-textPrimary flex items-center gap-2 transition focus:outline-none" type="button">
+<svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+          Kebijakan Keamanan
+        </button>
+<!-- Tab 3 -->
+<button class="border-b-2 border-transparent pb-3 px-2 mr-6 text-sm font-medium text-brand-textSecondary hover:text-brand-textPrimary flex items-center gap-2 transition focus:outline-none" type="button">
+<svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+          Default Sistem
+        </button>
+</div>
+<!-- END: UnderlineTabs -->
+<!-- BEGIN: SettingsGrid -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+<!-- Column Left: Main Tab Content "Informasi Aplikasi" (7 Cols) -->
+<div class="lg:col-span-7 space-y-6">
+<div class="bg-white rounded-[12px] border border-brand-border p-6 shadow-sm" data-purpose="card-identitas-yayasan">
+<!-- Card Header -->
+<div class="border-b border-brand-border pb-4 mb-6">
+<h2 class="text-base font-heading font-bold text-brand-textPrimary">Identitas &amp; Profil Yayasan</h2>
+<p class="text-xs text-brand-textSecondary mt-0.5">Pengaturan nama aplikasi, logo resmi, dan kontak sekretariat yayasan untuk sinkronisasi multi-unit.</p>
+</div>
+<!-- Form Content -->
+<form class="space-y-5" onsubmit="return false;">
+<!-- Nama Aplikasi & Sub-nama -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div>
+<label class="block text-xs font-semibold text-brand-textPrimary mb-1.5">Nama Aplikasi <span class="text-rose-500">*</span></label>
+<input class="w-full text-sm rounded-lg border-brand-border px-3 py-2 text-brand-textPrimary focus:ring-2 focus:ring-brand-blue focus:border-brand-blue" type="text" value="SimPres"/>
+<span class="text-[11px] text-brand-textSecondary mt-1 block">Muncul di header, email notifikasi, portal unit, &amp; mobile app.</span>
+</div>
+<div>
+<label class="block text-xs font-semibold text-brand-textPrimary mb-1.5">Tagline / Sub-nama</label>
+<input class="w-full text-sm rounded-lg border-brand-border px-3 py-2 text-brand-textPrimary focus:ring-2 focus:ring-brand-blue focus:border-brand-blue" type="text" value="Sistem Presensi Kepegawaian Terpadu"/>
+<span class="text-[11px] text-brand-textSecondary mt-1 block">Deskripsi modul resmi di portal autentikasi.</span>
+</div>
+</div>
+<!-- Logo Resmi Upload -->
+<div>
+<label class="block text-xs font-semibold text-brand-textPrimary mb-1.5">Logo Resmi Aplikasi &amp; Yayasan</label>
+<div class="flex flex-col sm:flex-row items-center gap-4">
+<!-- Current Logo Preview -->
+<div class="w-20 h-20 rounded-xl bg-brand-navy border border-slate-700 flex flex-col items-center justify-center text-white shrink-0 shadow-inner">
+<span class="font-heading font-extrabold text-2xl tracking-tight text-blue-400">RJ</span>
+<span class="text-[9px] uppercase font-bold tracking-widest text-slate-300">YAYASAN</span>
+</div>
+<!-- Upload Zone -->
+<div class="flex-1 w-full border-2 border-dashed border-brand-border hover:border-brand-blue rounded-xl p-4 text-center cursor-pointer transition bg-[#FAFCFF]">
+<div class="flex items-center justify-center gap-3">
+<svg class="w-8 h-8 text-brand-blue shrink-0" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+</svg>
+<div class="text-left">
+<p class="text-xs font-semibold text-brand-textPrimary">Klik untuk unggah atau seret berkas ke sini</p>
+<p class="text-[11px] text-brand-textSecondary mt-0.5">Format PNG, SVG, atau JPG (Maksimal 2MB, Rasio 1:1 disarankan)</p>
+</div>
+</div>
+</div>
+<button class="px-3 py-2 border border-brand-border text-xs font-semibold rounded-lg text-brand-textPrimary hover:bg-slate-50 transition shrink-0" type="button">
+                    Ganti Logo
+                  </button>
+</div>
+</div>
+<!-- Nama Yayasan / Sekolah Induk -->
+<div>
+<label class="block text-xs font-semibold text-brand-textPrimary mb-1.5">Nama Yayasan / Sekolah Induk <span class="text-rose-500">*</span></label>
+<div class="relative">
+<span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</span>
+<input class="w-full text-sm rounded-lg border-brand-border pl-9 pr-3 py-2 text-brand-textPrimary focus:ring-2 focus:ring-brand-blue focus:border-brand-blue" type="text" value="Yayasan Pendidikan Islam Raudhatul Jannah"/>
+</div>
+</div>
+<!-- SK Yayasan & Email Sekretariat -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div>
+<label class="block text-xs font-semibold text-brand-textPrimary mb-1.5">Nomor Registrasi / SK Yayasan</label>
+<input class="w-full text-sm rounded-lg border-brand-border px-3 py-2 text-brand-textPrimary focus:ring-2 focus:ring-brand-blue focus:border-brand-blue" type="text" value="SK Kemenkumham No. AHU-00142.AH.01.04"/>
+</div>
+<div>
+<label class="block text-xs font-semibold text-brand-textPrimary mb-1.5">Email Resmi Sekretariat</label>
+<input class="w-full text-sm rounded-lg border-brand-border px-3 py-2 text-brand-textPrimary focus:ring-2 focus:ring-brand-blue focus:border-brand-blue" type="email" value="sekretariat@raudhatuljannah.sch.id"/>
+</div>
+</div>
+<!-- Alamat Yayasan -->
+<div>
+<label class="block text-xs font-semibold text-brand-textPrimary mb-1.5">Alamat Yayasan <span class="text-rose-500">*</span></label>
+<textarea class="w-full text-sm rounded-lg border-brand-border px-3 py-2 text-brand-textPrimary focus:ring-2 focus:ring-brand-blue focus:border-brand-blue" rows="2">Jl. Raya Cendekia No. 45, Kompleks Pendidikan Terpadu, Jakarta Selatan 12430</textarea>
+</div>
+<!-- Kontak WhatsApp & Zona Waktu -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div>
+<label class="block text-xs font-semibold text-brand-textPrimary mb-1.5">No. Kontak / WhatsApp Helpdesk</label>
+<input class="w-full text-sm rounded-lg border-brand-border px-3 py-2 text-brand-textPrimary focus:ring-2 focus:ring-brand-blue focus:border-brand-blue" type="text" value="+62 811-9876-5432"/>
+</div>
+<div>
+<label class="block text-xs font-semibold text-brand-textPrimary mb-1.5">Zona Waktu Default</label>
+<select class="w-full text-sm rounded-lg border-brand-border px-3 py-2 text-brand-textPrimary focus:ring-2 focus:ring-brand-blue focus:border-brand-blue">
+<option selected="">WIB (Asia/Jakarta) UTC+7</option>
+<option>WITA (Asia/Makassar) UTC+8</option>
+<option>WIT (Asia/Jayapura) UTC+9</option>
+</select>
+</div>
+</div>
+<!-- Banner Multi-Unit Connected -->
+<div class="pt-2">
+<div class="p-3.5 bg-slate-50 border border-brand-border rounded-xl flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-700 shrink-0">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</div>
+<div>
+<p class="text-xs font-bold text-brand-textPrimary">5 Unit Operasional Terkoneksi</p>
+<p class="text-[11px] text-brand-textSecondary">KB-TK, SDIT RJ, SMPIT RJ, SMAIT RJ, &amp; Pesantren Boarding</p>
+</div>
+</div>
+<button class="px-3 py-1.5 bg-white border border-brand-border text-brand-textPrimary text-xs font-semibold rounded-full hover:bg-slate-100 shadow-xs transition" type="button">
+                    Sinkron Otomatis
+                  </button>
+</div>
+</div>
+</form>
+</div>
+</div>
+<!-- Column Right: Summary Cards for other tabs (5 Cols) -->
+<div class="lg:col-span-5 space-y-6">
+<!-- Card Kebijakan Keamanan (Summary Tab Preview) -->
+<div class="bg-white rounded-[12px] border border-brand-border p-5 shadow-sm" data-purpose="card-kebijakan-keamanan">
+<div class="flex items-center justify-between pb-3 border-b border-brand-border">
+<div class="flex items-center gap-2">
+<div class="w-7 h-7 rounded-lg bg-blue-50 text-brand-blue flex items-center justify-center">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</div>
+<h3 class="text-sm font-heading font-bold text-brand-textPrimary">Kebijakan Keamanan</h3>
+</div>
+<span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
+                Status: Aktif
+              </span>
+</div>
+<div class="py-4 space-y-4">
+<!-- Security Item 1 -->
+<div class="flex items-start justify-between gap-4">
+<div>
+<p class="text-xs font-semibold text-brand-textPrimary">Wajib ganti password saat login pertama</p>
+<p class="text-[11px] text-brand-textSecondary mt-0.5">Untuk semua akun guru &amp; staf baru yang dibuat admin.</p>
+</div>
+<!-- Toggle Active -->
+<div class="w-10 h-5 bg-brand-navy rounded-full relative cursor-pointer shrink-0 transition">
+<div class="w-4 h-4 bg-white rounded-full absolute right-0.5 top-0.5 shadow-sm"></div>
+</div>
+</div>
+<!-- Security Item 2 -->
+<div class="pt-2 border-t border-slate-100 flex items-center justify-between">
+<div>
+<p class="text-xs font-semibold text-brand-textPrimary">Panjang Minimum Password</p>
+<p class="text-[11px] text-brand-textSecondary mt-0.5">Kombinasi Huruf Besar, Angka, &amp; Simbol.</p>
+</div>
+<span class="px-2.5 py-1 text-xs font-bold bg-slate-100 text-brand-textPrimary rounded-lg border border-slate-200">
+                  8 Karakter
+                </span>
+</div>
+<!-- Security Item 3 -->
+<div class="pt-2 border-t border-slate-100 flex items-start justify-between gap-4">
+<div>
+<p class="text-xs font-semibold text-brand-textPrimary">Verifikasi Dua Langkah (2FA)</p>
+<p class="text-[11px] text-brand-textSecondary mt-0.5">Wajib untuk akun Admin Unit &amp; Superadmin Pusat.</p>
+</div>
+<!-- Toggle Active -->
+<div class="w-10 h-5 bg-brand-navy rounded-full relative cursor-pointer shrink-0 transition">
+<div class="w-4 h-4 bg-white rounded-full absolute right-0.5 top-0.5 shadow-sm"></div>
+</div>
+</div>
+</div>
+<div class="pt-2 border-t border-brand-border">
+<a class="text-xs font-semibold text-brand-blue hover:text-brand-blueHover flex items-center gap-1" href="#">
+                Buka Tab Kebijakan Keamanan
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</a>
+</div>
+</div>
+<!-- Card Default Sistem (Summary Tab Preview) -->
+<div class="bg-white rounded-[12px] border border-brand-border p-5 shadow-sm" data-purpose="card-default-sistem">
+<div class="flex items-center justify-between pb-3 border-b border-brand-border">
+<div class="flex items-center gap-2">
+<div class="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</div>
+<h3 class="text-sm font-heading font-bold text-brand-textPrimary">Default Sistem</h3>
+</div>
+<span class="text-xs text-brand-textSecondary">Parameter Master</span>
+</div>
+<div class="py-4 space-y-3.5">
+<!-- Two metric pills side by side -->
+<div class="grid grid-cols-2 gap-3">
+<div class="p-3 bg-slate-50 rounded-lg border border-slate-200">
+<span class="text-[10px] text-brand-textSecondary uppercase font-bold tracking-wider block">Radius Geofence</span>
+<span class="text-sm font-heading font-bold text-brand-textPrimary mt-0.5 block">50 Meter</span>
+<span class="text-[10px] text-slate-400">Default presensi unit baru</span>
+</div>
+<div class="p-3 bg-slate-50 rounded-lg border border-slate-200">
+<span class="text-[10px] text-brand-textSecondary uppercase font-bold tracking-wider block">Toleransi Waktu</span>
+<span class="text-sm font-heading font-bold text-brand-textPrimary mt-0.5 block">15 Menit</span>
+<span class="text-[10px] text-slate-400">Sebelum status terlambat</span>
+</div>
+</div>
+<!-- Upcoming Holiday mini list -->
+<div>
+<div class="flex items-center justify-between mb-2">
+<span class="text-xs font-semibold text-brand-textPrimary">Hari Libur Nasional Terdekat (2026)</span>
+<button class="text-[11px] text-brand-blue hover:underline font-semibold" type="button">+ Tambah Libur</button>
+</div>
+<div class="space-y-1.5">
+<div class="flex items-center justify-between p-2 rounded-md bg-slate-50 text-xs">
+<span class="font-medium text-brand-textPrimary">17 Agu 2026</span>
+<span class="text-brand-textSecondary truncate max-w-[180px]">Hari Kemerdekaan RI</span>
+</div>
+<div class="flex items-center justify-between p-2 rounded-md bg-slate-50 text-xs">
+<span class="font-medium text-brand-textPrimary">05 Sep 2026</span>
+<span class="text-brand-textSecondary truncate max-w-[180px]">Maulid Nabi Muhammad SAW</span>
+</div>
+<div class="flex items-center justify-between p-2 rounded-md bg-slate-50 text-xs">
+<span class="font-medium text-brand-textPrimary">25 Des 2026</span>
+<span class="text-brand-textSecondary truncate max-w-[180px]">Hari Raya Natal</span>
+</div>
+</div>
+</div>
+</div>
+<div class="pt-2 border-t border-brand-border">
+<a class="text-xs font-semibold text-brand-blue hover:text-brand-blueHover flex items-center gap-1" href="#">
+                Buka Tab Default Sistem
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</a>
+</div>
+</div>
+</div>
+</div>
+<!-- END: SettingsGrid -->
+<!-- BEGIN: BottomActionBar -->
+<div class="mt-8 pt-5 border-t border-brand-border flex flex-col sm:flex-row items-center justify-between gap-4" data-purpose="bottom-action-bar">
+<!-- Left: Last saved indicator -->
+<div class="flex items-center gap-2 text-xs text-brand-textSecondary">
+<svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span>Terakhir disimpan oleh <strong class="text-brand-textPrimary font-semibold">Superadmin Pusat</strong> pada 15 Sep 2026, 14:20 WIB</span>
+</div>
+<!-- Right: Actions Buttons -->
+<div class="flex items-center gap-3 w-full sm:w-auto">
+<button class="flex-1 sm:flex-none px-4 py-2.5 rounded-[10px] border border-brand-border text-sm font-semibold text-brand-textPrimary hover:bg-white bg-transparent transition shadow-xs" type="button">
+            Batal / Reset
+          </button>
+<button class="flex-1 sm:flex-none px-6 py-2.5 rounded-[10px] bg-brand-navy text-white text-sm font-semibold hover:bg-brand-navyHover transition shadow-sm flex items-center justify-center gap-2" type="button">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+            Simpan Perubahan
+          </button>
+</div>
+</div>
+<!-- END: BottomActionBar -->
+</main>
+<!-- END: MainContent -->
+</div>
+<!-- END: MainContentWrapper -->
+</body></html>

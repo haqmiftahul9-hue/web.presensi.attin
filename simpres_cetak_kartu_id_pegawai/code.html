@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+
+<html lang="id"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{"colors":{"outline-variant":"#c5c6ce","on-surface":"#191c1e","surface-container-lowest":"#ffffff","primary-fixed":"#d7e3ff","on-tertiary-container":"#7187b4","surface-variant":"#e0e3e6","surface":"#f7f9fc","tertiary":"#000618","on-tertiary-fixed":"#001a40","on-primary-fixed":"#061b39","surface-bright":"#f7f9fc","secondary-container":"#316bf3","tertiary-fixed":"#d7e2ff","surface-dim":"#d8dadd","on-tertiary":"#ffffff","error-container":"#ffdad6","tertiary-container":"#011e46","on-secondary-fixed-variant":"#003ea8","surface-container-high":"#e6e8eb","outline":"#75777e","on-primary-container":"#7687ab","on-error":"#ffffff","on-error-container":"#93000a","on-primary":"#ffffff","error":"#ba1a1a","on-secondary-container":"#fefcff","inverse-surface":"#2d3133","primary-container":"#0b1f3d","surface-container":"#eceef1","on-background":"#191c1e","secondary-fixed-dim":"#b4c5ff","on-secondary-fixed":"#00174b","background":"#f7f9fc","on-secondary":"#ffffff","on-surface-variant":"#44474e","inverse-primary":"#b5c7ed","surface-container-highest":"#e0e3e6","on-primary-fixed-variant":"#354767","secondary-fixed":"#dbe1ff","primary-fixed-dim":"#b5c7ed","tertiary-fixed-dim":"#b0c7f8","secondary":"#0051d5","on-tertiary-fixed-variant":"#304670","surface-container-low":"#f2f4f7","primary":"#000718","inverse-on-surface":"#eff1f4","surface-tint":"#4d5f80"},"borderRadius":{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},"spacing":{"space-lg":"1.5rem","space-md":"1rem","space-2xs":"0.25rem","space-2xl":"3rem","space-sm":"0.75rem","gutter-mobile":"1rem","space-xs":"0.5rem","margin-mobile":"1rem","margin":"2rem","gutter":"1.5rem","space-xl":"2rem"},"fontFamily":{"body-lg":["Inter"],"label-md":["Inter"],"headline-md":["Plus Jakarta Sans"],"display-lg-mobile":["Plus Jakarta Sans"],"headline-sm":["Plus Jakarta Sans"],"body-md-medium":["Inter"],"body-sm-medium":["Inter"],"body-sm":["Inter"],"display-lg":["Plus Jakarta Sans"],"label-sm":["Inter"],"headline-lg":["Plus Jakarta Sans"],"headline-lg-mobile":["Plus Jakarta Sans"],"body-md":["Inter"]},"fontSize":{"body-lg":["16px",{"lineHeight":"24px","fontWeight":"400"}],"label-md":["13px",{"lineHeight":"18px","letterSpacing":"0.01em","fontWeight":"600"}],"headline-md":["20px",{"lineHeight":"28px","letterSpacing":"-0.01em","fontWeight":"600"}],"display-lg-mobile":["24px",{"lineHeight":"32px","letterSpacing":"-0.01em","fontWeight":"700"}],"headline-sm":["16px",{"lineHeight":"24px","letterSpacing":"-0.005em","fontWeight":"600"}],"body-md-medium":["14px",{"lineHeight":"20px","fontWeight":"500"}],"body-sm-medium":["12px",{"lineHeight":"16px","fontWeight":"500"}],"body-sm":["12px",{"lineHeight":"16px","fontWeight":"400"}],"display-lg":["32px",{"lineHeight":"40px","letterSpacing":"-0.02em","fontWeight":"700"}],"label-sm":["11px",{"lineHeight":"14px","letterSpacing":"0.04em","fontWeight":"600"}],"headline-lg":["24px",{"lineHeight":"32px","letterSpacing":"-0.015em","fontWeight":"600"}],"headline-lg-mobile":["20px",{"lineHeight":"28px","letterSpacing":"-0.01em","fontWeight":"600"}],"body-md":["14px",{"lineHeight":"20px","fontWeight":"400"}]}}}};</script></head><body class="bg-surface font-body-md text-body-md text-on-surface antialiased"><aside class="fixed left-0 top-0 h-screen w-[260px] bg-primary-container z-50 flex flex-col justify-between border-r border-white/10"><div class="flex flex-col flex-1 overflow-hidden"><div class="h-16 px-space-md flex items-center gap-3 border-b border-white/10 shrink-0"><div class="w-9 h-9 rounded-lg bg-secondary flex items-center justify-center text-on-secondary shrink-0 shadow-sm"><span class="material-symbols-outlined text-[22px]">verified</span></div><div class="flex flex-col min-w-0"><span class="font-headline-sm text-headline-sm text-white tracking-tight truncate leading-tight">SimPres</span><span class="font-label-sm text-label-sm text-on-primary-container uppercase tracking-wider truncate">Multi-Unit System</span></div></div><div class="p-space-md shrink-0"><div class="flex items-center justify-between px-3 py-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-colors cursor-pointer"><div class="flex items-center gap-2 min-w-0"><span class="material-symbols-outlined text-[18px] text-on-primary-container">domain</span><span class="font-body-sm-medium text-body-sm-medium text-white truncate">Semua Unit (Pusat)</span></div><span class="material-symbols-outlined text-[16px] text-on-primary-container">expand_more</span></div></div><nav class="flex-1 px-3 space-y-1 overflow-y-auto" data-active-classes="bg-secondary text-on-secondary font-medium shadow-sm"><a class="flex items-center gap-3 px-3 py-2 rounded-lg text-white/70 hover:bg-white/5 hover:text-white transition-colors font-body-sm-medium text-body-sm-medium" data-path="dashboard" href="#"><span class="material-symbols-outlined text-[20px]">grid_view</span><span class="truncate">Dashboard</span></a><a class="flex items-center gap-3 px-3 py-2 rounded-lg text-white/70 hover:bg-white/5 hover:text-white transition-colors font-body-sm-medium text-body-sm-medium" data-path="manajemen-unit" href="#"><span class="material-symbols-outlined text-[20px]">corporate_fare</span><span class="truncate">Manajemen Unit</span></a><a class="flex items-center gap-3 px-3 py-2 rounded-lg text-white/70 hover:bg-white/5 hover:text-white transition-colors font-body-sm-medium text-body-sm-medium" data-path="manajemen-admin-user" href="#"><span class="material-symbols-outlined text-[20px]">admin_panel_settings</span><span class="truncate">Manajemen Admin &amp; User</span></a><a class="flex items-center gap-3 px-3 py-2 rounded-lg text-white/70 hover:bg-white/5 hover:text-white transition-colors font-body-sm-medium text-body-sm-medium" data-path="data-guru-pegawai" href="#"><span class="material-symbols-outlined text-[20px]">badge</span><span class="truncate">Data Guru/Pegawai</span></a><a aria-current="page" class="flex items-center gap-3 px-3 py-2 rounded-lg transition-colors bg-secondary text-on-secondary font-medium shadow-sm" data-path="presensi" href="#"><span class="material-symbols-outlined text-[20px]">how_to_reg</span><span class="truncate">Presensi</span></a><a class="flex items-center gap-3 px-3 py-2 rounded-lg text-white/70 hover:bg-white/5 hover:text-white transition-colors font-body-sm-medium text-body-sm-medium" data-path="rekap-laporan" href="#"><span class="material-symbols-outlined text-[20px]">bar_chart</span><span class="truncate">Rekap &amp; Laporan</span></a><a class="flex items-center gap-3 px-3 py-2 rounded-lg text-white/70 hover:bg-white/5 hover:text-white transition-colors font-body-sm-medium text-body-sm-medium" data-path="ranking-kehadiran" href="#"><span class="material-symbols-outlined text-[20px]">military_tech</span><span class="truncate">Ranking Kehadiran</span></a><a class="flex items-center gap-3 px-3 py-2 rounded-lg text-white/70 hover:bg-white/5 hover:text-white transition-colors font-body-sm-medium text-body-sm-medium" data-path="pengajuan-izin-cuti" href="#"><span class="material-symbols-outlined text-[20px]">event_busy</span><span class="truncate">Pengajuan Izin/Cuti</span></a><a class="flex items-center gap-3 px-3 py-2 rounded-lg text-white/70 hover:bg-white/5 hover:text-white transition-colors font-body-sm-medium text-body-sm-medium" data-path="kalender-libur" href="#"><span class="material-symbols-outlined text-[20px]">calendar_month</span><span class="truncate">Kalender Libur</span></a><a class="flex items-center gap-3 px-3 py-2 rounded-lg text-white/70 hover:bg-white/5 hover:text-white transition-colors font-body-sm-medium text-body-sm-medium" data-path="log-aktivitas" href="#"><span class="material-symbols-outlined text-[20px]">history</span><span class="truncate">Log Aktivitas</span></a><a class="flex items-center gap-3 px-3 py-2 rounded-lg text-white/70 hover:bg-white/5 hover:text-white transition-colors font-body-sm-medium text-body-sm-medium" data-path="pengaturan-global" href="#"><span class="material-symbols-outlined text-[20px]">settings</span><span class="truncate">Pengaturan Global</span></a></nav></div><div class="p-space-md border-t border-white/10 shrink-0"><div class="flex items-center justify-between gap-3"><div class="flex items-center gap-3 min-w-0"><div class="w-9 h-9 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary shrink-0 font-body-sm-medium text-body-sm-medium">SP</div><div class="flex flex-col min-w-0"><span class="font-body-sm-medium text-body-sm-medium text-white truncate">Superadmin Pusat</span><span class="font-label-sm text-label-sm text-on-primary-container truncate">superadmin@simpres.id</span></div></div><button class="text-white/60 hover:text-white transition-colors p-1.5 rounded-lg hover:bg-white/10" title="Logout" type="button"><span class="material-symbols-outlined text-[20px]">logout</span></button></div></div></aside><div class="pl-[260px]"><header class="fixed top-0 left-[260px] right-0 h-16 bg-surface-container-lowest border-b border-surface-variant z-40 px-space-lg flex items-center justify-between"><div class="flex items-center gap-space-lg flex-1 max-w-lg"><div class="relative w-full max-w-sm"><span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[20px]">search</span><input class="w-full h-10 pl-10 pr-4 bg-surface-container-low border border-surface-variant rounded-lg font-body-md text-body-md text-on-surface placeholder:text-outline focus:outline-none focus:border-secondary focus:bg-surface-container-lowest transition-all" placeholder="Cari pegawai, NIY, atau unit..." type="text"/></div><div class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-container-low border border-surface-variant shrink-0"><span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span><span class="font-label-sm text-label-sm text-on-surface-variant">Server Pusat: Normal</span></div></div><div class="flex items-center gap-space-md"><button class="p-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low rounded-lg transition-colors relative" type="button"><span class="material-symbols-outlined text-[22px]">chat</span></button><button class="p-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low rounded-lg transition-colors relative" type="button"><span class="material-symbols-outlined text-[22px]">notifications</span><span class="absolute top-1.5 right-1.5 w-2 h-2 bg-error rounded-full ring-2 ring-surface-container-lowest"></span></button><div class="h-6 w-px bg-surface-variant mx-1"></div><div class="flex items-center gap-3 pl-1 cursor-pointer group"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><div class="hidden lg:flex flex-col min-w-0 text-left"><span class="font-body-sm-medium text-body-sm-medium text-on-surface group-hover:text-secondary transition-colors truncate">Superadmin</span><span class="font-label-sm text-label-sm text-on-surface-variant truncate">Yayasan Pendidikan</span></div><span class="material-symbols-outlined text-[18px] text-outline group-hover:text-on-surface transition-colors hidden sm:inline">expand_more</span></div></div></header><main class="w-full pt-16 bg-surface p-space-lg min-h-screen"><div class="flex flex-col w-full">
+<!-- Interactive Navigation Synchronizer -->
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const activeLink = document.querySelector('aside nav a[data-path="data-guru-pegawai"]');
+      if (activeLink) {
+        activeLink.classList.remove('text-white/70', 'hover:bg-white/5');
+        activeLink.classList.add('bg-secondary', 'text-on-secondary', 'font-medium', 'shadow-sm');
+        activeLink.innerHTML = `
+          <span class="material-symbols-outlined text-[20px]">badge</span>
+          <span class="truncate">Cetak Kartu ID</span>
+          <span class="ml-auto w-2 h-2 rounded-full bg-white"></span>
+        `;
+      }
+    });
+
+    function toggleCard(cardId) {
+      const card = document.getElementById(cardId);
+      const checkbox = card.querySelector('input[type="checkbox"]');
+      const isChecked = !checkbox.checked;
+      checkbox.checked = isChecked;
+      
+      const badge = card.querySelector('.selection-badge');
+      if (isChecked) {
+        card.classList.remove('bg-surface-container-lowest', 'shadow-sm');
+        card.classList.add('bg-secondary-fixed/20', 'shadow-md');
+        if (badge) badge.classList.remove('hidden');
+      } else {
+        card.classList.remove('bg-secondary-fixed/20', 'shadow-md');
+        card.classList.add('bg-surface-container-lowest', 'shadow-sm');
+        if (badge) badge.classList.add('hidden');
+      }
+      updateSummaryCounter();
+    }
+
+    function toggleSelectAll(masterCheckbox) {
+      const checkboxes = document.querySelectorAll('.id-card-checkbox');
+      checkboxes.forEach(cb => {
+        cb.checked = masterCheckbox.checked;
+        const card = cb.closest('.id-card-item');
+        const badge = card.querySelector('.selection-badge');
+        if (masterCheckbox.checked) {
+          card.classList.remove('bg-surface-container-lowest', 'shadow-sm');
+          card.classList.add('bg-secondary-fixed/20', 'shadow-md');
+          if (badge) badge.classList.remove('hidden');
+        } else {
+          card.classList.remove('bg-secondary-fixed/20', 'shadow-md');
+          card.classList.add('bg-surface-container-lowest', 'shadow-sm');
+          if (badge) badge.classList.add('hidden');
+        }
+      });
+      updateSummaryCounter();
+    }
+
+    function updateSummaryCounter() {
+      const checkedCount = document.querySelectorAll('.id-card-checkbox:checked').length;
+      const countPill = document.getElementById('selected-count-pill');
+      const actionBtnCount = document.getElementById('btn-print-count');
+      const footerCount = document.getElementById('footer-selected-count');
+      if (countPill) countPill.textContent = `${checkedCount} Kartu`;
+      if (actionBtnCount) actionBtnCount.textContent = `(${checkedCount})`;
+      if (footerCount) footerCount.textContent = `${checkedCount} dipilih`;
+    }
+  </script>
+<!-- Page Breadcrumb & Title Section -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-space-md mb-space-lg">
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-2 text-on-surface-variant font-label-sm text-label-sm">
+<span>Home</span>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span>Pegawai</span>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span class="text-secondary font-medium">Cetak Kartu ID</span>
+</div>
+<div class="flex items-center gap-3 mt-1">
+<div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-on-primary shadow-sm">
+<span class="material-symbols-outlined text-[24px]">badge</span>
+</div>
+<div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface tracking-tight">Cetak Kartu ID Pegawai</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Generate kartu identitas resmi ber-QR Code presisi untuk absensi kiosk yayasan dan scan mobile.</p>
+</div>
+</div>
+</div>
+<!-- Live Stat Badges -->
+<div class="flex items-center gap-2 shrink-0">
+<div class="px-3 py-2 rounded-lg bg-surface-container-lowest shadow-sm flex items-center gap-2.5">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Total:</span>
+<span class="font-body-md-medium text-body-md-medium text-on-surface">209</span>
+</div>
+<div class="px-3 py-2 rounded-lg bg-surface-container-lowest shadow-sm flex items-center gap-2.5">
+<span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Siap:</span>
+<span class="font-body-md-medium text-body-md-medium text-on-surface">209</span>
+</div>
+<div class="px-3 py-2 rounded-lg bg-secondary-container text-on-secondary shadow-sm flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">check_circle</span>
+<span class="font-label-sm text-label-sm uppercase">Terpilih:</span>
+<span class="font-body-md-medium text-body-md-medium text-white" id="selected-count-pill">3 Kartu</span>
+</div>
+</div>
+</div>
+<!-- Control & Filter Bar -->
+<div class="p-space-md bg-surface-container-lowest rounded-xl shadow-sm mb-space-lg flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-space-md">
+<!-- Filters & Selectors -->
+<div class="flex flex-wrap items-center gap-3 flex-1">
+<label class="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-surface-container-low hover:bg-surface-container cursor-pointer transition-colors shrink-0">
+<input class="w-4 h-4 rounded text-secondary focus:ring-0 cursor-pointer" onchange="toggleSelectAll(this)" type="checkbox"/>
+<span class="font-body-sm-medium text-body-sm-medium text-on-surface">Pilih Semua (209)</span>
+</label>
+<!-- Unit Selector Filter -->
+<div class="relative min-w-[190px]">
+<select class="w-full h-10 pl-9 pr-8 bg-surface-container-low rounded-lg font-body-sm-medium text-body-sm-medium text-on-surface appearance-none cursor-pointer focus:outline-none focus:bg-surface-container-lowest">
+<option>Semua Unit (Pusat)</option>
+<option>TK IT Raudhatul Jannah</option>
+<option>SD Islam Raudhatul Jannah</option>
+<option>SMP Islam Raudhatul Jannah</option>
+<option>SMA Islam Raudhatul Jannah</option>
+<option>Sekretariat Yayasan</option>
+</select>
+<span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-outline text-[18px] pointer-events-none">domain</span>
+<span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-outline text-[18px] pointer-events-none">expand_more</span>
+</div>
+<!-- Format / Sheet Size Dropdown -->
+<div class="relative min-w-[190px]">
+<select class="w-full h-10 pl-9 pr-8 bg-surface-container-low rounded-lg font-body-sm-medium text-body-sm-medium text-on-surface appearance-none cursor-pointer focus:outline-none focus:bg-surface-container-lowest">
+<option>Standar CR80 (PVC Card)</option>
+<option>A4 Sheet (8 Kartu / Lembar)</option>
+<option>A4 Sheet (10 Kartu / Lembar)</option>
+<option>Roll Thermal Pass (Kiosk)</option>
+</select>
+<span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-outline text-[18px] pointer-events-none">style</span>
+<span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-outline text-[18px] pointer-events-none">expand_more</span>
+</div>
+<!-- Search Input -->
+<div class="relative flex-1 min-w-[220px]">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">search</span>
+<input class="w-full h-10 pl-9 pr-4 bg-surface-container-low rounded-lg font-body-md text-body-md text-on-surface placeholder:text-outline focus:outline-none focus:bg-surface-container-lowest transition-all" placeholder="Cari nama guru, NIY, atau jabatan..." type="text"/>
+</div>
+</div>
+<!-- Print & Export Actions -->
+<div class="flex items-center gap-3 shrink-0">
+<button class="h-10 px-4 rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface font-body-sm-medium text-body-sm-medium flex items-center gap-2 transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">download</span>
+<span>Unduh PDF</span>
+</button>
+<button class="h-10 px-5 rounded-lg bg-primary hover:bg-primary-container text-on-primary font-body-sm-medium text-body-sm-medium flex items-center gap-2 shadow-sm transition-all" type="button">
+<span class="material-symbols-outlined text-[20px]">print</span>
+<span>Cetak Terpilih <span id="btn-print-count">(3)</span></span>
+</button>
+</div>
+</div>
+<!-- Main Grid of Printable ID Cards (3 Columns Desktop) -->
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-space-lg mb-space-xl">
+<!-- Card 1: Wisna Yunita (SELECTED) -->
+<div class="id-card-item relative bg-secondary-fixed/20 rounded-xl shadow-md overflow-hidden cursor-pointer transition-all duration-200" id="card-item-1" onclick="toggleCard('card-item-1')">
+<div class="selection-badge absolute top-2 right-2 z-30 flex items-center justify-center">
+<input checked="" class="id-card-checkbox w-5 h-5 text-secondary rounded focus:ring-0 cursor-pointer" onchange="toggleCard('card-item-1')" onclick="event.stopPropagation();" type="checkbox"/>
+</div>
+<!-- Header Ribbon -->
+<div class="bg-primary-container text-on-primary px-3.5 py-2.5 flex items-center justify-between">
+<div class="flex items-center gap-2 min-w-0">
+<div class="w-6 h-6 rounded-full bg-white flex items-center justify-center shrink-0">
+<span class="font-display-lg text-primary text-[10px] font-bold">RJ</span>
+</div>
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-white truncate">YP Raudhatul Jannah</span>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-secondary text-white font-label-sm text-label-sm shrink-0 mr-6">SD Islam RJ</span>
+</div>
+<!-- Body Section -->
+<div class="p-space-md flex gap-space-md bg-surface-container-lowest">
+<!-- Photo -->
+<div class="flex flex-col items-center shrink-0">
+<div class="w-[74px] h-[74px] rounded-xl bg-surface-container overflow-hidden shadow-inner">
+<img class="w-full h-full object-cover" data-alt="Professional Indonesian female teacher wearing clean light gray hijab, friendly expression, studio softbox lighting, corporate ID photo aesthetic on plain neutral slate background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAbu7OLsBLkoyJ8OZpawNAqI7xd451RkNs9K0c_yDYsZnHJbbwwxMZAW-C1LJNc3Z0Q9sIGpEf77y0K6jOxaQyIjfR-PCKwr9Q45Y4lRqtPsIRPtUOBSp001rUNcpuo_fAxRf0zOckiHZqHBnoQRi-wrohmT-PbS_RcSHEDza_AHB445QyPvtomv5dzBtxuTuQy1IOQwv3syqjpre3Zl0SCanOmnRGl2o2NMV5JQ44Vc5CuQ6f6bVRv"/>
+</div>
+<span class="mt-1 px-1.5 py-0.5 rounded text-[10px] bg-emerald-100 text-emerald-800 font-label-sm uppercase">Tetap</span>
+</div>
+<!-- Meta Details -->
+<div class="flex flex-col justify-center min-w-0 flex-1">
+<h2 class="font-headline-sm text-headline-sm text-on-surface truncate leading-snug">Wisna Yunita, S.Pd</h2>
+<p class="font-body-sm-medium text-body-sm-medium text-secondary truncate">Guru Kelas 6 &amp; Wali Kelas</p>
+<div class="mt-1.5 space-y-0.5 font-body-sm text-body-sm text-on-surface-variant">
+<div class="flex items-center gap-1.5">
+<span class="font-label-sm text-label-sm text-outline">NIY:</span>
+<span class="font-mono text-on-surface font-medium">049001054</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="font-label-sm text-label-sm text-outline">Unit:</span>
+<span class="truncate">SD Islam Raudhatul Jannah</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer with Barcode and QR -->
+<div class="px-space-md py-2.5 bg-surface-container-low flex items-center justify-between gap-2">
+<div class="flex flex-col justify-center min-w-0">
+<!-- Vector 1D Barcode Mockup -->
+<svg class="h-6 w-36 text-on-surface shrink-0" fill="currentColor" viewbox="0 0 140 24">
+<rect height="24" width="3" x="0" y="0"></rect>
+<rect height="24" width="1" x="5" y="0"></rect>
+<rect height="24" width="2" x="8" y="0"></rect>
+<rect height="24" width="4" x="13" y="0"></rect>
+<rect height="24" width="2" x="20" y="0"></rect>
+<rect height="24" width="1" x="24" y="0"></rect>
+<rect height="24" width="3" x="27" y="0"></rect>
+<rect height="24" width="2" x="33" y="0"></rect>
+<rect height="24" width="4" x="38" y="0"></rect>
+<rect height="24" width="1" x="44" y="0"></rect>
+<rect height="24" width="3" x="48" y="0"></rect>
+<rect height="24" width="2" x="53" y="0"></rect>
+<rect height="24" width="1" x="58" y="0"></rect>
+<rect height="24" width="4" x="62" y="0"></rect>
+<rect height="24" width="2" x="69" y="0"></rect>
+<rect height="24" width="3" x="73" y="0"></rect>
+<rect height="24" width="1" x="79" y="0"></rect>
+<rect height="24" width="3" x="83" y="0"></rect>
+<rect height="24" width="2" x="89" y="0"></rect>
+<rect height="24" width="4" x="94" y="0"></rect>
+<rect height="24" width="1" x="101" y="0"></rect>
+<rect height="24" width="3" x="105" y="0"></rect>
+<rect height="24" width="2" x="111" y="0"></rect>
+<rect height="24" width="4" x="116" y="0"></rect>
+<rect height="24" width="2" x="123" y="0"></rect>
+<rect height="24" width="1" x="127" y="0"></rect>
+<rect height="24" width="3" x="131" y="0"></rect>
+<rect height="24" width="2" x="136" y="0"></rect>
+</svg>
+<span class="font-mono text-[10px] text-on-surface-variant tracking-wider mt-0.5">049001054-2026</span>
+<span class="text-[9px] text-outline">Berlaku s/d: 31 Des 2027</span>
+</div>
+<!-- 2D High Contrast QR Code -->
+<div class="flex flex-col items-center shrink-0">
+<div class="w-12 h-12 bg-white p-1 rounded shadow-sm">
+<svg class="w-full h-full text-on-surface" fill="currentColor" viewbox="0 0 24 24">
+<path d="M2 2h8v8H2V2zm2 2v4h4V4H4zm10-2h8v8h-8V2zm2 2v4h4V4h-4zM2 14h8v8H2v-8zm2 2v4h4v-4H4zm14 3h2v3h-2v-3zm0-5h4v2h-4v-2zm-4 0h2v4h-2v-4zm2 2h2v2h-2v-2zm2 2h2v2h-2v-2zm-4 2h2v2h-2v-2zm-8-8h2v2H6V9zm4 0h2v2h-2V9zm-2 2h2v2H8v-2zm6-2h2v2h-2V9zm2 2h2v2h-2v-2z"></path>
+</svg>
+</div>
+<span class="font-label-sm text-[8px] text-outline uppercase tracking-wider mt-0.5">Scan Kiosk</span>
+</div>
+</div>
+</div>
+<!-- Card 2: Bustanul Abidin (SELECTED) -->
+<div class="id-card-item relative bg-secondary-fixed/20 rounded-xl shadow-md overflow-hidden cursor-pointer transition-all duration-200" id="card-item-2" onclick="toggleCard('card-item-2')">
+<div class="selection-badge absolute top-2 right-2 z-30 flex items-center justify-center">
+<input checked="" class="id-card-checkbox w-5 h-5 text-secondary rounded focus:ring-0 cursor-pointer" onchange="toggleCard('card-item-2')" onclick="event.stopPropagation();" type="checkbox"/>
+</div>
+<!-- Header Ribbon -->
+<div class="bg-primary-container text-on-primary px-3.5 py-2.5 flex items-center justify-between">
+<div class="flex items-center gap-2 min-w-0">
+<div class="w-6 h-6 rounded-full bg-white flex items-center justify-center shrink-0">
+<span class="font-display-lg text-primary text-[10px] font-bold">RJ</span>
+</div>
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-white truncate">YP Raudhatul Jannah</span>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-secondary text-white font-label-sm text-label-sm shrink-0 mr-6">SD Islam RJ</span>
+</div>
+<!-- Body Section -->
+<div class="p-space-md flex gap-space-md bg-surface-container-lowest">
+<!-- Photo -->
+<div class="flex flex-col items-center shrink-0">
+<div class="w-[74px] h-[74px] rounded-xl bg-surface-container overflow-hidden shadow-inner">
+<img class="w-full h-full object-cover" data-alt="Indonesian male sports physical education teacher in pristine navy polo shirt, friendly confident smile, warm studio illumination, neat short hair, neutral background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAjdgkgO9xnqglSqom5PGQPOnWpKDM4PuWSeTuRTW865YOYa64INb-nuOfD2D3VSRbRKOfI6rWrxHBOTbvDf39XGdupMMKKJbVTBVe0sK7FjPqw6lZ0dwGxEfv-s82nKGMMIIrNl-HbHiIvqTpwd0Y8ee1T43iJnyKO2mKjSmQceTIIC-4tcr8UZHwdzhaEpPIbJOepESXnyCXGtlQJvtPkN-5TwXom1lzKUazjmykrK9JSIBB3M0RO"/>
+</div>
+<span class="mt-1 px-1.5 py-0.5 rounded text-[10px] bg-emerald-100 text-emerald-800 font-label-sm uppercase">Tetap</span>
+</div>
+<!-- Meta Details -->
+<div class="flex flex-col justify-center min-w-0 flex-1">
+<h2 class="font-headline-sm text-headline-sm text-on-surface truncate leading-snug">Bustanul Abidin, S.Pd</h2>
+<p class="font-body-sm-medium text-body-sm-medium text-secondary truncate">Guru PJOK &amp; Koord. Ekskul</p>
+<div class="mt-1.5 space-y-0.5 font-body-sm text-body-sm text-on-surface-variant">
+<div class="flex items-center gap-1.5">
+<span class="font-label-sm text-label-sm text-outline">NIY:</span>
+<span class="font-mono text-on-surface font-medium">049097021</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="font-label-sm text-label-sm text-outline">Unit:</span>
+<span class="truncate">SD Islam Raudhatul Jannah</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer with Barcode and QR -->
+<div class="px-space-md py-2.5 bg-surface-container-low flex items-center justify-between gap-2">
+<div class="flex flex-col justify-center min-w-0">
+<svg class="h-6 w-36 text-on-surface shrink-0" fill="currentColor" viewbox="0 0 140 24">
+<rect height="24" width="2" x="0" y="0"></rect>
+<rect height="24" width="3" x="4" y="0"></rect>
+<rect height="24" width="1" x="9" y="0"></rect>
+<rect height="24" width="3" x="13" y="0"></rect>
+<rect height="24" width="4" x="18" y="0"></rect>
+<rect height="24" width="1" x="25" y="0"></rect>
+<rect height="24" width="2" x="29" y="0"></rect>
+<rect height="24" width="4" x="34" y="0"></rect>
+<rect height="24" width="2" x="40" y="0"></rect>
+<rect height="24" width="3" x="45" y="0"></rect>
+<rect height="24" width="1" x="51" y="0"></rect>
+<rect height="24" width="3" x="55" y="0"></rect>
+<rect height="24" width="2" x="61" y="0"></rect>
+<rect height="24" width="4" x="66" y="0"></rect>
+<rect height="24" width="1" x="72" y="0"></rect>
+<rect height="24" width="3" x="76" y="0"></rect>
+<rect height="24" width="2" x="82" y="0"></rect>
+<rect height="24" width="4" x="87" y="0"></rect>
+<rect height="24" width="1" x="94" y="0"></rect>
+<rect height="24" width="3" x="98" y="0"></rect>
+<rect height="24" width="2" x="104" y="0"></rect>
+<rect height="24" width="4" x="109" y="0"></rect>
+<rect height="24" width="1" x="116" y="0"></rect>
+<rect height="24" width="3" x="120" y="0"></rect>
+<rect height="24" width="2" x="126" y="0"></rect>
+<rect height="24" width="4" x="131" y="0"></rect>
+</svg>
+<span class="font-mono text-[10px] text-on-surface-variant tracking-wider mt-0.5">049097021-2026</span>
+<span class="text-[9px] text-outline">Berlaku s/d: 31 Des 2027</span>
+</div>
+<div class="flex flex-col items-center shrink-0">
+<div class="w-12 h-12 bg-white p-1 rounded shadow-sm">
+<svg class="w-full h-full text-on-surface" fill="currentColor" viewbox="0 0 24 24">
+<path d="M2 2h8v8H2V2zm2 2v4h4V4H4zm10-2h8v8h-8V2zm2 2v4h4V4h-4zM2 14h8v8H2v-8zm2 2v4h4v-4H4zm14 3h2v3h-2v-3zm0-5h4v2h-4v-2zm-4 0h2v4h-2v-4zm2 2h2v2h-2v-2zm2 2h2v2h-2v-2zm-4 2h2v2h-2v-2zm-8-8h2v2H6V9zm4 0h2v2h-2V9zm-2 2h2v2H8v-2zm6-2h2v2h-2V9zm2 2h2v2h-2v-2z"></path>
+</svg>
+</div>
+<span class="font-label-sm text-[8px] text-outline uppercase tracking-wider mt-0.5">Scan Kiosk</span>
+</div>
+</div>
+</div>
+<!-- Card 3: Erianto (UNSELECTED) -->
+<div class="id-card-item relative bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden cursor-pointer hover:shadow-md transition-all duration-200" id="card-item-3" onclick="toggleCard('card-item-3')">
+<div class="selection-badge absolute top-2 right-2 z-30 flex items-center justify-center hidden">
+<input class="id-card-checkbox w-5 h-5 text-secondary rounded focus:ring-0 cursor-pointer" onchange="toggleCard('card-item-3')" onclick="event.stopPropagation();" type="checkbox"/>
+</div>
+<!-- Unselected toggle trigger checkbox always clickable -->
+<div class="absolute top-2 right-2 z-30 flex items-center justify-center">
+<input class="id-card-checkbox w-5 h-5 text-secondary rounded focus:ring-0 cursor-pointer" onchange="toggleCard('card-item-3')" onclick="event.stopPropagation();" type="checkbox"/>
+</div>
+<!-- Header Ribbon -->
+<div class="bg-primary-container text-on-primary px-3.5 py-2.5 flex items-center justify-between">
+<div class="flex items-center gap-2 min-w-0">
+<div class="w-6 h-6 rounded-full bg-white flex items-center justify-center shrink-0">
+<span class="font-display-lg text-primary text-[10px] font-bold">RJ</span>
+</div>
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-white truncate">YP Raudhatul Jannah</span>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-secondary-fixed-dim text-on-secondary-fixed font-label-sm text-label-sm shrink-0 mr-6">SMP Islam RJ</span>
+</div>
+<!-- Body Section -->
+<div class="p-space-md flex gap-space-md bg-surface-container-lowest">
+<!-- Photo -->
+<div class="flex flex-col items-center shrink-0">
+<div class="w-[74px] h-[74px] rounded-xl bg-surface-container overflow-hidden shadow-inner">
+<img class="w-full h-full object-cover" data-alt="Distinguished mature Indonesian Islamic teacher wearing formal songkok and dark blazer, peaceful smile, soft lighting studio portrait, clean aesthetic" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC-MXuXRJ1EkWzJfim-TRUn9IhLY4FXRcPPOKetAaBGaR0u1mXy0qUOI_BpbYA1kMEDTU0QXAELQtN9SS9yUyIprZfrmP-2ylcZFGaU4J6mevGOdNZpcD7Os20qPRgstQAMVYBmXD_SWIFMuTUF_-cxXaQMSJDc8cLOvemGLZ4fZ4tpqXETOfHJ9V3Ha1gTOXyP54p21_TqTb6iYUYVOt2GhPChIN_619NWaWfGc3GV1xmeFg-b_XvH"/>
+</div>
+<span class="mt-1 px-1.5 py-0.5 rounded text-[10px] bg-emerald-100 text-emerald-800 font-label-sm uppercase">Tetap</span>
+</div>
+<!-- Meta Details -->
+<div class="flex flex-col justify-center min-w-0 flex-1">
+<h2 class="font-headline-sm text-headline-sm text-on-surface truncate leading-snug">Erianto, S.Ag, M.Pd.I</h2>
+<p class="font-body-sm-medium text-body-sm-medium text-on-surface-variant truncate">Guru PAI &amp; Tahfidz</p>
+<div class="mt-1.5 space-y-0.5 font-body-sm text-body-sm text-on-surface-variant">
+<div class="flex items-center gap-1.5">
+<span class="font-label-sm text-label-sm text-outline">NIY:</span>
+<span class="font-mono text-on-surface font-medium">049005069</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="font-label-sm text-label-sm text-outline">Unit:</span>
+<span class="truncate">SMP Islam Raudhatul Jannah</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer with Barcode and QR -->
+<div class="px-space-md py-2.5 bg-surface-container-low flex items-center justify-between gap-2">
+<div class="flex flex-col justify-center min-w-0">
+<svg class="h-6 w-36 text-on-surface shrink-0" fill="currentColor" viewbox="0 0 140 24">
+<rect height="24" width="3" x="0" y="0"></rect>
+<rect height="24" width="1" x="5" y="0"></rect>
+<rect height="24" width="4" x="8" y="0"></rect>
+<rect height="24" width="2" x="14" y="0"></rect>
+<rect height="24" width="3" x="18" y="0"></rect>
+<rect height="24" width="1" x="23" y="0"></rect>
+<rect height="24" width="4" x="27" y="0"></rect>
+<rect height="24" width="2" x="33" y="0"></rect>
+<rect height="24" width="3" x="38" y="0"></rect>
+<rect height="24" width="1" x="44" y="0"></rect>
+<rect height="24" width="4" x="48" y="0"></rect>
+<rect height="24" width="2" x="54" y="0"></rect>
+<rect height="24" width="3" x="58" y="0"></rect>
+<rect height="24" width="1" x="64" y="0"></rect>
+<rect height="24" width="4" x="68" y="0"></rect>
+<rect height="24" width="2" x="74" y="0"></rect>
+<rect height="24" width="3" x="79" y="0"></rect>
+<rect height="24" width="1" x="85" y="0"></rect>
+<rect height="24" width="4" x="89" y="0"></rect>
+<rect height="24" width="2" x="95" y="0"></rect>
+<rect height="24" width="3" x="100" y="0"></rect>
+<rect height="24" width="1" x="106" y="0"></rect>
+<rect height="24" width="4" x="110" y="0"></rect>
+<rect height="24" width="2" x="116" y="0"></rect>
+<rect height="24" width="3" x="121" y="0"></rect>
+<rect height="24" width="1" x="127" y="0"></rect>
+<rect height="24" width="4" x="131" y="0"></rect>
+</svg>
+<span class="font-mono text-[10px] text-on-surface-variant tracking-wider mt-0.5">049005069-2026</span>
+<span class="text-[9px] text-outline">Berlaku s/d: 31 Des 2027</span>
+</div>
+<div class="flex flex-col items-center shrink-0">
+<div class="w-12 h-12 bg-white p-1 rounded shadow-sm">
+<svg class="w-full h-full text-on-surface" fill="currentColor" viewbox="0 0 24 24">
+<path d="M2 2h8v8H2V2zm2 2v4h4V4H4zm10-2h8v8h-8V2zm2 2v4h4V4h-4zM2 14h8v8H2v-8zm2 2v4h4v-4H4zm14 3h2v3h-2v-3zm0-5h4v2h-4v-2zm-4 0h2v4h-2v-4zm2 2h2v2h-2v-2zm2 2h2v2h-2v-2zm-4 2h2v2h-2v-2zm-8-8h2v2H6V9zm4 0h2v2h-2V9zm-2 2h2v2H8v-2zm6-2h2v2h-2V9zm2 2h2v2h-2v-2z"></path>
+</svg>
+</div>
+<span class="font-label-sm text-[8px] text-outline uppercase tracking-wider mt-0.5">Scan Kiosk</span>
+</div>
+</div>
+</div>
+<!-- Card 4: Risa Fadillah (SELECTED) -->
+<div class="id-card-item relative bg-secondary-fixed/20 rounded-xl shadow-md overflow-hidden cursor-pointer transition-all duration-200" id="card-item-4" onclick="toggleCard('card-item-4')">
+<div class="selection-badge absolute top-2 right-2 z-30 flex items-center justify-center">
+<input checked="" class="id-card-checkbox w-5 h-5 text-secondary rounded focus:ring-0 cursor-pointer" onchange="toggleCard('card-item-4')" onclick="event.stopPropagation();" type="checkbox"/>
+</div>
+<!-- Header Ribbon -->
+<div class="bg-primary-container text-on-primary px-3.5 py-2.5 flex items-center justify-between">
+<div class="flex items-center gap-2 min-w-0">
+<div class="w-6 h-6 rounded-full bg-white flex items-center justify-center shrink-0">
+<span class="font-display-lg text-primary text-[10px] font-bold">RJ</span>
+</div>
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-white truncate">YP Raudhatul Jannah</span>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-tertiary-fixed-dim text-on-tertiary-fixed font-label-sm text-label-sm shrink-0 mr-6">TK IT RJ</span>
+</div>
+<!-- Body Section -->
+<div class="p-space-md flex gap-space-md bg-surface-container-lowest">
+<!-- Photo -->
+<div class="flex flex-col items-center shrink-0">
+<div class="w-[74px] h-[74px] rounded-xl bg-surface-container overflow-hidden shadow-inner">
+<img class="w-full h-full object-cover" data-alt="Young enthusiastic Indonesian female kindergarten teacher wearing pastel turquoise hijab and cheerful warm smile, high quality institutional portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAErGf59KRZdYfRNLNdlmpkXGa5j9VodsvW9IRQifB4TyvBErE96-O2fTll8QeORfSkrgDLyPkcihNMjYS_IL9StJ5CvC00HjvGar8zzdcML9dpnx7Ft2Bgq-D7lHmiNgnpfC82SZnpRh2R3bfWtaVGD9h5-Po7Hv8UaCWaRqjnPJCYF66Rtoj1Ahmp8uuJ7IFyUljXKmHGpz45QoRdfwL745jycsBIuVyPh7yQ1t__vwUZQRwXIJO2"/>
+</div>
+<span class="mt-1 px-1.5 py-0.5 rounded text-[10px] bg-sky-100 text-sky-800 font-label-sm uppercase">Kontrak</span>
+</div>
+<!-- Meta Details -->
+<div class="flex flex-col justify-center min-w-0 flex-1">
+<h2 class="font-headline-sm text-headline-sm text-on-surface truncate leading-snug">Risa Fadillah, S.Pd</h2>
+<p class="font-body-sm-medium text-body-sm-medium text-secondary truncate">Guru Kelas Sentra Bermain</p>
+<div class="mt-1.5 space-y-0.5 font-body-sm text-body-sm text-on-surface-variant">
+<div class="flex items-center gap-1.5">
+<span class="font-label-sm text-label-sm text-outline">NIY:</span>
+<span class="font-mono text-on-surface font-medium">029012056</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="font-label-sm text-label-sm text-outline">Unit:</span>
+<span class="truncate">TK IT Raudhatul Jannah</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer with Barcode and QR -->
+<div class="px-space-md py-2.5 bg-surface-container-low flex items-center justify-between gap-2">
+<div class="flex flex-col justify-center min-w-0">
+<svg class="h-6 w-36 text-on-surface shrink-0" fill="currentColor" viewbox="0 0 140 24">
+<rect height="24" width="1" x="0" y="0"></rect>
+<rect height="24" width="3" x="3" y="0"></rect>
+<rect height="24" width="2" x="8" y="0"></rect>
+<rect height="24" width="4" x="12" y="0"></rect>
+<rect height="24" width="1" x="18" y="0"></rect>
+<rect height="24" width="3" x="22" y="0"></rect>
+<rect height="24" width="2" x="27" y="0"></rect>
+<rect height="24" width="4" x="31" y="0"></rect>
+<rect height="24" width="1" x="37" y="0"></rect>
+<rect height="24" width="3" x="41" y="0"></rect>
+<rect height="24" width="2" x="46" y="0"></rect>
+<rect height="24" width="4" x="50" y="0"></rect>
+<rect height="24" width="1" x="56" y="0"></rect>
+<rect height="24" width="3" x="60" y="0"></rect>
+<rect height="24" width="2" x="65" y="0"></rect>
+<rect height="24" width="4" x="69" y="0"></rect>
+<rect height="24" width="1" x="75" y="0"></rect>
+<rect height="24" width="3" x="79" y="0"></rect>
+<rect height="24" width="2" x="84" y="0"></rect>
+<rect height="24" width="4" x="88" y="0"></rect>
+<rect height="24" width="1" x="94" y="0"></rect>
+<rect height="24" width="3" x="98" y="0"></rect>
+<rect height="24" width="2" x="103" y="0"></rect>
+<rect height="24" width="4" x="107" y="0"></rect>
+<rect height="24" width="1" x="113" y="0"></rect>
+<rect height="24" width="3" x="117" y="0"></rect>
+<rect height="24" width="2" x="122" y="0"></rect>
+<rect height="24" width="4" x="126" y="0"></rect>
+</svg>
+<span class="font-mono text-[10px] text-on-surface-variant tracking-wider mt-0.5">029012056-2026</span>
+<span class="text-[9px] text-outline">Berlaku s/d: 31 Des 2027</span>
+</div>
+<div class="flex flex-col items-center shrink-0">
+<div class="w-12 h-12 bg-white p-1 rounded shadow-sm">
+<svg class="w-full h-full text-on-surface" fill="currentColor" viewbox="0 0 24 24">
+<path d="M2 2h8v8H2V2zm2 2v4h4V4H4zm10-2h8v8h-8V2zm2 2v4h4V4h-4zM2 14h8v8H2v-8zm2 2v4h4v-4H4zm14 3h2v3h-2v-3zm0-5h4v2h-4v-2zm-4 0h2v4h-2v-4zm2 2h2v2h-2v-2zm2 2h2v2h-2v-2zm-4 2h2v2h-2v-2zm-8-8h2v2H6V9zm4 0h2v2h-2V9zm-2 2h2v2H8v-2zm6-2h2v2h-2V9zm2 2h2v2h-2v-2z"></path>
+</svg>
+</div>
+<span class="font-label-sm text-[8px] text-outline uppercase tracking-wider mt-0.5">Scan Kiosk</span>
+</div>
+</div>
+</div>
+<!-- Card 5: Reki Gusman (UNSELECTED) -->
+<div class="id-card-item relative bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden cursor-pointer hover:shadow-md transition-all duration-200" id="card-item-5" onclick="toggleCard('card-item-5')">
+<div class="selection-badge absolute top-2 right-2 z-30 flex items-center justify-center hidden">
+<input class="id-card-checkbox w-5 h-5 text-secondary rounded focus:ring-0 cursor-pointer" onchange="toggleCard('card-item-5')" onclick="event.stopPropagation();" type="checkbox"/>
+</div>
+<div class="absolute top-2 right-2 z-30 flex items-center justify-center">
+<input class="id-card-checkbox w-5 h-5 text-secondary rounded focus:ring-0 cursor-pointer" onchange="toggleCard('card-item-5')" onclick="event.stopPropagation();" type="checkbox"/>
+</div>
+<!-- Header Ribbon -->
+<div class="bg-primary-container text-on-primary px-3.5 py-2.5 flex items-center justify-between">
+<div class="flex items-center gap-2 min-w-0">
+<div class="w-6 h-6 rounded-full bg-white flex items-center justify-center shrink-0">
+<span class="font-display-lg text-primary text-[10px] font-bold">RJ</span>
+</div>
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-white truncate">YP Raudhatul Jannah</span>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-secondary-fixed-dim text-on-secondary-fixed font-label-sm text-label-sm shrink-0 mr-6">SMP Islam RJ</span>
+</div>
+<!-- Body Section -->
+<div class="p-space-md flex gap-space-md bg-surface-container-lowest">
+<!-- Photo -->
+<div class="flex flex-col items-center shrink-0">
+<div class="w-[74px] h-[74px] rounded-xl bg-surface-container overflow-hidden shadow-inner">
+<img class="w-full h-full object-cover" data-alt="Indonesian professional administrative male staff in clean formal white shirt with ID lanyard, glasses, intelligent focused expression, neat office setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDUb5j8BbWEN8RSPZo4b8U7Kpy3mFfv4_twakoKQhf1w1qntai5Fi_Q3UPE8EEJpBsBrJeAdc7PeytUuTN8cJbdWEROggg7pP6F9ZKxcs5mQpRfOLPSW1x2T5UtcAoFPCEif8OOUtqm2GUsKI5eg91mriUtm58rx41AtdZh74C59StfGBNOrX15YUasu7ECLslwvcNEQKwoH2aZ1GW9n22eyOZG691_RhDjqwRlXy70tXYijxj6Ki4D"/>
+</div>
+<span class="mt-1 px-1.5 py-0.5 rounded text-[10px] bg-emerald-100 text-emerald-800 font-label-sm uppercase">Tetap</span>
+</div>
+<!-- Meta Details -->
+<div class="flex flex-col justify-center min-w-0 flex-1">
+<h2 class="font-headline-sm text-headline-sm text-on-surface truncate leading-snug">Reki Gusman, S.E.</h2>
+<p class="font-body-sm-medium text-body-sm-medium text-on-surface-variant truncate">Kepala Tata Usaha (KTU)</p>
+<div class="mt-1.5 space-y-0.5 font-body-sm text-body-sm text-on-surface-variant">
+<div class="flex items-center gap-1.5">
+<span class="font-label-sm text-label-sm text-outline">NIY:</span>
+<span class="font-mono text-on-surface font-medium">029010036</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="font-label-sm text-label-sm text-outline">Unit:</span>
+<span class="truncate">SMP Islam Raudhatul Jannah</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer with Barcode and QR -->
+<div class="px-space-md py-2.5 bg-surface-container-low flex items-center justify-between gap-2">
+<div class="flex flex-col justify-center min-w-0">
+<svg class="h-6 w-36 text-on-surface shrink-0" fill="currentColor" viewbox="0 0 140 24">
+<rect height="24" width="2" x="0" y="0"></rect>
+<rect height="24" width="2" x="5" y="0"></rect>
+<rect height="24" width="3" x="10" y="0"></rect>
+<rect height="24" width="1" x="15" y="0"></rect>
+<rect height="24" width="4" x="19" y="0"></rect>
+<rect height="24" width="2" x="25" y="0"></rect>
+<rect height="24" width="3" x="30" y="0"></rect>
+<rect height="24" width="1" x="36" y="0"></rect>
+<rect height="24" width="3" x="40" y="0"></rect>
+<rect height="24" width="2" x="46" y="0"></rect>
+<rect height="24" width="4" x="51" y="0"></rect>
+<rect height="24" width="1" x="57" y="0"></rect>
+<rect height="24" width="3" x="61" y="0"></rect>
+<rect height="24" width="2" x="67" y="0"></rect>
+<rect height="24" width="4" x="72" y="0"></rect>
+<rect height="24" width="1" x="78" y="0"></rect>
+<rect height="24" width="3" x="82" y="0"></rect>
+<rect height="24" width="2" x="88" y="0"></rect>
+<rect height="24" width="4" x="93" y="0"></rect>
+<rect height="24" width="1" x="99" y="0"></rect>
+<rect height="24" width="3" x="103" y="0"></rect>
+<rect height="24" width="2" x="109" y="0"></rect>
+<rect height="24" width="4" x="114" y="0"></rect>
+<rect height="24" width="1" x="120" y="0"></rect>
+<rect height="24" width="3" x="124" y="0"></rect>
+<rect height="24" width="2" x="130" y="0"></rect>
+</svg>
+<span class="font-mono text-[10px] text-on-surface-variant tracking-wider mt-0.5">029010036-2026</span>
+<span class="text-[9px] text-outline">Berlaku s/d: 31 Des 2027</span>
+</div>
+<div class="flex flex-col items-center shrink-0">
+<div class="w-12 h-12 bg-white p-1 rounded shadow-sm">
+<svg class="w-full h-full text-on-surface" fill="currentColor" viewbox="0 0 24 24">
+<path d="M2 2h8v8H2V2zm2 2v4h4V4H4zm10-2h8v8h-8V2zm2 2v4h4V4h-4zM2 14h8v8H2v-8zm2 2v4h4v-4H4zm14 3h2v3h-2v-3zm0-5h4v2h-4v-2zm-4 0h2v4h-2v-4zm2 2h2v2h-2v-2zm2 2h2v2h-2v-2zm-4 2h2v2h-2v-2zm-8-8h2v2H6V9zm4 0h2v2h-2V9zm-2 2h2v2H8v-2zm6-2h2v2h-2V9zm2 2h2v2h-2v-2z"></path>
+</svg>
+</div>
+<span class="font-label-sm text-[8px] text-outline uppercase tracking-wider mt-0.5">Scan Kiosk</span>
+</div>
+</div>
+</div>
+<!-- Card 6: Silvana Monica (UNSELECTED) -->
+<div class="id-card-item relative bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden cursor-pointer hover:shadow-md transition-all duration-200" id="card-item-6" onclick="toggleCard('card-item-6')">
+<div class="selection-badge absolute top-2 right-2 z-30 flex items-center justify-center hidden">
+<input class="id-card-checkbox w-5 h-5 text-secondary rounded focus:ring-0 cursor-pointer" onchange="toggleCard('card-item-6')" onclick="event.stopPropagation();" type="checkbox"/>
+</div>
+<div class="absolute top-2 right-2 z-30 flex items-center justify-center">
+<input class="id-card-checkbox w-5 h-5 text-secondary rounded focus:ring-0 cursor-pointer" onchange="toggleCard('card-item-6')" onclick="event.stopPropagation();" type="checkbox"/>
+</div>
+<!-- Header Ribbon -->
+<div class="bg-primary-container text-on-primary px-3.5 py-2.5 flex items-center justify-between">
+<div class="flex items-center gap-2 min-w-0">
+<div class="w-6 h-6 rounded-full bg-white flex items-center justify-center shrink-0">
+<span class="font-display-lg text-primary text-[10px] font-bold">RJ</span>
+</div>
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-white truncate">YP Raudhatul Jannah</span>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-surface-variant text-on-surface-variant font-label-sm text-label-sm shrink-0 mr-6">Sekretariat</span>
+</div>
+<!-- Body Section -->
+<div class="p-space-md flex gap-space-md bg-surface-container-lowest">
+<!-- Photo -->
+<div class="flex flex-col items-center shrink-0">
+<div class="w-[74px] h-[74px] rounded-xl bg-surface-container overflow-hidden shadow-inner">
+<img class="w-full h-full object-cover" data-alt="Indonesian female accountant wearing navy formal hijab and warm natural smile, professional studio corporate badge photograph" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCgynuekB8Gk1EhgzxCAEejK5QCTq--dxn-zhjUUG3wR0PBRIGnNMlQIs7NO9Pql4clk3HulUrOaOMyjxLs03dNJWmhD0yJjKT_S6C-rrbJCVqEoKMSiVHbYqM9GjtcXDlmSsGn8sWeC2NgHwvKBa2LFc9hLA-HF9a5q2eQP3TnGynFxmAyU8kyttA6EOaQCMgzJm5dTjI6_2IvOq4XVWw-ar0Lex26qXNl6LYX--f8Xg2lnZa6G36M"/>
+</div>
+<span class="mt-1 px-1.5 py-0.5 rounded text-[10px] bg-emerald-100 text-emerald-800 font-label-sm uppercase">Tetap</span>
+</div>
+<!-- Meta Details -->
+<div class="flex flex-col justify-center min-w-0 flex-1">
+<h2 class="font-headline-sm text-headline-sm text-on-surface truncate leading-snug">Silvana Monica, S.Ak</h2>
+<p class="font-body-sm-medium text-body-sm-medium text-on-surface-variant truncate">Staf Akuntansi &amp; Keuangan</p>
+<div class="mt-1.5 space-y-0.5 font-body-sm text-body-sm text-on-surface-variant">
+<div class="flex items-center gap-1.5">
+<span class="font-label-sm text-label-sm text-outline">NIY:</span>
+<span class="font-mono text-on-surface font-medium">049023183</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="font-label-sm text-label-sm text-outline">Unit:</span>
+<span class="truncate">Sekretariat Yayasan Pusat</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer with Barcode and QR -->
+<div class="px-space-md py-2.5 bg-surface-container-low flex items-center justify-between gap-2">
+<div class="flex flex-col justify-center min-w-0">
+<svg class="h-6 w-36 text-on-surface shrink-0" fill="currentColor" viewbox="0 0 140 24">
+<rect height="24" width="3" x="0" y="0"></rect>
+<rect height="24" width="1" x="5" y="0"></rect>
+<rect height="24" width="3" x="9" y="0"></rect>
+<rect height="24" width="2" x="14" y="0"></rect>
+<rect height="24" width="4" x="19" y="0"></rect>
+<rect height="24" width="1" x="26" y="0"></rect>
+<rect height="24" width="3" x="30" y="0"></rect>
+<rect height="24" width="2" x="35" y="0"></rect>
+<rect height="24" width="4" x="40" y="0"></rect>
+<rect height="24" width="1" x="46" y="0"></rect>
+<rect height="24" width="3" x="50" y="0"></rect>
+<rect height="24" width="2" x="56" y="0"></rect>
+<rect height="24" width="4" x="61" y="0"></rect>
+<rect height="24" width="1" x="67" y="0"></rect>
+<rect height="24" width="3" x="71" y="0"></rect>
+<rect height="24" width="2" x="77" y="0"></rect>
+<rect height="24" width="4" x="82" y="0"></rect>
+<rect height="24" width="1" x="89" y="0"></rect>
+<rect height="24" width="3" x="93" y="0"></rect>
+<rect height="24" width="2" x="98" y="0"></rect>
+<rect height="24" width="4" x="103" y="0"></rect>
+<rect height="24" width="1" x="110" y="0"></rect>
+<rect height="24" width="3" x="114" y="0"></rect>
+<rect height="24" width="2" x="120" y="0"></rect>
+<rect height="24" width="4" x="125" y="0"></rect>
+</svg>
+<span class="font-mono text-[10px] text-on-surface-variant tracking-wider mt-0.5">049023183-2026</span>
+<span class="text-[9px] text-outline">Berlaku s/d: 31 Des 2027</span>
+</div>
+<div class="flex flex-col items-center shrink-0">
+<div class="w-12 h-12 bg-white p-1 rounded shadow-sm">
+<svg class="w-full h-full text-on-surface" fill="currentColor" viewbox="0 0 24 24">
+<path d="M2 2h8v8H2V2zm2 2v4h4V4H4zm10-2h8v8h-8V2zm2 2v4h4V4h-4zM2 14h8v8H2v-8zm2 2v4h4v-4H4zm14 3h2v3h-2v-3zm0-5h4v2h-4v-2zm-4 0h2v4h-2v-4zm2 2h2v2h-2v-2zm2 2h2v2h-2v-2zm-4 2h2v2h-2v-2zm-8-8h2v2H6V9zm4 0h2v2h-2V9zm-2 2h2v2H8v-2zm6-2h2v2h-2V9zm2 2h2v2h-2v-2z"></path>
+</svg>
+</div>
+<span class="font-label-sm text-[8px] text-outline uppercase tracking-wider mt-0.5">Scan Kiosk</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Pagination & Selection Indicator Bar -->
+<div class="p-space-md bg-surface-container-lowest rounded-xl shadow-sm flex flex-col md:flex-row items-center justify-between gap-space-md mb-space-lg">
+<div class="font-body-sm text-body-sm text-on-surface-variant text-center md:text-left">
+      Menampilkan <span class="font-body-sm-medium text-body-sm-medium text-on-surface">1 - 6</span> dari <span class="font-body-sm-medium text-body-sm-medium text-on-surface">209</span> Pegawai (<span class="text-secondary font-medium" id="footer-selected-count">3 dipilih</span> untuk dicetak)
+    </div>
+<!-- Navigation Pills -->
+<div class="flex items-center gap-1.5">
+<button class="w-9 h-9 flex items-center justify-center rounded-lg bg-surface-container-low text-on-surface-variant hover:bg-surface-container transition-colors" disabled="" type="button">
+<span class="material-symbols-outlined text-[18px]">chevron_left</span>
+</button>
+<button class="w-9 h-9 flex items-center justify-center rounded-lg bg-primary text-on-primary font-body-sm-medium text-body-sm-medium shadow-sm" type="button">1</button>
+<button class="w-9 h-9 flex items-center justify-center rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface font-body-sm-medium text-body-sm-medium transition-colors" type="button">2</button>
+<button class="w-9 h-9 flex items-center justify-center rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface font-body-sm-medium text-body-sm-medium transition-colors" type="button">3</button>
+<span class="px-1 text-outline font-body-sm">...</span>
+<button class="w-9 h-9 flex items-center justify-center rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface font-body-sm-medium text-body-sm-medium transition-colors" type="button">35</button>
+<button class="w-9 h-9 flex items-center justify-center rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">chevron_right</span>
+</button>
+</div>
+</div>
+<!-- Operational Printing Tips -->
+<div class="p-space-md rounded-xl bg-surface-container-low flex items-start gap-3">
+<div class="w-8 h-8 rounded-lg bg-secondary/10 text-secondary flex items-center justify-center shrink-0 mt-0.5">
+<span class="material-symbols-outlined text-[20px]">info</span>
+</div>
+<div class="flex flex-col gap-0.5 min-w-0">
+<span class="font-body-sm-medium text-body-sm-medium text-on-surface">Pedoman Percetakan Kartu ID Pegawai:</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+        Gunakan kertas PVC Card standar ID-1 (85.60 × 53.98 mm) dengan ketebalan 30 mil (0.76 mm) untuk mesin cetak thermal/direct-to-card. Jika menggunakan printer inkjet flatbed lembaran A4 (8-in-1), atur skala pencetakan ke <span class="font-mono text-on-surface font-medium">100% (Actual Size)</span> dengan margin <span class="font-mono text-on-surface font-medium">0mm</span> untuk memastikan barcode dan matriks QR Code dapat dipindai instan oleh sensor kiosk presensi unit.
+      </p>
+</div>
+</div>
+</div></main></div></body></html>
