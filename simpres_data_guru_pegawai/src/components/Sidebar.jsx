@@ -3,7 +3,7 @@ import { NavLink } from 'react-router-dom'
 const navItems = [
   { path: '/', label: 'Dashboard', icon: 'dashboard', activePath: '/' },
   { path: '/unit-sd-islam-rj', label: 'Manajemen Unit', icon: 'apartment', activePath: '/unit-sd-islam-rj' },
-  { path: '/manajemen-admin-dan-user', label: 'Manajemen Admin & User', icon: 'manage_accounts', activePath: '/manajemen-admin-dan-user' },
+  { path: '/manajemen-admin-user', label: 'Manajemen Admin & User', icon: 'manage_accounts', activePath: '/manajemen-admin-user' },
   { path: '/data-guru-dan-pegawai', label: 'Data Guru/Pegawai', icon: 'badge', activePath: '/data-guru-dan-pegawai' },
   { path: '/presensi', label: 'Presensi', icon: 'timer', activePath: '/presensi' },
   { path: '/rekap-dan-laporan', label: 'Rekap & Laporan', icon: 'summarize', activePath: '/rekap-dan-laporan' },
