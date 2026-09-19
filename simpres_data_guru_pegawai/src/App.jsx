@@ -4,6 +4,7 @@ import DashboardPage from './pages/DashboardPage.jsx'
 import UnitAdminSDPage from './pages/UnitAdminSDPage.jsx'
 import DataGuruPegawaiPage from './pages/DataGuruPegawaiPage.jsx'
 import AdminUserPage from './pages/AdminUserPage.jsx'
+import RekapLaporanPage from './pages/RekapLaporanPage.jsx'
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
           <Route path="/unit-sd-islam-rj" element={<UnitAdminSDPage />} />
           <Route path="/manajemen-admin-user" element={<AdminUserPage />} />
           <Route path="/data-guru-dan-pegawai" element={<DataGuruPegawaiPage />} />
+          <Route path="/rekap-dan-laporan" element={<RekapLaporanPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
