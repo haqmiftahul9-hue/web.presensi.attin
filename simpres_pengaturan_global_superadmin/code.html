@@ -534,4 +534,121 @@
 <!-- END: MainContent -->
 </div>
 <!-- END: MainContentWrapper -->
+<script>
+// ===== Tab Switching =====
+document.querySelectorAll('.border-b button').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.border-b button').forEach(t => {
+      t.classList.remove('border-brand-blue', 'text-brand-blue');
+      t.classList.add('border-transparent', 'text-brand-textSecondary');
+      // Reset icon colors
+      const svg = t.querySelector('svg');
+      if (svg) {
+        svg.classList.remove('text-brand-blue');
+        svg.classList.add('text-slate-400');
+      }
+    });
+    tab.classList.remove('border-transparent', 'text-brand-textSecondary');
+    tab.classList.add('border-brand-blue', 'text-brand-blue');
+    const svg = tab.querySelector('svg');
+    if (svg) {
+      svg.classList.remove('text-slate-400');
+      svg.classList.add('text-brand-blue');
+    }
+  });
+});
+
+// ===== Toggle Switches =====
+document.querySelectorAll('.rounded-full.cursor-pointer').forEach(toggle => {
+  toggle.addEventListener('click', () => {
+    const isOn = toggle.classList.contains('bg-brand-navy');
+    if (isOn) {
+      toggle.classList.remove('bg-brand-navy');
+      toggle.classList.add('bg-slate-300');
+      toggle.querySelector('div').classList.add('left-0.5');
+      toggle.querySelector('div').classList.remove('right-0.5');
+    } else {
+      toggle.classList.add('bg-brand-navy');
+      toggle.classList.remove('bg-slate-300');
+      toggle.querySelector('div').classList.remove('left-0.5');
+      toggle.querySelector('div').classList.add('right-0.5');
+    }
+  });
+});
+
+// ===== Logo Upload =====
+const logoUploadZone = document.querySelector('.border-dashed');
+const logoPreview = document.querySelector('.w-20.h-20.rounded-xl');
+const gantiLogoBtn = document.querySelector('button:contains("Ganti Logo")');
+
+if (logoUploadZone) {
+  logoUploadZone.addEventListener('click', () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          if (logoPreview) {
+            logoPreview.innerHTML = `<img src="${event.target.result}" class="w-20 h-20 rounded-xl object-cover" alt="Logo Preview"/>`;
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+    input.click();
+  });
+}
+
+// ===== Form Submission =====
+document.querySelector('form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const btn = e.target.querySelector('button[type="submit"]');
+  const originalText = btn.innerHTML;
+  btn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 12a8 8 0 018-8V4a8 8 0 00-8 8z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg> Menyimpan...';
+  setTimeout(() => {
+    btn.innerHTML = originalText;
+    showNotification('Perubahan telah disimpan', 'success');
+  }, 1000);
+});
+
+// ===== Reset Button =====
+document.querySelector('button:contains("Batal / Reset")').addEventListener('click', () => {
+  if (confirm('Yakin ingin mereset semua pengaturan ke nilai default?')) {
+    showNotification('Pengaturan telah direset', 'info');
+  }
+});
+
+// ===== Notification Helper =====
+function showNotification(message, type = 'success') {
+  const colors = {
+    success: 'bg-emerald-500',
+    error: 'bg-rose-500',
+    info: 'bg-brand-blue'
+  };
+  const notification = document.createElement('div');
+  notification.className = `fixed top-4 right-4 ${colors[type]} text-white px-4 py-3 rounded-lg shadow-lg z-50 flex items-center gap-2`;
+  notification.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg><span>${message}</span>`;
+  document.body.appendChild(notification);
+  setTimeout(() => {
+    notification.style.opacity = '0';
+    notification.style.transition = 'opacity 0.3s';
+    setTimeout(() => notification.remove(), 300);
+  }, 2000);
+}
+
+// ===== Unit Selector =====
+document.querySelector('.cursor-pointer[style*="hover:border-slate-600"]').addEventListener('click', () => {
+  showNotification('Pembuka dropdown unit (demo)', 'info');
+});
+
+// ===== Search Input =====
+document.querySelector('input[type="search"]').addEventListener('input', (e) => {
+  if (e.target.value.length > 3) {
+    console.log('Searching:', e.target.value);
+  }
+});
+</script>
 </body></html>

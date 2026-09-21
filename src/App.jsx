@@ -6,6 +6,9 @@ import DataGuruPegawaiPage from './pages/DataGuruPegawaiPage.jsx'
 import AdminUserPage from './pages/AdminUserPage.jsx'
 import RekapLaporanPage from './pages/RekapLaporanPage.jsx'
 import RankingKehadiranPage from './pages/RankingKehadiranPage.jsx'
+import LogAktivitasPage from './pages/LogAktivitasPage.jsx'
+
+import PengaturanGlobalPage from './pages/PengaturanGlobalPage.jsx'
 
 function App() {
   return (
@@ -18,6 +21,8 @@ function App() {
           <Route path="/data-guru-dan-pegawai" element={<DataGuruPegawaiPage />} />
           <Route path="/rekap-dan-laporan" element={<RekapLaporanPage />} />
           <Route path="/ranking-kehadiran" element={<RankingKehadiranPage />} />
+          <Route path="/log-aktivitas" element={<LogAktivitasPage />} />
+          <Route path="/pengaturan-global" element={<PengaturanGlobalPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
