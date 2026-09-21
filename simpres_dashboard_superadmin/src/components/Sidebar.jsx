@@ -7,7 +7,6 @@ const navItems = [
   { path: 'rekap-dan-laporan', label: 'Rekap & Laporan', icon: 'summarize', active: false },
   { path: 'ranking-kehadiran', label: 'Ranking Kehadiran', icon: 'leaderboard', active: false },
   { path: 'pengajuan-izin-dan-cuti', label: 'Pengajuan Izin/Cuti', icon: 'event_available', active: false },
-  { path: 'kalender-libur', label: 'Kalender Libur', icon: 'calendar_month', active: false },
   { path: 'log-aktivitas', label: 'Log Aktivitas', icon: 'history', active: false },
   { path: 'pengaturan-global', label: 'Pengaturan Global', icon: 'settings', active: false },
 ]
