@@ -10,6 +10,7 @@ import LogAktivitasPage from './pages/LogAktivitasPage.jsx'
 
 import PengaturanGlobalPage from './pages/PengaturanGlobalPage.jsx'
 import PengajuanIzinCutiPage from './pages/PengajuanIzinCutiPage.jsx'
+import MonitoringPresensiPage from './pages/MonitoringPresensiPage.jsx'
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
           <Route path="/log-aktivitas" element={<LogAktivitasPage />} />
           <Route path="/pengaturan-global" element={<PengaturanGlobalPage />} />
           <Route path="/pengajuan-izin-dan-cuti" element={<PengajuanIzinCutiPage />} />
+          <Route path="/presensi" element={<MonitoringPresensiPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
