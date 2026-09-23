@@ -17,7 +17,7 @@ function UnitSummary() {
             <div className="flex justify-between items-center text-on-surface">
               <span className="font-body-sm-medium text-body-sm-medium">{unit.name}</span>
               <span className="font-label-sm text-label-sm text-on-surface-variant">
-                {unit.present} / {unit.total} Pegawai <strong className="text-on-surface ml-1 font-body-sm-medium">({unit.percentage}%)</strong>
+                {unit.present} / {unit.total} Pegawai <strong className="text-on-surface ml-1 font-body-sm-medium text-body-sm-medium">({unit.percentage}%)</strong>
               </span>
             </div>
             <div className="w-full h-2 rounded-full bg-surface-container overflow-hidden">

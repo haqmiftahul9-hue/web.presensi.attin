@@ -35,16 +35,16 @@ function DashboardPage() {
               <span className="material-symbols-outlined text-[24px]">space_dashboard</span>
             </div>
             <div className="flex flex-col">
-              <h1 className="font-headline-lg text-headline-lg text-on-surface tracking-tight leading-snug">Dashboard</h1>
-              <p className="font-body-md text-body-md text-on-surface-variant">Pantau data presensi dan aktivitas pegawai multi-unit secara real-time</p>
+              <h1 className="font-headline-md text-headline-md text-on-surface tracking-tight leading-snug">Dashboard</h1>
+              <p className="font-body-md text-body-md text-on-surface-variant leading-relaxed">Pantau data presensi dan aktivitas pegawai multi-unit secara real-time</p>
             </div>
           </div>
           <div className="flex items-center gap-space-xs self-start md:self-auto bg-surface-container-lowest px-space-md py-space-xs rounded-full shadow-sm text-on-surface-variant">
             <span className="material-symbols-outlined text-[16px]">home</span>
             <span className="font-body-sm text-body-sm">Home</span>
-            <span className="text-outline text-[12px]">/</span>
+            <span className="text-outline font-body-sm text-body-sm">/</span>
             <span className="font-body-sm text-body-sm">Superadmin</span>
-            <span className="text-outline text-[12px]">/</span>
+            <span className="text-outline font-body-sm text-body-sm">/</span>
             <span className="font-body-sm-medium text-body-sm-medium text-secondary">Dashboard</span>
           </div>
         </div>

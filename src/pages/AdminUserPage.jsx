@@ -40,12 +40,12 @@ function AdminUserPage() {
   return (
     <div className="flex flex-col w-full">
       <div className="w-full bg-surface-container-lowest px-space-xl py-space-sm flex flex-wrap items-center justify-between gap-space-sm">
-        <div className="flex items-center gap-2 text-on-surface-variant font-label-md font-label-md">
+        <div className="flex items-center gap-2 text-on-surface-variant font-label-md text-label-md">
           <span className="hover:text-secondary cursor-pointer transition-colors">Home</span>
           <span className="material-symbols-outlined text-[16px] text-outline">chevron_right</span>
           <span className="hover:text-secondary cursor-pointer transition-colors">Superadmin</span>
           <span className="material-symbols-outlined text-[16px] text-outline">chevron_right</span>
-          <span className="text-on-surface font-body-md-medium">Manajemen Admin & User</span>
+          <span className="text-on-surface font-body-md-medium text-body-md-medium">Manajemen Admin & User</span>
         </div>
         <div className="flex items-center gap-space-md">
           <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-surface-container-low">
@@ -53,10 +53,10 @@ function AdminUserPage() {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-600"></span>
             </span>
-            <span className="font-label-sm font-label-sm text-on-surface-variant">Server Pusat: Normal</span>
+            <span className="font-label-sm text-label-sm text-on-surface-variant">Server Pusat: Normal</span>
           </div>
           <span className="text-outline-variant">|</span>
-          <div className="flex items-center gap-1.5 font-label-sm font-label-sm text-on-surface-variant">
+          <div className="flex items-center gap-1.5 font-label-sm text-label-sm text-on-surface-variant">
             <span className="material-symbols-outlined text-[16px] text-secondary">database</span>
             <span>Sinkronisasi Terakhir: 14:02 WIB</span>
           </div>
@@ -67,7 +67,7 @@ function AdminUserPage() {
         <div className="flex flex-col gap-space-md">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-space-sm">
             <div>
-              <h1 className="font-headline-lg text-headline-lg text-primary tracking-tight">Manajemen Admin & User</h1>
+              <h1 className="font-headline-md text-headline-md text-primary tracking-tight">Manajemen Admin & User</h1>
               <p className="font-body-md text-body-md text-on-surface-variant mt-1 max-w-3xl">
                 Kelola hak akses akun sistem, penugasan per unit sekolah, otentikasi peran, dan kredensial pengguna terpusat.
               </p>
@@ -87,36 +87,36 @@ function AdminUserPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-md">
             <div className="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex flex-col justify-between">
               <div className="flex items-center justify-between">
-                <span className="font-label-md font-label-md text-on-surface-variant">Total Akun Aktif</span>
+                <span className="font-label-md text-label-md text-on-surface-variant">Total Akun Aktif</span>
                 <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
                   <span className="material-symbols-outlined text-[20px]">group</span>
                 </div>
               </div>
               <div className="mt-space-sm">
                 <div className="flex items-baseline gap-2">
-                  <span className="font-headline-lg font-headline-lg text-primary font-bold">{state.adminUsers.length}</span>
-                  <span className="font-body-sm font-body-sm text-on-surface-variant">Pengguna</span>
+                  <span className="font-headline-sm text-headline-sm text-primary leading-tight">{state.adminUsers.length}</span>
+                  <span className="font-body-sm text-body-sm text-on-surface-variant">Pengguna</span>
                 </div>
                 <div className="mt-2 flex items-center gap-1.5">
-                  <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-label-sm font-label-sm">+12 bulan ini</span>
-                  <span className="font-body-sm font-body-sm text-on-surface-variant">terverifikasi</span>
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-label-sm text-label-sm">+12 bulan ini</span>
+                  <span className="font-body-sm text-body-sm text-on-surface-variant">terverifikasi</span>
                 </div>
               </div>
             </div>
 
             <div className="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex flex-col justify-between">
               <div className="flex items-center justify-between">
-                <span className="font-label-md font-label-md text-on-surface-variant">Superadmin Pusat</span>
+                <span className="font-label-md text-label-md text-on-surface-variant">Superadmin Pusat</span>
                 <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center">
                   <span className="material-symbols-outlined text-[20px]">shield_person</span>
                 </div>
               </div>
               <div className="mt-space-sm">
                 <div className="flex items-baseline gap-2">
-                  <span className="font-headline-lg font-headline-lg text-primary font-bold">{state.adminUsers.filter((u) => u.role === 'Superadmin').length}</span>
-                  <span className="font-body-sm font-body-sm text-on-surface-variant">Akun</span>
+                  <span className="font-headline-sm text-headline-sm text-primary leading-tight">{state.adminUsers.filter((u) => u.role === 'Superadmin').length}</span>
+                  <span className="font-body-sm text-body-sm text-on-surface-variant">Akun</span>
                 </div>
-                <div className="mt-2 flex items-center gap-1 text-purple-700 font-body-sm font-body-sm">
+                <div className="mt-2 flex items-center gap-1 text-purple-700 font-body-sm text-body-sm">
                   <span className="material-symbols-outlined text-[16px]">verified_user</span>
                   <span>Hak akses penuh sistem</span>
                 </div>
@@ -125,17 +125,17 @@ function AdminUserPage() {
 
             <div className="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex flex-col justify-between">
               <div className="flex items-center justify-between">
-                <span className="font-label-md font-label-md text-on-surface-variant">Admin Unit Sekolah</span>
+                <span className="font-label-md text-label-md text-on-surface-variant">Admin Unit Sekolah</span>
                 <div className="w-8 h-8 rounded-lg bg-blue-50 text-secondary flex items-center justify-center">
                   <span className="material-symbols-outlined text-[20px]">admin_panel_settings</span>
                 </div>
               </div>
               <div className="mt-space-sm">
                 <div className="flex items-baseline gap-2">
-                  <span className="font-headline-lg font-headline-lg text-primary font-bold">{state.adminUsers.filter((u) => u.role === 'Admin Unit').length}</span>
-                  <span className="font-body-sm font-body-sm text-on-surface-variant">Akun</span>
+                  <span className="font-headline-sm text-headline-sm text-primary leading-tight">{state.adminUsers.filter((u) => u.role === 'Admin Unit').length}</span>
+                  <span className="font-body-sm text-body-sm text-on-surface-variant">Akun</span>
                 </div>
-                <div className="mt-2 flex items-center gap-1 text-secondary font-body-sm font-body-sm">
+                <div className="mt-2 flex items-center gap-1 text-secondary font-body-sm text-body-sm">
                   <span className="material-symbols-outlined text-[16px]">apartment</span>
                   <span>{state.units.length} unit sekolah terdaftar</span>
                 </div>
@@ -144,17 +144,17 @@ function AdminUserPage() {
 
             <div className="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex flex-col justify-between">
               <div className="flex items-center justify-between">
-                <span className="font-label-md font-label-md text-on-surface-variant">Guru & Staf Akun</span>
+                <span className="font-label-md text-label-md text-on-surface-variant">Guru & Staf Akun</span>
                 <div className="w-8 h-8 rounded-lg bg-slate-100 text-on-surface-variant flex items-center justify-center">
                   <span className="material-symbols-outlined text-[20px]">badge</span>
                 </div>
               </div>
               <div className="mt-space-sm">
                 <div className="flex items-baseline gap-2">
-                  <span className="font-headline-lg font-headline-lg text-primary font-bold">{state.staff.filter((s) => s.status === 'Aktif').length}</span>
-                  <span className="font-body-sm font-body-sm text-on-surface-variant">Akun</span>
+                  <span className="font-headline-sm text-headline-sm text-primary leading-tight">{state.staff.filter((s) => s.status === 'Aktif').length}</span>
+                  <span className="font-body-sm text-body-sm text-on-surface-variant">Akun</span>
                 </div>
-                <div className="mt-2 flex items-center gap-1 text-slate-600 font-body-sm font-body-sm">
+                <div className="mt-2 flex items-center gap-1 text-slate-600 font-body-sm text-body-sm">
                   <span className="material-symbols-outlined text-[16px]">phonelink_setup</span>
                   <span>Terhubung mobile app SimPres</span>
                 </div>
@@ -168,13 +168,13 @@ function AdminUserPage() {
             <div className="relative min-w-[260px] flex-1 max-w-sm">
               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[20px]">search</span>
               <input
-                className="w-full h-10 pl-10 pr-space-md bg-surface-container-low rounded-lg font-body-md font-body-md text-on-surface placeholder:text-outline focus:outline-none focus:bg-surface-container-lowest"
+                className="w-full h-10 pl-10 pr-space-md bg-surface-container-low rounded-lg font-body-md text-body-md text-on-surface placeholder:text-outline focus:outline-none focus:bg-surface-container-lowest"
                 placeholder="Cari nama, email, atau NIY..."
                 type="text"
               />
             </div>
             <div className="relative">
-              <select className="h-10 pl-3 pr-8 bg-surface-container-low text-on-surface rounded-lg font-body-md font-body-md focus:outline-none appearance-none cursor-pointer">
+              <select className="h-10 pl-3 pr-8 bg-surface-container-low text-on-surface rounded-lg font-body-md text-body-md focus:outline-none appearance-none cursor-pointer">
                 <option>Semua Role</option>
                 <option>Superadmin</option>
                 <option>Admin Unit</option>
@@ -183,7 +183,7 @@ function AdminUserPage() {
               <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-outline text-[18px] pointer-events-none">expand_more</span>
             </div>
             <div className="relative">
-              <select className="h-10 pl-3 pr-8 bg-surface-container-low text-on-surface rounded-lg font-body-md font-body-md focus:outline-none appearance-none cursor-pointer">
+              <select className="h-10 pl-3 pr-8 bg-surface-container-low text-on-surface rounded-lg font-body-md text-body-md focus:outline-none appearance-none cursor-pointer">
                 <option>Semua Unit</option>
                 {state.units.map((u) => (
                   <option key={u.id}>{u.nama}</option>
@@ -192,7 +192,7 @@ function AdminUserPage() {
               <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-outline text-[18px] pointer-events-none">expand_more</span>
             </div>
             <div className="relative">
-              <select className="h-10 pl-3 pr-8 bg-surface-container-low text-on-surface rounded-lg font-body-md font-body-md focus:outline-none appearance-none cursor-pointer">
+              <select className="h-10 pl-3 pr-8 bg-surface-container-low text-on-surface rounded-lg font-body-md text-body-md focus:outline-none appearance-none cursor-pointer">
                 <option>Semua Status</option>
                 <option>Aktif</option>
                 <option>Nonaktif</option>
@@ -216,7 +216,7 @@ function AdminUserPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm uppercase tracking-wider">
+                <tr className="bg-surface-container-low text-on-surface-variant font-label-md text-label-md uppercase tracking-wider leading-tight">
                   <th className="py-3 px-4 w-10 text-center">
                     <input className="rounded w-4 h-4 text-secondary focus:ring-0 cursor-pointer" type="checkbox" />
                   </th>
@@ -228,7 +228,7 @@ function AdminUserPage() {
                   <th className="py-3 px-4 font-semibold text-right">Aksi & Opsi</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-surface-container font-body-md font-body-md">
+              <tbody className="divide-y divide-surface-container font-body-md text-body-md">
                 {users.map((user) => (
                   <tr key={user.id} className={`hover:bg-surface-container-low/70 transition-colors ${user.rowBg}`}>
                     <td className="py-3.5 px-4 text-center">
@@ -236,23 +236,23 @@ function AdminUserPage() {
                     </td>
                     <td className="py-3.5 px-4">
                       <div className="flex items-center gap-3">
-                        <div className={`w-9 h-9 rounded-full font-headline-sm font-headline-sm flex items-center justify-center font-bold flex-shrink-0 ${user.roleBg} ${user.roleText}`}>
+                        <div className={`w-9 h-9 rounded-full font-headline-sm text-headline-sm flex items-center justify-center font-semibold flex-shrink-0 ${user.roleBg} ${user.roleText}`}>
                           {user.initials}
                         </div>
                         <div className="flex flex-col">
-                          <span className="font-body-md-medium font-body-md-medium text-on-surface">{user.name}</span>
-                          <span className="font-label-sm font-label-sm text-on-surface-variant">NIK: {user.nik}</span>
+                          <span className="font-body-md-medium text-body-md-medium text-on-surface">{user.name}</span>
+                          <span className="font-label-sm text-label-sm text-on-surface-variant">NIK: {user.nik}</span>
                         </div>
                       </div>
                     </td>
                     <td className="py-3.5 px-4">
                       <div className="flex flex-col">
-                        <span className="font-body-sm font-body-sm text-on-surface">{user.email}</span>
-                        <span className="font-label-sm font-label-sm text-on-surface-variant">NIY {user.niy}</span>
+                        <span className="font-body-sm text-body-sm text-on-surface">{user.email}</span>
+                        <span className="font-label-sm text-label-sm text-on-surface-variant">NIY {user.niy}</span>
                       </div>
                     </td>
                     <td className="py-3.5 px-4">
-                      <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[12px] font-medium ${user.roleBg} ${user.roleText}`}>
+                      <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full font-label-md text-label-md font-medium ${user.roleBg} ${user.roleText}`}>
                         <span className={`w-1.5 h-1.5 rounded-full ${user.roleDot}`}></span>
                         {user.role}
                       </span>
@@ -260,11 +260,11 @@ function AdminUserPage() {
                     <td className="py-3.5 px-4">
                       <div className="flex items-center gap-1 text-on-surface">
                         <span className="material-symbols-outlined text-[16px] text-outline">{user.unitIcon}</span>
-                        <span className="font-body-sm-medium font-body-sm-medium">{user.unit}</span>
+                        <span className="font-body-sm-medium text-body-sm-medium">{user.unit}</span>
                       </div>
                     </td>
                     <td className="py-3.5 px-4">
-                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-label-sm font-label-sm ${user.statusBg} ${user.statusText}`}>
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full font-label-sm text-label-sm font-label-sm ${user.statusBg} ${user.statusText}`}>
                         <span className={`w-1.5 h-1.5 rounded-full ${user.statusDot}`}></span>
                         {user.status}
                       </span>
@@ -289,18 +289,18 @@ function AdminUserPage() {
           </div>
 
           <div className="px-space-md py-space-sm bg-surface-container-lowest flex flex-col sm:flex-row items-center justify-between gap-space-sm">
-            <div className="font-body-sm font-body-sm text-on-surface-variant">
-              Menampilkan <span className="font-body-sm-medium text-on-surface">1 - {users.length}</span> dari <span className="font-body-sm-medium text-on-surface">{state.adminUsers.length}</span> pengguna terdaftar
+            <div className="font-body-sm text-body-sm text-on-surface-variant">
+              Menampilkan <span className="font-body-sm-medium text-body-sm-medium text-on-surface">1 - {users.length}</span> dari <span className="font-body-sm-medium text-body-sm-medium text-on-surface">{state.adminUsers.length}</span> pengguna terdaftar
             </div>
             <div className="flex items-center gap-1">
               <button className="w-8 h-8 rounded-lg flex items-center justify-center text-outline hover:bg-surface-container hover:text-on-surface transition-colors disabled:opacity-40" disabled type="button">
                 <span className="material-symbols-outlined text-[18px]">chevron_left</span>
               </button>
-              <button className="w-8 h-8 rounded-lg bg-secondary text-on-secondary font-label-sm font-label-sm shadow-sm" type="button">1</button>
-              <button className="w-8 h-8 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-label-sm font-label-sm transition-colors" type="button">2</button>
-              <button className="w-8 h-8 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-label-sm font-label-sm transition-colors" type="button">3</button>
-              <span className="w-8 h-8 flex items-center justify-center text-outline font-label-sm font-label-sm">...</span>
-              <button className="w-8 h-8 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-label-sm font-label-sm transition-colors" type="button">37</button>
+              <button className="w-8 h-8 rounded-lg bg-secondary text-on-secondary font-label-sm text-label-sm shadow-sm" type="button">1</button>
+              <button className="w-8 h-8 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-label-sm text-label-sm transition-colors" type="button">2</button>
+              <button className="w-8 h-8 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-label-sm text-label-sm transition-colors" type="button">3</button>
+              <span className="w-8 h-8 flex items-center justify-center text-outline font-label-sm text-label-sm">...</span>
+              <button className="w-8 h-8 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-label-sm text-label-sm transition-colors" type="button">37</button>
               <button className="w-8 h-8 rounded-lg flex items-center justify-center text-outline hover:bg-surface-container hover:text-on-surface transition-colors" type="button">
                 <span className="material-symbols-outlined text-[18px]">chevron_right</span>
               </button>
@@ -314,8 +314,8 @@ function AdminUserPage() {
               <span className="material-symbols-outlined text-[20px]">security</span>
             </div>
             <div>
-              <h4 className="font-headline-sm font-headline-sm text-on-surface">Panduan Kebijakan Hak Akses Yayasan</h4>
-              <p className="font-body-sm font-body-sm text-on-surface-variant mt-0.5">
+              <h4 className="font-body-md-medium text-body-md-medium text-on-surface leading-snug">Panduan Kebijakan Hak Akses Yayasan</h4>
+              <p className="font-body-sm text-body-sm text-on-surface-variant mt-0.5 leading-relaxed">
                 Admin Unit hanya memiliki wewenang approval presensi dan penyesuaian jadwal pada unit bersangkutan. Otoritas penambahan akun guru dan reset kata sandi massal dipegang oleh Superadmin Pusat.
               </p>
             </div>
@@ -335,8 +335,8 @@ function AdminUserPage() {
                   <span className="material-symbols-outlined text-[22px]">person_add</span>
                 </div>
                 <div>
-                  <h3 className="font-headline-md font-headline-md text-primary leading-tight">Tambah User Baru</h3>
-                  <p className="font-body-sm font-body-sm text-on-surface-variant mt-0.5">Buat akun pengguna baru dan atur hak akses peran serta unit sekolah.</p>
+                  <h3 className="font-headline-sm text-headline-sm text-primary leading-tight">Tambah User Baru</h3>
+                  <p className="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Buat akun pengguna baru dan atur hak akses peran serta unit sekolah.</p>
                 </div>
               </div>
               <button
@@ -350,13 +350,13 @@ function AdminUserPage() {
 
             <div className="p-space-lg overflow-y-auto flex flex-col gap-space-md">
               <div className="flex flex-col gap-1.5">
-                <label className="font-body-sm font-body-sm-medium text-on-surface">
+                <label className="font-body-sm-medium text-body-sm-medium text-on-surface">
                   Nama Lengkap Beserta Gelar <span className="text-rose-500">*</span>
                 </label>
                 <div className="relative">
                   <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">badge</span>
                   <input
-                    className="w-full h-10 pl-10 pr-space-md bg-surface-container-low rounded-lg font-body-md font-body-md text-on-surface focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-secondary/20"
+                    className="w-full h-10 pl-10 pr-space-md bg-surface-container-low rounded-lg font-body-md text-body-md text-on-surface focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-secondary/20"
                     placeholder="e.g. Wisna Yunita, S.Pd"
                     type="text"
                     value="Wisna Yunita, S.Pd"
@@ -366,13 +366,13 @@ function AdminUserPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-space-md">
                 <div className="flex flex-col gap-1.5">
-                  <label className="font-body-sm font-body-sm-medium text-on-surface">
+                  <label className="font-body-sm-medium text-body-sm-medium text-on-surface">
                     Alamat Email Resmi <span className="text-rose-500">*</span>
                   </label>
                   <div className="relative">
                     <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">mail</span>
                     <input
-                      className="w-full h-10 pl-10 pr-space-md bg-surface-container-low rounded-lg font-body-md font-body-md text-on-surface focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-secondary/20"
+                      className="w-full h-10 pl-10 pr-space-md bg-surface-container-low rounded-lg font-body-md text-body-md text-on-surface focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-secondary/20"
                       placeholder="wisna.y@sd.raudhatuljannah.sch.id"
                       type="email"
                       value="wisna.y@sd.raudhatuljannah.sch.id"
@@ -380,13 +380,13 @@ function AdminUserPage() {
                   </div>
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="font-body-sm font-body-sm-medium text-on-surface">
+                  <label className="font-body-sm-medium text-body-sm-medium text-on-surface">
                     NIY (Nomor Induk Yayasan) <span className="text-rose-500">*</span>
                   </label>
                   <div className="relative">
                     <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">numbers</span>
                     <input
-                      className="w-full h-10 pl-10 pr-space-md bg-surface-container-low rounded-lg font-body-md font-body-md text-on-surface focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-secondary/20"
+                      className="w-full h-10 pl-10 pr-space-md bg-surface-container-low rounded-lg font-body-md text-body-md text-on-surface focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-secondary/20"
                       placeholder="e.g. 049001054"
                       type="text"
                       value="049001054"
@@ -397,11 +397,11 @@ function AdminUserPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-space-md">
                 <div className="flex flex-col gap-1.5">
-                  <label className="font-body-sm font-body-sm-medium text-on-surface">
+                  <label className="font-body-sm-medium text-body-sm-medium text-on-surface">
                     Role / Peran Sistem <span className="text-rose-500">*</span>
                   </label>
                   <div className="relative">
-                    <select className="w-full h-10 pl-3 pr-8 bg-surface-container-low rounded-lg font-body-md font-body-md text-on-surface focus:outline-none appearance-none cursor-pointer">
+                    <select className="w-full h-10 pl-3 pr-8 bg-surface-container-low rounded-lg font-body-md text-body-md text-on-surface focus:outline-none appearance-none cursor-pointer">
                       <option value="superadmin">Superadmin Pusat</option>
                       <option selected value="admin_unit">Admin Unit</option>
                       <option value="guru">Guru / Pegawai</option>
@@ -410,11 +410,11 @@ function AdminUserPage() {
                   </div>
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="font-body-sm font-body-sm-medium text-on-surface">
+                  <label className="font-body-sm-medium text-body-sm-medium text-on-surface">
                     Unit Penugasan Sekolah <span className="text-rose-500">*</span>
                   </label>
                   <div className="relative">
-                    <select className="w-full h-10 pl-3 pr-8 bg-surface-container-low rounded-lg font-body-md font-body-md text-on-surface focus:outline-none appearance-none cursor-pointer">
+                    <select className="w-full h-10 pl-3 pr-8 bg-surface-container-low rounded-lg font-body-md text-body-md text-on-surface focus:outline-none appearance-none cursor-pointer">
                       <option value="pusat">Pusat Yayasan</option>
                       <option value="tk">TK IT RJ</option>
                       <option selected value="sd">SD Islam RJ</option>
@@ -426,17 +426,17 @@ function AdminUserPage() {
                 </div>
               </div>
 
-              <p className="font-body-sm font-body-sm text-on-surface-variant -mt-2">
-                Pilihan unit wajib untuk akun dengan peran <span className="font-body-sm-medium text-on-surface">Admin Unit</span> dan <span className="font-body-sm-medium text-on-surface">Guru/Pegawai</span>.
+              <p className="font-body-sm text-body-sm text-on-surface-variant -mt-2">
+                Pilihan unit wajib untuk akun dengan peran <span className="font-body-sm-medium text-body-sm-medium text-on-surface">Admin Unit</span> dan <span className="font-body-sm-medium text-body-sm-medium text-on-surface">Guru/Pegawai</span>.
               </p>
 
               <div className="flex flex-col gap-1.5">
-                <label className="font-body-sm font-body-sm-medium text-on-surface">Password Sementara</label>
+                <label className="font-body-sm-medium text-body-sm-medium text-on-surface">Password Sementara</label>
                 <div className="flex items-center gap-2">
                   <div className="relative flex-1">
                     <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">key</span>
                     <input
-                      className="w-full h-10 pl-10 pr-space-md bg-surface-container-low rounded-lg font-mono font-body-md text-on-surface focus:outline-none focus:bg-surface-container-lowest"
+                      className="w-full h-10 pl-10 pr-space-md bg-surface-container-low rounded-lg font-mono font-body-md text-body-md text-on-surface focus:outline-none focus:bg-surface-container-lowest"
                       id="tempPasswordInput"
                       type="text"
                       value="SimPres#2026!rj"
@@ -459,8 +459,8 @@ function AdminUserPage() {
 
               <div className="p-space-md bg-surface-container-low rounded-xl flex items-start justify-between gap-space-sm">
                 <div className="flex flex-col">
-                  <span className="font-body-md-medium font-body-md-medium text-on-surface">Wajib ganti password saat login pertama</span>
-                  <span className="font-body-sm font-body-sm text-on-surface-variant mt-0.5">
+                  <span className="font-body-md-medium text-body-md-medium text-on-surface">Wajib ganti password saat login pertama</span>
+                  <span className="font-body-sm text-body-sm text-on-surface-variant mt-0.5">
                     Pengguna akan diminta membuat password baru segera setelah pertama kali masuk ke portal web atau mobile app SimPres.
                   </span>
                 </div>
@@ -472,7 +472,7 @@ function AdminUserPage() {
             </div>
 
             <div className="px-space-lg py-space-md bg-surface-container-low flex flex-col sm:flex-row items-center justify-between gap-space-md">
-              <div className="flex items-center gap-1.5 text-on-surface-variant font-body-sm font-body-sm">
+              <div className="flex items-center gap-1.5 text-on-surface-variant font-body-sm text-body-sm">
                 <span className="material-symbols-outlined text-[16px] text-emerald-600">mark_email_read</span>
                 <span>Kredensial otomatis terkirim via notifikasi email.</span>
               </div>

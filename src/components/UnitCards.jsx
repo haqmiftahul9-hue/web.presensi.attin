@@ -24,9 +24,9 @@ function UnitCards() {
             <span className="material-symbols-outlined text-[24px]">{unit.icon}</span>
           </div>
           <div className="flex flex-col min-w-0">
-            <span className="font-label-sm font-label-sm text-on-surface-variant uppercase">{unit.label}</span>
-            <span className="font-headline-sm font-headline-sm text-on-surface">{unit.count}</span>
-            <span className="font-body-sm font-body-sm text-secondary truncate">{unit.subtitle}</span>
+            <span className="font-label-sm text-label-sm text-on-surface-variant uppercase">{unit.label}</span>
+            <span className="font-headline-sm text-headline-sm text-on-surface">{unit.count}</span>
+            <span className="font-body-sm text-body-sm text-secondary truncate">{unit.subtitle}</span>
           </div>
         </div>
       ))}

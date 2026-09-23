@@ -56,7 +56,7 @@ function RecentActivity() {
 
       <div className="overflow-x-auto">
         <table className="w-full text-left">
-          <thead className="bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm tracking-wider uppercase">
+          <thead className="bg-surface-container-low text-on-surface-variant font-label-md text-label-md tracking-wider uppercase">
             <tr>
               <th className="py-space-sm px-space-lg" scope="col">Pegawai</th>
               <th className="py-space-sm px-space-md" scope="col">Unit</th>
@@ -66,7 +66,7 @@ function RecentActivity() {
               <th className="py-space-sm px-space-lg text-right" scope="col">Aksi</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-surface-container text-body-md text-on-surface">
+          <tbody className="divide-y divide-surface-container font-body-md text-body-md text-on-surface">
             {activities.map((activity) => (
               <tr key={activity.id} className="hover:bg-surface-container-low/60 transition-colors">
                 <td className="py-space-sm px-space-lg">
@@ -81,7 +81,7 @@ function RecentActivity() {
                   </div>
                 </td>
                 <td className="py-space-sm px-space-md">
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-label-sm font-label-sm ${activity.unitColor} ${activity.unitTextColor}`}>
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full font-label-sm text-label-sm font-label-sm ${activity.unitColor} ${activity.unitTextColor}`}>
                     {activity.unit}
                   </span>
                 </td>
@@ -95,7 +95,7 @@ function RecentActivity() {
                   </div>
                 </td>
                 <td className="py-space-sm px-space-md">
-                  <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-label-sm font-label-sm ${activity.statusBg} text-on-surface`}>
+                  <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-label-sm text-label-sm font-label-sm ${activity.statusBg} text-on-surface`}>
                     <span className={`w-1.5 h-1.5 rounded-full ${activity.statusDot}`}></span>
                     {activity.status}
                   </span>
@@ -111,7 +111,7 @@ function RecentActivity() {
 
       <div className="p-space-md bg-surface-container-low flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm">
         <div className="flex items-center gap-1 font-body-sm text-body-sm text-on-surface-variant">
-          <span>Menampilkan <strong className="font-body-sm-medium text-on-surface">1 - {activities.length}</strong> dari <strong className="font-body-sm-medium text-on-surface">{selectJumlahHadir(state)}</strong> pegawai presensi hari ini</span>
+          <span>Menampilkan <strong className="font-body-sm-medium text-body-sm-medium text-on-surface">1 - {activities.length}</strong> dari <strong className="font-body-sm-medium text-body-sm-medium text-on-surface">{selectJumlahHadir(state)}</strong> pegawai presensi hari ini</span>
         </div>
         <div className="flex items-center gap-1 self-end sm:self-auto">
           <button className="w-8 h-8 rounded-lg flex items-center justify-center text-outline hover:bg-surface-container hover:text-on-surface transition-colors" disabled="">

@@ -17,7 +17,7 @@ function EditUnitModal({ unit, onClose, onSave }) {
       >
         <div className="px-space-lg py-space-md border-b border-outline/20 flex items-start justify-between bg-surface-container/50">
           <div>
-            <h2 className="font-headline-md text-headline-md text-primary leading-tight" id="modalTitle">
+            <h2 className="font-headline-sm text-headline-sm text-primary leading-snug" id="modalTitle">
               Edit Unit: {unit?.nama || 'SD Islam RJ'}
             </h2>
             <p className="font-body-sm text-body-sm text-on-surface-variant mt-0.5" id="modalSubtitle">
@@ -86,7 +86,7 @@ function EditUnitModal({ unit, onClose, onSave }) {
                 <path d="M70,220 L480,-10" fill="none" stroke="#CBD5E1" strokeWidth="7"></path>
               </svg>
 
-              <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-surface-container-lowest/95 backdrop-blur-sm px-2.5 py-1 rounded-md shadow-sm border border-outline/30 text-body-sm font-body-md-medium text-on-surface z-10">
+              <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-surface-container-lowest/95 backdrop-blur-sm px-2.5 py-1 rounded-md shadow-sm border border-outline/30 font-body-md-medium text-body-md-medium text-on-surface z-10">
                 <span className="material-symbols-outlined text-secondary text-[16px]">location_on</span>
                 <span>Gedung SD Islam RJ</span>
               </div>
@@ -122,14 +122,14 @@ function EditUnitModal({ unit, onClose, onSave }) {
                     </div>
                   </div>
                 </div>
-                <div className="absolute -bottom-3.5 bg-primary-container text-on-primary px-3 py-0.5 rounded-full text-body-sm font-body-sm font-medium shadow-md whitespace-nowrap">
+                <div className="absolute -bottom-3.5 bg-primary-container text-on-primary px-3 py-0.5 rounded-full font-body-sm text-body-sm font-medium shadow-md whitespace-nowrap">
                   <span id="mapRadiusLabel">Radius Aktif: {radius}m</span>
                 </div>
               </div>
 
               <div className="absolute bottom-3 left-3 z-10">
                 <button
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-container-lowest hover:bg-white text-primary text-body-sm font-body-md-medium shadow-sm border border-outline/30 transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-container-lowest hover:bg-white text-primary font-body-md-medium text-body-md-medium shadow-sm border border-outline/30 transition-colors cursor-pointer"
                   type="button"
                 >
                   <span className="material-symbols-outlined text-[16px] text-secondary">my_location</span>
@@ -153,9 +153,9 @@ function EditUnitModal({ unit, onClose, onSave }) {
                   value={radius}
                   onChange={(e) => setRadius(parseInt(e.target.value) || 50)}
                 />
-                <span className="absolute right-3 px-2 py-0.5 rounded bg-surface-container text-on-surface-variant text-body-sm font-body-sm border border-outline/30">Meter</span>
+                <span className="absolute right-3 px-2 py-0.5 rounded bg-surface-container text-on-surface-variant font-body-sm text-body-sm border border-outline/30">Meter</span>
               </div>
-              <span className="text-body-sm text-on-surface-variant">Rekomendasi area sekolah: 50 – 100 meter.</span>
+              <span className="font-body-sm text-body-sm text-on-surface-variant">Rekomendasi area sekolah: 50 – 100 meter.</span>
             </div>
 
             <div className="grid grid-cols-2 gap-2.5">
@@ -170,7 +170,7 @@ function EditUnitModal({ unit, onClose, onSave }) {
                     value={jamMasuk}
                     onChange={(e) => setJamMasuk(e.target.value)}
                   />
-                  <span className="absolute right-2 text-label-sm font-label-sm text-on-surface-variant">WIB</span>
+                  <span className="absolute right-2 font-label-sm text-label-sm font-label-sm text-on-surface-variant">WIB</span>
                 </div>
               </div>
               <div className="flex flex-col gap-1.5">
@@ -184,7 +184,7 @@ function EditUnitModal({ unit, onClose, onSave }) {
                     value={jamPulang}
                     onChange={(e) => setJamPulang(e.target.value)}
                   />
-                  <span className="absolute right-2 text-label-sm font-label-sm text-on-surface-variant">WIB</span>
+                  <span className="absolute right-2 font-label-sm text-label-sm font-label-sm text-on-surface-variant">WIB</span>
                 </div>
               </div>
             </div>
@@ -194,14 +194,14 @@ function EditUnitModal({ unit, onClose, onSave }) {
         <div className="px-space-lg py-space-md bg-surface-container/50 border-t border-outline/20 flex items-center justify-end gap-space-md">
           <button
             onClick={onClose}
-            className="px-space-md py-2 rounded-lg border border-outline bg-surface-container-lowest hover:bg-surface-container text-on-surface-variant font-body-md-medium transition-colors cursor-pointer"
+            className="px-space-md py-2 rounded-lg border border-outline bg-surface-container-lowest hover:bg-surface-container text-on-surface-variant font-body-md-medium text-body-md-medium transition-colors cursor-pointer"
             type="button"
           >
             Batal
           </button>
           <button
             onClick={() => onSave({ name, address, radius, jamMasuk, jamPulang })}
-            className="px-space-md py-2 rounded-lg bg-primary-container hover:bg-primary text-on-primary font-body-md-medium flex items-center gap-2 shadow-sm transition-colors cursor-pointer"
+            className="px-space-md py-2 rounded-lg bg-primary-container hover:bg-primary text-on-primary font-body-md-medium text-body-md-medium flex items-center gap-2 shadow-sm transition-colors cursor-pointer"
             id="btnSaveUnit"
             type="button"
           >

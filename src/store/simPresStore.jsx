@@ -340,7 +340,7 @@ export function selectRankingData(state) {
     badgeColor: 'bg-secondary-fixed',
     badgeText: 'text-on-secondary-fixed',
   }))
-  const lateSorted = [...active].filter((s) => s.late > 0).sort((a, b) => b.late - a.late).slice(0, 10).map((s, idx) => ({
+  const topLate = [...active].filter((s) => s.late > 0).sort((a, b) => b.late - a.late).slice(0, 10).map((s, idx) => ({
     rank: idx + 1,
     initials: initialsOf(s.name),
     name: s.name,

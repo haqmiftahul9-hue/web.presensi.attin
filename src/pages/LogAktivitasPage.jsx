@@ -57,33 +57,33 @@ function LogAktivitasPage() {
       <div className="px-space-lg py-space-md flex flex-col gap-space-md">
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-space-sm">
           <div className="flex flex-col gap-space-2xs">
-            <nav className="flex items-center gap-space-2xs text-on-surface-variant font-label-sm font-label-sm tracking-normal">
+            <nav className="flex items-center gap-space-2xs text-on-surface-variant font-label-sm text-label-sm tracking-normal">
               <span className="hover:text-on-surface cursor-pointer transition-colors">Home</span>
               <span className="material-symbols-outlined text-[14px]">chevron_right</span>
               <span className="hover:text-on-surface cursor-pointer transition-colors">Pengaturan & Sistem</span>
               <span className="material-symbols-outlined text-[14px]">chevron_right</span>
-              <span className="text-secondary font-body-sm font-body-sm-medium">Log Aktivitas</span>
+              <span className="text-secondary font-body-sm-medium text-body-sm-medium">Log Aktivitas</span>
             </nav>
             <div className="flex items-center gap-space-xs mt-1">
               <div className="w-8 h-8 rounded-lg bg-surface-container-high flex items-center justify-center text-primary flex-shrink-0">
                 <span className="material-symbols-outlined text-[20px]">history</span>
               </div>
-              <h1 className="font-headline-lg font-headline-lg text-on-surface tracking-tight leading-none">Log Aktivitas</h1>
+              <h1 className="font-headline-md text-headline-md text-on-surface tracking-tight leading-tight">Log Aktivitas</h1>
             </div>
-            <p className="font-body-md font-body-md text-on-surface-variant max-w-3xl">
+            <p className="font-body-md text-body-md text-on-surface-variant max-w-3xl leading-relaxed">
               Rekam jejak seluruh aktivitas sistem, perubahan data master, konfigurasi unit, dan autentikasi pengguna secara real-time.
             </p>
           </div>
           <div className="flex items-center gap-space-xs flex-shrink-0 self-start md:self-auto">
             <button
               onClick={() => setSearch('')}
-              className="h-10 px-space-sm rounded-lg bg-surface-container-lowest text-on-surface hover:bg-surface-container transition-colors flex items-center gap-1.5 shadow-sm text-body-sm font-body-sm cursor-pointer"
+              className="h-10 px-space-sm rounded-lg bg-surface-container-lowest text-on-surface hover:bg-surface-container transition-colors flex items-center gap-1.5 shadow-sm font-body-sm text-body-sm cursor-pointer"
               type="button"
             >
               <span className="material-symbols-outlined text-[18px] text-on-surface-variant">filter_alt_off</span>
               <span>Bersihkan Filter</span>
             </button>
-            <button className="h-10 px-space-md rounded-lg bg-primary-container hover:bg-primary text-on-primary transition-colors flex items-center gap-2 shadow-sm text-body-sm font-body-sm cursor-pointer" type="button">
+            <button className="h-10 px-space-md rounded-lg bg-primary-container hover:bg-primary text-on-primary transition-colors flex items-center gap-2 shadow-sm font-body-sm text-body-sm cursor-pointer" type="button">
               <span className="material-symbols-outlined text-[18px]">download</span>
               <span>Export Log (.CSV)</span>
             </button>
@@ -97,11 +97,11 @@ function LogAktivitasPage() {
                 <span className="material-symbols-outlined text-[20px]">trending_up</span>
               </div>
               <div className="flex flex-col">
-                <span className="font-label-sm font-label-sm uppercase tracking-wider text-on-surface-variant">Total Log Hari Ini</span>
-                <span className="font-headline-sm font-headline-sm text-on-surface font-semibold">{totalLogHariIni} Catatan Masuk</span>
+                <span className="font-label-md text-label-md uppercase tracking-wider text-on-surface-variant">Total Log Hari Ini</span>
+                <span className="font-body-md-medium text-body-md-medium text-on-surface leading-snug">{totalLogHariIni} Catatan Masuk</span>
               </div>
             </div>
-            <span className="text-xs px-2 py-0.5 rounded-full bg-surface-container text-on-surface-variant font-label-sm font-label-sm">Hari ini</span>
+            <span className="font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-surface-container text-on-surface-variant">Hari ini</span>
           </div>
           <div className="bg-surface-container-lowest rounded-lg p-space-sm shadow-sm flex items-center justify-between">
             <div className="flex items-center gap-space-sm">
@@ -109,11 +109,11 @@ function LogAktivitasPage() {
                 <span className="material-symbols-outlined text-[20px]">tune</span>
               </div>
               <div className="flex flex-col">
-                <span className="font-label-sm font-label-sm uppercase tracking-wider text-on-surface-variant">Aktivitas Terbanyak</span>
-                <span className="font-headline-sm font-headline-sm text-on-surface font-semibold">{topActivity ? `${topActivity[0]} (${topActivity[1]}x)` : '-'}</span>
+                <span className="font-label-md text-label-md uppercase tracking-wider text-on-surface-variant">Aktivitas Terbanyak</span>
+                <span className="font-body-md-medium text-body-md-medium text-on-surface leading-snug">{topActivity ? `${topActivity[0]} (${topActivity[1]}x)` : '-'}</span>
               </div>
             </div>
-            <span className="text-xs px-2 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-sm font-label-sm">Terbanyak</span>
+            <span className="font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed">Terbanyak</span>
           </div>
           <div className="bg-surface-container-lowest rounded-lg p-space-sm shadow-sm flex items-center justify-between">
             <div className="flex items-center gap-space-sm">
@@ -121,11 +121,11 @@ function LogAktivitasPage() {
                 <span className="material-symbols-outlined text-[20px]">security_update_good</span>
               </div>
               <div className="flex flex-col">
-                <span className="font-label-sm font-label-sm uppercase tracking-wider text-on-surface-variant">Kebijakan Retensi</span>
-                <span className="font-headline-sm font-headline-sm text-on-surface font-semibold">365 Hari Penyimpanan</span>
+                <span className="font-label-md text-label-md uppercase tracking-wider text-on-surface-variant">Kebijakan Retensi</span>
+                <span className="font-body-md-medium text-body-md-medium text-on-surface leading-snug">365 Hari Penyimpanan</span>
               </div>
             </div>
-            <span className="text-xs px-2 py-0.5 rounded-full bg-surface-container text-on-surface-variant font-label-sm font-label-sm">Auto-purge</span>
+            <span className="font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-surface-container text-on-surface-variant">Auto-purge</span>
           </div>
         </div>
 
@@ -133,13 +133,13 @@ function LogAktivitasPage() {
           <div className="flex items-center gap-2 px-space-sm h-10 bg-surface-container-low rounded-lg text-on-surface cursor-pointer hover:bg-surface-container transition-colors min-w-[220px]">
             <span className="material-symbols-outlined text-on-surface-variant text-[18px]">calendar_today</span>
             <div className="flex flex-col text-left">
-              <span className="font-label-sm font-label-sm text-[10px] text-on-surface-variant uppercase leading-none">Rentang Tanggal</span>
-              <span className="font-body-sm font-body-sm-medium text-on-surface leading-tight mt-0.5">01 Sep 2026 - 15 Sep 2026</span>
+              <span className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider leading-tight">Rentang Tanggal</span>
+              <span className="font-body-sm-medium text-body-sm-medium text-on-surface leading-tight mt-0.5">01 Sep 2026 - 15 Sep 2026</span>
             </div>
             <span className="material-symbols-outlined text-on-surface-variant text-[18px] ml-auto">arrow_drop_down</span>
           </div>
           <div className="relative min-w-[180px]">
-            <select className="w-full h-10 appearance-none pl-space-sm pr-8 bg-surface-container-low text-on-surface font-body-sm font-body-sm-medium rounded-lg focus:outline-none focus:bg-surface-container cursor-pointer transition-colors">
+            <select className="w-full h-10 appearance-none pl-space-sm pr-8 bg-surface-container-low text-on-surface font-body-sm-medium text-body-sm-medium rounded-lg focus:outline-none focus:bg-surface-container cursor-pointer transition-colors">
               <option value="">Semua User</option>
               {state.adminUsers.map((u) => (
                 <option key={u.id} value={u.role.toLowerCase().replace(' ', '-')}>{u.role} — {u.name.split(',')[0]}</option>
@@ -148,7 +148,7 @@ function LogAktivitasPage() {
             <span className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px] pointer-events-none">expand_more</span>
           </div>
           <div className="relative min-w-[150px]">
-            <select className="w-full h-10 appearance-none pl-space-sm pr-8 bg-surface-container-low text-on-surface font-body-sm font-body-sm-medium rounded-lg focus:outline-none focus:bg-surface-container cursor-pointer transition-colors">
+            <select className="w-full h-10 appearance-none pl-space-sm pr-8 bg-surface-container-low text-on-surface font-body-sm-medium text-body-sm-medium rounded-lg focus:outline-none focus:bg-surface-container cursor-pointer transition-colors">
               <option value="">Semua Aksi</option>
               <option value="create">Tambah</option>
               <option value="update">Ubah</option>
@@ -161,7 +161,7 @@ function LogAktivitasPage() {
           <div className="relative flex-1">
             <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">search</span>
             <input
-              className="w-full h-10 pl-9 pr-space-md bg-surface-container-low text-on-surface placeholder:text-outline font-body-sm font-body-sm rounded-lg focus:outline-none focus:bg-surface-container transition-colors"
+              className="w-full h-10 pl-9 pr-space-md bg-surface-container-low text-on-surface placeholder:text-outline font-body-sm text-body-sm rounded-lg focus:outline-none focus:bg-surface-container transition-colors"
               placeholder="Cari target objek, user, atau keterangan..."
               type="text"
               value={search}
@@ -172,9 +172,9 @@ function LogAktivitasPage() {
 
         <div className="bg-surface-container-lowest rounded-lg shadow-sm overflow-hidden flex flex-col">
           <div className="overflow-x-auto w-full">
-            <table className="w-full text-left text-body-md text-body-md border-collapse min-w-[960px]">
+            <table className="w-full text-left font-body-md text-body-md border-collapse min-w-[960px]">
               <thead>
-                <tr className="bg-surface-container-low text-on-surface-variant font-label-sm font-label-sm uppercase tracking-wider h-11">
+                <tr className="bg-surface-container-low text-on-surface-variant font-label-md text-label-md uppercase tracking-wider h-11">
                   <th className="py-2.5 px-space-md w-[180px]" scope="col">Waktu & Tanggal</th>
                   <th className="py-2.5 px-space-sm w-[240px]" scope="col">User Pelaksana</th>
                   <th className="py-2.5 px-space-sm w-[150px]" scope="col">Jenis Aksi</th>
@@ -182,41 +182,41 @@ function LogAktivitasPage() {
                   <th className="py-2.5 px-space-md" scope="col">Keterangan Aktivitas</th>
                 </tr>
               </thead>
-              <tbody className="font-body-md font-body-md text-on-surface divide-y divide-surface-container">
+              <tbody className="font-body-md text-body-md text-on-surface divide-y divide-surface-container">
                 {filteredData.map((row) => (
                   <tr key={row.id} className={`${(filteredData.indexOf(row) % 2 === 1) ? 'bg-surface-container-low/50' : 'bg-surface-container-lowest'} hover:bg-surface-container-low transition-colors`}>
                     <td className="py-3 px-space-md whitespace-nowrap">
                       <div className="flex items-center gap-1.5 text-on-surface">
                         <span className="material-symbols-outlined text-[16px] text-on-surface-variant">schedule</span>
-                        <span className="font-body-sm font-body-sm-medium">{row.time}</span>
-                        <span className="text-[11px] text-on-surface-variant">WIB</span>
+                        <span className="font-body-sm-medium text-body-sm-medium">{row.time}</span>
+                        <span className="font-label-sm text-label-sm text-on-surface-variant">WIB</span>
                       </div>
                     </td>
                     <td className="py-3 px-space-sm">
                       <div className="flex items-center gap-space-xs">
-                        <div className="w-8 h-8 rounded-full bg-primary-container text-on-primary font-body-sm font-body-sm-medium flex items-center justify-center flex-shrink-0 text-xs">
+                        <div className="w-8 h-8 rounded-full bg-primary-container text-on-primary font-body-sm-medium text-body-sm-medium flex items-center justify-center flex-shrink-0">
                           {row.initials}
                         </div>
                         <div className="flex flex-col min-w-0">
-                          <span className="font-body-sm font-body-sm-medium text-on-surface truncate">{row.name}</span>
-                          <span className={`font-label-sm font-label-sm text-[11px] ${row.roleColor} leading-none`}>{row.role}</span>
+                          <span className="font-body-sm-medium text-body-sm-medium text-on-surface truncate">{row.name}</span>
+                          <span className={`font-label-sm text-label-sm ${row.roleColor} leading-tight`}>{row.role}</span>
                         </div>
                       </div>
                     </td>
                     <td className="py-3 px-space-sm">
-                      <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium tracking-tight ${actionStyles[row.actionType]}`}>
+                      <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full font-label-sm text-label-sm font-medium tracking-tight ${actionStyles[row.actionType]}`}>
                         <span className="material-symbols-outlined text-[13px]">{actionIcons[row.actionType]}</span>
                         <span>{row.action}</span>
                       </span>
                     </td>
                     <td className="py-3 px-space-sm">
                       <div className="flex flex-col">
-                        <span className="font-body-sm font-body-sm-medium text-on-surface">{row.target}</span>
-                        <span className="text-[11px] text-on-surface-variant">{row.targetSub}</span>
+                        <span className="font-body-sm-medium text-body-sm-medium text-on-surface">{row.target}</span>
+                        <span className="font-body-sm text-body-sm text-on-surface-variant">{row.targetSub}</span>
                       </div>
                     </td>
                     <td className="py-3 px-space-md">
-                      <p className="font-body-sm font-body-sm text-on-surface leading-relaxed">{row.desc}</p>
+                      <p className="font-body-sm text-body-sm text-on-surface leading-relaxed">{row.desc}</p>
                     </td>
                   </tr>
                 ))}
@@ -224,20 +224,20 @@ function LogAktivitasPage() {
             </table>
           </div>
           <div className="px-space-md py-space-sm bg-surface-container-lowest border-t border-surface-container flex flex-col sm:flex-row items-center justify-between gap-space-sm">
-            <div className="font-body-sm font-body-sm text-on-surface-variant">
-              Menampilkan <span className="font-body-sm font-body-sm-medium text-on-surface font-semibold">1</span> - <span className="font-body-sm font-body-sm-medium text-on-surface font-semibold">{filteredData.length}</span> dari <span className="font-body-sm font-body-sm-medium text-on-surface font-semibold">{state.logs.length}</span> catatan log
+            <div className="font-body-sm text-body-sm text-on-surface-variant">
+              Menampilkan <span className="font-body-sm-medium text-body-sm-medium text-on-surface font-semibold">1</span> - <span className="font-body-sm-medium text-body-sm-medium text-on-surface font-semibold">{filteredData.length}</span> dari <span className="font-body-sm-medium text-body-sm-medium text-on-surface font-semibold">{state.logs.length}</span> catatan log
             </div>
             <div className="flex items-center gap-1">
-              <button className="h-8 px-2.5 rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface-variant hover:text-on-surface transition-colors flex items-center gap-1 text-xs font-medium cursor-not-allowed opacity-60" disabled type="button">
+              <button className="h-8 px-2.5 rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface-variant hover:text-on-surface transition-colors flex items-center gap-1 font-label-sm text-label-sm font-medium cursor-not-allowed opacity-60" disabled type="button">
                 <span className="material-symbols-outlined text-[16px]">chevron_left</span>
                 <span>Sebelumnya</span>
               </button>
-              <button className="w-8 h-8 rounded-lg bg-primary text-on-primary font-body-sm font-body-sm-medium text-xs flex items-center justify-center cursor-pointer" type="button">1</button>
-              <button className="w-8 h-8 rounded-lg hover:bg-surface-container text-on-surface font-body-sm font-body-sm-medium text-xs flex items-center justify-center transition-colors cursor-pointer" type="button">2</button>
-              <button className="w-8 h-8 rounded-lg hover:bg-surface-container text-on-surface font-body-sm font-body-sm-medium text-xs flex items-center justify-center transition-colors cursor-pointer" type="button">3</button>
-              <span className="w-6 text-center text-xs text-on-surface-variant tracking-widest">...</span>
-              <button className="w-8 h-8 rounded-lg hover:bg-surface-container text-on-surface font-body-sm font-body-sm-medium text-xs flex items-center justify-center transition-colors cursor-pointer" type="button">27</button>
-              <button className="h-8 px-2.5 rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface transition-colors flex items-center gap-1 text-xs font-medium cursor-pointer" type="button">
+              <button className="w-8 h-8 rounded-lg bg-primary text-on-primary font-body-sm-medium text-body-sm-medium flex items-center justify-center cursor-pointer" type="button">1</button>
+              <button className="w-8 h-8 rounded-lg hover:bg-surface-container text-on-surface font-body-sm-medium text-body-sm-medium flex items-center justify-center transition-colors cursor-pointer" type="button">2</button>
+              <button className="w-8 h-8 rounded-lg hover:bg-surface-container text-on-surface font-body-sm-medium text-body-sm-medium flex items-center justify-center transition-colors cursor-pointer" type="button">3</button>
+              <span className="w-6 text-center font-label-sm text-label-sm text-on-surface-variant tracking-widest">...</span>
+              <button className="w-8 h-8 rounded-lg hover:bg-surface-container text-on-surface font-body-sm-medium text-body-sm-medium flex items-center justify-center transition-colors cursor-pointer" type="button">27</button>
+              <button className="h-8 px-2.5 rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface transition-colors flex items-center gap-1 font-label-sm text-label-sm font-medium cursor-pointer" type="button">
                 <span>Berikutnya</span>
                 <span className="material-symbols-outlined text-[16px]">chevron_right</span>
               </button>

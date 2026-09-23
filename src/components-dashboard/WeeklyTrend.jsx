@@ -17,7 +17,7 @@ function WeeklyTrend() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm pb-space-md">
         <div className="flex flex-col">
           <h2 className="font-headline-sm text-headline-sm text-on-surface">Tren Kehadiran Mingguan</h2>
-          <span className="font-body-sm text-body-sm text-on-surface-variant">Rata-rata kehadiran mingguan: <strong className="text-on-surface font-body-sm-medium">{rataRataKehadiran}%</strong></span>
+          <span className="font-body-sm text-body-sm text-on-surface-variant">Rata-rata kehadiran mingguan: <strong className="text-on-surface font-body-sm-medium text-body-sm-medium">{rataRataKehadiran}%</strong></span>
         </div>
         <div className="flex items-center gap-space-md">
           <div className="flex items-center gap-space-xs">
@@ -34,7 +34,7 @@ function WeeklyTrend() {
       </div>
 
       <div className="w-full pt-4">
-        <svg aria-label="Grafik Kehadiran Mingguan" className="w-full h-48 overflow-visible font-label-sm" viewBox="0 0 540 210">
+        <svg aria-label="Grafik Kehadiran Mingguan" className="w-full h-48 overflow-visible font-label-sm text-label-sm" viewBox="0 0 540 210">
           <line className="text-surface-variant" stroke="currentColor" strokeDasharray="2 3" strokeWidth="1" x1="30" x2="520" y1="20" y2="20"></line>
           <line className="text-surface-variant" stroke="currentColor" strokeDasharray="2 3" strokeWidth="1" x1="30" x2="520" y1="65" y2="65"></line>
           <line className="text-surface-variant" stroke="currentColor" strokeDasharray="2 3" strokeWidth="1" x1="30" x2="520" y1="110" y2="110"></line>

@@ -21,8 +21,8 @@ function SidebarNav() {
               <span className="material-symbols-outlined text-on-secondary text-[20px]">verified</span>
             </div>
             <div className="flex flex-col">
-              <span className="font-headline-sm text-headline-sm text-on-primary tracking-tight leading-none">SimPres</span>
-              <span className="font-label-sm text-label-sm text-on-primary-container leading-none mt-1">Multi-Unit System</span>
+              <span className="font-headline-sm text-headline-sm text-on-primary tracking-tight leading-tight">SimPres</span>
+              <span className="font-label-sm text-label-sm text-on-primary-container leading-tight mt-1">Multi-Unit System</span>
             </div>
           </div>
         </div>
@@ -48,7 +48,7 @@ function SidebarNav() {
               aria-current={item.active ? 'page' : undefined}
               className={`flex items-center gap-space-sm px-space-sm py-space-xs rounded-lg transition-colors ${
                 item.active
-                  ? 'bg-white/10 text-on-primary font-body-md-medium'
+                  ? 'bg-white/10 text-on-primary font-body-md-medium text-body-md-medium'
                   : 'text-on-primary-container hover:bg-white/5 hover:text-on-primary'
               }`}
               data-path={item.path}

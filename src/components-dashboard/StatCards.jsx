@@ -16,7 +16,7 @@ function StatCards() {
           <div className="w-11 h-11 rounded-xl bg-secondary-fixed/50 flex items-center justify-center text-secondary mb-1">
             <span className="material-symbols-outlined text-[22px]">group</span>
           </div>
-          <span className="font-display-lg text-display-lg text-on-surface leading-none">{total}</span>
+          <span className="font-headline-lg text-headline-lg text-on-surface leading-tight">{total}</span>
           <span className="font-body-md-medium text-body-md-medium text-on-surface">Total Pegawai</span>
           <span className="font-body-sm text-body-sm text-secondary mt-1 flex items-center gap-1">
             <span className="material-symbols-outlined text-[14px]">arrow_upward</span>
@@ -31,7 +31,7 @@ function StatCards() {
           <div className="w-11 h-11 rounded-xl bg-surface-container-high flex items-center justify-center text-surface-tint mb-1">
             <span className="material-symbols-outlined text-[22px]">check_circle</span>
           </div>
-          <span className="font-display-lg text-display-lg text-on-surface leading-none">{hadir}</span>
+          <span className="font-headline-lg text-headline-lg text-on-surface leading-tight">{hadir}</span>
           <span className="font-body-md-medium text-body-md-medium text-on-surface">Hadir Hari Ini</span>
           <span className="font-body-sm text-body-sm text-on-surface-variant mt-1 flex items-center gap-1">
             <span className="w-1.5 h-1.5 rounded-full bg-secondary"></span>
@@ -46,7 +46,7 @@ function StatCards() {
           <div className="w-11 h-11 rounded-xl bg-surface-variant flex items-center justify-center text-on-surface-variant mb-1">
             <span className="material-symbols-outlined text-[22px]">alarm</span>
           </div>
-          <span className="font-display-lg text-display-lg text-on-surface leading-none">{terlambat}</span>
+          <span className="font-headline-lg text-headline-lg text-on-surface leading-tight">{terlambat}</span>
           <span className="font-body-md-medium text-body-md-medium text-on-surface">Terlambat Hari Ini</span>
           <span className="font-body-sm text-body-sm text-outline mt-1 flex items-center gap-1">
             <span className="material-symbols-outlined text-[14px]">timer</span>
@@ -61,7 +61,7 @@ function StatCards() {
           <div className="w-11 h-11 rounded-xl bg-error-container flex items-center justify-center text-error mb-1">
             <span className="material-symbols-outlined text-[22px]">person_off</span>
           </div>
-          <span className="font-display-lg text-display-lg text-error leading-none">{alpha}</span>
+          <span className="font-headline-lg text-headline-lg text-error leading-tight">{alpha}</span>
           <span className="font-body-md-medium text-body-md-medium text-on-surface">Alpha Hari Ini</span>
           <span className="font-body-sm text-body-sm text-on-error-container mt-1 flex items-center gap-1">
             <span className="material-symbols-outlined text-[14px]">pending</span>

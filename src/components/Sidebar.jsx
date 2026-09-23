@@ -23,8 +23,8 @@ function SidebarNav() {
               <span className="material-symbols-outlined text-on-secondary text-[20px]">verified</span>
             </div>
             <div className="flex flex-col">
-              <span className="font-headline-sm text-headline-sm text-on-primary tracking-tight leading-none">SimPres</span>
-              <span className="font-label-sm text-label-sm text-on-primary-container leading-none mt-1">Multi-Unit System</span>
+              <span className="font-headline-sm text-headline-sm text-on-primary tracking-tight leading-tight">SimPres</span>
+              <span className="font-label-sm text-label-sm text-on-primary-container leading-tight mt-1">Multi-Unit System</span>
             </div>
           </div>
         </div>

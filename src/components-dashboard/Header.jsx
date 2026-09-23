@@ -26,8 +26,8 @@ function Header() {
             <span className="material-symbols-outlined text-on-primary text-[18px]">person</span>
           </div>
           <div className="hidden md:flex flex-col text-left">
-            <span className="font-body-sm-medium text-body-sm-medium text-on-surface leading-none">Superadmin</span>
-            <span className="font-label-sm text-label-sm text-on-surface-variant leading-none mt-1">Yayasan Pendidikan</span>
+            <span className="font-body-sm-medium text-body-sm-medium text-on-surface leading-tight">Superadmin</span>
+            <span className="font-label-sm text-label-sm text-on-surface-variant leading-tight mt-1">Yayasan Pendidikan</span>
           </div>
           <span className="material-symbols-outlined text-on-surface-variant text-[18px]">arrow_drop_down</span>
         </div>

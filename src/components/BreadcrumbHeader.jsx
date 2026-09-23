@@ -19,7 +19,7 @@ function BreadcrumbHeader() {
           <div className="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center text-primary-container">
             <span className="material-symbols-outlined text-[20px]">badge</span>
           </div>
-          <h1 className="font-headline-lg text-headline-lg text-on-surface tracking-tight">Data Guru/Pegawai</h1>
+          <h1 className="font-headline-md text-headline-md text-on-surface tracking-tight">Data Guru/Pegawai</h1>
         </div>
         <p className="font-body-sm text-body-sm text-on-surface-variant mt-0.5">
           Kelola direktori pendidik dan tenaga kependidikan terdaftar lintas unit sekolah
@@ -31,8 +31,8 @@ function BreadcrumbHeader() {
             <span className="material-symbols-outlined text-[18px]">groups</span>
           </div>
           <div className="flex flex-col">
-            <span className="font-label-sm font-label-sm text-on-surface-variant uppercase">Total Guru & Pegawai</span>
-            <span className="font-headline-lg text-headline-lg text-on-surface leading-none">{total} Orang</span>
+            <span className="font-label-sm text-label-sm text-on-surface-variant uppercase">Total Guru & Pegawai</span>
+            <span className="font-headline-sm text-headline-sm text-on-surface leading-tight">{total} Orang</span>
           </div>
         </div>
         <div className="px-space-md py-space-xs rounded-lg bg-surface-container-lowest shadow-sm flex items-center gap-space-sm">
@@ -40,8 +40,8 @@ function BreadcrumbHeader() {
             <span className="material-symbols-outlined text-[18px]">check_circle</span>
           </div>
           <div className="flex flex-col">
-            <span className="font-label-sm font-label-sm text-on-surface-variant uppercase">Status Aktif</span>
-            <span className="font-headline-lg text-headline-lg text-emerald-600 leading-none">{aktif} Staf</span>
+            <span className="font-label-sm text-label-sm text-on-surface-variant uppercase">Status Aktif</span>
+            <span className="font-headline-sm text-headline-sm text-emerald-600 leading-tight">{aktif} Staf</span>
           </div>
         </div>
       </div>

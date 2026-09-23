@@ -94,36 +94,36 @@ function MonitoringPresensiPage() {
     <div className="flex flex-col w-full">
       <div className="p-space-lg flex flex-col gap-space-lg max-w-[1600px] mx-auto w-full">
         <div className="flex flex-col gap-space-sm">
-          <div className="flex items-center gap-2 font-body-sm font-body-sm text-outline">
+          <div className="flex items-center gap-2 font-body-sm text-body-sm text-outline">
             <span className="hover:text-on-surface cursor-pointer transition-colors">Home</span>
             <span className="material-symbols-outlined text-[14px] text-outline">chevron_right</span>
             <span className="hover:text-on-surface cursor-pointer transition-colors">Presensi</span>
             <span className="material-symbols-outlined text-[14px] text-outline">chevron_right</span>
-            <span className="text-on-surface font-body-sm-medium font-body-sm-medium">Monitoring Real-time</span>
+            <span className="text-on-surface font-body-sm-medium text-body-sm-medium">Monitoring Real-time</span>
           </div>
 
           <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <h1 className="font-headline-lg font-headline-lg text-on-surface tracking-tight">Presensi — Monitoring</h1>
+              <h1 className="font-headline-md text-headline-md text-on-surface tracking-tight">Presensi — Monitoring</h1>
               <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-50 shadow-sm">
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-600"></span>
                 </span>
-                <span className="font-label-sm font-label-sm text-emerald-800 uppercase tracking-wide">Live Feed Presensi</span>
+                <span className="font-label-sm text-label-sm text-emerald-800 uppercase tracking-wide">Live Feed Presensi</span>
               </div>
             </div>
 
             <div className="flex flex-wrap items-center gap-2.5">
               <div className="flex items-center gap-2 bg-surface-container-lowest px-3 py-2 rounded-lg shadow-sm">
                 <span className="material-symbols-outlined text-[18px] text-emerald-600">schedule</span>
-                <span className="font-body-sm-medium font-body-sm-medium text-on-surface">{liveTime || 'Selasa, 15 September 2026 • 07:42:18 WIB'}</span>
+                <span className="font-body-sm-medium text-body-sm-medium text-on-surface">{liveTime || 'Selasa, 15 September 2026 • 07:42:18 WIB'}</span>
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
               </div>
 
               <div className="relative">
                 <select
-                  className="appearance-none bg-surface-container-lowest text-on-surface font-body-sm font-body-sm-medium pl-3 pr-8 py-2 rounded-lg shadow-sm cursor-pointer hover:bg-surface-container-low transition-colors focus:outline-none focus:bg-surface-container-lowest"
+                  className="appearance-none bg-surface-container-lowest text-on-surface font-body-sm-medium text-body-sm-medium pl-3 pr-8 py-2 rounded-lg shadow-sm cursor-pointer hover:bg-surface-container-low transition-colors focus:outline-none focus:bg-surface-container-lowest"
                   value={selectedUnit}
                   onChange={(e) => setSelectedUnit(e.target.value)}
                 >
@@ -135,7 +135,7 @@ function MonitoringPresensiPage() {
               </div>
 
               <button
-                className="flex items-center gap-2 bg-surface-container-lowest hover:bg-surface-container-low text-on-surface font-body-sm font-body-sm-medium px-3 py-2 rounded-lg shadow-sm transition-all group"
+                className="flex items-center gap-2 bg-surface-container-lowest hover:bg-surface-container-low text-on-surface font-body-sm-medium text-body-sm-medium px-3 py-2 rounded-lg shadow-sm transition-all group"
                 type="button"
               >
                 <span className={`material-symbols-outlined text-[18px] text-secondary transition-transform ${autoRefresh ? 'rotate-0' : 'rotate-180'}`}>sync</span>
@@ -151,10 +151,10 @@ function MonitoringPresensiPage() {
               <div className={`absolute top-0 right-0 w-24 h-24 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110 duration-300 ${card.iconBg}`}></div>
               <div className="flex items-start justify-between relative z-10">
                 <div>
-                  <span className="font-label-sm font-label-sm text-outline uppercase tracking-wider">{card.label}</span>
+                  <span className="font-label-sm text-label-sm text-outline uppercase tracking-wider">{card.label}</span>
                   <div className="flex items-baseline gap-2 mt-1">
-                    <span className={`font-display-lg font-display-lg tracking-tight font-bold ${card.iconColor}`}>{card.value}</span>
-                    <span className="font-body-sm-medium font-body-sm-medium text-on-surface-variant">{card.total}</span>
+                    <span className={`font-headline-lg text-headline-lg tracking-tight leading-tight ${card.iconColor}`}>{card.value}</span>
+                    <span className="font-body-sm-medium text-body-sm-medium text-on-surface-variant">{card.total}</span>
                   </div>
                 </div>
                 <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${card.iconBg} ${card.iconColor}`}>
@@ -162,8 +162,8 @@ function MonitoringPresensiPage() {
                 </div>
               </div>
               <div className="mt-4 pt-3 flex items-center justify-between relative z-10 bg-surface-container-low/40 px-3 py-1.5 rounded-lg">
-                <span className={`font-body-sm-medium font-body-sm-medium ${card.textcolor || 'text-on-surface'}`}>{card.percentage} {card.subtitle}</span>
-                <span className={`font-label-sm font-label-sm bg-surface-container-high px-2 py-0.5 rounded font-medium ${card.noteColor || 'text-on-surface-variant'}`}>{card.subtitleHighlight}</span>
+                <span className={`font-body-sm-medium text-body-sm-medium ${card.textcolor || 'text-on-surface'}`}>{card.percentage} {card.subtitle}</span>
+                <span className={`font-label-sm text-label-sm bg-surface-container-high px-2 py-0.5 rounded font-medium ${card.noteColor || 'text-on-surface-variant'}`}>{card.subtitleHighlight}</span>
               </div>
             </div>
           ))}
@@ -175,14 +175,14 @@ function MonitoringPresensiPage() {
               <div className="flex items-center gap-3">
                 <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></div>
                 <div>
-                  <h2 className="font-headline-sm font-headline-sm text-on-surface">Aktivitas Presensi Terbaru</h2>
-                  <p className="font-body-sm font-body-sm text-on-surface-variant">Log real-time mesin kiosk, face scan, dan mobile app</p>
+                  <h2 className="font-headline-sm text-headline-sm text-on-surface">Aktivitas Presensi Terbaru</h2>
+                  <p className="font-body-sm text-body-sm text-on-surface-variant">Log real-time mesin kiosk, face scan, dan mobile app</p>
                 </div>
               </div>
               <div className="relative">
                 <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-outline text-[18px]">search</span>
                 <input
-                  className="w-44 sm:w-56 h-9 pl-8 pr-3 text-body-sm text-body-sm bg-surface-container-low rounded-lg text-on-surface placeholder:text-outline focus:outline-none focus:bg-surface-container-lowest transition-all"
+                  className="w-44 sm:w-56 h-9 pl-8 pr-3 font-body-sm text-body-sm bg-surface-container-low rounded-lg text-on-surface placeholder:text-outline focus:outline-none focus:bg-surface-container-lowest transition-all"
                   placeholder="Cari nama / NIY..."
                   type="text"
                   value={searchTerm}
@@ -196,13 +196,13 @@ function MonitoringPresensiPage() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveFilter(tab.id)}
-                  className={`px-3 py-1 rounded-full font-body-sm-medium font-body-sm-medium transition-colors cursor-pointer ${
+                  className={`px-3 py-1 rounded-full font-body-sm-medium text-body-sm-medium transition-colors cursor-pointer ${
                     activeFilter === tab.id ? tab.color : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high'
                   }`}
                   type="button"
                 >
                   <span>{tab.label}</span>
-                  <span className={`px-1.5 py-0.25 rounded-full text-[10px] font-bold ${activeFilter === tab.id && tab.id !== 'semua' ? 'bg-white/20' : 'bg-surface-container-high'}`}>
+                  <span className={`px-1.5 py-0.25 rounded-full font-label-sm text-label-sm font-semibold ${activeFilter === tab.id && tab.id !== 'semua' ? 'bg-white/20' : 'bg-surface-container-high'}`}>
                     {tab.count}
                   </span>
                 </button>
@@ -215,22 +215,22 @@ function MonitoringPresensiPage() {
                   {item.highlight && <div className="absolute left-0 top-0 bottom-0 w-1 bg-secondary rounded-r"></div>}
                   <div className="flex items-center gap-3.5 min-w-0">
                     <div className="relative flex-shrink-0">
-                      <div className="w-11 h-11 rounded-full bg-secondary text-white font-headline-sm font-headline-sm flex items-center justify-center shadow-xs">
+                      <div className="w-11 h-11 rounded-full bg-secondary text-white font-headline-sm text-headline-sm flex items-center justify-center shadow-xs">
                         {item.initials}
                       </div>
                       {item.highlight && (
-                        <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 ring-2 ring-white flex items-center justify-center text-[10px] text-white">
+                        <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 ring-2 ring-white flex items-center justify-center font-label-sm text-label-sm text-white">
                           <span className="material-symbols-outlined text-[10px]">check</span>
                         </span>
                       )}
                     </div>
                     <div className="flex flex-col min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="font-headline-sm font-headline-sm text-on-surface truncate">{item.name}</span>
-                        <span className={`font-label-sm font-label-sm px-2 py-0.5 rounded-full font-semibold ${item.unitColor}`}>{item.unit}</span>
-                        <span className={`font-label-sm font-label-sm px-2 py-0.5 rounded-full font-medium ${item.statusColor}`}>{item.status}</span>
+                        <span className="font-body-md-medium text-body-md-medium text-on-surface truncate leading-snug">{item.name}</span>
+                        <span className={`font-label-sm text-label-sm px-2 py-0.5 rounded-full font-semibold ${item.unitColor}`}>{item.unit}</span>
+                        <span className={`font-label-sm text-label-sm px-2 py-0.5 rounded-full font-medium ${item.statusColor}`}>{item.status}</span>
                       </div>
-                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 font-body-sm font-body-sm text-on-surface-variant">
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 font-body-sm text-body-sm text-on-surface-variant">
                         <span>NIY: <strong className="font-medium text-on-surface">{item.niy}</strong></span>
                         <span>•</span>
                         <span className="inline-flex items-center gap-1">
@@ -246,15 +246,15 @@ function MonitoringPresensiPage() {
                     </div>
                   </div>
                   <div className="flex items-center md:flex-col md:items-end justify-between shrink-0 gap-1 pl-14 md:pl-0">
-                    <span className="font-headline-sm font-headline-sm font-semibold text-emerald-700">{item.time}</span>
-                    <span className="font-body-sm font-body-sm text-on-surface-variant">{item.timeAgo}</span>
+                    <span className="font-headline-sm text-headline-sm font-semibold text-emerald-700">{item.time}</span>
+                    <span className="font-body-sm text-body-sm text-on-surface-variant">{item.timeAgo}</span>
                   </div>
                 </div>
               ))}
             </div>
 
             <div className="p-4 bg-surface-container-low/40 flex flex-col sm:flex-row items-center justify-between gap-3">
-              <span className="font-body-sm font-body-sm text-on-surface-variant text-center sm:text-left">
+              <span className="font-body-sm text-body-sm text-on-surface-variant text-center sm:text-left">
                 Menampilkan <strong className="font-semibold text-on-surface">{activityData.length}</strong> dari <strong className="font-semibold text-on-surface">{selectJumlahHadir(state)}</strong> aktivitas presensi hari ini
               </span>
               <button className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-surface-container-lowest hover:bg-surface-container-high rounded-lg text-secondary font-body-sm-medium text-body-sm-medium shadow-xs transition-colors cursor-pointer" type="button">
@@ -268,18 +268,18 @@ function MonitoringPresensiPage() {
             <div className="bg-surface-container-lowest rounded-xl p-5 shadow-sm flex flex-col gap-5">
               <div>
                 <div className="flex items-center justify-between">
-                  <h2 className="font-headline-sm font-headline-sm text-on-surface">Sebaran per Unit</h2>
-                  <span className="font-label-sm font-label-sm text-secondary bg-blue-50 px-2 py-0.5 rounded-full font-semibold">5 Satuan</span>
+                  <h2 className="font-headline-sm text-headline-sm text-on-surface">Sebaran per Unit</h2>
+                  <span className="font-label-sm text-label-sm text-secondary bg-blue-50 px-2 py-0.5 rounded-full font-semibold">5 Satuan</span>
                 </div>
-                <p className="font-body-sm font-body-sm text-on-surface-variant mt-0.5">Tingkat kehadiran real-time per sekolah naungan</p>
+                <p className="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Tingkat kehadiran real-time per sekolah naungan</p>
               </div>
 
               <div className="flex items-center justify-between p-3 rounded-lg bg-emerald-50 text-emerald-900">
                 <div className="flex items-center gap-2">
                   <span className="material-symbols-outlined text-[18px] text-emerald-600">location_searching</span>
-                  <span className="font-body-sm font-body-sm-medium">Kepatuhan Geofence</span>
+                  <span className="font-body-sm-medium text-body-sm-medium">Kepatuhan Geofence</span>
                 </div>
-                <span className="font-headline-sm font-headline-sm font-bold text-emerald-700">99.1% <span className="font-label-sm font-label-sm font-medium">Valid</span></span>
+                <span className="font-body-md-medium text-body-md-medium text-emerald-700 leading-snug">99.1% <span className="font-label-sm text-label-sm font-medium">Valid</span></span>
               </div>
 
               <div className="flex flex-col gap-4">
@@ -288,17 +288,17 @@ function MonitoringPresensiPage() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <span className={`w-2 h-2 rounded-full bg-emerald-500`}></span>
-                        <span className="font-body-sm font-body-sm-medium text-on-surface">{unit.name}</span>
+                        <span className="font-body-sm-medium text-body-sm-medium text-on-surface">{unit.name}</span>
                       </div>
                       <div className="flex items-baseline gap-1">
-                        <span className="font-body-sm font-body-sm-medium text-on-surface">{unit.present}/{unit.total}</span>
-                        <span className={`font-body-sm font-body-sm font-semibold text-secondary`}>({unit.percentage}%)</span>
+                        <span className="font-body-sm-medium text-body-sm-medium text-on-surface">{unit.present}/{unit.total}</span>
+                        <span className={`font-body-sm text-body-sm font-semibold text-secondary`}>({unit.percentage}%)</span>
                       </div>
                     </div>
                     <div className="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
                       <div className="h-full rounded-full transition-all duration-500 bg-emerald-500" style={{ width: `${unit.percentage}%` }}></div>
                     </div>
-                    <div className="flex justify-between items-center text-[11px] text-on-surface-variant">
+                    <div className="flex justify-between items-center font-label-sm text-label-sm text-on-surface-variant">
                       <span>Sisa {unit.total - unit.present} Pegawai</span>
                       <span className="bg-surface-container-high px-1.5 py-0.2 rounded font-medium text-outline">{unit.total - unit.present > 0 ? `${unit.total - unit.present} Belum Masuk` : 'Semua Hadir'}</span>
                     </div>
@@ -312,25 +312,25 @@ function MonitoringPresensiPage() {
                 <span className="material-symbols-outlined text-[18px]">info</span>
               </div>
               <div className="flex flex-col min-w-0">
-                <span className="font-body-sm font-body-sm-medium text-on-surface">Toleransi Batas Jam Presensi</span>
-                <p className="font-body-sm font-body-sm text-on-surface-variant mt-1 leading-relaxed">
+                <span className="font-body-sm-medium text-body-sm-medium text-on-surface">Toleransi Batas Jam Presensi</span>
+                <p className="font-body-sm text-body-sm text-on-surface-variant mt-1 leading-relaxed">
                   <strong className="text-on-surface">TK &amp; SD:</strong> 07:15 WIB<br />
                   <strong className="text-on-surface">SMP &amp; SMA:</strong> 07:00 WIB<br />
                   <strong className="text-on-surface">Sekretariat:</strong> 07:30 WIB
                 </p>
-                <span className="font-label-sm font-label-sm text-outline mt-2">Log melebihi batas jam otomatis diberi status dispensasi/terlambat.</span>
+                <span className="font-label-sm text-label-sm text-outline mt-2">Log melebihi batas jam otomatis diberi status dispensasi/terlambat.</span>
               </div>
             </div>
 
             <div className="bg-primary-container text-white rounded-xl p-4 shadow-sm flex flex-col justify-between gap-3">
               <div className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-[20px] text-secondary-fixed">notifications_active</span>
-                <span className="font-headline-sm font-headline-sm">Kirim Pengingat Masuk</span>
+                <span className="font-headline-sm text-headline-sm">Kirim Pengingat Masuk</span>
               </div>
-              <p className="font-body-sm font-body-sm text-on-primary-container">
+              <p className="font-body-sm text-body-sm text-on-primary-container">
                 Masih ada {belum} staf yang belum melakukan presensi hari ini. Kirim notifikasi dorongan instan via WhatsApp gateway yayasan.
               </p>
-              <button className="w-full py-2 px-3 bg-secondary hover:bg-blue-600 text-white font-body-sm font-body-sm-medium rounded-lg transition-colors flex items-center justify-center gap-2 shadow-sm cursor-pointer" type="button">
+              <button className="w-full py-2 px-3 bg-secondary hover:bg-blue-600 text-white font-body-sm-medium text-body-sm-medium rounded-lg transition-colors flex items-center justify-center gap-2 shadow-sm cursor-pointer" type="button">
                 <span className="material-symbols-outlined text-[18px]">send</span>
                 <span>Broadcast Pengingat ({belum} Guru/Staf)</span>
               </button>
