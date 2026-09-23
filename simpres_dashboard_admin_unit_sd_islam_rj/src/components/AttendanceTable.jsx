@@ -1,98 +1,35 @@
-const tableData = [
-  {
-    id: 1,
-    niy: '049097021',
-    initials: 'BA',
-    name: 'Bustanul Abidin, S.Pd',
-    position: 'Guru Kelas 6 • Wali Kelas 6A',
-    timeIn: '06:42 WIB',
-    timeOut: '15:05 WIB',
-    status: 'Tepat Waktu',
-    statusType: 'ontime',
-    bgColor: 'bg-emerald-50',
-    textColor: 'text-emerald-700',
-    dotColor: 'bg-emerald-600',
-  },
-  {
-    id: 2,
-    niy: '04901054',
-    initials: 'WY',
-    name: 'Wisna Yunita, S.Pd',
-    position: 'Guru Kelas 1 • Tematik',
-    timeIn: '06:48 WIB',
-    timeOut: '15:02 WIB',
-    status: 'Tepat Waktu',
-    statusType: 'ontime',
-    bgColor: 'bg-emerald-50',
-    textColor: 'text-emerald-700',
-    dotColor: 'bg-emerald-600',
-  },
-  {
-    id: 3,
-    niy: '049098034',
-    initials: 'SL',
-    name: 'Sulasmi, S.Pd',
-    position: 'Guru Kelas 3 • Koord. Tahfidz',
-    timeIn: '06:55 WIB',
-    timeOut: null,
-    statusIn: '06:55 WIB',
-    status: 'Belum Pulang',
-    statusType: 'pending',
-    bgColor: 'bg-amber-50',
-    textColor: 'text-amber-700',
-    dotColor: 'bg-amber-500',
-  },
-  {
-    id: 4,
-    niy: '029015072',
-    initials: 'AC',
-    name: 'Aulia Chalida, S.Pd',
-    position: 'Kaur TU SD • Administrasi',
-    timeIn: '07:12 WIB',
-    timeOut: null,
-    statusIn: null,
-    status: 'Terlambat 12 menit',
-    statusType: 'late',
-    bgColor: 'bg-amber-50',
-    textColor: 'text-amber-800',
-    dotColor: 'bg-amber-500',
-    isLate: true,
-  },
-  {
-    id: 5,
-    niy: '029019097',
-    initials: 'MG',
-    name: 'Melsi Gustia, S.Sos',
-    position: 'Staf Administrasi & Inventaris',
-    timeIn: '06:50 WIB',
-    timeOut: '15:00 WIB',
-    status: 'Tepat Waktu',
-    statusType: 'ontime',
-    bgColor: 'bg-emerald-50',
-    textColor: 'text-emerald-700',
-    dotColor: 'bg-emerald-600',
-  },
-  {
-    id: 6,
-    niy: '049033108',
-    initials: 'HK',
-    name: 'Hendra Kurniawan, S.Pd.I',
-    position: 'Guru PAI SD • Pembina Rohis',
-    timeIn: null,
-    timeOut: null,
-    status: 'Alpha',
-    statusType: 'alpha',
-    bgColor: 'bg-rose-100',
-    textColor: 'text-rose-800',
-    dotColor: 'bg-rose-600',
-    isAlpha: true,
-    rowBg: 'bg-rose-50/20',
-  },
-]
+import { useSimPres } from '../store/simPresStore.jsx'
 
-const totalPages = 8
-
+// Baris presensi unit SD di-derive dari satu sumber data (store).
 function AttendanceTable() {
+  const { state } = useSimPres()
+  const tableData = state.staff
+    .filter((s) => s.unitId === 'sd')
+    .slice(0, 6)
+    .map((s) => {
+      const isAlpha = s.masuk === null && s.status === 'Aktif'
+      const isLate = s.masuk !== null && s.late > 0
+      return {
+        id: s.id,
+        niy: s.niy,
+        initials: s.name.charAt(0),
+        name: s.name,
+        position: s.role,
+        timeIn: s.masuk ? `${s.masuk.slice(0, 5)} WIB` : null,
+        timeOut: s.masuk ? '15:00 WIB' : null,
+        status: isAlpha ? 'Alpha' : isLate ? `Terlambat ${s.late} menit` : 'Tepat Waktu',
+        statusType: isAlpha ? 'alpha' : isLate ? 'late' : 'ontime',
+        bgColor: isAlpha ? 'bg-rose-100' : isLate ? 'bg-amber-50' : 'bg-emerald-50',
+        textColor: isAlpha ? 'text-rose-800' : isLate ? 'text-amber-800' : 'text-emerald-700',
+        dotColor: isAlpha ? 'bg-rose-600' : isLate ? 'bg-amber-500' : 'bg-emerald-600',
+        isLate,
+        isAlpha,
+        rowBg: isAlpha ? 'bg-rose-50/20' : '',
+      }
+    })
+  const totalSd = state.staff.filter((s) => s.unitId === 'sd').length
+  const totalPages = Math.max(1, Math.ceil(totalSd / Math.max(tableData.length, 1)))
+
   return (
     <div className="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
       <div className="p-space-lg border-b border-surface-variant/50 flex flex-col lg:flex-row lg:items-center justify-between gap-space-md">
@@ -213,7 +150,7 @@ function AttendanceTable() {
 
       <div className="p-space-md border-t border-surface-variant/50 flex flex-col sm:flex-row items-center justify-between gap-space-sm bg-surface-container-lowest">
         <span className="font-body-sm text-body-sm text-on-surface-variant">
-          Menampilkan <strong className="text-on-surface font-body-sm-medium">1 - 6</strong> dari <strong className="text-on-surface font-body-sm-medium">45</strong> pegawai unit SD Islam RJ
+          Menampilkan <strong className="text-on-surface font-body-sm-medium">1 - {tableData.length}</strong> dari <strong className="text-on-surface font-body-sm-medium">{totalSd}</strong> pegawai unit SD Islam RJ
         </span>
         <div className="flex items-center gap-1">
           <button className="w-8 h-8 rounded flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-colors disabled:opacity-40" disabled="">
@@ -223,7 +160,7 @@ function AttendanceTable() {
           <button className="w-8 h-8 rounded text-on-surface-variant hover:bg-surface-container-low font-label-md text-label-md flex items-center justify-center transition-colors">2</button>
           <button className="w-8 h-8 rounded text-on-surface-variant hover:bg-surface-container-low font-label-md text-label-md flex items-center justify-center transition-colors">3</button>
           <span className="px-1 text-outline">...</span>
-          <button className="w-8 h-8 rounded text-on-surface-variant hover:bg-surface-container-low font-label-md text-label-md flex items-center justify-center transition-colors">8</button>
+          <button className="w-8 h-8 rounded text-on-surface-variant hover:bg-surface-container-low font-label-md text-label-md flex items-center justify-center transition-colors">{totalPages}</button>
           <button className="w-8 h-8 rounded flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-colors">
             <span className="material-symbols-outlined text-[18px]">chevron_right</span>
           </button>

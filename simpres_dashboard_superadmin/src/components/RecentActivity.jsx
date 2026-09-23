@@ -1,97 +1,34 @@
-const activities = [
-  {
-    id: 1,
-    initials: 'EA',
-    name: 'Erianto, S.Ag, M.Pd.I',
-    nip: '197804152005011002',
-    unit: 'SMP Islam RJ',
-    unitColor: 'bg-secondary-fixed/50',
-    unitTextColor: 'text-secondary',
-    time: '06:45:12 WIB',
-    geofence: 'Radius Geofence 15m',
-    geofenceIcon: 'text-secondary',
-    status: 'Tepat Waktu',
-    statusBg: 'bg-surface-container-high',
-    statusDot: 'bg-secondary',
-  },
-  {
-    id: 2,
-    initials: 'BA',
-    name: 'Bustanul Abidin, S.Pd',
-    nip: '198509122010011005',
-    unit: 'SD Islam RJ',
-    unitColor: 'bg-surface-container-highest',
-    unitTextColor: 'text-on-surface',
-    time: '06:52:04 WIB',
-    geofence: 'Radius Geofence 18m',
-    geofenceIcon: 'text-secondary',
-    status: 'Tepat Waktu',
-    statusBg: 'bg-surface-container-high',
-    statusDot: 'bg-secondary',
-  },
-  {
-    id: 3,
-    initials: 'SM',
-    name: 'Silvana Monica',
-    nip: '199302142018022001',
-    unit: 'Sekretariat',
-    unitColor: 'bg-surface-container',
-    unitTextColor: 'text-on-surface-variant',
-    time: '07:08:45 WIB',
-    geofence: 'Radius Geofence 22m (+8m)',
-    geofenceIcon: 'text-outline',
-    status: 'Terlambat',
-    statusBg: 'bg-surface-variant',
-    statusDot: 'bg-outline',
-  },
-  {
-    id: 4,
-    initials: 'RF',
-    name: 'Risa Fadillah, S.Pd',
-    nip: '199105282016042004',
-    unit: 'SMP Islam RJ',
-    unitColor: 'bg-secondary-fixed/50',
-    unitTextColor: 'text-secondary',
-    time: '07:12:10 WIB',
-    geofence: 'Radius Geofence 30m (+12m)',
-    geofenceIcon: 'text-outline',
-    status: 'Terlambat',
-    statusBg: 'bg-surface-variant',
-    statusDot: 'bg-outline',
-  },
-  {
-    id: 5,
-    initials: 'WY',
-    name: 'Wisna Yunita, S.Pd',
-    nip: '198911032014022002',
-    unit: 'SD Islam RJ',
-    unitColor: 'bg-surface-container-highest',
-    unitTextColor: 'text-on-surface',
-    time: '06:58:33 WIB',
-    geofence: 'Radius Geofence 12m',
-    geofenceIcon: 'text-secondary',
-    status: 'Tepat Waktu',
-    statusBg: 'bg-surface-container-high',
-    statusDot: 'bg-secondary',
-  },
-  {
-    id: 6,
-    initials: 'MN',
-    name: 'Muhammad Nur Fuad',
-    nip: '198207192008011003',
-    unit: 'SMP Islam RJ',
-    unitColor: 'bg-secondary-fixed/50',
-    unitTextColor: 'text-secondary',
-    time: '06:40:22 WIB',
-    geofence: 'Radius Geofence 15m',
-    geofenceIcon: 'text-secondary',
-    status: 'Tepat Waktu',
-    statusBg: 'bg-surface-container-high',
-    statusDot: 'bg-secondary',
-  },
-]
+import { useSimPres, selectJumlahHadir, selectRecentActivity } from '../store/simPresStore.jsx'
+
+// Baris aktivitas di-derive dari satu sumber data (store).
+function buildActivities(state) {
+  return selectRecentActivity(state)
+    .slice(0, 6)
+    .map((s) => {
+      const unit = state.units.find((u) => u.id === s.unitId)
+      const unitId = unit ? unit.id : null
+      return {
+        id: s.id,
+        initials: s.name.split(/[\s,]+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join('').toUpperCase(),
+        name: s.name,
+        nip: s.niy,
+        unit: unit ? unit.nama : '-',
+        unitColor: unitId === 'smp' ? 'bg-secondary-fixed/50' : unitId === 'sd' ? 'bg-surface-container-highest' : unitId === 'pst' ? 'bg-surface-container' : 'bg-secondary-fixed/50',
+        unitTextColor: unitId === 'pst' ? 'text-on-surface-variant' : 'text-secondary',
+        time: s.masuk ? `${s.masuk} WIB` : '-',
+        geofence: `Radius Geofence ${15 + (s.id % 20)}${s.outsideRadius ? ' (+8m)' : ''}`,
+        geofenceIcon: s.outsideRadius ? 'text-outline' : 'text-secondary',
+        status: s.late > 0 ? 'Terlambat' : 'Tepat Waktu',
+        statusBg: s.late > 0 ? 'bg-surface-variant' : 'bg-surface-container-high',
+        statusDot: s.late > 0 ? 'bg-outline' : 'bg-secondary',
+      }
+    })
+}
 
 function RecentActivity() {
+  const { state } = useSimPres()
+  const activities = buildActivities(state)
+
   return (
     <div className="bg-surface-container-lowest rounded-xl shadow-sm flex flex-col overflow-hidden">
       <div className="p-space-lg flex flex-col sm:flex-row sm:items-center justify-between gap-space-md">
@@ -176,7 +113,7 @@ function RecentActivity() {
 
       <div className="p-space-md bg-surface-container-low flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm">
         <div className="flex items-center gap-1 font-body-sm text-body-sm text-on-surface-variant">
-          <span>Menampilkan <strong className="font-body-sm-medium text-on-surface">1 - 6</strong> dari <strong className="font-body-sm-medium text-on-surface">187</strong> pegawai presensi hari ini</span>
+          <span>Menampilkan <strong className="font-body-sm-medium text-on-surface">1 - {activities.length}</strong> dari <strong className="font-body-sm-medium text-on-surface">{selectJumlahHadir(state)}</strong> pegawai presensi hari ini</span>
         </div>
         <div className="flex items-center gap-1 self-end sm:self-auto">
           <button className="w-8 h-8 rounded-lg flex items-center justify-center text-outline hover:bg-surface-container hover:text-on-surface transition-colors" disabled="">

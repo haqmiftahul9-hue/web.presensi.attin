@@ -1,21 +1,19 @@
-const units = [
-  { name: 'TK / PAUD IT', present: 21, total: 22, percentage: 95.4 },
-  { name: 'SD Islam RJ', present: 61, total: 65, percentage: 93.8 },
-  { name: 'SMP Islam RJ', present: 47, total: 52, percentage: 90.3 },
-  { name: 'SMA Islam RJ', present: 45, total: 50, percentage: 90.0 },
-  { name: 'Sekretariat & Yayasan', present: 13, total: 14, percentage: 92.8 },
-]
+import { useSimPres, selectUnitSummary } from '../store/simPresStore.jsx'
 
 function UnitSummary() {
+  const { state } = useSimPres()
+  // Ringkasan per unit dari satu sumber data (store).
+  const summary = selectUnitSummary(state)
+
   return (
     <div className="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col justify-between">
       <div className="flex items-center justify-between pb-space-sm">
         <h2 className="font-headline-sm text-headline-sm text-on-surface">Ringkasan per Unit</h2>
-        <span className="px-2 py-0.5 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm">5 Unit Terdaftar</span>
+        <span className="px-2 py-0.5 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm">{state.units.length} Unit Terdaftar</span>
       </div>
       <div className="flex flex-col gap-space-sm my-space-xs">
-        {units.map((unit) => (
-          <div key={unit.name} className="flex flex-col gap-1">
+        {summary.map((unit) => (
+          <div key={unit.id} className="flex flex-col gap-1">
             <div className="flex justify-between items-center text-on-surface">
               <span className="font-body-sm-medium text-body-sm-medium">{unit.name}</span>
               <span className="font-label-sm text-label-sm text-on-surface-variant">

@@ -1,4 +1,10 @@
+import { useSimPres } from '../store/simPresStore.jsx'
+
 function WelcomeBanner() {
+  const { state } = useSimPres()
+  // Jam operasional dari satu sumber data (store).
+  const unit = state.units.find((u) => u.id === 'sd')
+
   return (
     <div className="relative overflow-hidden rounded-xl bg-surface-container-lowest shadow-sm p-space-md flex flex-col md:flex-row md:items-center justify-between gap-space-md">
       <div className="flex items-start md:items-center gap-space-md z-10">
@@ -11,7 +17,7 @@ function WelcomeBanner() {
             <span className="px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface font-label-sm text-label-sm">Admin Unit</span>
           </div>
           <p className="font-body-md text-body-md text-on-surface-variant mt-0.5">
-            Jam operasional presensi hari ini: <strong className="text-on-surface font-body-md-medium">Masuk 06.30 - 07.15 WIB</strong> • <strong className="text-on-surface font-body-md-medium">Pulang 15.00 WIB</strong>
+            Jam operasional presensi hari ini: <strong className="text-on-surface font-body-md-medium">Masuk {unit?.masuk} WIB</strong> • <strong className="text-on-surface font-body-md-medium">Pulang {unit?.pulang} WIB</strong>
           </p>
         </div>
       </div>

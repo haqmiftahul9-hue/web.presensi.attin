@@ -1,86 +1,32 @@
-const staffData = [
-  {
-    id: 1,
-    niy: '049005069',
-    initials: 'E',
-    name: 'Erianto, S.Ag, M.Pd.I',
-    role: 'Pendidik Tetap Yayasan',
-    unit: 'SMP Islam RJ',
-    unitIcon: 'school',
-    assignment: 'Guru Pendidikan Agama Islam',
-    status: 'Aktif',
-    statusActive: true,
-    rowBg: 'bg-surface-container-lowest',
-  },
-  {
-    id: 2,
-    niy: '049097021',
-    initials: 'B',
-    name: 'Bustanul Abidin, S.Pd',
-    role: 'Tim Pengembang Akademik',
-    unit: 'SD Islam RJ',
-    unitIcon: 'school',
-    assignment: 'Guru Kelas 6 & Kurikulum',
-    status: 'Aktif',
-    statusActive: true,
-    rowBg: 'bg-surface-container-low',
-  },
-  {
-    id: 3,
-    niy: '049098034',
-    initials: 'S',
-    name: 'Sulasmi, S.Pd',
-    role: 'Koordinator Keagamaan',
-    unit: 'SD Islam RJ',
-    unitIcon: 'school',
-    assignment: 'Guru Kelas 3 • Koord. Tahfidz',
-    status: 'Aktif',
-    statusActive: true,
-    rowBg: 'bg-surface-container-lowest',
-  },
-  {
-    id: 4,
-    niy: '049001054',
-    initials: 'W',
-    name: 'Wisna Yunita, S.Pd',
-    role: 'Pendidik Kelas Bawah',
-    unit: 'SD Islam RJ',
-    unitIcon: 'school',
-    assignment: 'Guru Kelas 1 • Tematik',
-    status: 'Aktif',
-    statusActive: true,
-    rowBg: 'bg-surface-container-low',
-  },
-  {
-    id: 5,
-    niy: '029011052',
-    initials: 'I',
-    name: 'Irmawati, S.Pd',
-    role: 'Sentra Kreativitas Anak',
-    unit: 'PAUD IT RJ',
-    unitIcon: 'child_care',
-    assignment: 'Guru Sentra Rancang Bangun',
-    status: 'Aktif',
-    statusActive: true,
-    rowBg: 'bg-surface-container-lowest',
-  },
-  {
-    id: 6,
-    niy: '029012056',
-    initials: 'R',
-    name: 'Risa Fadillah, S.Pd',
-    role: 'Cuti Studi Lanjut',
-    unit: 'SMA Islam RJ',
-    unitIcon: 'school',
-    assignment: 'Guru Biologi & Laboran',
-    status: 'Nonaktif',
-    statusActive: false,
-    rowBg: 'bg-surface-container-low',
-    isInactive: true,
-  },
-]
+import { useSimPres, selectUnitName } from '../store/simPresStore.jsx'
+
+// Baris tabel di-derive dari satu sumber data (store) — 6 pegawai teratas.
+const roleDisplayMap = {
+  'Guru PAI': 'Pendidik Tetap Yayasan',
+  'Guru Kelas 6 & Kurikulum': 'Tim Pengembang Akademik',
+  'Guru Kelas 3 • Tahfidz': 'Koordinator Keagamaan',
+  'Guru Kelas 1 • Tematik': 'Pendidik Kelas Bawah',
+  'Guru Sentra': 'Sentra Kreativitas Anak',
+  'Guru Biologi & Laboran': 'Cuti Studi Lanjut',
+}
 
 function StaffTable() {
+  const { state } = useSimPres()
+  const staffData = state.staff.slice(0, 6).map((s, idx) => ({
+    id: s.id,
+    niy: s.niy,
+    initials: s.name.charAt(0),
+    name: s.name,
+    role: roleDisplayMap[s.role] || s.role,
+    unit: selectUnitName(state, s.unitId),
+    unitIcon: s.unitId === 'tk' ? 'child_care' : 'school',
+    assignment: s.role,
+    status: s.status,
+    statusActive: s.status === 'Aktif',
+    rowBg: idx % 2 === 0 ? 'bg-surface-container-lowest' : 'bg-surface-container-low',
+    isInactive: s.status !== 'Aktif',
+  }))
+
   return (
     <div className="bg-surface-container-lowest rounded-xl shadow-sm flex flex-col overflow-hidden">
       <div className="w-full overflow-x-auto">
@@ -191,7 +137,7 @@ function StaffTable() {
       </div>
       <div className="p-space-md bg-surface-container-lowest flex flex-col sm:flex-row items-center justify-between gap-space-sm">
         <div className="flex items-center gap-space-xs text-on-surface-variant font-body-sm text-body-sm">
-          <span>Menampilkan <strong className="font-body-sm-medium text-on-surface">1–6</strong> dari <strong className="font-body-sm-medium text-on-surface">209</strong> data pegawai</span>
+          <span>Menampilkan <strong className="font-body-sm-medium text-on-surface">1–{staffData.length}</strong> dari <strong className="font-body-sm-medium text-on-surface">{state.staff.length}</strong> data pegawai</span>
           <span className="text-surface-variant">•</span>
           <div className="flex items-center gap-1">
             <span>Baris per halaman:</span>
@@ -211,7 +157,7 @@ function StaffTable() {
           <button className="w-8 h-8 rounded-lg flex items-center justify-center text-on-surface hover:bg-surface-container font-body-sm transition-colors" type="button">2</button>
           <button className="w-8 h-8 rounded-lg flex items-center justify-center text-on-surface hover:bg-surface-container font-body-sm transition-colors" type="button">3</button>
           <span className="px-1 text-on-surface-variant font-body-sm">...</span>
-          <button className="w-8 h-8 rounded-lg flex items-center justify-center text-on-surface hover:bg-surface-container font-body-sm transition-colors" type="button">11</button>
+          <button className="w-8 h-8 rounded-lg flex items-center justify-center text-on-surface hover:bg-surface-container font-body-sm transition-colors" type="button">{Math.ceil(state.staff.length / 20)}</button>
           <button className="w-8 h-8 rounded-lg flex items-center justify-center text-on-surface bg-surface-container-low hover:bg-surface-container transition-colors" type="button">
             <span className="material-symbols-outlined text-[18px]">chevron_right</span>
           </button>

@@ -1,11 +1,11 @@
 import { useState } from 'react'
 
 function EditUnitModal({ unit, onClose, onSave }) {
-  const [name, setName] = useState(unit?.name || '')
-  const [address, setAddress] = useState(unit?.address || '')
+  const [name, setName] = useState(unit?.nama || '')
+  const [address, setAddress] = useState(unit?.alamat || '')
   const [radius, setRadius] = useState(unit?.radius || 50)
-  const [jamMasuk, setJamMasuk] = useState(unit?.jamMasuk || '07:00')
-  const [jamPulang, setJamPulang] = useState(unit?.jamPulang || '15:00')
+  const [jamMasuk, setJamMasuk] = useState(unit?.masuk || '07:00')
+  const [jamPulang, setJamPulang] = useState(unit?.pulang || '15:00')
 
   const radiusSize = Math.min(Math.max(radius * 1.8, 90), 180)
 
@@ -18,7 +18,7 @@ function EditUnitModal({ unit, onClose, onSave }) {
         <div className="px-space-lg py-space-md border-b border-outline/20 flex items-start justify-between bg-surface-container/50">
           <div>
             <h2 className="font-headline-md text-headline-md text-primary leading-tight" id="modalTitle">
-              Edit Unit: {unit?.name || 'SD Islam RJ'}
+              Edit Unit: {unit?.nama || 'SD Islam RJ'}
             </h2>
             <p className="font-body-sm text-body-sm text-on-surface-variant mt-0.5" id="modalSubtitle">
               Perbarui data informasi unit dan konfigurasi geolokasi presensi.

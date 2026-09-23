@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import Header from '../components/Header.jsx'
 import StatCards from '../components-dashboard/StatCards.jsx'
 import WeeklyTrend from '../components-dashboard/WeeklyTrend.jsx'
@@ -5,6 +6,26 @@ import UnitSummary from '../components-dashboard/UnitSummary.jsx'
 import RecentActivity from '../components-dashboard/RecentActivity.jsx'
 
 function DashboardPage() {
+  const [liveTime, setLiveTime] = useState('')
+
+  useEffect(() => {
+    function updateClock() {
+      const now = new Date()
+      const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']
+      const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
+      const dayName = days[now.getDay()]
+      const day = now.getDate()
+      const monthName = months[now.getMonth()]
+      const year = now.getFullYear()
+      const hours = String(now.getHours()).padStart(2, '0')
+      const mins = String(now.getMinutes()).padStart(2, '0')
+      setLiveTime(`${dayName}, ${day} ${monthName} ${year} • ${hours}:${mins} WIB`)
+    }
+    updateClock()
+    const timer = setInterval(updateClock, 60000)
+    return () => clearInterval(timer)
+  }, [])
+
   return (
     <div className="flex flex-col w-full">
       <div className="px-space-lg py-space-lg flex flex-col gap-space-lg">
@@ -48,7 +69,7 @@ function DashboardPage() {
             <div className="h-4 w-px bg-outline-variant"></div>
             <div className="flex items-center gap-1 font-body-sm text-body-sm text-on-surface-variant">
               <span className="material-symbols-outlined text-[16px]">schedule</span>
-              <span>Selasa, 15 September 2026 • 13:15 WIB</span>
+              <span className="font-body-sm text-body-sm">{liveTime || '...'}</span>
             </div>
           </div>
         </div>

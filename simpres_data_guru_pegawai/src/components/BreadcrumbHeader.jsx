@@ -1,4 +1,10 @@
+import { useSimPres } from '../store/simPresStore.jsx'
+
 function BreadcrumbHeader() {
+  const { state } = useSimPres()
+  const total = state.staff.length
+  const aktif = state.staff.filter((s) => s.status === 'Aktif').length
+
   return (
     <div className="flex flex-col md:flex-row md:items-center justify-between gap-space-sm">
       <div className="flex flex-col">
@@ -26,7 +32,7 @@ function BreadcrumbHeader() {
           </div>
           <div className="flex flex-col">
             <span className="font-label-sm text-label-sm text-on-surface-variant uppercase">Total Guru & Pegawai</span>
-            <span className="font-headline-sm text-headline-sm text-on-surface leading-none">209 Orang</span>
+            <span className="font-headline-sm text-headline-sm text-on-surface leading-none">{total} Orang</span>
           </div>
         </div>
         <div className="px-space-md py-space-xs rounded-lg bg-surface-container-lowest shadow-sm flex items-center gap-space-sm">
@@ -35,7 +41,7 @@ function BreadcrumbHeader() {
           </div>
           <div className="flex flex-col">
             <span className="font-label-sm text-label-sm text-on-surface-variant uppercase">Status Aktif</span>
-            <span className="font-headline-sm text-headline-sm text-emerald-600 leading-none">198 Staf</span>
+            <span className="font-headline-sm text-headline-sm text-emerald-600 leading-none">{aktif} Staf</span>
           </div>
         </div>
       </div>

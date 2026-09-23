@@ -1,10 +1,17 @@
-const quickActions = [
-  { icon: 'qr_code_scanner', label: 'Input Presensi Manual Pengganti' },
-  { icon: 'badge', label: 'Cetak Lembar Kartu ID Unit' },
-  { icon: 'event_busy', label: 'Verifikasi Izin Guru', badge: '3' },
-]
+import { useSimPres } from '../store/simPresStore.jsx'
 
 function BottomCards() {
+  const { state } = useSimPres()
+  // Izin menunggu verifikasi & operator unit dari satu sumber data (store).
+  const sdStaffIds = new Set(state.staff.filter((s) => s.unitId === 'sd').map((s) => s.id))
+  const pendingLeaves = state.leaves.filter((l) => l.status === 'Menunggu' && sdStaffIds.has(l.staffId)).length
+  const operator = state.adminUsers.find((u) => u.unitId === 'sd')
+  const quickActions = [
+    { icon: 'qr_code_scanner', label: 'Input Presensi Manual Pengganti' },
+    { icon: 'badge', label: 'Cetak Lembar Kartu ID Unit' },
+    { icon: 'event_busy', label: 'Verifikasi Izin Guru', badge: String(pendingLeaves) },
+  ]
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-space-lg mb-space-lg">
       <div className="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col justify-between">
@@ -82,7 +89,7 @@ function BottomCards() {
             </div>
             <div className="flex items-center justify-between py-1 border-b border-surface-variant/30">
               <span className="text-on-surface-variant">Operator SimPres:</span>
-              <span className="text-on-surface font-body-md-medium">Bustanul Abidin, S.Pd</span>
+              <span className="text-on-surface font-body-md-medium">{operator ? operator.name : '-'}</span>
             </div>
             <div className="flex items-center justify-between py-1">
               <span className="text-on-surface-variant">Pusat Bantuan:</span>

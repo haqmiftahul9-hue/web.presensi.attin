@@ -1,4 +1,7 @@
+import { useSimPres } from '../store/simPresStore.jsx'
+
 function ActionToolbar({ onImport }) {
+  const { state } = useSimPres()
   return (
     <div className="bg-surface-container-lowest rounded-xl shadow-sm">
       <div className="p-space-md bg-surface-container-lowest flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-space-md">
@@ -30,12 +33,10 @@ function ActionToolbar({ onImport }) {
           <div className="relative w-full sm:w-56">
             <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px] pointer-events-none">domain</span>
             <select className="w-full h-10 pl-9 pr-8 bg-surface-container-low hover:bg-surface-container text-on-surface font-body-md text-body-md rounded-lg focus:outline-none focus:bg-surface-container-lowest appearance-none cursor-pointer">
-              <option value="all">Semua Unit (5 Unit)</option>
-              <option value="paud">TK / PAUD IT RJ</option>
-              <option value="sd">SD Islam RJ</option>
-              <option value="smp">SMP Islam RJ</option>
-              <option value="sma">SMA Islam RJ</option>
-              <option value="yayasan">Sekretariat & Yayasan</option>
+              <option value="all">Semua Unit ({state.units.length} Unit)</option>
+              {state.units.map((u) => (
+                <option key={u.id} value={u.id}>{u.nama}</option>
+              ))}
             </select>
             <span className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px] pointer-events-none">expand_more</span>
           </div>

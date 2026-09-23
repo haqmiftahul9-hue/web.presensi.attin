@@ -1,33 +1,5 @@
 import { useState } from 'react'
-
-const chartData = [
-  { day: '01', hadir: 82, terlambat: 8, izin: 7, alpha: 3 },
-  { day: '02', hadir: 86, terlambat: 5, izin: 6, alpha: 3 },
-  { day: '03', hadir: 84, terlambat: 7, izin: 7, alpha: 2 },
-  { day: '04', hadir: 78, terlambat: 12, izin: 6, alpha: 4 },
-  { day: '05', hadir: 88, terlambat: 4, izin: 6, alpha: 2 },
-  { day: '06', hadir: 85, terlambat: 15, izin: 0, alpha: 0, weekend: true },
-  { day: '07', hadir: 90, terlambat: 10, izin: 0, alpha: 0, weekend: true },
-  { day: '08', hadir: 89, terlambat: 4, izin: 5, alpha: 2 },
-  { day: '09', hadir: 82, terlambat: 9, izin: 6, alpha: 3 },
-  { day: '10', hadir: 80, terlambat: 10, izin: 7, alpha: 3 },
-  { day: '11', hadir: 87, terlambat: 5, izin: 5, alpha: 3 },
-  { day: '12', hadir: 91, terlambat: 3, izin: 4, alpha: 2 },
-  { day: '13', hadir: 85, terlambat: 15, izin: 0, alpha: 0, weekend: true },
-  { day: '14', hadir: 88, terlambat: 5, izin: 5, alpha: 2 },
-  { day: '15', hadir: 85, terlambat: 6, izin: 6, alpha: 3, current: true },
-]
-
-const tableData = [
-  { id: 1, initials: 'EA', name: 'Erianto, S.Ag, M.Pd.I', role: 'Guru Tetap', niy: '049005069', unit: 'SMP Islam RJ', masuk: '06:45 WIB', pulang: '15:10 WIB', stMasuk: 'Tepat Waktu', stMasukType: 'good', stPulang: 'Tepat Waktu', stPulangType: 'good', ket: 'Tugas Pengawas Ujian' },
-  { id: 2, initials: 'BA', name: 'Bustanul Abidin, S.Pd', role: 'Guru Kelas', niy: '049097021', unit: 'SD Islam RJ', masuk: '07:12 WIB', pulang: '15:05 WIB', stMasuk: 'Terlambat 12 menit', stMasukType: 'late', stPulang: 'Tepat Waktu', stPulangType: 'good', ket: 'Dispensasi Rapat Gugus' },
-  { id: 3, initials: 'SU', name: 'Sulasmi, S.Pd', role: 'Guru Mata Pelajaran', niy: '049098034', unit: 'SD Islam RJ', masuk: '06:50 WIB', pulang: '-', stMasuk: 'Tepat Waktu', stMasukType: 'good', stPulang: 'Tidak Presensi Pulang', stPulangType: 'early', ket: 'Lupa tap pulang / verifikasi TU' },
-  { id: 4, initials: 'HK', name: 'Hendra Kurniawan, S.Pd.I', role: 'Guru Agama', niy: '049033108', unit: 'SD Islam RJ', masuk: '-', pulang: '-', stMasuk: 'Alpha', stMasukType: 'alpha', stPulang: 'Alpha', stPulangType: 'alpha', ket: 'Tanpa surat pemberitahuan' },
-  { id: 5, initials: 'RF', name: 'Risa Fadillah, S.Pd', role: 'Guru BK', niy: '029012056', unit: 'SMA Islam RJ', masuk: '-', pulang: '-', stMasuk: 'Izin', stMasukType: 'leave', stPulang: 'Izin', stPulangType: 'leave', ket: 'Cuti Alasan Penting (Lampiran SK)' },
-  { id: 6, initials: 'WY', name: 'Wisna Yunita, S.Pd', role: 'Guru Bahasa', niy: '049001054', unit: 'SD Islam RJ', masuk: '06:48 WIB', pulang: '15:02 WIB', stMasuk: 'Tepat Waktu', stMasukType: 'good', stPulang: 'Tepat Waktu', stPulangType: 'good', ket: 'Guru Kelas Reguler' },
-  { id: 7, initials: 'IW', name: 'Irmawati, S.Pd', role: 'Pendidik PAUD', niy: '029011052', unit: 'PAUD IT RJ', masuk: '07:20 WIB', pulang: '14:45 WIB', stMasuk: 'Terlambat 20 menit', stMasukType: 'late', stPulang: 'Pulang Lebih Awal', stPulangType: 'early', ket: 'Izin dinas luar jam 14:30' },
-  { id: 8, initials: 'SM', name: 'Silvana Monica', role: 'Staf Administrasi', niy: '049023183', unit: 'Sekretariat', masuk: '-', pulang: '-', stMasuk: 'Izin', stMasukType: 'leave', stPulang: 'Izin', stPulangType: 'leave', ket: 'Surat Sakit Dokter RS Radja' },
-]
+import { useSimPres, selectRekapTableData } from '../store/simPresStore.jsx'
 
 const statusStyles = {
   good: 'bg-[#DCFCE7] text-[#16A34A]',
@@ -49,16 +21,59 @@ const avatarStyles = [
 ]
 
 function RekapLaporanPage() {
+  const { state } = useSimPres()
   const [activeTab, setActiveTab] = useState('Bulanan')
   const [search, setSearch] = useState('')
 
   const tabs = ['Harian', 'Mingguan', 'Bulanan']
+
+  // Derive chart data from actual attendance & leaves (single source of truth).
+  const attendance = state.attendance || []
+  const leaves = state.leaves || []
+  const trend = state.weeklyTrend || []
+
+  // Calculate daily stats from attendance for the chart period
+  const daysInPeriod = 15
+  const chartData = Array.from({ length: daysInPeriod }, (_, i) => {
+    const dayNum = i + 1
+    const isWeekend = dayNum % 7 === 6 || dayNum % 7 === 0 // Sat/Sun
+    // Use trend data cyclically for hadir/terlambat
+    const trendIdx = i % trend.length
+    const trendDay = trend[trendIdx] || { hadir: 0, terlambat: 0 }
+    // Count approved/pending leaves for this day (simplified: distribute across period)
+    const approvedLeaves = leaves.filter(l => l.status === 'Disetujui').length
+    const pendingLeaves = leaves.filter(l => l.status === 'Menunggu').length
+    const izin = Math.round((approvedLeaves + pendingLeaves) / daysInPeriod)
+    // Count alpha (staff with no check-in and no approved leave)
+    const alphaCount = attendance.filter(a => a.alpha && !a.masuk).length
+    const alpha = Math.round(alphaCount / daysInPeriod)
+    return {
+      day: String(dayNum).padStart(2, '0'),
+      hadir: trendDay.hadir,
+      terlambat: trendDay.terlambat,
+      izin: Math.max(0, izin),
+      alpha: Math.max(0, alpha),
+      weekend: isWeekend,
+      current: dayNum === new Date().getDate(),
+    }
+  })
+
+  const rataRataChart = chartData.length > 0
+    ? (chartData.reduce((s, d) => s + (d.hadir / Math.max(d.hadir + d.terlambat, 1)), 0) / chartData.length * 100).toFixed(1)
+    : '0.0'
+
+  const tableData = selectRekapTableData(state)
 
   const filteredTable = tableData.filter((row) =>
     row.name.toLowerCase().includes(search.toLowerCase()) ||
     row.niy.includes(search) ||
     row.unit.toLowerCase().includes(search.toLowerCase())
   )
+
+  // Total records & pages from filtered data with fixed page size
+  const pageSize = 10
+  const totalCatatan = filteredTable.length
+  const totalHalaman = Math.max(1, Math.ceil(totalCatatan / pageSize))
 
   return (
     <div className="flex flex-col w-full">
@@ -113,7 +128,7 @@ function RekapLaporanPage() {
             {/* Unit Selector */}
             <div className="relative flex items-center bg-surface-container rounded-lg px-3 py-2 cursor-pointer hover:bg-surface-container-low transition-colors">
               <span className="material-symbols-outlined text-[18px] text-outline mr-2">domain</span>
-              <span className="font-body-md-medium text-body-md-medium text-on-surface">Semua Unit (5 Unit)</span>
+              <span className="font-body-md-medium text-body-md-medium text-on-surface">Semua Unit ({state.units.length} Unit)</span>
               <span className="material-symbols-outlined text-[18px] text-outline ml-2">expand_more</span>
             </div>
           </div>
@@ -140,7 +155,7 @@ function RekapLaporanPage() {
             <div className="flex flex-col gap-0.5">
               <div className="flex items-center gap-space-xs">
                 <h2 className="font-headline-sm text-headline-sm text-primary">Tren Kehadiran & Kepatuhan Jam Kerja</h2>
-                <span className="px-2 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm">94.2% Rata-rata</span>
+                <span className="px-2 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm">{rataRataChart}% Rata-rata</span>
               </div>
               <span className="font-body-sm text-body-sm text-on-surface-variant">Periode 1–15 September 2026 (Seluruh Jenjang Terdaftar)</span>
             </div>
@@ -232,7 +247,7 @@ function RekapLaporanPage() {
               </div>
               <div className="flex flex-col">
                 <span className="font-label-sm text-label-sm text-on-surface-variant">Tingkat Kepatuhan Jadwal</span>
-                <span className="font-headline-sm text-headline-sm text-primary">92.8% <span className="font-body-sm text-body-sm text-[#16A34A] font-normal">+1.2%</span></span>
+                <span className="font-headline-sm text-headline-sm text-primary">{rataRataChart}% <span className="font-body-sm text-body-sm text-[#16A34A] font-normal">+1.2%</span></span>
               </div>
             </div>
           </div>
@@ -243,7 +258,7 @@ function RekapLaporanPage() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-space-sm pb-1">
             <div className="flex flex-col">
               <h3 className="font-headline-sm text-headline-sm text-primary">Rincian Log Presensi Pegawai</h3>
-              <span className="font-body-sm text-body-sm text-on-surface-variant">Menampilkan 1–{filteredTable.length} dari {tableData.length * 52} baris data log terkini</span>
+              <span className="font-body-sm text-body-sm text-on-surface-variant">Menampilkan 1–{filteredTable.length} dari {totalCatatan} baris data log terkini</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="relative w-full sm:w-64">
@@ -312,7 +327,7 @@ function RekapLaporanPage() {
           {/* Pagination */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-space-sm pt-2">
             <span className="font-body-sm text-body-sm text-on-surface-variant">
-              Halaman <span className="font-body-sm-medium text-on-surface">1</span> dari <span className="font-body-sm-medium text-on-surface">53</span> ({tableData.length * 52} total catatan)
+              Halaman <span className="font-body-sm-medium text-on-surface">1</span> dari <span className="font-body-sm-medium text-on-surface">{totalHalaman}</span> ({totalCatatan} total catatan)
             </span>
             <div className="flex items-center gap-1.5">
               <button className="px-3 py-1.5 rounded-lg bg-surface-container-low text-outline cursor-not-allowed font-label-sm text-label-sm flex items-center gap-1" disabled type="button">
@@ -324,7 +339,7 @@ function RekapLaporanPage() {
                 <button className="w-8 h-8 rounded-lg bg-surface-container-low text-on-surface-variant hover:bg-surface-container font-label-md text-label-md flex items-center justify-center transition-colors cursor-pointer" type="button">2</button>
                 <button className="w-8 h-8 rounded-lg bg-surface-container-low text-on-surface-variant hover:bg-surface-container font-label-md text-label-md flex items-center justify-center transition-colors cursor-pointer" type="button">3</button>
                 <span className="px-1 text-outline">...</span>
-                <button className="w-8 h-8 rounded-lg bg-surface-container-low text-on-surface-variant hover:bg-surface-container font-label-md text-label-md flex items-center justify-center transition-colors cursor-pointer" type="button">53</button>
+                <button className="w-8 h-8 rounded-lg bg-surface-container-low text-on-surface-variant hover:bg-surface-container font-label-md text-label-md flex items-center justify-center transition-colors cursor-pointer" type="button">{totalHalaman}</button>
               </div>
               <button className="px-3 py-1.5 rounded-lg bg-surface-container-low text-on-surface hover:bg-surface-container font-label-md text-label-md flex items-center gap-1 transition-colors cursor-pointer" type="button">
                 <span>Berikutnya</span>

@@ -1,10 +1,23 @@
+import { useSimPres } from '../store/simPresStore.jsx'
+
 function WeeklyTrend() {
+  const { state } = useSimPres()
+  const trend = state.weeklyTrend || []
+  const maxVal = Math.max(...trend.map((d) => d.hadir + d.terlambat), 1)
+  // Label di-derive dari satu sumber data (store), bukan angka hardcoded.
+  const rataRataKehadiran = trend.length > 0
+    ? ((trend.reduce((sum, d) => sum + d.hadir / Math.max(d.hadir + d.terlambat, 1), 0) / trend.length) * 100).toFixed(1)
+    : '0.0'
+  const hadirStaff = state.staff.filter((s) => s.status === 'Aktif' && s.masuk)
+  const sebelumTujuh = hadirStaff.filter((s) => s.masuk < '07:00').length
+  const kepatuhan = hadirStaff.length > 0 ? ((sebelumTujuh / hadirStaff.length) * 100).toFixed(1) : '0.0'
+
   return (
     <div className="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col justify-between">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm pb-space-md">
         <div className="flex flex-col">
           <h2 className="font-headline-sm text-headline-sm text-on-surface">Tren Kehadiran Mingguan</h2>
-          <span className="font-body-sm text-body-sm text-on-surface-variant">Rata-rata kehadiran mingguan: <strong className="text-on-surface font-body-sm-medium">92.8%</strong></span>
+          <span className="font-body-sm text-body-sm text-on-surface-variant">Rata-rata kehadiran mingguan: <strong className="text-on-surface font-body-sm-medium">{rataRataKehadiran}%</strong></span>
         </div>
         <div className="flex items-center gap-space-md">
           <div className="flex items-center gap-space-xs">
@@ -30,25 +43,22 @@ function WeeklyTrend() {
           <text fill="#75777e" fontSize="10" x="10" y="69">75%</text>
           <text fill="#75777e" fontSize="10" x="10" y="114">50%</text>
           <text fill="#75777e" fontSize="10" x="16" y="159">0%</text>
-          <rect fill="#0051d5" height="117" rx="3" width="14" x="58" y="38"></rect>
-          <rect fill="#c5c6ce" height="17" rx="3" width="14" x="74" y="138"></rect>
-          <text fill="#44474e" fontSize="11" textAnchor="middle" x="68" y="176">Sen</text>
-          <rect fill="#0051d5" height="123" rx="3" width="14" x="126" y="32"></rect>
-          <rect fill="#c5c6ce" height="14" rx="3" width="14" x="142" y="141"></rect>
-          <text fill="#44474e" fontSize="11" textAnchor="middle" x="136" y="176">Sel</text>
-          <rect fill="#0051d5" height="127" rx="3" width="14" x="194" y="28"></rect>
-          <rect fill="#c5c6ce" height="12" rx="3" width="14" x="210" y="143"></rect>
-          <text fill="#44474e" fontSize="11" textAnchor="middle" x="204" y="176">Rab</text>
-          <rect fill="#0051d5" height="111" rx="3" width="14" x="262" y="44"></rect>
-          <rect fill="#c5c6ce" height="23" rx="3" width="14" x="278" y="132"></rect>
-          <text fill="#44474e" fontSize="11" textAnchor="middle" x="272" y="176">Kam</text>
-          <rect fill="#0051d5" height="115" rx="3" width="14" x="330" y="40"></rect>
-          <rect fill="#c5c6ce" height="16" rx="3" width="14" x="346" y="139"></rect>
-          <text fill="#44474e" fontSize="11" textAnchor="middle" x="340" y="176">Jum</text>
-          <rect fill="#0051d5" height="103" rx="3" width="14" x="398" y="52"></rect>
-          <rect fill="#c5c6ce" height="11" rx="3" width="14" x="414" y="144"></rect>
-          <text fill="#44474e" fontSize="11" textAnchor="middle" x="408" y="176">Sab</text>
-          <rect fill="#0051d5" height="25" opacity="0.3" rx="3" width="14" x="466" y="130"></rect>
+          {trend.map((d, i) => {
+            const total = d.hadir + d.terlambat
+            const hadirH = Math.max(1, (d.hadir / maxVal) * 135)
+            const lateH = Math.max(0, (d.terlambat / maxVal) * 135)
+            const x = 58 + i * 68
+            const yHadir = 159 - hadirH
+            const yLate = 159 - hadirH - lateH
+            return (
+              <g key={d.day}>
+                <rect fill="#0051d5" height={hadirH} rx="3" width="14" x={x} y={yHadir}></rect>
+                {lateH > 0 && <rect fill="#c5c6ce" height={lateH} rx="3" width="14" x={x + 16} y={yLate}></rect>}
+                <text fill="#44474e" fontSize="11" textAnchor="middle" x={x + 7} y="176">{d.day}</text>
+              </g>
+            )
+          })}
+          <rect fill="#0051d5" height={25} opacity="0.3" rx="3" width="14" x="466" y="130"></rect>
           <rect fill="#c5c6ce" height="5" opacity="0.3" rx="3" width="14" x="482" y="150"></rect>
           <text fill="#75777e" fontSize="11" textAnchor="middle" x="476" y="176">Min (Piket)</text>
         </svg>
@@ -56,7 +66,7 @@ function WeeklyTrend() {
 
       <div className="flex items-center justify-between pt-space-xs bg-surface-container-low px-space-md py-space-xs rounded-lg mt-2">
         <span className="font-body-sm text-body-sm text-on-surface-variant">Tingkat kepatuhan waktu masuk sebelum pukul 07.00:</span>
-        <span className="font-body-sm-medium text-body-sm-medium text-secondary">89.4% (Tinggi)</span>
+        <span className="font-body-sm-medium text-body-sm-medium text-secondary">{kepatuhan}% (Tinggi)</span>
       </div>
     </div>
   )

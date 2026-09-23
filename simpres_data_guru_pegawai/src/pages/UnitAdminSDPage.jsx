@@ -1,20 +1,27 @@
 import { useState } from 'react'
 import EditUnitModal from '../components/EditUnitModal.jsx'
-
-const unitData = [
-  { id: 1, kode: 'UNT-TK-01', nama: 'TK IT RJ', alamat: 'Jl. Cendekia No. 41, Kompleks Pendidikan Terpadu', radius: 50, masuk: '07:00', pulang: '14:30', pegawai: 22, aktif: true },
-  { id: 2, kode: 'UNT-SD-02', nama: 'SD Islam RJ', alamat: 'Jl. Cendekia No. 43, Kompleks Pendidikan Terpadu, Cilandak, Jakarta Selatan', radius: 75, masuk: '07:00', pulang: '15:00', pegawai: 65, aktif: true },
-  { id: 3, kode: 'UNT-SMP-03', nama: 'SMP Islam RJ', alamat: 'Jl. Cendekia No. 45, Kompleks Pendidikan Terpadu', radius: 50, masuk: '07:00', pulang: '15:30', pegawai: 48, aktif: true },
-  { id: 4, kode: 'UNT-SMA-04', nama: 'SMA Islam RJ', alamat: 'Jl. Cendekia No. 47, Kompleks Pendidikan Terpadu', radius: 80, masuk: '06:45', pulang: '15:30', pegawai: 54, aktif: true },
-  { id: 5, kode: 'UNT-PST-00', nama: 'Sekretariat Yayasan', alamat: 'Gedung Grha Raudhatul Jannah Lt. 2', radius: 40, masuk: '07:30', pulang: '16:00', pegawai: 20, aktif: true },
-]
+import { useSimPres } from '../store/simPresStore.jsx'
 
 const unitIcons = { 'TK': 'child_care', 'SD': 'school', 'SMP': 'school', 'SMA': 'school', 'SK': 'domain' }
 
 function UnitAdminSDPage() {
+  const { state, dispatch } = useSimPres()
   const [searchTerm, setSearchTerm] = useState('')
   const [showModal, setShowModal] = useState(false)
   const [editingUnit, setEditingUnit] = useState(null)
+
+  // Data unit & jumlah pegawai dari satu sumber data (store).
+  const unitData = state.units.map((u) => ({
+    id: u.id,
+    kode: u.kode,
+    nama: u.nama,
+    alamat: u.alamat,
+    radius: u.radius,
+    masuk: u.masuk,
+    pulang: u.pulang,
+    pegawai: state.staff.filter((s) => s.unitId === u.id).length,
+    aktif: true,
+  }))
 
   const filtered = unitData.filter((u) =>
     u.nama.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -28,6 +35,20 @@ function UnitAdminSDPage() {
   }
 
   const handleSave = (data) => {
+    if (editingUnit) {
+      // Simpan ke satu sumber data (store) agar semua halaman ikut ter-update.
+      dispatch({
+        type: 'UPDATE_UNIT',
+        payload: {
+          id: editingUnit.id,
+          nama: data.name,
+          alamat: data.address,
+          radius: data.radius,
+          masuk: data.jamMasuk,
+          pulang: data.jamPulang,
+        },
+      })
+    }
     setShowModal(false)
     setEditingUnit(null)
   }
