@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { useSimPres, selectUnitSummary } from '../store/simPresStore.jsx'
 
 function UnitSummary() {
@@ -27,10 +28,10 @@ function UnitSummary() {
         ))}
       </div>
       <div className="pt-space-xs flex justify-end">
-        <a className="inline-flex items-center gap-1 font-body-sm-medium text-body-sm-medium text-secondary hover:text-secondary-container transition-colors" href="#">
+        <Link to="/rekap-dan-laporan" className="inline-flex items-center gap-1 font-body-sm-medium text-body-sm-medium text-secondary hover:text-secondary-container transition-colors">
           Lihat Rekap Lengkap Unit
           <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
-        </a>
+        </Link>
       </div>
     </div>
   )

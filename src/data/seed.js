@@ -63,6 +63,38 @@ export const WEEKLY_TREND = [
   { day: 'Sab', hadir: 96, terlambat: 5 },
 ]
 
+const WEEKDAY_INIT = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab']
+const WEEKLY_MAP = {
+  Min: { hadir: 95, terlambat: 4 },
+  Sen: { hadir: 182, terlambat: 12 },
+  Sel: { hadir: 187, terlambat: 14 },
+  Rab: { hadir: 190, terlambat: 9 },
+  Kam: { hadir: 178, terlambat: 16 },
+  Jum: { hadir: 184, terlambat: 11 },
+  Sab: { hadir: 96, terlambat: 5 },
+}
+const MONTHS_ID = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
+
+export function buildTrend30() {
+  const out = []
+  for (let i = 0; i < 30; i++) {
+    const d = new Date(2026, 7, 17 + i)
+    const wd = WEEKDAY_INIT[d.getDay()]
+    const base = WEEKLY_MAP[wd] || WEEKLY_MAP.Sab
+    const jitterH = ((d.getDate() * 7) % 5) - 2
+    const jitterL = ((d.getDate() * 3) % 4) - 1
+    out.push({
+      day: `${d.getDate()} ${MONTHS_ID[d.getMonth()]}`,
+      wd,
+      hadir: Math.max(80, Math.min(195, base.hadir + jitterH)),
+      terlambat: Math.max(0, base.terlambat + jitterL),
+    })
+  }
+  return out
+}
+
+export const TREND_30 = buildTrend30()
+
 export const HOLIDAYS = [
   { date: '17 Agu 2026', name: 'Hari Kemerdekaan RI' },
   { date: '05 Sep 2026', name: 'Maulid Nabi Muhammad SAW' },

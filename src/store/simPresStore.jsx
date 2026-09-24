@@ -1,7 +1,7 @@
 import { createContext, useContext, useReducer, useMemo } from 'react'
 import {
   UNITS, STAFF, LEAVES, ADMIN_USERS, INITIAL_LOGS,
-  INITIAL_SETTINGS, WEEKLY_TREND, HOLIDAYS, buildFullStaff, buildAttendance, initialsOf,
+  INITIAL_SETTINGS, WEEKLY_TREND, TREND_30, HOLIDAYS, buildFullStaff, buildAttendance, initialsOf,
 } from '../data/seed.js'
 
 // ARSITEKTUR SATU SUMBER DATA:
@@ -18,6 +18,7 @@ const initialState = {
   logs: INITIAL_LOGS,
   settings: INITIAL_SETTINGS,
   weeklyTrend: WEEKLY_TREND,
+  trend30: TREND_30,
   holidays: HOLIDAYS,
 }
 
@@ -204,6 +205,17 @@ export function selectRecentActivity(state) {
       if (a.masuk < b.masuk) return 1
       return 0
     })
+}
+
+export function selectTrendByRange(state, days) {
+  return (days === 30 ? state.trend30 : state.weeklyTrend) || []
+}
+
+export function selectIzinCutiSummary(state) {
+  const menunggu = selectPendingLeaves(state)
+  const disetujui = selectApprovedLeaves(state)
+  const ditolak = selectRejectedLeaves(state)
+  return { menunggu, disetujui, ditolak, total: state.leaves.length }
 }
 
 export function selectBelumPresensi(state) {

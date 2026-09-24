@@ -7,7 +7,7 @@ function StatCards() {
   const hadir = selectJumlahHadir(state)
   const terlambat = selectJumlahTerlambat(state)
   const alpha = selectJumlahAlpha(state)
-  const rataRataTerlambat = terlambat > 0 ? selectRataRataTerlambat(state) : '8.5'
+  const rataRataTerlambat = selectRataRataTerlambat(state)
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-lg">
