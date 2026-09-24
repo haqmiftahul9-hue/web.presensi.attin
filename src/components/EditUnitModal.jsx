@@ -6,8 +6,118 @@ function EditUnitModal({ unit, onClose, onSave }) {
   const [radius, setRadius] = useState(unit?.radius || 50)
   const [jamMasuk, setJamMasuk] = useState(unit?.masuk || '07:00')
   const [jamPulang, setJamPulang] = useState(unit?.pulang || '15:00')
+  const [latitude, setLatitude] = useState(unit?.latitude || -6.28945)
+  const [longitude, setLongitude] = useState(unit?.longitude || 106.79234)
+  const [geofenceActive, setGeofenceActive] = useState(unit?.geofenceActive ?? true)
+  const [errors, setErrors] = useState({})
+  const [touched, setTouched] = useState({})
 
   const radiusSize = Math.min(Math.max(radius * 1.8, 90), 180)
+
+  const validateField = (field, value) => {
+    switch (field) {
+      case 'name':
+        if (!value.trim()) return 'Nama unit wajib diisi'
+        if (value.trim().length < 3) return 'Nama unit minimal 3 karakter'
+        return ''
+      case 'address':
+        if (!value.trim()) return 'Alamat wajib diisi'
+        if (value.trim().length < 10) return 'Alamat minimal 10 karakter'
+        return ''
+      case 'radius':
+        const r = parseInt(value)
+        if (isNaN(r)) return 'Radius wajib diisi'
+        if (r < 10 || r > 500) return 'Radius harus antara 10 - 500 meter'
+        return ''
+      case 'jamMasuk':
+        if (!value.trim()) return 'Jam masuk wajib diisi'
+        if (!/^([01]\d|2[0-3]):([0-5]\d)$/.test(value)) return 'Format jam tidak valid (HH:MM)'
+        return ''
+      case 'jamPulang':
+        if (!value.trim()) return 'Jam pulang wajib diisi'
+        if (!/^([01]\d|2[0-3]):([0-5]\d)$/.test(value)) return 'Format jam tidak valid (HH:MM)'
+        return ''
+      case 'latitude':
+        const lat = parseFloat(value)
+        if (isNaN(lat)) return 'Latitude wajib diisi'
+        if (lat < -90 || lat > 90) return 'Latitude harus antara -90 hingga 90'
+        return ''
+      case 'longitude':
+        const lng = parseFloat(value)
+        if (isNaN(lng)) return 'Longitude wajib diisi'
+        if (lng < -180 || lng > 180) return 'Longitude harus antara -180 hingga 180'
+        return ''
+      default:
+        return ''
+    }
+  }
+
+  const handleBlur = (field, value) => {
+    setTouched((prev) => ({ ...prev, [field]: true }))
+    const error = validateField(field, value)
+    setErrors((prev) => ({ ...prev, [field]: error }))
+  }
+
+  const handleChange = (field, value) => {
+    const error = validateField(field, value)
+    setErrors((prev) => ({ ...prev, [field]: error }))
+    switch (field) {
+      case 'name':
+        setName(value)
+        break
+      case 'address':
+        setAddress(value)
+        break
+      case 'radius':
+        setRadius(value === '' ? '' : parseInt(value) || 50)
+        break
+      case 'jamMasuk':
+        setJamMasuk(value)
+        break
+      case 'jamPulang':
+        setJamPulang(value)
+        break
+      case 'latitude':
+        setLatitude(value === '' ? '' : parseFloat(value))
+        break
+      case 'longitude':
+        setLongitude(value === '' ? '' : parseFloat(value))
+        break
+    }
+  }
+
+  const validateAll = () => {
+    const newErrors = {
+      name: validateField('name', name),
+      address: validateField('address', address),
+      radius: validateField('radius', radius),
+      jamMasuk: validateField('jamMasuk', jamMasuk),
+      jamPulang: validateField('jamPulang', jamPulang),
+      latitude: validateField('latitude', latitude),
+      longitude: validateField('longitude', longitude),
+    }
+    setErrors(newErrors)
+    setTouched({ name: true, address: true, radius: true, jamMasuk: true, jamPulang: true, latitude: true, longitude: true })
+    return !Object.values(newErrors).some((e) => e)
+  }
+
+  const handleSubmit = () => {
+    if (validateAll()) {
+      onSave({ name, address, radius, jamMasuk, jamPulang, latitude, longitude, geofenceActive })
+    }
+  }
+
+  const getInputClass = (field) => {
+    const base = 'w-full h-10 px-3.5 py-2 rounded-lg bg-surface-container-low border focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-secondary/20 font-body-md text-body-md text-on-surface transition-all'
+    const error = errors[field] && touched[field]
+    return `${base} ${error ? 'border-rose-500 focus:border-rose-500' : 'border-outline focus:border-secondary/50'}`
+  }
+
+  const getTextareaClass = (field) => {
+    const base = 'px-3.5 py-2.5 rounded-lg bg-surface-container-low border focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-secondary/20 font-body-md text-body-md text-on-surface transition-all resize-none leading-relaxed'
+    const error = errors[field] && touched[field]
+    return `${base} ${error ? 'border-rose-500 focus:border-rose-500' : 'border-outline focus:border-secondary/50'}`
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" onClick={onClose}>
@@ -40,13 +150,15 @@ function EditUnitModal({ unit, onClose, onSave }) {
               Nama Unit Sekolah <span className="text-rose-500">*</span>
             </label>
             <input
-              className="h-10 px-3.5 py-2 rounded-lg bg-surface-container-low border border-outline focus:outline-none focus:bg-surface-container-lowest focus:border-secondary/50 focus:ring-2 focus:ring-secondary/20 font-body-md text-body-md text-on-surface transition-all"
+              className={getInputClass('name')}
               id="inputUnitName"
               placeholder="Contoh: SD Islam Raudhatul Jannah"
               type="text"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => handleChange('name', e.target.value)}
+              onBlur={(e) => handleBlur('name', e.target.value)}
             />
+            {errors.name && touched.name && <span className="font-body-sm text-body-sm text-rose-500">{errors.name}</span>}
           </div>
 
           <div className="flex flex-col gap-1.5">
@@ -54,13 +166,52 @@ function EditUnitModal({ unit, onClose, onSave }) {
               Alamat Lengkap Unit <span className="text-rose-500">*</span>
             </label>
             <textarea
-              className="px-3.5 py-2.5 rounded-lg bg-surface-container-low border border-outline focus:outline-none focus:bg-surface-container-lowest focus:border-secondary/50 focus:ring-2 focus:ring-secondary/20 font-body-md text-body-md text-on-surface transition-all resize-none leading-relaxed"
+              className={getTextareaClass('address')}
               id="inputUnitAddress"
               placeholder="Tuliskan jalan, nomor, kompleks, kecamatan..."
               rows={2}
               value={address}
-              onChange={(e) => setAddress(e.target.value)}
+              onChange={(e) => handleChange('address', e.target.value)}
+              onBlur={(e) => handleBlur('address', e.target.value)}
             />
+            {errors.address && touched.address && <span className="font-body-sm text-body-sm text-rose-500">{errors.address}</span>}
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-space-md">
+            <div className="flex flex-col gap-1.5">
+              <label className="font-body-sm-medium text-body-sm-medium text-on-surface" htmlFor="inputLatitude">Latitude <span className="text-rose-500">*</span></label>
+              <div className="relative flex items-center">
+                <span className="material-symbols-outlined absolute left-3 text-outline text-[18px]">navigation</span>
+                <input
+                  className="w-full h-10 pl-9 pr-3.5 py-2 rounded-lg bg-surface-container-low border focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-secondary/20 font-body-md text-body-md text-on-surface transition-all"
+                  id="inputLatitude"
+                  type="number"
+                  step="0.00001"
+                  placeholder="-6.28945"
+                  value={latitude}
+                  onChange={(e) => handleChange('latitude', e.target.value)}
+                  onBlur={(e) => handleBlur('latitude', e.target.value)}
+                />
+              </div>
+              {errors.latitude && touched.latitude && <span className="font-body-sm text-body-sm text-rose-500">{errors.latitude}</span>}
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="font-body-sm-medium text-body-sm-medium text-on-surface" htmlFor="inputLongitude">Longitude <span className="text-rose-500">*</span></label>
+              <div className="relative flex items-center">
+                <span className="material-symbols-outlined absolute left-3 text-outline text-[18px]">navigation</span>
+                <input
+                  className="w-full h-10 pl-9 pr-3.5 py-2 rounded-lg bg-surface-container-low border focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-secondary/20 font-body-md text-body-md text-on-surface transition-all"
+                  id="inputLongitude"
+                  type="number"
+                  step="0.00001"
+                  placeholder="106.79234"
+                  value={longitude}
+                  onChange={(e) => handleChange('longitude', e.target.value)}
+                  onBlur={(e) => handleBlur('longitude', e.target.value)}
+                />
+              </div>
+              {errors.longitude && touched.longitude && <span className="font-body-sm text-body-sm text-rose-500">{errors.longitude}</span>}
+            </div>
           </div>
 
           <div className="flex flex-col gap-1.5">
@@ -69,7 +220,15 @@ function EditUnitModal({ unit, onClose, onSave }) {
                 Geofence Presensi & Titik Koordinat
                 <span className="material-symbols-outlined text-[15px] text-outline cursor-help" title="Area radius valid untuk staf mencatatkan kehadiran">help_outline</span>
               </label>
-              <span className="font-body-sm text-body-sm text-on-surface-variant bg-surface-container px-2 py-0.5 rounded border border-outline/30">-6.28945, 106.79234</span>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={geofenceActive}
+                  onChange={(e) => setGeofenceActive(e.target.checked)}
+                  className="w-4 h-4 text-secondary border-outline rounded focus:ring-2 focus:ring-secondary/20 cursor-pointer"
+                />
+                <span className="font-body-sm text-body-sm text-on-surface">Geofence Aktif</span>
+              </label>
             </div>
 
             <div className="relative h-48 w-full rounded-xl bg-surface-container-low border border-outline/30 overflow-hidden group flex items-center justify-center select-none">
@@ -88,7 +247,7 @@ function EditUnitModal({ unit, onClose, onSave }) {
 
               <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-surface-container-lowest/95 backdrop-blur-sm px-2.5 py-1 rounded-md shadow-sm border border-outline/30 font-body-md-medium text-body-md-medium text-on-surface z-10">
                 <span className="material-symbols-outlined text-secondary text-[16px]">location_on</span>
-                <span>Gedung SD Islam RJ</span>
+                <span>{latitude.toFixed(5)}, {longitude.toFixed(5)}</span>
               </div>
 
               <div className="absolute top-3 right-3 flex flex-col gap-1 z-10">
@@ -145,16 +304,18 @@ function EditUnitModal({ unit, onClose, onSave }) {
               <div className="relative flex items-center">
                 <span className="material-symbols-outlined absolute left-3 text-outline text-[18px]">radar</span>
                 <input
-                  className="w-full h-10 pl-9 pr-16 rounded-lg bg-surface-container-low border border-outline focus:outline-none focus:bg-surface-container-lowest focus:border-secondary/50 focus:ring-2 focus:ring-secondary/20 font-body-md text-body-md text-on-surface font-semibold transition-all"
+                  className="w-full h-10 pl-9 pr-16 rounded-lg bg-surface-container-low border focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-secondary/20 font-body-md text-body-md text-on-surface font-semibold transition-all"
                   id="inputRadius"
                   max="500"
                   min="10"
                   type="number"
                   value={radius}
-                  onChange={(e) => setRadius(parseInt(e.target.value) || 50)}
+                  onChange={(e) => handleChange('radius', e.target.value)}
+                  onBlur={(e) => handleBlur('radius', e.target.value)}
                 />
                 <span className="absolute right-3 px-2 py-0.5 rounded bg-surface-container text-on-surface-variant font-body-sm text-body-sm border border-outline/30">Meter</span>
               </div>
+              {errors.radius && touched.radius && <span className="font-body-sm text-body-sm text-rose-500">{errors.radius}</span>}
               <span className="font-body-sm text-body-sm text-on-surface-variant">Rekomendasi area sekolah: 50 – 100 meter.</span>
             </div>
 
@@ -164,28 +325,32 @@ function EditUnitModal({ unit, onClose, onSave }) {
                 <div className="relative flex items-center">
                   <span className="material-symbols-outlined absolute left-2.5 text-outline text-[16px]">schedule</span>
                   <input
-                    className="w-full h-10 pl-8 pr-9 rounded-lg bg-surface-container-low border border-outline focus:outline-none focus:bg-surface-container-lowest focus:border-secondary/50 focus:ring-2 focus:ring-secondary/20 font-body-md text-body-md text-on-surface font-medium text-center transition-all"
+                    className="w-full h-10 pl-8 pr-12 rounded-lg bg-surface-container-low border focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-secondary/20 font-body-md text-body-md text-on-surface font-medium text-center transition-all"
                     id="inputJamMasuk"
                     type="text"
                     value={jamMasuk}
-                    onChange={(e) => setJamMasuk(e.target.value)}
+                    onChange={(e) => handleChange('jamMasuk', e.target.value)}
+                    onBlur={(e) => handleBlur('jamMasuk', e.target.value)}
                   />
                   <span className="absolute right-2 font-label-sm text-label-sm font-label-sm text-on-surface-variant">WIB</span>
                 </div>
+                {errors.jamMasuk && touched.jamMasuk && <span className="font-body-sm text-body-sm text-rose-500">{errors.jamMasuk}</span>}
               </div>
               <div className="flex flex-col gap-1.5">
                 <label className="font-body-sm-medium text-body-sm-medium text-on-surface" htmlFor="inputJamPulang">Jam Pulang</label>
                 <div className="relative flex items-center">
                   <span className="material-symbols-outlined absolute left-2.5 text-outline text-[16px]">schedule</span>
                   <input
-                    className="w-full h-10 pl-8 pr-9 rounded-lg bg-surface-container-low border border-outline focus:outline-none focus:bg-surface-container-lowest focus:border-secondary/50 focus:ring-2 focus:ring-secondary/20 font-body-md text-body-md text-on-surface font-medium text-center transition-all"
+                    className="w-full h-10 pl-8 pr-12 rounded-lg bg-surface-container-low border focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-secondary/20 font-body-md text-body-md text-on-surface font-medium text-center transition-all"
                     id="inputJamPulang"
                     type="text"
                     value={jamPulang}
-                    onChange={(e) => setJamPulang(e.target.value)}
+                    onChange={(e) => handleChange('jamPulang', e.target.value)}
+                    onBlur={(e) => handleBlur('jamPulang', e.target.value)}
                   />
                   <span className="absolute right-2 font-label-sm text-label-sm font-label-sm text-on-surface-variant">WIB</span>
                 </div>
+                {errors.jamPulang && touched.jamPulang && <span className="font-body-sm text-body-sm text-rose-500">{errors.jamPulang}</span>}
               </div>
             </div>
           </div>
@@ -200,7 +365,7 @@ function EditUnitModal({ unit, onClose, onSave }) {
             Batal
           </button>
           <button
-            onClick={() => onSave({ name, address, radius, jamMasuk, jamPulang })}
+            onClick={handleSubmit}
             className="px-space-md py-2 rounded-lg bg-primary-container hover:bg-primary text-on-primary font-body-md-medium text-body-md-medium flex items-center gap-2 shadow-sm transition-colors cursor-pointer"
             id="btnSaveUnit"
             type="button"

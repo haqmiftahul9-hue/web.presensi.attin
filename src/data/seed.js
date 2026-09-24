@@ -2,11 +2,11 @@
 // Total: 209 pegawai (22+65+48+54+20), hadir 187, terlambat 14, belum 22, alpha 8.
 
 export const UNITS = [
-  { id: 'tk', kode: 'UNT-TK-01', nama: 'TK IT RJ', alamat: 'Jl. Cendekia No. 41', radius: 50, masuk: '07:00', pulang: '14:30', total: 22, hadir: 21, icon: 'child_care' },
-  { id: 'sd', kode: 'UNT-SD-02', nama: 'SD Islam RJ', alamat: 'Jl. Cendekia No. 43, Cilandak', radius: 75, masuk: '07:00', pulang: '15:00', total: 65, hadir: 61, icon: 'school' },
-  { id: 'smp', kode: 'UNT-SMP-03', nama: 'SMP Islam RJ', alamat: 'Jl. Cendekia No. 45', radius: 50, masuk: '07:00', pulang: '15:30', total: 48, hadir: 44, icon: 'school' },
-  { id: 'sma', kode: 'UNT-SMA-04', nama: 'SMA Islam RJ', alamat: 'Jl. Cendekia No. 47', radius: 80, masuk: '06:45', pulang: '15:30', total: 54, hadir: 48, icon: 'school' },
-  { id: 'pst', kode: 'UNT-PST-00', nama: 'Sekretariat Yayasan', alamat: 'Grha RJ Lt. 2', radius: 40, masuk: '07:30', pulang: '16:00', total: 20, hadir: 13, icon: 'domain' },
+  { id: 'tk', kode: 'UNT-TK-01', nama: 'TK IT RJ', alamat: 'Jl. Cendekia No. 41', radius: 50, masuk: '07:00', pulang: '14:30', total: 22, hadir: 21, icon: 'child_care', latitude: -6.28945, longitude: 106.79234, geofenceActive: true },
+  { id: 'sd', kode: 'UNT-SD-02', nama: 'SD Islam RJ', alamat: 'Jl. Cendekia No. 43, Cilandak', radius: 75, masuk: '07:00', pulang: '15:00', total: 65, hadir: 61, icon: 'school', latitude: -6.28955, longitude: 106.79244, geofenceActive: true },
+  { id: 'smp', kode: 'UNT-SMP-03', nama: 'SMP Islam RJ', alamat: 'Jl. Cendekia No. 45', radius: 50, masuk: '07:00', pulang: '15:30', total: 48, hadir: 44, icon: 'school', latitude: -6.28965, longitude: 106.79254, geofenceActive: true },
+  { id: 'sma', kode: 'UNT-SMA-04', nama: 'SMA Islam RJ', alamat: 'Jl. Cendekia No. 47', radius: 80, masuk: '06:45', pulang: '15:30', total: 54, hadir: 48, icon: 'school', latitude: -6.28975, longitude: 106.79264, geofenceActive: true },
+  { id: 'pst', kode: 'UNT-PST-00', nama: 'Sekretariat Yayasan', alamat: 'Grha RJ Lt. 2', radius: 40, masuk: '07:30', pulang: '16:00', total: 20, hadir: 13, icon: 'domain', latitude: -6.28985, longitude: 106.79274, geofenceActive: true },
 ]
 
 export const STAFF = [

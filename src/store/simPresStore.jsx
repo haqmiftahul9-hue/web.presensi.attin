@@ -49,6 +49,17 @@ function simPresReducer(state, action) {
           u.id === action.payload.id ? { ...u, ...action.payload } : u,
         ),
       }
+    case 'ADD_UNIT':
+      return {
+        ...state,
+        units: [...state.units, action.payload],
+      }
+    case 'DELETE_UNIT':
+      return {
+        ...state,
+        units: state.units.filter((u) => u.id !== action.payload),
+        staff: state.staff.filter((s) => s.unitId !== action.payload),
+      }
     case 'UPDATE_ATTENDANCE':
       // Tulis-langsung ke sumber data (staff); attendance adalah turunan.
       return {
