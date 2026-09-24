@@ -108,6 +108,20 @@ function simPresReducer(state, action) {
       }
     case 'ADD_LOG':
       return { ...state, logs: [action.payload, ...state.logs] }
+    case 'ADD_ADMIN_USER':
+      return { ...state, adminUsers: [...state.adminUsers, action.payload] }
+    case 'UPDATE_ADMIN_USER':
+      return {
+        ...state,
+        adminUsers: state.adminUsers.map((u) =>
+          u.id === action.payload.id ? { ...u, ...action.payload } : u,
+        ),
+      }
+    case 'DELETE_ADMIN_USER':
+      return {
+        ...state,
+        adminUsers: state.adminUsers.filter((u) => u.id !== action.payload),
+      }
     case 'UPDATE_SETTINGS':
       return { ...state, settings: { ...state.settings, ...action.payload } }
     default:
@@ -265,6 +279,16 @@ export function selectUnitName(state, unitId) {
 
 export function selectUnitOptions(state) {
   return ['Semua Unit (Pusat)', ...state.units.map((u) => u.nama)]
+}
+
+export const ROLE_OPTIONS = [
+  { value: 'Superadmin', label: 'Superadmin Pusat' },
+  { value: 'Admin Unit', label: 'Admin Unit Sekolah' },
+  { value: 'Guru', label: 'Guru / Staf' },
+]
+
+export function selectAdminById(state, id) {
+  return state.adminUsers.find((u) => u.id === id)
 }
 
 export function selectLeavesEnriched(state) {

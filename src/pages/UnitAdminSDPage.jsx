@@ -23,7 +23,12 @@ function UnitAdminSDPage() {
     radius: u.radius,
     masuk: u.masuk,
     pulang: u.pulang,
+    latitude: u.latitude,
+    longitude: u.longitude,
+    geofenceActive: u.geofenceActive,
+    icon: u.icon,
     pegawai: state.staff.filter((s) => s.unitId === u.id).length,
+    admin: state.adminUsers.filter((a) => a.unitId === u.id).length,
     aktif: true,
   }))
 
@@ -165,7 +170,7 @@ function UnitAdminSDPage() {
   const DetailModal = () => {
     if (!detailUnit) return null
     const unit = detailUnit
-    const pegawaiList = state.staff.filter((s) => s.unitId === unit.id)
+    const pegawaiList = [...state.staff.filter((s) => s.unitId === unit.id), ...state.adminUsers.filter((a) => a.unitId === unit.id)]
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" onClick={() => setDetailUnit(null)}>
         <div className="relative w-full max-w-2xl bg-surface-container-lowest rounded-2xl shadow-2xl border border-outline/20 overflow-hidden flex flex-col max-h-[90vh]" onClick={(e) => e.stopPropagation()}>

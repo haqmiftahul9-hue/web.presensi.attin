@@ -3,7 +3,8 @@ import { initialsOf, selectUnitName } from '../store/simPresStore.jsx'
 
 function StaffTable() {
   const { state } = useSimPres()
-  const staff = state.staff.slice(0, 6)
+  const staffData = [...state.staff, ...state.adminUsers.filter((u) => u.role === 'Guru')]
+  const staff = staffData.slice(0, 6)
   const avatarClasses = [
     'bg-secondary-fixed text-on-secondary-fixed',
     'bg-tertiary-fixed text-on-tertiary-fixed',
@@ -108,7 +109,7 @@ function StaffTable() {
       </div>
       <div className="p-space-md bg-surface-container-lowest flex flex-col sm:flex-row items-center justify-between gap-space-sm">
         <div className="flex items-center gap-space-xs text-on-surface-variant font-body-sm text-body-sm">
-          <span>Menampilkan <strong className="font-body-sm-medium text-body-sm-medium text-on-surface">1–{staff.length}</strong> dari <strong className="font-body-sm-medium text-body-sm-medium text-on-surface">{state.staff.length}</strong> data pegawai</span>
+            <span>Menampilkan <strong className="font-body-sm-medium text-body-sm-medium text-on-surface">1–{staff.length}</strong> dari <strong className="font-body-sm-medium text-body-sm-medium text-on-surface">{staffData.length}</strong> data pegawai</span>
           <span className="text-surface-variant">•</span>
           <div className="flex items-center gap-1">
             <span>Baris per halaman:</span>
