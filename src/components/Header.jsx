@@ -1,4 +1,10 @@
+import { useSimPres, selectCurrentUser, selectCurrentUserRole } from '../store/simPresStore.jsx'
+
 function Header() {
+  const { state } = useSimPres()
+  const currentUser = selectCurrentUser(state)
+  const currentRole = selectCurrentUserRole(state)
+
   return (
     <header className="fixed top-0 left-[260px] right-0 h-16 bg-surface-container-lowest shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 flex items-center justify-between px-space-lg">
       <div className="flex items-center gap-space-md w-full max-w-md">
@@ -26,8 +32,8 @@ function Header() {
             <span className="material-symbols-outlined text-on-primary text-[18px]">person</span>
           </div>
           <div className="hidden md:flex flex-col text-left">
-            <span className="font-body-sm-medium text-body-sm-medium text-on-surface leading-tight">Superadmin</span>
-            <span className="font-label-sm text-label-sm text-on-surface-variant leading-tight mt-1">Yayasan Pendidikan</span>
+            <span className="font-body-sm-medium text-body-sm-medium text-on-surface leading-tight">{currentRole}</span>
+            <span className="font-label-sm text-label-sm text-on-surface-variant leading-tight mt-1">{currentUser?.unitId ? 'Unit ' + currentUser.unitId.toUpperCase() : 'Yayasan Pendidikan'}</span>
           </div>
           <span className="material-symbols-outlined text-on-surface-variant text-[18px]">arrow_drop_down</span>
         </div>

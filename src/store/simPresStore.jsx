@@ -8,6 +8,48 @@ import {
 // - Entitas kanonis hanya disimpan sekali (staff/units/leaves/adminUsers/logs/settings).
 // - Presensi (attendance) BUKAN salinan tersimpan, melainkan TURUNAN dari state.staff
 //   yang dibangun ulang setiap perubahan, sehingga tidak pernah bisa stale/sinkron.
+
+export const PERMISSION_ACTIONS = ['view', 'add', 'edit', 'delete']
+
+export const PERMISSION_MATRIX = {
+  Superadmin: {
+    dashboard: ['view', 'add', 'edit', 'delete'],
+    manajemenUnit: ['view', 'add', 'edit', 'delete'],
+    manajemenAdminUser: ['view', 'add', 'edit', 'delete'],
+    dataGuruPegawai: ['view', 'add', 'edit', 'delete'],
+    presensi: ['view', 'add', 'edit', 'delete'],
+    rekapLaporan: ['view', 'add', 'edit', 'delete'],
+    rankingKehadiran: ['view', 'add', 'edit', 'delete'],
+    pengajuanIzinCuti: ['view', 'add', 'edit', 'delete'],
+    logAktivitas: ['view', 'add', 'edit', 'delete'],
+    pengaturanGlobal: ['view', 'add', 'edit', 'delete'],
+  },
+  'Admin Unit': {
+    dashboard: ['view'],
+    manajemenUnit: [],
+    manajemenAdminUser: [],
+    dataGuruPegawai: ['view', 'add', 'edit'],
+    presensi: ['view', 'add', 'edit'],
+    rekapLaporan: ['view'],
+    rankingKehadiran: ['view'],
+    pengajuanIzinCuti: ['view', 'add', 'edit'],
+    logAktivitas: ['view'],
+    pengaturanGlobal: [],
+  },
+  Guru: {
+    dashboard: ['view'],
+    manajemenUnit: [],
+    manajemenAdminUser: [],
+    dataGuruPegawai: ['view'],
+    presensi: ['view'],
+    rekapLaporan: ['view'],
+    rankingKehadiran: ['view'],
+    pengajuanIzinCuti: ['view', 'add'],
+    logAktivitas: [],
+    pengaturanGlobal: [],
+  },
+}
+
 const initialStaff = buildFullStaff()
 
 const initialState = {
@@ -20,6 +62,8 @@ const initialState = {
   weeklyTrend: WEEKLY_TREND,
   trend30: TREND_30,
   holidays: HOLIDAYS,
+  permissionMatrix: PERMISSION_MATRIX,
+  currentUser: ADMIN_USERS[0],
 }
 
 function simPresReducer(state, action) {
@@ -39,9 +83,14 @@ function simPresReducer(state, action) {
         staff: state.staff.map((s) =>
           s.id === action.payload.id ? { ...s, ...action.payload } : s,
         ),
+        adminUsers: syncAdminUserFromStaff(state.adminUsers, action.payload),
       }
     case 'ADD_STAFF':
-      return { ...state, staff: [...state.staff, action.payload] }
+      return {
+        ...state,
+        staff: [...state.staff, action.payload],
+        adminUsers: syncAdminUserFromStaff(state.adminUsers, action.payload, 'add'),
+      }
     case 'UPDATE_UNIT':
       return {
         ...state,
@@ -109,21 +158,31 @@ function simPresReducer(state, action) {
     case 'ADD_LOG':
       return { ...state, logs: [action.payload, ...state.logs] }
     case 'ADD_ADMIN_USER':
-      return { ...state, adminUsers: [...state.adminUsers, action.payload] }
+      return {
+        ...state,
+        adminUsers: [...state.adminUsers, action.payload],
+        staff: syncStaffFromAdminUser(state.staff, action.payload, 'add'),
+      }
     case 'UPDATE_ADMIN_USER':
       return {
         ...state,
         adminUsers: state.adminUsers.map((u) =>
           u.id === action.payload.id ? { ...u, ...action.payload } : u,
         ),
+        staff: syncStaffFromAdminUser(state.staff, action.payload, 'update'),
       }
     case 'DELETE_ADMIN_USER':
       return {
         ...state,
         adminUsers: state.adminUsers.filter((u) => u.id !== action.payload),
+        staff: syncStaffFromAdminUser(state.staff, { id: action.payload }, 'delete'),
       }
     case 'UPDATE_SETTINGS':
       return { ...state, settings: { ...state.settings, ...action.payload } }
+    case 'UPDATE_PERMISSIONS':
+      return { ...state, permissionMatrix: action.payload }
+    case 'SET_CURRENT_USER':
+      return { ...state, currentUser: action.payload }
     default:
       return state
   }
@@ -287,8 +346,127 @@ export const ROLE_OPTIONS = [
   { value: 'Guru', label: 'Guru / Staf' },
 ]
 
+export const MENU_OPTIONS = [
+  { key: 'dashboard', label: 'Dashboard' },
+  { key: 'manajemenUnit', label: 'Manajemen Unit' },
+  { key: 'manajemenAdminUser', label: 'Manajemen Admin & User' },
+  { key: 'dataGuruPegawai', label: 'Data Guru/Pegawai' },
+  { key: 'presensi', label: 'Presensi' },
+  { key: 'rekapLaporan', label: 'Rekap & Laporan' },
+  { key: 'rankingKehadiran', label: 'Ranking Kehadiran' },
+  { key: 'pengajuanIzinCuti', label: 'Pengajuan Izin/Cuti' },
+  { key: 'logAktivitas', label: 'Log Aktivitas' },
+  { key: 'pengaturanGlobal', label: 'Pengaturan Global' },
+]
+
+export function getRolePermissions(state, role) {
+  return state.permissionMatrix?.[role] || {}
+}
+
+export function hasPermission(state, role, menuKey, action) {
+  const permissions = state.permissionMatrix?.[role]
+  if (!permissions) return false
+  return permissions[menuKey]?.includes(action) ?? false
+}
+
 export function selectAdminById(state, id) {
   return state.adminUsers.find((u) => u.id === id)
+}
+
+function syncStaffFromAdminUser(staff, adminUser, action) {
+  const niy = adminUser.niy
+  if (!niy) return staff
+
+  const existingStaffIndex = staff.findIndex((s) => s.niy === niy)
+  const isGuruOrStaff = adminUser.role === 'Guru' || adminUser.role === 'Admin Unit'
+
+  if (action === 'delete') {
+    if (existingStaffIndex >= 0 && isGuruOrStaff) {
+      return staff.filter((s) => s.niy !== niy)
+    }
+    return staff
+  }
+
+  if (action === 'add') {
+    if (existingStaffIndex >= 0) {
+      return staff.map((s, i) =>
+        i === existingStaffIndex
+          ? { ...s, unitId: adminUser.unitId, status: adminUser.status, role: adminUser.role === 'Admin Unit' ? 'Guru' : adminUser.role }
+          : s,
+      )
+    }
+    if (isGuruOrStaff) {
+      const newStaff = {
+        id: staff.length > 0 ? Math.max(...staff.map((s) => s.id)) + 1 : 1,
+        niy: adminUser.niy,
+        name: adminUser.name,
+        role: adminUser.role === 'Admin Unit' ? 'Guru' : adminUser.role,
+        unitId: adminUser.unitId,
+        status: adminUser.status,
+        masuk: null,
+        method: null,
+        late: 0,
+      }
+      return [...staff, newStaff]
+    }
+    return staff
+  }
+
+  if (action === 'update') {
+    if (existingStaffIndex >= 0 && isGuruOrStaff) {
+      return staff.map((s, i) =>
+        i === existingStaffIndex
+          ? { ...s, unitId: adminUser.unitId, status: adminUser.status, role: adminUser.role === 'Admin Unit' ? 'Guru' : adminUser.role }
+          : s,
+      )
+    }
+    if (isGuruOrStaff) {
+      const newStaff = {
+        id: staff.length > 0 ? Math.max(...staff.map((s) => s.id)) + 1 : 1,
+        niy: adminUser.niy,
+        name: adminUser.name,
+        role: adminUser.role === 'Admin Unit' ? 'Guru' : adminUser.role,
+        unitId: adminUser.unitId,
+        status: adminUser.status,
+        masuk: null,
+        method: null,
+        late: 0,
+      }
+      return [...staff, newStaff]
+    }
+    return staff
+  }
+
+  return staff
+}
+
+function syncAdminUserFromStaff(adminUsers, staffUser, action) {
+  const niy = staffUser.niy
+  if (!niy) return adminUsers
+
+  const existingAdminIndex = adminUsers.findIndex((u) => u.niy === niy)
+  const isGuruOrStaff = staffUser.role === 'Guru' || staffUser.role === 'Admin Unit'
+
+  if (action === 'add') {
+    if (existingAdminIndex >= 0) {
+      return adminUsers.map((u, i) =>
+        i === existingAdminIndex
+          ? { ...u, unitId: staffUser.unitId, status: staffUser.status }
+          : u,
+      )
+    }
+    return adminUsers
+  }
+
+  if (existingAdminIndex >= 0 && isGuruOrStaff) {
+    return adminUsers.map((u, i) =>
+      i === existingAdminIndex
+        ? { ...u, unitId: staffUser.unitId, status: staffUser.status }
+        : u,
+    )
+  }
+
+  return adminUsers
 }
 
 export function selectLeavesEnriched(state) {
@@ -456,3 +634,22 @@ export function selectMonitoringActivity(state) {
 }
 
 export { initialsOf }
+
+export function selectCurrentUser(state) {
+  return state.currentUser
+}
+
+export function selectCurrentUserRole(state) {
+  return state.currentUser?.role || 'Guru'
+}
+
+export function hasMenuPermission(state, menuKey) {
+  const role = selectCurrentUserRole(state)
+  const permissions = state.permissionMatrix?.[role]
+  if (!permissions) return false
+  return permissions[menuKey]?.includes('view') ?? false
+}
+
+export function getVisibleMenuKeys(state) {
+  return MENU_OPTIONS.filter((menu) => hasMenuPermission(state, menu.key)).map((m) => m.key)
+}

@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react'
-import { useSimPres, selectUnitName, initialsOf, ROLE_OPTIONS } from '../store/simPresStore.jsx'
+import { useSimPres, selectUnitName, initialsOf, ROLE_OPTIONS, MENU_OPTIONS, PERMISSION_ACTIONS, getRolePermissions } from '../store/simPresStore.jsx'
 import ConfirmDialog from '../components/ConfirmDialog.jsx'
 
 const roleMap = {
@@ -25,6 +25,10 @@ function AdminUserPage() {
 
   const [confirm, setConfirm] = useState(null)
   const [successMessage, setSuccessMessage] = useState('')
+  const [showMatrix, setShowMatrix] = useState(false)
+  const [matrixPerms, setMatrixPerms] = useState(null)
+  const [showDetail, setShowDetail] = useState(false)
+  const [detailUser, setDetailUser] = useState(null)
 
   const pageSize = 10
   const [page, setPage] = useState(1)
@@ -148,7 +152,8 @@ function AdminUserPage() {
     if (!form.name.trim()) e.name = 'Nama lengkap wajib diisi'
     if (!form.email.trim()) e.email = 'Email wajib diisi'
     else if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email)) e.email = 'Format email tidak valid'
-    if (!form.niy.trim()) e.niy = 'NIY wajib diisi'
+    // NIY opsional - boleh kosong, boleh diisi
+    if (form.niy && form.niy.trim() && !/^\d+$/.test(form.niy.trim())) e.niy = 'NIY harus berupa angka'
     if (!form.role) e.role = 'Role wajib dipilih'
     if (!form.unitId) e.unitId = 'Unit penugasan wajib dipilih'
     setFormErrors(e)
@@ -172,6 +177,10 @@ function AdminUserPage() {
       })
       addLog('Tambah', `Akun • ${form.name.trim()}`, `Buat akun ${form.role} baru atas NIY ${form.niy.trim()}`)
     } else if (editedUser) {
+      const roleChanged = editedUser.role !== form.role
+      const oldRole = editedUser.role
+      const newRole = form.role
+
       dispatch({
         type: 'UPDATE_ADMIN_USER',
         payload: {
@@ -184,7 +193,12 @@ function AdminUserPage() {
           status: form.status,
         },
       })
-      addLog('Ubah', `Akun • ${form.name.trim()}`, `Perbarui data akun: peran ${form.role}, unit ${selectUnitName(state, form.unitId)}`)
+
+      if (roleChanged) {
+        addLog('Ubah Role', `Akun • ${form.name.trim()}`, `Mengubah peran dari ${oldRole} menjadi ${newRole}`)
+      } else {
+        addLog('Ubah', `Akun • ${form.name.trim()}`, `Perbarui data akun: peran ${form.role}, unit ${selectUnitName(state, form.unitId)}`)
+      }
     }
     closeForm()
   }
@@ -248,6 +262,75 @@ function AdminUserPage() {
     setPage(1)
   }
 
+  const handleExport = () => {
+    const headers = ['Nama', 'Email', 'NIY', 'Role', 'Unit', 'Status']
+    const rows = filtered.map((u) => [
+      u.name,
+      u.email,
+      u.niy,
+      u.role,
+      selectUnitName(state, u.unitId),
+      u.status,
+    ])
+    const csvContent = [
+      headers.join(','),
+      ...rows.map((r) => r.map((cell) => `"${cell}"`).join(',')),
+    ].join('\n')
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const link = document.createElement('a')
+    link.href = URL.createObjectURL(blob)
+    link.download = `manajemen-admin-user-${new Date().toISOString().slice(0, 10)}.csv`
+    link.click()
+    URL.revokeObjectURL(link.href)
+    addLog('Ekspor', 'Admin User', 'Ekspor data admin/user ke CSV')
+  }
+
+  const openMatrix = () => {
+    setMatrixPerms(JSON.parse(JSON.stringify(state.permissionMatrix)))
+    setShowMatrix(true)
+  }
+
+  const closeMatrix = () => {
+    setShowMatrix(false)
+    setMatrixPerms(null)
+  }
+
+  const togglePerm = (role, menuKey, action) => {
+    setMatrixPerms((prev) => {
+      const next = JSON.parse(JSON.stringify(prev))
+      const perms = next[role]?.[menuKey] || []
+      const idx = perms.indexOf(action)
+      if (idx >= 0) {
+        next[role][menuKey] = perms.filter((a) => a !== action)
+      } else {
+        next[role][menuKey] = [...perms, action]
+      }
+      return next
+    })
+  }
+
+  const saveMatrix = () => {
+    dispatch({ type: 'UPDATE_PERMISSIONS', payload: matrixPerms })
+    addLog('Ubah', 'Matriks Role & Izin', 'Memperbarui hak akses peran sistem')
+    setSuccessMessage('Perubahan izin berhasil disimpan')
+    setTimeout(() => setSuccessMessage(''), 3000)
+    closeMatrix()
+  }
+
+  const resetMatrix = () => {
+    setMatrixPerms(JSON.parse(JSON.stringify(state.permissionMatrix)))
+  }
+
+  const openDetail = (user) => {
+    setDetailUser(user)
+    setShowDetail(true)
+  }
+
+  const closeDetail = () => {
+    setShowDetail(false)
+    setDetailUser(null)
+  }
+
   const startIdx = filtered.length === 0 ? 0 : (page - 1) * pageSize + 1
   const endIdx = filtered.length === 0 ? 0 : startIdx + rows.length - 1
 
@@ -308,7 +391,7 @@ function AdminUserPage() {
               </div>
               <div className="mt-space-sm">
                 <div className="flex items-baseline gap-2">
-                  <span className="font-headline-sm text-headline-sm text-primary leading-tight">{state.adminUsers.length}</span>
+                  <span className="font-headline-sm text-headline-sm text-primary leading-tight">{state.adminUsers.filter((u) => u.status === 'Aktif').length}</span>
                   <span className="font-body-sm text-body-sm text-on-surface-variant">Pengguna</span>
                 </div>
                 <div className="mt-2 flex items-center gap-1.5">
@@ -327,7 +410,7 @@ function AdminUserPage() {
               </div>
               <div className="mt-space-sm">
                 <div className="flex items-baseline gap-2">
-                  <span className="font-headline-sm text-headline-sm text-primary leading-tight">{state.adminUsers.filter((u) => u.role === 'Superadmin').length}</span>
+                  <span className="font-headline-sm text-headline-sm text-primary leading-tight">{state.adminUsers.filter((u) => u.role === 'Superadmin' && u.status === 'Aktif').length}</span>
                   <span className="font-body-sm text-body-sm text-on-surface-variant">Akun</span>
                 </div>
                 <div className="mt-2 flex items-center gap-1 text-purple-700 font-body-sm text-body-sm">
@@ -346,7 +429,7 @@ function AdminUserPage() {
               </div>
               <div className="mt-space-sm">
                 <div className="flex items-baseline gap-2">
-                  <span className="font-headline-sm text-headline-sm text-primary leading-tight">{state.adminUsers.filter((u) => u.role === 'Admin Unit').length}</span>
+                  <span className="font-headline-sm text-headline-sm text-primary leading-tight">{state.adminUsers.filter((u) => u.role === 'Admin Unit' && u.status === 'Aktif').length}</span>
                   <span className="font-body-sm text-body-sm text-on-surface-variant">Akun</span>
                 </div>
                 <div className="mt-2 flex items-center gap-1 text-secondary font-body-sm text-body-sm">
@@ -365,7 +448,7 @@ function AdminUserPage() {
               </div>
               <div className="mt-space-sm">
                 <div className="flex items-baseline gap-2">
-                  <span className="font-headline-sm text-headline-sm text-primary leading-tight">{state.staff.filter((s) => s.status === 'Aktif').length}</span>
+                  <span className="font-headline-sm text-headline-sm text-primary leading-tight">{state.adminUsers.filter((u) => u.role === 'Guru' && u.status === 'Aktif').length}</span>
                   <span className="font-body-sm text-body-sm text-on-surface-variant">Akun</span>
                 </div>
                 <div className="mt-2 flex items-center gap-1 text-slate-600 font-body-sm text-body-sm">
@@ -378,11 +461,11 @@ function AdminUserPage() {
         </div>
 
         <div className="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-space-sm">
-          <div className="flex flex-wrap items-center gap-space-xs flex-1">
-            <div className="relative min-w-[260px] flex-1 max-w-sm">
+          <div className="flex flex-wrap items-center gap-space-xs flex-1 lg:flex-nowrap">
+            <div className="relative min-w-[240px] flex-1 lg:max-w-xs">
               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[20px]">search</span>
               <input
-                className="w-full h-10 pl-10 pr-space-md bg-surface-container-low rounded-lg font-body-md text-body-md text-on-surface placeholder:text-outline focus:outline-none focus:bg-surface-container-lowest"
+                className="w-full h-10 pl-10 pr-space-md bg-surface-container-low rounded-lg font-body-sm text-body-sm text-on-surface placeholder:text-outline focus:outline-none focus:bg-surface-container-lowest"
                 placeholder="Cari nama, email, atau NIY..."
                 type="text"
                 value={searchTerm}
@@ -391,7 +474,7 @@ function AdminUserPage() {
             </div>
             <div className="relative">
               <select
-                className="h-10 pl-3 pr-8 bg-surface-container-low text-on-surface rounded-lg font-body-md text-body-md focus:outline-none appearance-none cursor-pointer"
+                className="h-10 pl-3 pr-8 bg-surface-container-low text-on-surface rounded-lg font-body-sm text-body-sm focus:outline-none appearance-none cursor-pointer"
                 value={roleFilter}
                 onChange={(e) => setRoleFilter(e.target.value)}
               >
@@ -404,7 +487,7 @@ function AdminUserPage() {
             </div>
             <div className="relative">
               <select
-                className="h-10 pl-3 pr-8 bg-surface-container-low text-on-surface rounded-lg font-body-md text-body-md focus:outline-none appearance-none cursor-pointer"
+                className="h-10 pl-3 pr-8 bg-surface-container-low text-on-surface rounded-lg font-body-sm text-body-sm focus:outline-none appearance-none cursor-pointer"
                 value={unitFilter}
                 onChange={(e) => setUnitFilter(e.target.value)}
               >
@@ -417,7 +500,7 @@ function AdminUserPage() {
             </div>
             <div className="relative">
               <select
-                className="h-10 pl-3 pr-8 bg-surface-container-low text-on-surface rounded-lg font-body-md text-body-md focus:outline-none appearance-none cursor-pointer"
+                className="h-10 pl-3 pr-8 bg-surface-container-low text-on-surface rounded-lg font-body-sm text-body-sm focus:outline-none appearance-none cursor-pointer"
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
               >
@@ -428,7 +511,7 @@ function AdminUserPage() {
               <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-outline text-[18px] pointer-events-none">expand_more</span>
             </div>
           </div>
-          <div className="flex items-center gap-space-xs justify-end">
+          <div className="flex items-center gap-space-xs justify-end lg:flex-nowrap">
             <button
               onClick={resetFilters}
               className="flex items-center gap-1.5 h-10 px-space-md rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface-variant hover:text-on-surface transition-colors font-body-md-medium text-body-md-medium cursor-pointer"
@@ -437,7 +520,11 @@ function AdminUserPage() {
               <span className="material-symbols-outlined text-[18px]">filter_alt</span>
               <span>Reset Filter</span>
             </button>
-            <button className="flex items-center gap-1.5 h-10 px-space-md rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface font-body-md-medium text-body-md-medium transition-colors cursor-pointer" type="button">
+            <button
+              onClick={handleExport}
+              className="flex items-center gap-1.5 h-10 px-space-md rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface font-body-md-medium text-body-md-medium transition-colors cursor-pointer"
+              type="button"
+            >
               <span className="material-symbols-outlined text-[18px]">file_download</span>
               <span>Ekspor Data</span>
             </button>
@@ -455,64 +542,72 @@ function AdminUserPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-surface-container-low text-on-surface-variant font-label-md text-label-md uppercase tracking-wider leading-tight">
-                  <th className="py-3.5 px-4 w-10 text-center">
+                <tr className="bg-surface-container-low border-b border-surface-container text-on-surface-variant font-label-sm text-label-sm uppercase tracking-wider leading-tight">
+                  <th className="py-3 px-4 w-10 text-center">
                     <input className="rounded w-4 h-4 text-secondary focus:ring-0 cursor-pointer" type="checkbox" />
                   </th>
-                  <th className="py-3.5 px-5 w-56 font-semibold">Nama & Profil Pengguna</th>
-                  <th className="py-3.5 px-5 w-64 font-semibold">Email & NIY</th>
-                  <th className="py-3.5 px-4 w-40 font-semibold">Role Sistem</th>
-                  <th className="py-3.5 px-5 w-44 font-semibold">Unit Penugasan</th>
-                  <th className="py-3.5 px-4 w-28 font-semibold">Status</th>
-                  <th className="py-3.5 px-4 w-36 font-semibold text-right">Aksi & Opsi</th>
+                  <th className="py-3 px-4 font-semibold">Pengguna</th>
+                  <th className="py-3 px-4 font-semibold">Kontak & NIY</th>
+                  <th className="py-3 px-4 font-semibold">Peran</th>
+                  <th className="py-3 px-4 font-semibold">Unit</th>
+                  <th className="py-3 px-4 font-semibold">Status</th>
+                  <th className="py-3 px-4 w-40 font-semibold text-right">Aksi</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-surface-container font-body-md text-body-md">
+              <tbody className="divide-y divide-surface-container font-body-sm text-body-sm">
                 {rows.map((user) => (
-                  <tr key={user.id} className={`hover:bg-surface-container-low/50 transition-colors ${user.rowBg}`}>
-                    <td className="py-3.5 px-4 text-center w-10">
+                  <tr key={user.id} className={`hover:bg-surface-container-low/60 transition-colors duration-150 ${user.rowBg}`}>
+                    <td className="py-3 px-4 text-center w-10">
                       <input className="rounded w-4 h-4 text-secondary focus:ring-0 cursor-pointer" type="checkbox" />
                     </td>
-                    <td className="py-3.5 px-5 w-56">
+                    <td className="py-3 px-4">
                       <div className="flex items-center gap-3">
-                        <div className={`w-9 h-9 rounded-full font-headline-sm text-headline-sm flex items-center justify-center font-semibold flex-shrink-0 ${user.roleBg} ${user.roleText}`}>
+                        <div className={`w-9 h-9 rounded-full font-headline-xs text-headline-xs flex items-center justify-center font-semibold flex-shrink-0 ${user.roleBg} ${user.roleText}`}>
                           {user.initials}
                         </div>
                         <div className="flex flex-col min-w-0 flex-1">
                           <span className="font-body-md-medium text-body-md-medium text-on-surface truncate">{user.name}</span>
-                          <span className="font-label-sm text-label-sm text-on-surface-variant">NIK: {user.nik}</span>
+                          <span className="font-label-xs text-label-xs text-on-surface-variant">NIK: {user.nik}</span>
                         </div>
                       </div>
                     </td>
-                    <td className="py-3.5 px-5 w-64">
-                      <div className="flex flex-col min-w-0">
+                    <td className="py-3 px-4">
+                      <div className="flex flex-col min-w-0 gap-0.5">
                         <span className="font-body-sm text-body-sm text-on-surface truncate">{user.email}</span>
-                        <span className="font-label-sm text-label-sm text-on-surface-variant">NIY {user.niy}</span>
+                        <span className="font-label-xs text-label-xs text-on-surface-variant font-mono">NIY {user.niy}</span>
                       </div>
                     </td>
-                    <td className="py-3.5 px-4 w-40">
-                      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full font-label-md text-label-md font-medium ${user.roleBg} ${user.roleText}`}>
-                        <span className={`w-2 h-2 rounded-full ${user.roleDot}`}></span>
+                    <td className="py-3 px-4">
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-label-xs text-label-xs font-medium ${user.roleBg} ${user.roleText}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${user.roleDot}`}></span>
                         {user.role}
                       </span>
                     </td>
-                    <td className="py-3.5 px-5 w-44">
+                    <td className="py-3 px-4">
                       <div className="flex items-center gap-2 text-on-surface">
-                        <span className="material-symbols-outlined text-[16px] text-outline flex-shrink-0">{user.unitIcon}</span>
+                        <span className="material-symbols-outlined text-[15px] text-outline flex-shrink-0">{user.unitIcon}</span>
                         <span className="font-body-sm-medium text-body-sm-medium truncate">{user.unit}</span>
                       </div>
                     </td>
-                    <td className="py-3.5 px-4 w-28">
-                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-label-sm text-label-sm ${user.statusBg} ${user.statusText}`}>
+                    <td className="py-3 px-4">
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-label-xs text-label-xs font-medium ${user.statusBg} ${user.statusText}`}>
                         <span className={`w-1.5 h-1.5 rounded-full ${user.statusDot}`}></span>
                         {user.status}
                       </span>
                     </td>
-                    <td className="py-3.5 px-4 w-36 text-right">
-                      <div className="inline-flex items-center gap-1.5">
+                    <td className="py-3 px-4 w-40 text-right">
+                      <div className="inline-flex items-center justify-end gap-1">
+                        <button
+                          onClick={() => openDetail(user)}
+                          className="w-8 h-8 rounded-lg flex items-center justify-center text-secondary hover:bg-secondary/10 transition-colors cursor-pointer"
+                          title="Detail Pengguna"
+                          type="button"
+                        >
+                          <span className="material-symbols-outlined text-[18px]">visibility</span>
+                        </button>
                         <button
                           onClick={() => openEdit(user)}
-                          className="w-8 h-8 rounded-lg flex items-center justify-center text-secondary hover:bg-surface-container transition-colors cursor-pointer"
+                          className="w-8 h-8 rounded-lg flex items-center justify-center text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors cursor-pointer"
                           title="Edit Pengguna"
                           type="button"
                         >
@@ -520,7 +615,7 @@ function AdminUserPage() {
                         </button>
                         <button
                           onClick={() => openResetPassword(user)}
-                          className="w-8 h-8 rounded-lg flex items-center justify-center text-amber-600 hover:bg-surface-container transition-colors cursor-pointer"
+                          className="w-8 h-8 rounded-lg flex items-center justify-center text-amber-600 hover:bg-amber-50 transition-colors cursor-pointer"
                           title="Reset Password"
                           type="button"
                         >
@@ -529,7 +624,7 @@ function AdminUserPage() {
                         {user.status === 'Aktif' ? (
                           <button
                             onClick={() => toggleStatus(user)}
-                            className="w-8 h-8 rounded-lg flex items-center justify-center text-rose-600 hover:bg-surface-container transition-colors cursor-pointer"
+                            className="w-8 h-8 rounded-lg flex items-center justify-center text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
                             title="Nonaktifkan Akun"
                             type="button"
                           >
@@ -538,7 +633,7 @@ function AdminUserPage() {
                         ) : (
                           <button
                             onClick={() => toggleStatus(user)}
-                            className="w-8 h-8 rounded-lg flex items-center justify-center text-emerald-600 hover:bg-surface-container transition-colors cursor-pointer"
+                            className="w-8 h-8 rounded-lg flex items-center justify-center text-emerald-600 hover:bg-emerald-50 transition-colors cursor-pointer"
                             title="Aktifkan Kembali"
                             type="button"
                           >
@@ -547,7 +642,7 @@ function AdminUserPage() {
                         )}
                         <button
                           onClick={() => openDelete(user)}
-                          className="w-8 h-8 rounded-lg flex items-center justify-center text-rose-600 hover:bg-surface-container transition-colors cursor-pointer"
+                          className="w-8 h-8 rounded-lg flex items-center justify-center text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
                           title="Hapus Pengguna"
                           type="button"
                         >
@@ -628,7 +723,11 @@ function AdminUserPage() {
               </p>
             </div>
           </div>
-          <button className="px-4 py-2 bg-surface-container-lowest hover:bg-white text-secondary font-body-sm-medium text-body-sm-medium rounded-lg shadow-sm whitespace-nowrap transition-colors cursor-pointer" type="button">
+          <button
+            onClick={openMatrix}
+            className="px-4 py-2 bg-surface-container-lowest hover:bg-white text-secondary font-body-sm-medium text-body-sm-medium rounded-lg shadow-sm whitespace-nowrap transition-colors cursor-pointer"
+            type="button"
+          >
             Lihat Matriks Role & Izin
           </button>
         </div>
@@ -695,7 +794,7 @@ function AdminUserPage() {
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <label className="font-body-sm-medium text-body-sm-medium text-on-surface">
-                    NIY (Nomor Induk Yayasan) <span className="text-rose-500">*</span>
+                    NIY (Nomor Induk Yayasan) <span className="text-on-surface-variant">(Opsional)</span>
                   </label>
                   <div className="relative">
                     <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">numbers</span>
@@ -860,6 +959,270 @@ function AdminUserPage() {
           onConfirm={confirm.onConfirm}
           onClose={closeConfirm}
         />
+      )}
+
+      {showMatrix && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm" onClick={() => setShowMatrix(false)}>
+          <div className="bg-surface-container-lowest w-full max-w-4xl rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
+            <div className="px-space-lg py-space-md bg-surface-container-lowest flex items-center justify-between border-b border-surface-container">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-secondary/10 text-secondary flex items-center justify-center">
+                  <span className="material-symbols-outlined text-[22px]">security</span>
+                </div>
+                <div>
+                  <h3 className="font-headline-sm text-headline-sm text-primary leading-tight">Matriks Role & Izin</h3>
+                  <p className="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Kebijakan hak akses per peran sistem SimPres</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowMatrix(false)}
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-outline hover:bg-surface-container hover:text-on-surface transition-colors cursor-pointer"
+                type="button"
+              >
+                <span className="material-symbols-outlined text-[20px]">close</span>
+              </button>
+            </div>
+
+            <div className="p-space-lg overflow-auto">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-surface-container-low border-b border-surface-container text-on-surface-variant font-label-sm text-label-sm uppercase tracking-wider">
+                      <th className="py-3 px-4 font-semibold sticky left-0 z-10 bg-surface-container-low">Menu / Fitur</th>
+                      <th className="py-3 px-4 text-center font-semibold">Superadmin</th>
+                      <th className="py-3 px-4 text-center font-semibold">Admin Unit</th>
+                      <th className="py-3 px-4 text-center font-semibold">Guru / Staf</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-surface-container font-body-sm text-body-sm">
+                    {MENU_OPTIONS.map((menu, idx) => {
+                      const superPerms = matrixPerms?.Superadmin?.[menu.key] || []
+                      const unitPerms = matrixPerms?.['Admin Unit']?.[menu.key] || []
+                      const guruPerms = matrixPerms?.Guru?.[menu.key] || []
+                      return (
+                        <tr key={menu.key} className={idx % 2 === 0 ? 'bg-surface-container-low/30' : ''}>
+                          <td className="py-3 px-4 font-body-md-medium text-body-md-medium text-on-surface">{menu.label}</td>
+                          <td className="py-3 px-4 text-center">
+                            <div className="flex items-center justify-center gap-1">
+                              {PERMISSION_ACTIONS.map((perm) => (
+                                <label key={perm} className="flex items-center justify-center cursor-pointer">
+                                  <input
+                                    type="checkbox"
+                                    className="w-4 h-4 text-secondary rounded border-surface-container-high focus:ring-secondary"
+                                    checked={superPerms.includes(perm)}
+                                    onChange={() => togglePerm('Superadmin', menu.key, perm)}
+                                  />
+                                </label>
+                              ))}
+                            </div>
+                          </td>
+                          <td className="py-3 px-4 text-center">
+                            <div className="flex items-center justify-center gap-1">
+                              {PERMISSION_ACTIONS.map((perm) => (
+                                <label key={perm} className="flex items-center justify-center cursor-pointer">
+                                  <input
+                                    type="checkbox"
+                                    className="w-4 h-4 text-secondary rounded border-surface-container-high focus:ring-secondary"
+                                    checked={unitPerms.includes(perm)}
+                                    onChange={() => togglePerm('Admin Unit', menu.key, perm)}
+                                  />
+                                </label>
+                              ))}
+                            </div>
+                          </td>
+                          <td className="py-3 px-4 text-center">
+                            <div className="flex items-center justify-center gap-1">
+                              {PERMISSION_ACTIONS.map((perm) => (
+                                <label key={perm} className="flex items-center justify-center cursor-pointer">
+                                  <input
+                                    type="checkbox"
+                                    className="w-4 h-4 text-secondary rounded border-surface-container-high focus:ring-secondary"
+                                    checked={guruPerms.includes(perm)}
+                                    onChange={() => togglePerm('Guru', menu.key, perm)}
+                                  />
+                                </label>
+                              ))}
+                            </div>
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="mt-6 p-4 bg-surface-container-low rounded-xl">
+                <h4 className="font-body-md-medium text-body-md-medium text-on-surface mb-3">Keterangan Ikon</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  <div className="flex items-center gap-2 text-on-surface-variant font-body-sm text-body-sm">
+                    <span className="w-6 h-6 rounded flex items-center justify-center bg-emerald-100 text-emerald-700">
+                      <span className="material-symbols-outlined text-[14px]">visibility</span>
+                    </span>
+                    <span>Bisa Melihat</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-on-surface-variant font-body-sm text-body-sm">
+                    <span className="w-6 h-6 rounded flex items-center justify-center bg-emerald-100 text-emerald-700">
+                      <span className="material-symbols-outlined text-[14px]">add</span>
+                    </span>
+                    <span>Bisa Menambah</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-on-surface-variant font-body-sm text-body-sm">
+                    <span className="w-6 h-6 rounded flex items-center justify-center bg-emerald-100 text-emerald-700">
+                      <span className="material-symbols-outlined text-[14px]">edit</span>
+                    </span>
+                    <span>Bisa Mengedit</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-on-surface-variant font-body-sm text-body-sm">
+                    <span className="w-6 h-6 rounded flex items-center justify-center bg-emerald-100 text-emerald-700">
+                      <span className="material-symbols-outlined text-[14px]">delete</span>
+                    </span>
+                    <span>Bisa Menghapus</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4 p-4 bg-secondary/5 rounded-xl border border-secondary/20">
+                <p className="font-body-sm text-body-sm text-on-surface">
+                  <span className="font-body-sm-medium text-body-sm-medium">Catatan:</span> Superadmin memiliki akses penuh ke seluruh sistem. Admin Unit hanya mengelola unit sekolahnya masing-masing. Guru/Staf hanya dapat melihat data dan mengajukan izin/cuti.
+                </p>
+              </div>
+            </div>
+
+            <div className="px-space-lg py-space-md bg-surface-container-low flex justify-end gap-space-xs border-t border-surface-container">
+              <button
+                onClick={resetMatrix}
+                className="px-space-md py-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-body-md-medium text-body-md-medium transition-colors cursor-pointer"
+                type="button"
+              >
+                Reset
+              </button>
+              <button
+                onClick={saveMatrix}
+                className="px-space-md py-2 rounded-lg bg-primary-container hover:bg-primary text-on-primary font-body-md-medium text-body-md-medium shadow-sm flex items-center gap-1.5 transition-all cursor-pointer"
+                type="button"
+              >
+                <span className="material-symbols-outlined text-[18px]">check</span>
+                <span>Simpan Perubahan</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showDetail && detailUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm" onClick={closeDetail}>
+          <div className="bg-surface-container-lowest w-full max-w-xl rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
+            <div className="px-space-lg py-space-md bg-surface-container-lowest flex items-center justify-between border-b border-surface-container">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-secondary/10 text-secondary flex items-center justify-center">
+                  <span className="material-symbols-outlined text-[22px]">person</span>
+                </div>
+                <div>
+                  <h3 className="font-headline-sm text-headline-sm text-primary leading-tight">Detail Pengguna</h3>
+                  <p className="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Informasi lengkap akun dan hak akses</p>
+                </div>
+              </div>
+              <button
+                onClick={closeDetail}
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-outline hover:bg-surface-container hover:text-on-surface transition-colors cursor-pointer"
+                type="button"
+              >
+                <span className="material-symbols-outlined text-[20px]">close</span>
+              </button>
+            </div>
+
+            <div className="p-space-lg overflow-y-auto">
+              <div className="flex flex-col items-center text-center mb-6">
+                <div className={`w-20 h-20 rounded-full font-headline-md text-headline-md flex items-center justify-center font-semibold ${detailUser.role === 'Superadmin' ? 'bg-purple-100 text-purple-700' : detailUser.role === 'Admin Unit' ? 'bg-blue-100 text-secondary' : 'bg-slate-100 text-slate-700'}`}>
+                  {detailUser.name.split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase()}
+                </div>
+                <div className="mt-4">
+                  <h4 className="font-headline-sm text-headline-sm text-on-surface">{detailUser.name}</h4>
+                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-label-xs text-label-xs font-medium mt-2 ${detailUser.role === 'Superadmin' ? 'bg-purple-100 text-purple-700' : detailUser.role === 'Admin Unit' ? 'bg-blue-100 text-secondary' : 'bg-slate-100 text-slate-700'}`}>
+                    {detailUser.role}
+                  </span>
+                </div>
+              </div>
+
+              <div className="space-y-4 mb-6">
+                <div className="p-4 bg-surface-container-low rounded-xl">
+                  <h5 className="font-body-md-medium text-body-md-medium text-on-surface mb-3">Informasi Akun</h5>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <span className="font-label-sm text-label-sm text-on-surface-variant block mb-1">Email</span>
+                      <span className="font-body-sm text-body-sm text-on-surface">{detailUser.email}</span>
+                    </div>
+                    <div>
+                      <span className="font-label-sm text-label-sm text-on-surface-variant block mb-1">NIY</span>
+                      <span className="font-body-sm text-body-sm text-on-surface font-mono">{detailUser.niy || '-'}</span>
+                    </div>
+                    <div>
+                      <span className="font-label-sm text-label-sm text-on-surface-variant block mb-1">Unit Penugasan</span>
+                      <span className="font-body-sm text-body-sm text-on-surface">{selectUnitName(state, detailUser.unitId)}</span>
+                    </div>
+                    <div>
+                      <span className="font-label-sm text-label-sm text-on-surface-variant block mb-1">Status</span>
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-label-xs text-label-xs font-medium ${detailUser.status === 'Aktif' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${detailUser.status === 'Aktif' ? 'bg-emerald-600' : 'bg-rose-600'}`}></span>
+                        {detailUser.status}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-surface-container-low rounded-xl">
+                  <h5 className="font-body-md-medium text-body-md-medium text-on-surface mb-3">Hak Akses (Permission Matrix)</h5>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="bg-surface-container-low border-b border-surface-container text-on-surface-variant font-label-sm text-label-sm uppercase tracking-wider">
+                          <th className="py-2 px-3 font-semibold">Menu / Fitur</th>
+                          <th className="py-2 px-3 text-center font-semibold">Izin</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-surface-container font-body-sm text-body-sm">
+                        {MENU_OPTIONS.map((menu) => {
+                          const userPerms = state.permissionMatrix?.[detailUser.role]?.[menu.key] || []
+                          return (
+                            <tr key={menu.key}>
+                              <td className="py-2 px-3 font-body-md-medium text-body-md-medium text-on-surface">{menu.label}</td>
+                              <td className="py-2 px-3 text-center">
+                                <div className="flex items-center justify-center gap-1">
+                                  {PERMISSION_ACTIONS.map((perm) => (
+                                    <span
+                                      key={perm}
+                                      className={`w-6 h-6 rounded flex items-center justify-center font-label-xs ${userPerms.includes(perm) ? 'bg-emerald-100 text-emerald-700' : 'bg-surface-container-high text-on-surface-variant'}`}
+                                    >
+                                      {perm === 'view' && <span className="material-symbols-outlined text-[12px]">visibility</span>}
+                                      {perm === 'add' && <span className="material-symbols-outlined text-[12px]">add</span>}
+                                      {perm === 'edit' && <span className="material-symbols-outlined text-[12px]">edit</span>}
+                                      {perm === 'delete' && <span className="material-symbols-outlined text-[12px]">delete</span>}
+                                    </span>
+                                  ))}
+                                </div>
+                              </td>
+                            </tr>
+                          )
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end pt-4 border-t border-surface-container">
+                <button
+                  onClick={closeDetail}
+                  className="px-space-md py-2 rounded-lg bg-primary-container hover:bg-primary text-on-primary font-body-md-medium text-body-md-medium shadow-sm flex items-center gap-1.5 transition-all cursor-pointer"
+                  type="button"
+                >
+                  <span className="material-symbols-outlined text-[18px]">check</span>
+                  <span>Tutup</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )
