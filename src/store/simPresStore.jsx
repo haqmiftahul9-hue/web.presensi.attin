@@ -134,6 +134,18 @@ function simPresReducer(state, action) {
               }
             : s,
         ),
+        logs: [
+          {
+            id: Date.now(),
+            time: new Date().toLocaleString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+            actor: 'Sistem Presensi',
+            role: 'Sistem',
+            action: 'Presensi',
+            target: `Pegawai • ${state.staff.find(s => s.id === action.payload.id)?.name || 'N/A'}`,
+            desc: `Presensi ${action.payload.method || 'manual'} ${action.payload.masuk ? `pukul ${action.payload.masuk} WIB` : ''}${action.payload.late ? ` (terlambat ${action.payload.late} menit)` : ''}`,
+          },
+          ...state.logs,
+        ],
       }
     case 'ADD_ATTENDANCE':
       // Presensi baru = pegawai baru pada sumber data staff.
@@ -155,9 +167,22 @@ function simPresReducer(state, action) {
             ...(action.payload.outsideRadius ? { outsideRadius: true } : {}),
           },
         ],
+        logs: [
+          {
+            id: Date.now(),
+            time: new Date().toLocaleString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+            actor: 'Sistem Presensi',
+            role: 'Sistem',
+            action: 'Presensi',
+            target: `Pegawai • ${action.payload.name}`,
+            desc: `Presensi ${action.payload.method || 'manual'} ${action.payload.masuk ? `pukul ${action.payload.masuk} WIB` : ''}${action.payload.late ? ` (terlambat ${action.payload.late} menit)` : ''}`,
+          },
+          ...state.logs,
+        ],
       }
     case 'CHECK_IN':
       // Cukup tulis ke staff; attendance ter-derive otomatis (satu sumber data).
+      const staffForLog = state.staff.find(s => s.id === action.payload.id)
       return {
         ...state,
         staff: state.staff.map((s) =>
@@ -165,6 +190,18 @@ function simPresReducer(state, action) {
             ? { ...s, masuk: action.payload.masuk, method: action.payload.method, late: action.payload.late ?? 0, status: 'Aktif' }
             : s,
         ),
+        logs: [
+          {
+            id: Date.now(),
+            time: new Date().toLocaleString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+            actor: staffForLog?.name || 'Pegawai',
+            role: staffForLog?.role || 'Guru',
+            action: 'Presensi',
+            target: `Pegawai • ${staffForLog?.name || 'N/A'}`,
+            desc: `Presensi ${action.payload.method || 'Face Recognition'} pukul ${action.payload.masuk} WIB${action.payload.late ? ` (terlambat ${action.payload.late} menit)` : ''} di ${state.units.find(u => u.id === staffForLog?.unitId)?.nama || 'Unit'}`,
+          },
+          ...state.logs,
+        ],
       }
     case 'ADD_LOG':
       return { ...state, logs: [action.payload, ...state.logs] }
@@ -624,7 +661,59 @@ export function selectMonitoringActivity(state) {
         : unit?.id === 'sma' ? 'bg-indigo-100 text-indigo-800'
           : unit?.id === 'tk' ? 'bg-indigo-100 text-indigo-800'
             : 'bg-purple-100 text-purple-800'
-    const isTerlambat = s.late > 0
+
+    // Hitung keterlambatan berdasarkan jam masuk unit vs waktu presensi aktual
+    let lateMinutes = 0
+    let status = 'Belum Presensi'
+    let statusColor = 'bg-surface-container text-on-surface-variant'
+
+    if (s.masuk && unit) {
+      const unitEntry = unit.masuk // format "07:00" atau "06:45"
+      const [unitHour, unitMin] = unitEntry.split(':').map(Number)
+      const unitEntryMinutes = unitHour * 60 + unitMin
+
+      const [attHour, attMin] = s.masuk.split(':').map(Number)
+      const attMinutes = attHour * 60 + attMin
+
+      lateMinutes = Math.max(0, attMinutes - unitEntryMinutes)
+
+      if (lateMinutes > 0) {
+        status = `Terlambat (${lateMinutes} mnt)`
+        statusColor = 'bg-amber-100 text-amber-800'
+      } else {
+        status = idx === 0 ? 'Baru Masuk' : 'Tepat Waktu'
+        statusColor = 'bg-emerald-100 text-emerald-800'
+      }
+    }
+
+    // Metode presensi
+    let methodIcon = 'help_outline'
+    let methodLabel = '-'
+    if (s.method) {
+      if (s.method.includes('Face')) {
+        methodIcon = 'face'
+        methodLabel = 'Face Recognition'
+      } else if (s.method.includes('QR')) {
+        methodIcon = 'qr_code_scanner'
+        methodLabel = 'QR Code'
+      } else if (s.method.includes('Mobile') || s.method.includes('GPS')) {
+        methodIcon = 'gps_fixed'
+        methodLabel = 'Mobile GPS'
+      } else {
+        methodIcon = 'help_outline'
+        methodLabel = s.method
+      }
+    }
+
+    // Geofence
+    const isOutsideRadius = s.outsideRadius === true
+    const distance = 20 + (s.id % 30) // simulasi jarak
+    const geofenceLabel = isOutsideRadius
+      ? `Di Luar Radius (${distance}m)`
+      : `Dalam Radius (${distance}m)`
+    const geofenceColor = isOutsideRadius ? 'text-red-600' : 'text-emerald-600'
+    const geofenceIcon = isOutsideRadius ? 'gps_off' : 'gps_fixed'
+
     return {
       id: s.id,
       initials: initialsOf(s.name),
@@ -632,14 +721,16 @@ export function selectMonitoringActivity(state) {
       niy: s.niy,
       unit: unit ? unit.nama : '-',
       unitColor,
-      status: isTerlambat ? `Terlambat (${s.late} mnt)` : (idx === 0 ? 'Baru Masuk' : 'Tepat Waktu'),
-      statusColor: isTerlambat ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800',
-      method: { icon: s.method?.includes('Face') ? 'face' : 'qr_code_scanner', label: s.method ? `${s.method} Presensi` : 'Face Recognition' },
-      location: { icon: 'near_me', label: `Dalam Geofence (${20 + (s.id % 30)}m)`, color: 'text-on-surface-variant' },
+      status,
+      statusColor,
+      method: { icon: methodIcon, label: methodLabel },
+      location: { icon: geofenceIcon, label: geofenceLabel, color: geofenceColor },
       time: s.masuk ? `${s.masuk} WIB` : '-',
       timeAgo: `${idx * 4 + 12} detik lalu`,
       highlight: idx === 0,
-      rowBg: isTerlambat ? 'bg-amber-50/30' : '',
+      rowBg: lateMinutes > 0 ? 'bg-amber-50/30' : '',
+      outsideRadius: isOutsideRadius,
+      lateMinutes,
     }
   })
 }
