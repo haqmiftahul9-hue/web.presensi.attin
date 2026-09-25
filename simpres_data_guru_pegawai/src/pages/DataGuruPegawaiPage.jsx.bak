@@ -1,4 +1,4 @@
-﻿import { useState } from 'react'
+import { useState } from 'react'
 import BreadcrumbHeader from '../components/BreadcrumbHeader.jsx'
 import ActionToolbar from '../components/ActionToolbar.jsx'
 import StaffTable from '../components/StaffTable.jsx'
@@ -10,7 +10,6 @@ function DataGuruPegawaiPage() {
   const [unitFilter, setUnitFilter] = useState('all')
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
-  const [currentPage, setCurrentPage] = useState(1)
 
   const handleResetFilters = () => {
     setUnitFilter('all')
@@ -19,7 +18,7 @@ function DataGuruPegawaiPage() {
   }
 
   return (
-    <div className="px-space-xl py-space-lg flex flex-col gap-space-lg w-full overflow-x-auto">
+    <div className="px-space-xl py-space-lg flex flex-col gap-space-lg max-w-[1600px] mx-auto w-full">
       <BreadcrumbHeader />
       <ActionToolbar 
         onImport={() => setShowImport(true)}
@@ -30,14 +29,11 @@ function DataGuruPegawaiPage() {
         statusFilter={statusFilter}
         setStatusFilter={setStatusFilter}
         onResetFilters={handleResetFilters}
-        setCurrentPageReset={setCurrentPage}
       />
       <StaffTable 
         unitFilter={unitFilter}
         searchTerm={searchTerm}
         statusFilter={statusFilter}
-        currentPage={currentPage}
-        setCurrentPage={setCurrentPage}
       />
       <UnitCards />
       <ImportModal show={showImport} onClose={() => setShowImport(false)} />

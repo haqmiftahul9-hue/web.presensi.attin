@@ -4,6 +4,7 @@ function BreadcrumbHeader() {
   const { state } = useSimPres()
   const total = state.staff.length
   const aktif = state.staff.filter((s) => s.status === 'Aktif').length
+  const inaktif = total - aktif
 
   return (
     <div className="flex flex-col md:flex-row md:items-center justify-between gap-space-sm">
@@ -42,6 +43,15 @@ function BreadcrumbHeader() {
           <div className="flex flex-col">
             <span className="font-label-sm text-label-sm text-on-surface-variant uppercase">Status Aktif</span>
             <span className="font-headline-sm text-headline-sm text-emerald-600 leading-none">{aktif} Staf</span>
+          </div>
+        </div>
+        <div className="px-space-md py-space-xs rounded-lg bg-surface-container-lowest shadow-sm flex items-center gap-space-sm">
+          <div className="w-8 h-8 rounded-full bg-rose-50 flex items-center justify-center text-on-surface-variant">
+            <span className="material-symbols-outlined text-[18px]">cancel</span>
+          </div>
+          <div className="flex flex-col">
+            <span className="font-label-sm text-label-sm text-on-surface-variant uppercase">Status Nonaktif</span>
+            <span className="font-headline-sm text-headline-sm text-rose-600 leading-none">{inaktif} Staf</span>
           </div>
         </div>
       </div>

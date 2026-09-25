@@ -113,9 +113,9 @@ function StaffTable() {
           <span className="text-surface-variant">•</span>
           <div className="flex items-center gap-1">
             <span>Baris per halaman:</span>
-            <select className="h-7 px-2 bg-surface-container-low text-on-surface font-body-sm text-body-sm rounded focus:outline-none cursor-pointer">
+            <select className="h-7 px-2 bg-surface-container-low text-on-surface font-body-sm text-body-sm rounded focus:outline-none cursor-pointer" defaultValue="20">
               <option>10</option>
-              <option selected>20</option>
+              <option>20</option>
               <option>50</option>
               <option>Semua</option>
             </select>

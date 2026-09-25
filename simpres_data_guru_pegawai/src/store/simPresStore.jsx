@@ -41,6 +41,8 @@ function simPresReducer(state, action) {
       }
     case 'ADD_STAFF':
       return { ...state, staff: [...state.staff, action.payload] }
+    case 'DELETE_STAFF':
+      return { ...state, staff: state.staff.filter((s) => s.id !== action.payload) }
     case 'UPDATE_UNIT':
       return {
         ...state,

@@ -90,7 +90,18 @@ function simPresReducer(state, action) {
         ...state,
         staff: [...state.staff, action.payload],
         adminUsers: syncAdminUserFromStaff(state.adminUsers, action.payload, 'add'),
-      }
+      };
+    case 'DELETE_STAFF':
+      const staffId = action.payload;
+      const staffToDelete = state.staff.find((s) => s.id === staffId);
+      const niyToDelete = staffToDelete?.niy;
+      return {
+        ...state,
+        staff: state.staff.filter((s) => s.id !== staffId),
+        adminUsers: niyToDelete 
+          ? state.adminUsers.filter((u) => u.niy !== niyToDelete)
+          : state.adminUsers,
+      };
     case 'UPDATE_UNIT':
       return {
         ...state,
