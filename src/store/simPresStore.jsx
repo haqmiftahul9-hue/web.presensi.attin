@@ -52,6 +52,80 @@ export const PERMISSION_MATRIX = {
 
 const initialStaff = buildFullStaff()
 
+function buildInitialAttendanceHistory(staff, trend30) {
+  const history = []
+  const activeStaff = staff.filter(s => s.status === 'Aktif')
+  
+  // Use last 30 days of trend data to generate per-staff history
+  trend30.forEach((day, dayIndex) => {
+    const date = new Date()
+    date.setDate(date.getDate() - (29 - dayIndex))
+    const dateStr = date.toISOString().split('T')[0]
+    
+    const hadirTarget = day.hadir
+    const terlambatTarget = day.terlambat
+    
+    // Shuffle staff for this day
+    const shuffled = [...activeStaff].sort(() => Math.random() - 0.5)
+    let hadirCount = 0
+    let terlambatCount = 0
+    
+    shuffled.forEach((staffMember, idx) => {
+      if (hadirCount >= hadirTarget) return
+      
+      const isHadir = true
+      hadirCount++
+      
+      // Determine if late based on target
+      const isLate = terlambatCount < terlambatTarget && Math.random() < 0.3
+      if (isLate) terlambatCount++
+      
+      const unit = UNITS.find(u => u.id === staffMember.unitId)
+      const unitEntryHour = unit ? parseInt(unit.masuk.split(':')[0]) : 7
+      const unitEntryMin = unit ? parseInt(unit.masuk.split(':')[1]) : 0
+      const unitEntryMinutes = unitEntryHour * 60 + unitEntryMin
+      
+      let masukTime = '07:00'
+      let lateMinutes = 0
+      let method = 'Face Recognition'
+      
+      if (isLate) {
+        lateMinutes = 5 + Math.floor(Math.random() * 25)
+        const arrivalMinutes = unitEntryMinutes + lateMinutes
+        const arrivalHour = Math.floor(arrivalMinutes / 60)
+        const arrivalMin = arrivalMinutes % 60
+        masukTime = `${String(arrivalHour).padStart(2, '0')}:${String(arrivalMin).padStart(2, '0')}`
+      } else {
+        const earlyMinutes = Math.floor(Math.random() * 20)
+        const arrivalMinutes = unitEntryMinutes - earlyMinutes
+        const arrivalHour = Math.floor(arrivalMinutes / 60)
+        const arrivalMin = arrivalMinutes % 60
+        masukTime = `${String(arrivalHour).padStart(2, '0')}:${String(arrivalMin).padStart(2, '0')}`
+      }
+      
+      if (Math.random() < 0.4) method = 'QR Code'
+      
+      history.push({
+        id: Date.now() + dayIndex * 10000 + idx,
+        date: dateStr,
+        staffId: staffMember.id,
+        name: staffMember.name,
+        niy: staffMember.niy,
+        role: staffMember.role,
+        unitId: staffMember.unitId,
+        masuk: masukTime,
+        method,
+        late: lateMinutes,
+        status: lateMinutes > 0 ? 'Terlambat' : 'Tepat Waktu',
+      })
+    })
+  })
+  
+  return history
+}
+
+const initialAttendanceHistory = buildInitialAttendanceHistory(initialStaff, TREND_30)
+
 const initialState = {
   staff: initialStaff,
   units: UNITS,
@@ -64,6 +138,7 @@ const initialState = {
   holidays: HOLIDAYS,
   permissionMatrix: PERMISSION_MATRIX,
   currentUser: ADMIN_USERS[0],
+  attendanceHistory: initialAttendanceHistory,
 }
 
 function simPresReducer(state, action) {
@@ -122,6 +197,20 @@ function simPresReducer(state, action) {
       }
     case 'UPDATE_ATTENDANCE':
       // Tulis-langsung ke sumber data (staff); attendance adalah turunan.
+      const staffForUpdate = state.staff.find(s => s.id === action.payload.id)
+      const historyEntryUpdate = staffForUpdate ? {
+        id: Date.now(),
+        date: new Date().toISOString().split('T')[0],
+        staffId: action.payload.id,
+        name: staffForUpdate.name,
+        niy: staffForUpdate.niy,
+        role: staffForUpdate.role,
+        unitId: staffForUpdate.unitId,
+        masuk: action.payload.masuk ?? staffForUpdate.masuk,
+        method: action.payload.method ?? staffForUpdate.method,
+        late: action.payload.late ?? staffForUpdate.late ?? 0,
+        status: action.payload.masuk ? (action.payload.late > 0 ? 'Terlambat' : 'Tepat Waktu') : 'Belum Presensi',
+      } : null
       return {
         ...state,
         staff: state.staff.map((s) =>
@@ -146,9 +235,23 @@ function simPresReducer(state, action) {
           },
           ...state.logs,
         ],
+        attendanceHistory: historyEntryUpdate ? [historyEntryUpdate, ...state.attendanceHistory] : state.attendanceHistory,
       }
     case 'ADD_ATTENDANCE':
       // Presensi baru = pegawai baru pada sumber data staff.
+      const historyEntryAdd = {
+        id: Date.now(),
+        date: new Date().toISOString().split('T')[0],
+        staffId: action.payload.staffId ?? action.payload.id,
+        name: action.payload.name,
+        niy: action.payload.niy,
+        role: action.payload.role,
+        unitId: action.payload.unitId,
+        masuk: action.payload.masuk ?? null,
+        method: action.payload.method ?? null,
+        late: action.payload.late ?? 0,
+        status: action.payload.masuk ? (action.payload.late > 0 ? 'Terlambat' : 'Tepat Waktu') : 'Belum Presensi',
+      }
       return {
         ...state,
         staff: [
@@ -179,10 +282,24 @@ function simPresReducer(state, action) {
           },
           ...state.logs,
         ],
+        attendanceHistory: [historyEntryAdd, ...state.attendanceHistory],
       }
     case 'CHECK_IN':
       // Cukup tulis ke staff; attendance ter-derive otomatis (satu sumber data).
       const staffForLog = state.staff.find(s => s.id === action.payload.id)
+      const historyEntryCheckIn = staffForLog ? {
+        id: Date.now(),
+        date: new Date().toISOString().split('T')[0],
+        staffId: action.payload.id,
+        name: staffForLog.name,
+        niy: staffForLog.niy,
+        role: staffForLog.role,
+        unitId: staffForLog.unitId,
+        masuk: action.payload.masuk,
+        method: action.payload.method,
+        late: action.payload.late ?? 0,
+        status: action.payload.late > 0 ? 'Terlambat' : 'Tepat Waktu',
+      } : null
       return {
         ...state,
         staff: state.staff.map((s) =>
@@ -202,6 +319,7 @@ function simPresReducer(state, action) {
           },
           ...state.logs,
         ],
+        attendanceHistory: historyEntryCheckIn ? [historyEntryCheckIn, ...state.attendanceHistory] : state.attendanceHistory,
       }
     case 'ADD_LOG':
       return { ...state, logs: [action.payload, ...state.logs] }
@@ -774,57 +892,361 @@ export function selectRekapKepatuhanChart(state, unitId = null, period = 'Bulana
 
 export function selectRankingData(state) {
   const active = selectActiveStaff(state)
-  const sortedByLate = [...active].sort((a, b) => a.late - b.late)
-  const topOnTime = sortedByLate.slice(0, 10).map((s, idx) => ({
-    rank: idx + 1,
-    initials: initialsOf(s.name),
-    name: s.name,
-    unit: state.units.find((u) => u.id === s.unitId)?.nama || '-',
-    role: s.role,
-    late: `${idx < 10 ? '0x' : ''} Terlambat`,
-    stat: idx === 0 ? '100% Kehadiran' : `Rata-rata tiba ${s.masuk || '07:00'} WIB`,
-    statSub: idx === 0 ? '22 Hari' : '',
-    badgeColor: 'bg-secondary-fixed',
-    badgeText: 'text-on-secondary-fixed',
-  }))
-  const topLate = [...active].filter((s) => s.late > 0).sort((a, b) => b.late - a.late).slice(0, 10).map((s, idx) => ({
-    rank: idx + 1,
-    initials: initialsOf(s.name),
-    name: s.name,
-    unit: state.units.find((u) => u.id === s.unitId)?.nama || '-',
-    role: s.role,
-    count: `${s.late} kali terlambat`,
-    avg: `Rata-rata ${s.late} menit`,
-    totalMin: `${s.late * 18} mnt`,
-    badge: idx === 0 ? 'Teguran' : `${s.late}x`,
-    badgeBg: idx === 0 ? 'bg-secondary-fixed' : 'bg-surface-container-high',
-    badgeText: idx === 0 ? 'text-secondary' : 'text-error',
-  }))
-  const insentif = sortedByLate.slice(0, 7).map((s) => ({
-    initials: initialsOf(s.name),
-    name: s.name,
-    unit: state.units.find((u) => u.id === s.unitId)?.nama || '-',
-    desc: `${s.late === 0 ? '0x' : s.late + 'x'} Terlambat • ${s.late === 0 ? '100%' : (90 - s.late)}% Kehadiran`,
-  }))
-  const unitLateAvg = state.units.map((u) => {
-    const staffInUnit = active.filter((s) => s.unitId === u.id)
-    const avg = staffInUnit.length > 0
-      ? (staffInUnit.reduce((sum, s) => sum + s.late, 0) / staffInUnit.length).toFixed(1)
-      : '0.0'
-    return {
-      unit: u.nama,
-      avg: `${avg} Mnt`,
-      pct: avg > 8 ? 80 : Math.min(98, 70 + Math.round(avg * 3)),
+  const history = state.attendanceHistory || []
+  
+  // Build staff attendance stats from history
+  const staffStats = new Map()
+  
+  active.forEach(staff => {
+    staffStats.set(staff.id, {
+      id: staff.id,
+      name: staff.name,
+      niy: staff.niy,
+      role: staff.role,
+      unitId: staff.unitId,
+      unit: state.units.find(u => u.id === staff.unitId)?.nama || '-',
+      initials: initialsOf(staff.name),
+      totalDays: 0,
+      hadirCount: 0,
+      tepatWaktuCount: 0,
+      terlambatCount: 0,
+      totalLateMinutes: 0,
+      lateMinutesList: [],
+    })
+  })
+  
+  // Aggregate from history
+  history.forEach(record => {
+    const stats = staffStats.get(record.staffId)
+    if (!stats) return
+    
+    stats.totalDays++
+    if (record.masuk) {
+      stats.hadirCount++
+      if (record.late > 0) {
+        stats.terlambatCount++
+        stats.totalLateMinutes += record.late
+        stats.lateMinutesList.push(record.late)
+      } else {
+        stats.tepatWaktuCount++
+      }
     }
   })
-  const pembinaan = active.filter((s) => s.late > 5).slice(0, 2).map((s) => ({
-    initials: initialsOf(s.name),
-    name: s.name,
-    unit: state.units.find((u) => u.id === s.unitId)?.nama || '-',
-    action: 'Disiplin 5 Hari',
-    icon: 'assignment',
+  
+  // Calculate derived stats
+  const staffWithStats = Array.from(staffStats.values()).map(s => ({
+    ...s,
+    persentaseKehadiran: s.totalDays > 0 ? ((s.hadirCount / s.totalDays) * 100).toFixed(1) : '0.0',
+    rataRataTerlambat: s.terlambatCount > 0 ? (s.totalLateMinutes / s.terlambatCount).toFixed(1) : '0.0',
   }))
-  return { topOnTime, topLate, insentif, toleransi: unitLateAvg, pembinaan }
+  
+  // Top 10 Paling Tepat Waktu
+  // Urutkan: jumlah hadir tepat waktu (desc), persentase kehadiran (desc), jumlah keterlambatan (asc)
+  const topOnTime = [...staffWithStats]
+    .filter(s => s.hadirCount > 0)
+    .sort((a, b) => {
+      if (b.tepatWaktuCount !== a.tepatWaktuCount) return b.tepatWaktuCount - a.tepatWaktuCount
+      if (parseFloat(b.persentaseKehadiran) !== parseFloat(a.persentaseKehadiran)) 
+        return parseFloat(b.persentaseKehadiran) - parseFloat(a.persentaseKehadiran)
+      return a.terlambatCount - b.terlambatCount
+    })
+    .slice(0, 10)
+    .map((s, idx) => ({
+      rank: idx + 1,
+      initials: s.initials,
+      name: s.name,
+      niy: s.niy,
+      unit: s.unit,
+      role: s.role,
+      persentaseKehadiran: s.persentaseKehadiran,
+      tepatWaktuCount: s.tepatWaktuCount,
+      terlambatCount: s.terlambatCount,
+      late: `${s.terlambatCount}x Terlambat`,
+      stat: `${s.persentaseKehadiran}% Kehadiran`,
+      statSub: `${s.tepatWaktuCount}/${s.hadirCount} Tepat Waktu`,
+      badgeColor: 'bg-secondary-fixed',
+      badgeText: 'text-on-secondary-fixed',
+    }))
+  
+  // Top 10 Paling Sering Terlambat
+  // Urutkan: jumlah keterlambatan tertinggi (desc), total menit keterlambatan (desc)
+  const topLate = [...staffWithStats]
+    .filter(s => s.terlambatCount > 0)
+    .sort((a, b) => {
+      if (b.terlambatCount !== a.terlambatCount) return b.terlambatCount - a.terlambatCount
+      return b.totalLateMinutes - a.totalLateMinutes
+    })
+    .slice(0, 10)
+    .map((s, idx) => ({
+      rank: idx + 1,
+      initials: s.initials,
+      name: s.name,
+      niy: s.niy,
+      unit: s.unit,
+      role: s.role,
+      persentaseKehadiran: s.persentaseKehadiran,
+      terlambatCount: s.terlambatCount,
+      totalLateMinutes: s.totalLateMinutes,
+      rataRataTerlambat: s.rataRataTerlambat,
+      count: `${s.terlambatCount} kali terlambat`,
+      avg: `Rata-rata ${s.rataRataTerlambat} menit`,
+      totalMin: `${s.totalLateMinutes} menit`,
+      badge: idx === 0 ? 'Teguran' : 'Detail',
+      badgeBg: idx === 0 ? 'bg-error-container' : 'bg-surface-container-low',
+      badgeText: idx === 0 ? 'text-error' : 'text-on-surface-variant',
+    }))
+  
+  // Insentif Disiplin (top 7 paling tepat waktu)
+  const insentif = [...staffWithStats]
+    .filter(s => s.hadirCount > 0)
+    .sort((a, b) => {
+      if (b.tepatWaktuCount !== a.tepatWaktuCount) return b.tepatWaktuCount - a.tepatWaktuCount
+      if (parseFloat(b.persentaseKehadiran) !== parseFloat(a.persentaseKehadiran)) 
+        return parseFloat(b.persentaseKehadiran) - parseFloat(a.persentaseKehadiran)
+      return a.terlambatCount - b.terlambatCount
+    })
+    .slice(0, 7)
+    .map(s => ({
+      initials: s.initials,
+      name: s.name,
+      unit: s.unit,
+      desc: `${s.terlambatCount}x Terlambat • ${s.persentaseKehadiran}% Kehadiran`,
+    }))
+  
+  // Toleransi per unit
+  const unitLateAvg = state.units.map(u => {
+    const staffInUnit = staffWithStats.filter(s => s.unitId === u.id)
+    const totalLate = staffInUnit.reduce((sum, s) => sum + s.terlambatCount, 0)
+    const totalStaff = staffInUnit.length
+    const avgLateCount = totalStaff > 0 ? (totalLate / totalStaff).toFixed(1) : '0.0'
+    const avgLateMinutes = staffInUnit.length > 0 
+      ? (staffInUnit.reduce((sum, s) => sum + s.totalLateMinutes, 0) / staffInUnit.length).toFixed(1)
+      : '0.0'
+    const pct = parseFloat(avgLateCount) > 5 ? 75 : Math.min(98, 85 + Math.round(parseFloat(avgLateCount) * 2))
+    return {
+      unit: u.nama,
+      avg: `${avgLateMinutes} Mnt`,
+      pct,
+    }
+  })
+  
+  // Pembinaan (staff dengan terlambat >= 5 kali)
+  const pembinaan = staffWithStats
+    .filter(s => s.terlambatCount >= 5)
+    .sort((a, b) => b.terlambatCount - a.terlambatCount)
+    .slice(0, 2)
+    .map(s => ({
+      initials: s.initials,
+      name: s.name,
+      unit: s.unit,
+      action: 'Surat Pembinaan',
+      icon: 'assignment',
+    }))
+  
+  // Check if there's any attendance data in the filtered range
+  const hasAttendanceData = filteredHistory.length > 0
+  const totalStaffWithAttendance = staffWithStats.filter(s => s.totalDays > 0).length
+  
+  return { topOnTime, topLate, insentif, toleransi: unitLateAvg, pembinaan, hasAttendanceData, totalStaffWithAttendance }
+}
+
+export function selectRankingDataFiltered(state, { period = 'Bulanan', unitId = 'all', dateRange = null } = {}) {
+  const active = selectActiveStaff(state)
+  const history = state.attendanceHistory || []
+  
+  // Filter history by period and date range
+  let filteredHistory = history
+  
+  if (dateRange) {
+    const { start, end } = dateRange
+    filteredHistory = history.filter(record => record.date >= start && record.date <= end)
+  } else if (period !== 'Semua') {
+    // Calculate date range based on period
+    const today = new Date()
+    let startDate = new Date()
+    
+    switch (period) {
+      case 'Harian':
+        startDate = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+        break
+      case 'Mingguan':
+        const dayOfWeek = today.getDay()
+        startDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() - dayOfWeek)
+        break
+      case 'Bulanan':
+        startDate = new Date(today.getFullYear(), today.getMonth(), 1)
+        break
+      case 'Tahunan':
+        startDate = new Date(today.getFullYear(), 0, 1)
+        break
+    }
+    
+    const startStr = startDate.toISOString().split('T')[0]
+    const endStr = today.toISOString().split('T')[0]
+    filteredHistory = history.filter(record => record.date >= startStr && record.date <= endStr)
+  }
+  
+  // Filter by unit
+  let targetStaffIds = active.map(s => s.id)
+  if (unitId !== 'all') {
+    targetStaffIds = active.filter(s => s.unitId === unitId).map(s => s.id)
+  }
+  
+  // Build staff attendance stats from filtered history
+  const staffStats = new Map()
+  
+  active.forEach(staff => {
+    if (!targetStaffIds.includes(staff.id)) return
+    staffStats.set(staff.id, {
+      id: staff.id,
+      name: staff.name,
+      niy: staff.niy,
+      role: staff.role,
+      unitId: staff.unitId,
+      unit: state.units.find(u => u.id === staff.unitId)?.nama || '-',
+      initials: initialsOf(staff.name),
+      totalDays: 0,
+      hadirCount: 0,
+      tepatWaktuCount: 0,
+      terlambatCount: 0,
+      totalLateMinutes: 0,
+      lateMinutesList: [],
+    })
+  })
+  
+  // Aggregate from filtered history
+  filteredHistory.forEach(record => {
+    const stats = staffStats.get(record.staffId)
+    if (!stats) return
+    
+    stats.totalDays++
+    if (record.masuk) {
+      stats.hadirCount++
+      if (record.late > 0) {
+        stats.terlambatCount++
+        stats.totalLateMinutes += record.late
+        stats.lateMinutesList.push(record.late)
+      } else {
+        stats.tepatWaktuCount++
+      }
+    }
+  })
+  
+  // Calculate derived stats
+  const staffWithStats = Array.from(staffStats.values()).map(s => ({
+    ...s,
+    persentaseKehadiran: s.totalDays > 0 ? ((s.hadirCount / s.totalDays) * 100).toFixed(1) : '0.0',
+    rataRataTerlambat: s.terlambatCount > 0 ? (s.totalLateMinutes / s.terlambatCount).toFixed(1) : '0.0',
+  }))
+  
+  // Top 10 Paling Tepat Waktu
+  const topOnTime = [...staffWithStats]
+    .filter(s => s.hadirCount > 0)
+    .sort((a, b) => {
+      if (b.tepatWaktuCount !== a.tepatWaktuCount) return b.tepatWaktuCount - a.tepatWaktuCount
+      if (parseFloat(b.persentaseKehadiran) !== parseFloat(a.persentaseKehadiran)) 
+        return parseFloat(b.persentaseKehadiran) - parseFloat(a.persentaseKehadiran)
+      return a.terlambatCount - b.terlambatCount
+    })
+    .slice(0, 10)
+    .map((s, idx) => ({
+      rank: idx + 1,
+      initials: s.initials,
+      name: s.name,
+      niy: s.niy,
+      unit: s.unit,
+      role: s.role,
+      persentaseKehadiran: s.persentaseKehadiran,
+      tepatWaktuCount: s.tepatWaktuCount,
+      terlambatCount: s.terlambatCount,
+      late: `${s.terlambatCount}x Terlambat`,
+      stat: `${s.persentaseKehadiran}% Kehadiran`,
+      statSub: `${s.tepatWaktuCount}/${s.hadirCount} Tepat Waktu`,
+      badgeColor: 'bg-secondary-fixed',
+      badgeText: 'text-on-secondary-fixed',
+    }))
+  
+  // Top 10 Paling Sering Terlambat
+  const topLate = [...staffWithStats]
+    .filter(s => s.terlambatCount > 0)
+    .sort((a, b) => {
+      if (b.terlambatCount !== a.terlambatCount) return b.terlambatCount - a.terlambatCount
+      return b.totalLateMinutes - a.totalLateMinutes
+    })
+    .slice(0, 10)
+    .map((s, idx) => ({
+      rank: idx + 1,
+      initials: s.initials,
+      name: s.name,
+      niy: s.niy,
+      unit: s.unit,
+      role: s.role,
+      persentaseKehadiran: s.persentaseKehadiran,
+      terlambatCount: s.terlambatCount,
+      totalLateMinutes: s.totalLateMinutes,
+      rataRataTerlambat: s.rataRataTerlambat,
+      count: `${s.terlambatCount} kali terlambat`,
+      avg: `Rata-rata ${s.rataRataTerlambat} menit`,
+      totalMin: `${s.totalLateMinutes} menit`,
+      badge: idx === 0 ? 'Teguran' : 'Detail',
+      badgeBg: idx === 0 ? 'bg-error-container' : 'bg-surface-container-low',
+      badgeText: idx === 0 ? 'text-error' : 'text-on-surface-variant',
+    }))
+  
+  // Insentif Disiplin
+  const insentif = [...staffWithStats]
+    .filter(s => s.hadirCount > 0)
+    .sort((a, b) => {
+      if (b.tepatWaktuCount !== a.tepatWaktuCount) return b.tepatWaktuCount - a.tepatWaktuCount
+      if (parseFloat(b.persentaseKehadiran) !== parseFloat(a.persentaseKehadiran)) 
+        return parseFloat(b.persentaseKehadiran) - parseFloat(a.persentaseKehadiran)
+      return a.terlambatCount - b.terlambatCount
+    })
+    .slice(0, 7)
+    .map(s => ({
+      initials: s.initials,
+      name: s.name,
+      unit: s.unit,
+      desc: `${s.terlambatCount}x Terlambat • ${s.persentaseKehadiran}% Kehadiran`,
+    }))
+  
+  // Toleransi per unit
+  const unitLateAvg = state.units.map(u => {
+    if (unitId !== 'all' && u.id !== unitId) return null
+    const staffInUnit = staffWithStats.filter(s => s.unitId === u.id)
+    const totalLate = staffInUnit.reduce((sum, s) => sum + s.terlambatCount, 0)
+    const totalStaff = staffInUnit.length
+    const avgLateCount = totalStaff > 0 ? (totalLate / totalStaff).toFixed(1) : '0.0'
+    const avgLateMinutes = staffInUnit.length > 0 
+      ? (staffInUnit.reduce((sum, s) => sum + s.totalLateMinutes, 0) / staffInUnit.length).toFixed(1)
+      : '0.0'
+    const pct = parseFloat(avgLateCount) > 5 ? 75 : Math.min(98, 85 + Math.round(parseFloat(avgLateCount) * 2))
+    return {
+      unit: u.nama,
+      avg: `${avgLateMinutes} Mnt`,
+      pct,
+    }
+  }).filter(Boolean)
+  
+  // Pembinaan
+  const pembinaan = staffWithStats
+    .filter(s => s.terlambatCount >= 5)
+    .sort((a, b) => b.terlambatCount - a.terlambatCount)
+    .slice(0, 2)
+    .map(s => ({
+      initials: s.initials,
+      name: s.name,
+      unit: s.unit,
+      action: 'Surat Pembinaan',
+      icon: 'assignment',
+    }))
+  
+  // Check if there's any attendance data in the filtered range
+  const hasAttendanceData = filteredHistory.length > 0
+  const totalStaffWithAttendance = staffWithStats.filter(s => s.totalDays > 0).length
+  const totalFilteredStaff = targetStaffIds.length
+  
+  return { topOnTime, topLate, insentif, toleransi: unitLateAvg, pembinaan, hasAttendanceData, totalStaffWithAttendance, totalFilteredStaff }
 }
 
 export function selectMonitoringActivity(state) {
