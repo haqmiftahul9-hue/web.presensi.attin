@@ -436,8 +436,7 @@ function MonitoringPresensiPage() {
                 <span className="font-body-sm-medium text-body-sm-medium text-gray-900">Toleransi Batas Jam Presensi</span>
                 <p className="font-body-sm text-body-sm text-gray-500 mt-1 leading-relaxed">
                   <strong className="text-gray-900">TK & SD:</strong> 07:15 WIB<br />
-                  <strong className="text-gray-900">SMP & SMA:</strong> 07:00 WIB<br />
-                  <strong className="text-gray-900">Sekretariat:</strong> 07:30 WIB
+                  <strong className="text-gray-900">SMP & SMA:</strong> 07:00 WIB
                 </p>
                 <span className="font-label-sm text-label-sm text-gray-400 mt-2">Log melebihi batas jam otomatis diberi status dispensasi/terlambat.</span>
               </div>

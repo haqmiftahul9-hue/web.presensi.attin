@@ -27,8 +27,8 @@ const avatarStyles = [
 
 const periods = ['Harian', 'Mingguan', 'Bulanan', 'Tahunan']
 const periodLabels = { Harian: 'Hari Ini', Mingguan: 'Minggu Ini', Bulanan: 'Bulan Ini', Tahunan: 'Tahun Ini' }
-const unitOptions = ['all', 'tk', 'sd', 'smp', 'sma', 'pst']
-const unitLabels = { all: 'Semua Unit', tk: 'TK IT RJ', sd: 'SD Islam RJ', smp: 'SMP Islam RJ', sma: 'SMA Islam RJ', pst: 'Sekretariat Yayasan' }
+const unitOptions = ['all', 'tk', 'sd', 'smp', 'sma']
+const unitLabels = { all: 'Semua Unit', tk: 'TKIT Attin Sumbar', sd: 'SDIT Attin Sumbar', smp: 'SMPIT Attin Sumbar', sma: 'SMAIT Attin Sumbar' }
 
 function getMonthYearLabel(period, customMonth = null, customYear = null) {
   const now = new Date()
@@ -157,11 +157,10 @@ function exportCutiToExcel(data, unitLabel, periodLabel) {
 function getUnitInfo(unitLabel) {
   const unitInfo = {
     'Semua Unit': { nama: 'Yayasan Pendidikan Islam Attin', unit: 'Seluruh Unit Sekolah', alamat: 'Jl. Raya Attin No. 1, Jakarta Selatan', kontak: '(021) 1234-5678 | attin@sch.id' },
-    'TK IT RJ': { nama: 'Yayasan Pendidikan Islam Attin', unit: 'TK Islam Attin RJ', alamat: 'Jl. Raya Attin No. 1, Jakarta Selatan', kontak: '(021) 1234-5678 | attin@sch.id' },
-    'SD Islam RJ': { nama: 'Yayasan Pendidikan Islam Attin', unit: 'SD Islam RJ', alamat: 'Jl. Raya Attin No. 1, Jakarta Selatan', kontak: '(021) 1234-5678 | attin@sch.id' },
-    'SMP Islam RJ': { nama: 'Yayasan Pendidikan Islam Attin', unit: 'SMP Islam RJ', alamat: 'Jl. Raya Attin No. 1, Jakarta Selatan', kontak: '(021) 1234-5678 | attin@sch.id' },
-    'SMA Islam RJ': { nama: 'Yayasan Pendidikan Islam Attin', unit: 'SMA Islam RJ', alamat: 'Jl. Raya Attin No. 1, Jakarta Selatan', kontak: '(021) 1234-5678 | attin@sch.id' },
-    'Sekretariat Yayasan': { nama: 'Yayasan Pendidikan Islam Attin', unit: 'Sekretariat Yayasan', alamat: 'Jl. Raya Attin No. 1, Jakarta Selatan', kontak: '(021) 1234-5678 | attin@sch.id' },
+    'TKIT Attin Sumbar': { nama: 'Yayasan Pendidikan Islam Attin', unit: 'TKIT Attin Sumbar', alamat: 'Jl. Raya Attin No. 1, Jakarta Selatan', kontak: '(021) 1234-5678 | attin@sch.id' },
+    'SDIT Attin Sumbar': { nama: 'Yayasan Pendidikan Islam Attin', unit: 'SDIT Attin Sumbar', alamat: 'Jl. Raya Attin No. 1, Jakarta Selatan', kontak: '(021) 1234-5678 | attin@sch.id' },
+    'SMPIT Attin Sumbar': { nama: 'Yayasan Pendidikan Islam Attin', unit: 'SMPIT Attin Sumbar', alamat: 'Jl. Raya Attin No. 1, Jakarta Selatan', kontak: '(021) 1234-5678 | attin@sch.id' },
+    'SMAIT Attin Sumbar': { nama: 'Yayasan Pendidikan Islam Attin', unit: 'SMAIT Attin Sumbar', alamat: 'Jl. Raya Attin No. 1, Jakarta Selatan', kontak: '(021) 1234-5678 | attin@sch.id' },
   }
   return unitInfo[unitLabel] || unitInfo['Semua Unit']
 }

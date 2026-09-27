@@ -247,8 +247,8 @@ function generateTemplateCSV(units) {
     const headers = ['NIY', 'Nama', 'Gelar', 'Unit', 'Jabatan', 'Status']
     const unitNames = units.map(u => u.nama).join(' | ')
     const exampleRows = [
-      ['049001234', 'Budi Santoso, S.Pd', '', units[0]?.nama || 'TK IT RJ', 'Guru Kelas', 'Aktif'],
-      ['049001235', 'Siti Rahayu, S.Ag', '', units[1]?.nama || 'SD Islam RJ', 'Guru PAI', 'Aktif'],
+      ['049001234', 'Budi Santoso, S.Pd', '', units[0]?.nama || 'TKIT Attin Sumbar', 'Guru Kelas', 'Aktif'],
+      ['049001235', 'Siti Rahayu, S.Ag', '', units[1]?.nama || 'SDIT Attin Sumbar', 'Guru PAI', 'Aktif'],
     ]
     const lines = [
       headers.join(','),

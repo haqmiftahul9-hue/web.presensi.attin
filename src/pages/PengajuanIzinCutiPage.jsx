@@ -166,7 +166,7 @@ function PengajuanIzinCutiPage() {
             </div>
             <div className="flex items-center gap-space-xs mt-space-md">
               <span className="font-body-sm text-body-sm text-on-surface-variant">Unit Terdaftar:</span>
-              <span className="font-body-sm-medium text-body-sm-medium text-emerald-700">SD Islam RJ (Tercatat 100%)</span>
+              <span className="font-body-sm-medium text-body-sm-medium text-emerald-700">SDIT Attin Sumbar (Tercatat 100%)</span>
             </div>
           </div>
 
@@ -210,7 +210,7 @@ function PengajuanIzinCutiPage() {
             </div>
             <div className="flex items-center gap-space-xs text-on-surface-variant font-body-sm text-body-sm">
               <span className="material-symbols-outlined text-[18px]">tune</span>
-              <span>Filter Aktif: Unit SD Islam RJ</span>
+              <span>Filter Aktif: Unit SDIT Attin Sumbar</span>
             </div>
           </div>
 
@@ -425,7 +425,7 @@ function PengajuanIzinCutiPage() {
           <div className="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between mb-space-xs">
-                <h3 className="font-body-md-medium text-body-md-medium text-primary">Statistik Kuota SD Islam RJ</h3>
+                <h3 className="font-body-md-medium text-body-md-medium text-primary">Statistik Kuota SDIT Attin Sumbar</h3>
                 <span className="font-label-sm text-label-sm text-secondary bg-blue-50 px-2 py-0.5 rounded-full">T.A 2026/2027</span>
               </div>
               <p className="font-body-sm text-body-sm text-on-surface-variant mb-space-md">

@@ -128,7 +128,7 @@ function EditUnitModal({ unit, onClose, onSave }) {
         <div className="px-space-lg py-space-md border-b border-outline/20 flex items-start justify-between bg-surface-container/50">
           <div>
             <h2 className="font-headline-sm text-headline-sm text-primary leading-snug" id="modalTitle">
-              Edit Unit: {unit?.nama || 'SD Islam RJ'}
+              Edit Unit: {unit?.nama || 'SDIT Attin Sumbar'}
             </h2>
             <p className="font-body-sm text-body-sm text-on-surface-variant mt-0.5" id="modalSubtitle">
               Perbarui data informasi unit dan konfigurasi geolokasi presensi.
@@ -152,7 +152,7 @@ function EditUnitModal({ unit, onClose, onSave }) {
             <input
               className={getInputClass('name')}
               id="inputUnitName"
-              placeholder="Contoh: SD Islam Raudhatul Jannah"
+              placeholder="Contoh: SDIT Attin Sumbar"
               type="text"
               value={name}
               onChange={(e) => handleChange('name', e.target.value)}

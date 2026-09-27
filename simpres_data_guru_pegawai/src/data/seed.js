@@ -2,11 +2,10 @@
 // Total: 209 pegawai (22+65+48+54+20), hadir 187, terlambat 14, belum 22, alpha 8.
 
 export const UNITS = [
-  { id: 'tk', kode: 'UNT-TK-01', nama: 'TK IT RJ', alamat: 'Jl. Cendekia No. 41', radius: 50, masuk: '07:00', pulang: '14:30', total: 22, hadir: 21, icon: 'child_care' },
-  { id: 'sd', kode: 'UNT-SD-02', nama: 'SD Islam RJ', alamat: 'Jl. Cendekia No. 43, Cilandak', radius: 75, masuk: '07:00', pulang: '15:00', total: 65, hadir: 61, icon: 'school' },
-  { id: 'smp', kode: 'UNT-SMP-03', nama: 'SMP Islam RJ', alamat: 'Jl. Cendekia No. 45', radius: 50, masuk: '07:00', pulang: '15:30', total: 48, hadir: 44, icon: 'school' },
-  { id: 'sma', kode: 'UNT-SMA-04', nama: 'SMA Islam RJ', alamat: 'Jl. Cendekia No. 47', radius: 80, masuk: '06:45', pulang: '15:30', total: 54, hadir: 48, icon: 'school' },
-  { id: 'pst', kode: 'UNT-PST-00', nama: 'Sekretariat Yayasan', alamat: 'Grha RJ Lt. 2', radius: 40, masuk: '07:30', pulang: '16:00', total: 20, hadir: 13, icon: 'domain' },
+  { id: 'tk', kode: 'UNT-TK-01', nama: 'TKIT Attin Sumbar', alamat: 'Jl. Cendekia No. 41', radius: 50, masuk: '07:00', pulang: '14:30', total: 22, hadir: 21, icon: 'child_care' },
+  { id: 'sd', kode: 'UNT-SD-02', nama: 'SDIT Attin Sumbar', alamat: 'Jl. Cendekia No. 43, Cilandak', radius: 75, masuk: '07:00', pulang: '15:00', total: 65, hadir: 61, icon: 'school' },
+  { id: 'smp', kode: 'UNT-SMP-03', nama: 'SMPIT Attin Sumbar', alamat: 'Jl. Cendekia No. 45', radius: 50, masuk: '07:00', pulang: '15:30', total: 48, hadir: 44, icon: 'school' },
+  { id: 'sma', kode: 'UNT-SMA-04', nama: 'SMAIT Attin Sumbar', alamat: 'Jl. Cendekia No. 47', radius: 80, masuk: '06:45', pulang: '15:30', total: 54, hadir: 48, icon: 'school' },
 ]
 
 export const STAFF = [
@@ -17,7 +16,7 @@ export const STAFF = [
   { id: 5, niy: '029011052', name: 'Irmawati, S.Pd', role: 'Guru Sentra', unitId: 'tk', status: 'Aktif', masuk: '07:20:10', method: 'QR Code', late: 20 },
   { id: 6, niy: '029012056', name: 'Risa Fadillah, S.Pd', role: 'Guru Biologi & Laboran', unitId: 'sma', status: 'Nonaktif', masuk: null, method: null, late: 0 },
   { id: 7, niy: '049033108', name: 'Hendra Kurniawan, S.Pd.I', role: 'Guru Agama', unitId: 'sd', status: 'Aktif', masuk: null, method: null, late: 0, alpha: true },
-  { id: 8, niy: '049023183', name: 'Silvana Monica, S.Ak', role: 'Staf Administrasi', unitId: 'pst', status: 'Aktif', masuk: '07:08:45', method: 'QR Code', late: 0, outsideRadius: true },
+  { id: 8, niy: '049023183', name: 'Silvana Monica, S.Ak', role: 'Staf Administrasi', unitId: 'sma', status: 'Aktif', masuk: '07:08:45', method: 'QR Code', late: 0, outsideRadius: true },
 ]
 
 export const LEAVES = [
@@ -30,14 +29,14 @@ export const LEAVES = [
 ]
 
 export const ADMIN_USERS = [
-  { id: 1, name: 'Bambang Hidayat, S.Kom', niy: '019001001', email: 'bambang.h@simpres.sch.id', role: 'Superadmin', unitId: 'pst', status: 'Aktif' },
+  { id: 1, name: 'Bambang Hidayat, S.Kom', niy: '019001001', email: 'bambang.h@simpres.sch.id', role: 'Superadmin', unitId: 'sd', status: 'Aktif' },
   { id: 2, name: 'Bustanul Abidin, S.Pd', niy: '049097021', email: 'bustanul.a@sd.rj.sch.id', role: 'Admin Unit', unitId: 'sd', status: 'Aktif' },
   { id: 3, name: 'Reki Gusman, S.E.', niy: '029010036', email: 'reki.g@smp.rj.sch.id', role: 'Admin Unit', unitId: 'smp', status: 'Aktif' },
-  { id: 4, name: 'Silvana Monica, S.Ak', niy: '049023183', email: 'silvana.m@simpres.sch.id', role: 'Superadmin', unitId: 'pst', status: 'Aktif' },
+  { id: 4, name: 'Silvana Monica, S.Ak', niy: '049023183', email: 'silvana.m@simpres.sch.id', role: 'Superadmin', unitId: 'sma', status: 'Aktif' },
 ]
 
 export const INITIAL_LOGS = [
-  { id: 1, time: '15 Sep 2026, 11:42', actor: 'Bambang Hidayat', role: 'Superadmin', action: 'Ubah', target: 'Unit • SD Islam RJ', desc: 'Radius geofence 50m → 75m' },
+  { id: 1, time: '15 Sep 2026, 11:42', actor: 'Bambang Hidayat', role: 'Superadmin', action: 'Ubah', target: 'Unit • SDIT Attin Sumbar', desc: 'Radius geofence 50m → 75m' },
   { id: 2, time: '15 Sep 2026, 09:15', actor: 'Bustanul Abidin', role: 'Admin SD', action: 'Tambah', target: 'Pegawai • Erianto', desc: 'Tambah NIY 049005069 Guru PAI' },
   { id: 3, time: '14 Sep 2026, 14:05', actor: 'Superadmin Pusat', role: 'Superadmin', action: 'Reset Password', target: 'Akun • Hendra Kurniawan', desc: 'Reset & kirim kredensial via WA' },
   { id: 4, time: '14 Sep 2026, 08:22', actor: 'Reki Gusman', role: 'Admin SMP', action: 'Ubah', target: 'Cuti • Wisna Yunita', desc: 'Setujui izin sakit 3 hari' },
@@ -48,7 +47,7 @@ export const INITIAL_SETTINGS = {
   namaAplikasi: 'SimPres',
   tagline: 'Sistem Presensi Kepegawaian Terpadu',
   namaYayasan: 'Yayasan Pendidikan Islam Raudhatul Jannah',
-  emailSekretariat: 'sekretariat@raudhatuljannah.sch.id',
+  emailSekretariat: 'sekretariat@attinsumbar.sch.id',
   alamatYayasan: 'Jl. Raya Cendekia No. 45, Jakarta Selatan',
   noWhatsapp: '+62 811-9876-5432',
   zonaWaktu: 'WIB',
@@ -83,7 +82,6 @@ const ROLES_BY_UNIT = {
   sd: ['Guru Kelas', 'Guru Mapel', 'Guru Tahfidz', 'Staf TU SD', 'Guru PAI'],
   smp: ['Guru Mapel', 'Wali Kelas', 'Guru BK', 'Staf TU SMP', 'Guru PAI'],
   sma: ['Guru Mapel', 'Wali Kelas', 'Guru BK', 'Laboran', 'Staf TU SMA'],
-  pst: ['Staf Administrasi', 'Staf Keuangan', 'Staf IT', 'Staf Umum'],
 }
 
 function hashN(n) {
@@ -96,7 +94,7 @@ export function buildFullStaff() {
   const out = [...STAFF]
   const plan = [
     { unitId: 'tk', need: 22 }, { unitId: 'sd', need: 65 }, { unitId: 'smp', need: 48 },
-    { unitId: 'sma', need: 54 }, { unitId: 'pst', need: 20 },
+    { unitId: 'sma', need: 54 },
   ]
   let id = 100
   plan.forEach(({ unitId, need }) => {

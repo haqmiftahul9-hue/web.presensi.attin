@@ -9,7 +9,6 @@ function UnitCards() {
       case 'sd': return 'Unit Terbesar (Paralel 4)'
       case 'smp': return 'Guru Mapel & Wali Kelas'
       case 'sma': return 'Termasuk Biro Pusat'
-      case 'pst': return 'Sekretariat Pusat'
       default: return ''
     }
   }

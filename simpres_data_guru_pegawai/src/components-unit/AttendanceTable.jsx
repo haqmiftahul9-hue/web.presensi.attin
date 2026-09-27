@@ -104,7 +104,7 @@ function AttendanceTable() {
             </span>
           </div>
           <p className="font-body-sm text-body-sm text-on-surface-variant mt-0.5">
-            Daftar kehadiran seluruh pendidik dan tenaga kependidikan unit SD Islam RJ
+            Daftar kehadiran seluruh pendidik dan tenaga kependidikan unit SDIT Attin Sumbar
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-space-xs">
@@ -213,7 +213,7 @@ function AttendanceTable() {
 
       <div className="p-space-md border-t border-surface-variant/50 flex flex-col sm:flex-row items-center justify-between gap-space-sm bg-surface-container-lowest">
         <span className="font-body-sm text-body-sm text-on-surface-variant">
-          Menampilkan <strong className="text-on-surface font-body-sm-medium">1 - 6</strong> dari <strong className="text-on-surface font-body-sm-medium">45</strong> pegawai unit SD Islam RJ
+          Menampilkan <strong className="text-on-surface font-body-sm-medium">1 - 6</strong> dari <strong className="text-on-surface font-body-sm-medium">45</strong> pegawai unit SDIT Attin Sumbar
         </span>
         <div className="flex items-center gap-1">
           <button className="w-8 h-8 rounded flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-colors disabled:opacity-40" disabled="">

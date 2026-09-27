@@ -187,11 +187,10 @@ function AdminUserPage() {
             <div className="relative">
               <select className="h-10 pl-3 pr-8 bg-surface-container-low text-on-surface rounded-lg font-body-md text-body-md focus:outline-none appearance-none cursor-pointer">
                 <option>Semua Unit</option>
-                <option>TK IT RJ</option>
-                <option>SD Islam RJ</option>
-                <option>SMP Islam RJ</option>
-                <option>SMA Islam RJ</option>
-                <option>Sekretariat / Yayasan</option>
+                <option>TKIT Attin Sumbar</option>
+                <option>SDIT Attin Sumbar</option>
+                <option>SMPIT Attin Sumbar</option>
+                <option>SMAIT Attin Sumbar</option>
               </select>
               <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-outline text-[18px] pointer-events-none">expand_more</span>
             </div>
@@ -429,10 +428,10 @@ function AdminUserPage() {
                   <div className="relative">
                     <select className="w-full h-10 pl-3 pr-8 bg-surface-container-low rounded-lg font-body-md text-body-md text-on-surface focus:outline-none appearance-none cursor-pointer">
                       <option value="pusat">Pusat Yayasan</option>
-                      <option value="tk">TK IT RJ</option>
-                      <option selected value="sd">SD Islam RJ</option>
-                      <option value="smp">SMP Islam RJ</option>
-                      <option value="sma">SMA Islam RJ</option>
+                      <option value="tk">TKIT Attin Sumbar</option>
+                      <option selected value="sd">SDIT Attin Sumbar</option>
+                      <option value="smp">SMPIT Attin Sumbar</option>
+                      <option value="sma">SMAIT Attin Sumbar</option>
                     </select>
                     <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-outline text-[18px] pointer-events-none">expand_more</span>
                   </div>

@@ -18,7 +18,7 @@ function EditUnitModal({ unit, onClose, onSave }) {
         <div className="px-space-lg py-space-md border-b border-outline/20 flex items-start justify-between bg-surface-container/50">
           <div>
             <h2 className="font-headline-md text-headline-md text-primary leading-tight" id="modalTitle">
-              Edit Unit: {unit?.nama || 'SD Islam RJ'}
+              Edit Unit: {unit?.nama || 'SDIT Attin Sumbar'}
             </h2>
             <p className="font-body-sm text-body-sm text-on-surface-variant mt-0.5" id="modalSubtitle">
               Perbarui data informasi unit dan konfigurasi geolokasi presensi.
@@ -88,7 +88,7 @@ function EditUnitModal({ unit, onClose, onSave }) {
 
               <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-surface-container-lowest/95 backdrop-blur-sm px-2.5 py-1 rounded-md shadow-sm border border-outline/30 text-body-sm font-body-md-medium text-on-surface z-10">
                 <span className="material-symbols-outlined text-secondary text-[16px]">location_on</span>
-                <span>Gedung SD Islam RJ</span>
+                <span>Gedung SDIT Attin Sumbar</span>
               </div>
 
               <div className="absolute top-3 right-3 flex flex-col gap-1 z-10">

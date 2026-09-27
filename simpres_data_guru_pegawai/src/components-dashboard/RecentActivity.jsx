@@ -41,11 +41,10 @@ function RecentActivity() {
           <div className="relative min-w-[170px]">
             <select className="w-full h-9 pl-space-sm pr-space-lg bg-surface-container-low rounded-lg font-body-sm text-body-sm text-on-surface appearance-none focus:outline-none focus:bg-surface-container">
               <option value="">Semua Unit Sekolah</option>
-              <option value="tk">TK / PAUD IT</option>
-              <option value="sd">SD Islam RJ</option>
-              <option value="smp">SMP Islam RJ</option>
-              <option value="sma">SMA Islam RJ</option>
-              <option value="sekretariat">Sekretariat Yayasan</option>
+              <option value="tk">TKIT Attin Sumbar</option>
+              <option value="sd">SDIT Attin Sumbar</option>
+              <option value="smp">SMPIT Attin Sumbar</option>
+              <option value="sma">SMAIT Attin Sumbar</option>
             </select>
             <span className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-outline pointer-events-none text-[18px]">expand_more</span>
           </div>
