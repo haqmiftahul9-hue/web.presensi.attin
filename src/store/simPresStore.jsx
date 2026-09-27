@@ -556,8 +556,12 @@ export function selectFilterTabCounts(state) {
   return { semua: hadir.length, tepat, terlambat: selectJumlahTerlambat(state), face, qr }
 }
 
-export function selectRekapTableData(state) {
-  return state.staff.slice(0, 8).map((s) => {
+export function selectRekapTableData(state, unitId = null, period = 'Bulanan') {
+  let staff = state.staff.filter((s) => s.status === 'Aktif')
+  if (unitId && unitId !== 'all') {
+    staff = staff.filter((s) => s.unitId === unitId)
+  }
+  return staff.map((s) => {
     const unit = state.units.find((u) => u.id === s.unitId)
     const isHadir = s.masuk !== null
     let stMasuk = 'Alpha'
@@ -596,6 +600,176 @@ export function selectRekapTableData(state) {
       ket,
     }
   })
+}
+
+export function selectRekapReportData(state, unitId = null, period = 'Bulanan') {
+  let staff = state.staff.filter((s) => s.status === 'Aktif')
+  if (unitId && unitId !== 'all') {
+    staff = staff.filter((s) => s.unitId === unitId)
+  }
+  
+  let attendance = buildAttendance(staff)
+  if (unitId && unitId !== 'all') {
+    attendance = attendance.filter((a) => a.unitId === unitId)
+  }
+  
+  let daysInPeriod = 15
+  switch (period) {
+    case 'Harian': daysInPeriod = 1; break
+    case 'Mingguan': daysInPeriod = 6; break
+    case 'Bulanan': daysInPeriod = 22; break
+    case 'Tahunan': daysInPeriod = 240; break
+  }
+  
+  const leaves = state.leaves || []
+  
+  return staff.map((s, idx) => {
+    const unit = state.units.find((u) => u.id === s.unitId)
+    const staffAttendance = attendance.filter((a) => a.staffId === s.id)
+    const hadir = staffAttendance.filter((a) => a.masuk !== null).length
+    const tepatWaktu = staffAttendance.filter((a) => a.masuk !== null && a.late === 0).length
+    const terlambat = staffAttendance.filter((a) => a.masuk !== null && a.late > 0).length
+    const staffLeaves = leaves.filter((l) => 
+      l.staffId === s.id && (l.status === 'Disetujui' || l.status === 'Menunggu')
+    )
+    const izinSakit = staffLeaves.length
+    const alpha = Math.max(0, daysInPeriod - hadir - izinSakit)
+    const persentaseKehadiran = daysInPeriod > 0 ? ((hadir / daysInPeriod) * 100).toFixed(1) : '0.0'
+    
+    let status = 'Baik'
+    let statusType = 'good'
+    if (persentaseKehadiran < 75) {
+      status = 'Perlu Perhatian'
+      statusType = 'error'
+    } else if (persentaseKehadiran < 90 || terlambat > 5) {
+      status = 'Kurang Baik'
+      statusType = 'late'
+    }
+    
+    return {
+      no: idx + 1,
+      id: s.id,
+      initials: initialsOf(s.name),
+      name: s.name,
+      niy: s.niy,
+      unit: unit?.nama || '-',
+      periode: getPeriodLabel(period),
+      totalHariKerja: daysInPeriod,
+      hadir,
+      tepatWaktu,
+      terlambat,
+      izinSakit,
+      alpha,
+      persentaseKehadiran: parseFloat(persentaseKehadiran),
+      status,
+      statusType,
+    }
+  })
+}
+
+function getPeriodLabel(period) {
+  switch (period) {
+    case 'Harian': return 'Hari Ini'
+    case 'Mingguan': return 'Minggu Ini'
+    case 'Bulanan': return 'Bulan Ini'
+    case 'Tahunan': return 'Tahun Ini'
+    default: return period
+  }
+}
+
+export function selectRekapSummary(state, unitId = null, period = 'Bulanan') {
+  let staff = state.staff.filter((s) => s.status === 'Aktif')
+  if (unitId && unitId !== 'all') {
+    staff = staff.filter((s) => s.unitId === unitId)
+  }
+  const totalPegawai = staff.length
+  const hadir = staff.filter((s) => s.masuk !== null).length
+  const tepatWaktu = staff.filter((s) => s.masuk !== null && s.late === 0).length
+  const terlambat = staff.filter((s) => s.masuk !== null && s.late > 0).length
+  const izinSakit = state.leaves.filter((l) => 
+    (l.status === 'Disetujui' || l.status === 'Menunggu') && 
+    staff.some((s) => s.id === l.staffId)
+  ).length
+  const alpha = staff.filter((s) => s.masuk === null && !state.leaves.some((l) => 
+    (l.status === 'Disetujui' || l.status === 'Menunggu') && l.staffId === s.id
+  )).length
+  const persentaseKehadiran = totalPegawai > 0 ? ((hadir / totalPegawai) * 100).toFixed(1) : '0.0'
+  return { totalPegawai, hadir, tepatWaktu, terlambat, izinSakit, alpha, persentaseKehadiran }
+}
+
+export function selectRekapChartData(state, unitId = null, period = 'Bulanan') {
+  let trendData = []
+  let daysInPeriod = 15
+  
+  switch (period) {
+    case 'Harian':
+      trendData = state.weeklyTrend?.slice(0, 1) || []
+      daysInPeriod = 1
+      break
+    case 'Mingguan':
+      trendData = state.weeklyTrend || []
+      daysInPeriod = 6
+      break
+    case 'Bulanan':
+      trendData = state.trend30 || []
+      daysInPeriod = 30
+      break
+    case 'Tahunan':
+      trendData = state.trend30 || []
+      daysInPeriod = 365
+      break
+    default:
+      trendData = state.trend30 || []
+      daysInPeriod = 30
+  }
+
+  let staff = state.staff.filter((s) => s.status === 'Aktif')
+  if (unitId && unitId !== 'all') {
+    staff = staff.filter((s) => s.unitId === unitId)
+  }
+  let attendance = state.attendance || buildAttendance(staff)
+  if (unitId && unitId !== 'all') {
+    attendance = attendance.filter((a) => a.unitId === unitId)
+  }
+  const leaves = state.leaves || []
+  const approvedLeaves = leaves.filter((l) => l.status === 'Disetujui' && staff.some((s) => s.id === l.staffId)).length
+  const pendingLeaves = leaves.filter((l) => l.status === 'Menunggu' && staff.some((s) => s.id === l.staffId)).length
+  const alphaCount = attendance.filter((a) => a.alpha && !a.masuk).length
+
+  const chartData = Array.from({ length: Math.min(daysInPeriod, trendData.length || daysInPeriod) }, (_, i) => {
+    const dayNum = i + 1
+    const isWeekend = dayNum % 7 === 6 || dayNum % 7 === 0
+    const trendIdx = i % (trendData.length || 1)
+    const trendDay = trendData[trendIdx] || { hadir: 0, terlambat: 0 }
+    const izin = Math.round((approvedLeaves + pendingLeaves) / Math.max(daysInPeriod, 1))
+    const alpha = Math.round(alphaCount / Math.max(daysInPeriod, 1))
+    return {
+      day: String(dayNum).padStart(2, '0'),
+      hadir: trendDay.hadir,
+      terlambat: trendDay.terlambat,
+      izin: Math.max(0, izin),
+      alpha: Math.max(0, alpha),
+      weekend: isWeekend,
+      current: dayNum === new Date().getDate(),
+    }
+  })
+  return chartData
+}
+
+export function selectRekapKepatuhanChart(state, unitId = null, period = 'Bulanan') {
+  let staff = state.staff.filter((s) => s.status === 'Aktif')
+  if (unitId && unitId !== 'all') {
+    staff = staff.filter((s) => s.unitId === unitId)
+  }
+  let attendance = state.attendance || buildAttendance(staff)
+  if (unitId && unitId !== 'all') {
+    attendance = attendance.filter((a) => a.unitId === unitId)
+  }
+  const hadirTepat = attendance.filter((a) => a.status === 'Tepat Waktu').length
+  const terlambat = attendance.filter((a) => a.status === 'Terlambat').length
+  const total = hadirTepat + terlambat
+  const kepatuhan = total > 0 ? ((hadirTepat / total) * 100).toFixed(1) : '0.0'
+  return { kepatuhan, hadirTepat, terlambat, total }
 }
 
 export function selectRankingData(state) {
@@ -735,7 +909,7 @@ export function selectMonitoringActivity(state) {
   })
 }
 
-export { initialsOf }
+export { initialsOf, buildAttendance }
 
 export function selectCurrentUser(state) {
   return state.currentUser

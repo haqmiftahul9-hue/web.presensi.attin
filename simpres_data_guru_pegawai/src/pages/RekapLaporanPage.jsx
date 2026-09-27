@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useSimPres, selectRekapTableData } from '../store/simPresStore.jsx'
+import { useState, useMemo } from 'react'
+import { useSimPres, selectRekapTableData, selectRekapSummary, selectRekapChartData, selectRekapKepatuhanChart } from '../store/simPresStore.jsx'
 
 const statusStyles = {
   good: 'bg-[#DCFCE7] text-[#16A34A]',
@@ -22,47 +22,17 @@ const avatarStyles = [
 
 function RekapLaporanPage() {
   const { state } = useSimPres()
-  const [activeTab, setActiveTab] = useState('Bulanan')
+  const [activePeriod, setActivePeriod] = useState('Bulanan')
+  const [selectedUnit, setSelectedUnit] = useState('all')
   const [search, setSearch] = useState('')
 
-  const tabs = ['Harian', 'Mingguan', 'Bulanan']
+  const periods = ['Harian', 'Mingguan', 'Bulanan', 'Tahunan']
+  const unitOptions = ['all', ...state.units.map(u => u.id)]
 
-  // Derive chart data from actual attendance & leaves (single source of truth).
-  const attendance = state.attendance || []
-  const leaves = state.leaves || []
-  const trend = state.weeklyTrend || []
-
-  // Calculate daily stats from attendance for the chart period
-  const daysInPeriod = 15
-  const chartData = Array.from({ length: daysInPeriod }, (_, i) => {
-    const dayNum = i + 1
-    const isWeekend = dayNum % 7 === 6 || dayNum % 7 === 0 // Sat/Sun
-    // Use trend data cyclically for hadir/terlambat
-    const trendIdx = i % trend.length
-    const trendDay = trend[trendIdx] || { hadir: 0, terlambat: 0 }
-    // Count approved/pending leaves for this day (simplified: distribute across period)
-    const approvedLeaves = leaves.filter(l => l.status === 'Disetujui').length
-    const pendingLeaves = leaves.filter(l => l.status === 'Menunggu').length
-    const izin = Math.round((approvedLeaves + pendingLeaves) / daysInPeriod)
-    // Count alpha (staff with no check-in and no approved leave)
-    const alphaCount = attendance.filter(a => a.alpha && !a.masuk).length
-    const alpha = Math.round(alphaCount / daysInPeriod)
-    return {
-      day: String(dayNum).padStart(2, '0'),
-      hadir: trendDay.hadir,
-      terlambat: trendDay.terlambat,
-      izin: Math.max(0, izin),
-      alpha: Math.max(0, alpha),
-      weekend: isWeekend,
-      current: dayNum === new Date().getDate(),
-    }
-  })
-
-  const rataRataChart = chartData.length > 0
-    ? (chartData.reduce((s, d) => s + (d.hadir / Math.max(d.hadir + d.terlambat, 1)), 0) / chartData.length * 100).toFixed(1)
-    : '0.0'
-
-  const tableData = selectRekapTableData(state)
+  const summary = useMemo(() => selectRekapSummary(state, selectedUnit, activePeriod), [state, selectedUnit, activePeriod])
+  const chartData = useMemo(() => selectRekapChartData(state, selectedUnit, activePeriod), [state, selectedUnit, activePeriod])
+  const kepatuhanChart = useMemo(() => selectRekapKepatuhanChart(state, selectedUnit, activePeriod), [state, selectedUnit, activePeriod])
+  const tableData = useMemo(() => selectRekapTableData(state, selectedUnit, activePeriod), [state, selectedUnit, activePeriod])
 
   const filteredTable = tableData.filter((row) =>
     row.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -70,10 +40,23 @@ function RekapLaporanPage() {
     row.unit.toLowerCase().includes(search.toLowerCase())
   )
 
-  // Total records & pages from filtered data with fixed page size
-  const pageSize = 10
-  const totalCatatan = filteredTable.length
-  const totalHalaman = Math.max(1, Math.ceil(totalCatatan / pageSize))
+  const selectedUnitObj = state.units.find(u => u.id === selectedUnit)
+  const unitLabel = selectedUnit === 'all' ? `Semua Unit (${state.units.length} Unit)` : selectedUnitObj?.nama || 'Semua Unit'
+
+  const getPeriodLabel = (period) => {
+    switch (period) {
+      case 'Harian': return 'Hari Ini'
+      case 'Mingguan': return 'Minggu Ini'
+      case 'Bulanan': return 'Bulan Ini'
+      case 'Tahunan': return 'Tahun Ini'
+      default: return period
+    }
+  }
+
+  const totalHadir = chartData.reduce((sum, d) => sum + d.hadir, 0)
+  const totalTerlambat = chartData.reduce((sum, d) => sum + d.terlambat, 0)
+  const totalIzin = chartData.reduce((sum, d) => sum + d.izin, 0)
+  const totalAlpha = chartData.reduce((sum, d) => sum + d.alpha, 0)
 
   return (
     <div className="flex flex-col w-full">
@@ -104,31 +87,31 @@ function RekapLaporanPage() {
           <div className="flex flex-wrap items-center gap-space-sm">
             {/* Segmented Tabs */}
             <div className="inline-flex p-1 bg-surface-container rounded-lg gap-1">
-              {tabs.map((tab) => (
+              {periods.map((period) => (
                 <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
+                  key={period}
+                  onClick={() => setActivePeriod(period)}
                   className={`px-3.5 py-1.5 rounded-md font-label-md text-label-md transition-colors cursor-pointer ${
-                    activeTab === tab
+                    activePeriod === period
                       ? 'bg-primary text-on-primary shadow-sm'
                       : 'text-on-surface-variant hover:text-on-surface'
                   }`}
                   type="button"
                 >
-                  {tab}
+                  {period}
                 </button>
               ))}
             </div>
             {/* Date Range */}
             <div className="relative flex items-center bg-surface-container rounded-lg px-3 py-2 cursor-pointer hover:bg-surface-container-low transition-colors">
               <span className="material-symbols-outlined text-[18px] text-outline mr-2">calendar_today</span>
-              <span className="font-body-md-medium text-body-md-medium text-on-surface">01 Sep 2026 – 15 Sep 2026</span>
+              <span className="font-body-md-medium text-body-md-medium text-on-surface">{getPeriodLabel(activePeriod)}</span>
               <span className="material-symbols-outlined text-[18px] text-outline ml-2">arrow_drop_down</span>
             </div>
             {/* Unit Selector */}
             <div className="relative flex items-center bg-surface-container rounded-lg px-3 py-2 cursor-pointer hover:bg-surface-container-low transition-colors">
               <span className="material-symbols-outlined text-[18px] text-outline mr-2">domain</span>
-              <span className="font-body-md-medium text-body-md-medium text-on-surface">Semua Unit ({state.units.length} Unit)</span>
+              <span className="font-body-md-medium text-body-md-medium text-on-surface">{unitLabel}</span>
               <span className="material-symbols-outlined text-[18px] text-outline ml-2">expand_more</span>
             </div>
           </div>
@@ -155,9 +138,9 @@ function RekapLaporanPage() {
             <div className="flex flex-col gap-0.5">
               <div className="flex items-center gap-space-xs">
                 <h2 className="font-headline-sm text-headline-sm text-primary">Tren Kehadiran & Kepatuhan Jam Kerja</h2>
-                <span className="px-2 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm">{rataRataChart}% Rata-rata</span>
+                <span className="px-2 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm">{kepatuhanChart.kepatuhan}% Rata-rata</span>
               </div>
-              <span className="font-body-sm text-body-sm text-on-surface-variant">Periode 1–15 September 2026 (Seluruh Jenjang Terdaftar)</span>
+              <span className="font-body-sm text-body-sm text-on-surface-variant">Periode {getPeriodLabel(activePeriod)} ({unitLabel})</span>
             </div>
             <div className="flex flex-wrap items-center gap-4">
               <div className="flex items-center gap-1.5">
@@ -209,7 +192,7 @@ function RekapLaporanPage() {
             <div className="relative ml-9 h-56 flex items-end justify-between gap-1.5 sm:gap-3 overflow-x-auto pt-2 pb-8">
                 {chartData.map((d) => (
                 <div key={d.day} className={`group flex flex-col items-center flex-1 min-w-[28px] h-full justify-end ${d.weekend ? 'opacity-40' : ''} cursor-pointer`}>
-                  <div className={`w-full max-w-[24px] rounded-t-sm bg-surface-container-low flex flex-col-reverse overflow-hidden shadow-sm group-hover:opacity-90 transition-opacity ${d.current ? 'shadow-md ring-2 ring-secondary/20' : ''}`} style={{ height: `${d.hadir + d.terlambat + d.izin + d.alpha}%` }}>
+                  <div className={`w-full max-w-[24px] rounded-t-sm bg-surface-container-low flex flex-col-reverse overflow-hidden shadow-sm group-hover:opacity-90 transition-opacity ${d.current ? 'shadow-md ring-2 ring-secondary/20' : ''}`} style={{ height: `${Math.min(100, d.hadir + d.terlambat + d.izin + d.alpha)}%` }}>
                     <div className="w-full bg-secondary-container" style={{ height: `${d.hadir}%` }}></div>
                     <div className="w-full bg-[#F59E0B]" style={{ height: `${d.terlambat}%` }}></div>
                     {d.izin > 0 && <div className="w-full bg-tertiary-fixed-dim" style={{ height: `${d.izin}%` }}></div>}
@@ -221,15 +204,55 @@ function RekapLaporanPage() {
             </div>
           </div>
 
+          {/* Summary Stats */}
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-space-sm pt-2">
+            <div className="p-3.5 bg-surface-container rounded-lg flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-surface-container-lowest flex items-center justify-center text-secondary shadow-sm">
+                <span className="material-symbols-outlined text-[20px]">groups</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="font-label-sm text-label-sm text-on-surface-variant">Total Pegawai</span>
+                <span className="font-body-md-medium text-body-md-medium text-primary leading-snug">{summary.totalPegawai.toLocaleString()}</span>
+              </div>
+            </div>
+            <div className="p-3.5 bg-surface-container rounded-lg flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-surface-container-lowest flex items-center justify-center text-[#16A34A] shadow-sm">
+                <span className="material-symbols-outlined text-[20px]">check_circle</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="font-label-sm text-label-sm text-on-surface-variant">Hadir</span>
+                <span className="font-body-md-medium text-body-md-medium text-primary leading-snug">{summary.hadir.toLocaleString()}</span>
+              </div>
+            </div>
+            <div className="p-3.5 bg-surface-container rounded-lg flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-surface-container-lowest flex items-center justify-center text-[#B45309] shadow-sm">
+                <span className="material-symbols-outlined text-[20px]">schedule</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="font-label-sm text-label-sm text-on-surface-variant">Terlambat</span>
+                <span className="font-body-md-medium text-body-md-medium text-primary leading-snug">{summary.terlambat.toLocaleString()}</span>
+              </div>
+            </div>
+            <div className="p-3.5 bg-surface-container rounded-lg flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-surface-container-lowest flex items-center justify-center text-[#16A34A] shadow-sm">
+                <span className="material-symbols-outlined text-[20px]">verified_user</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="font-label-sm text-label-sm text-on-surface-variant">% Kehadiran</span>
+                <span className="font-body-md-medium text-body-md-medium text-primary leading-snug">{summary.persentaseKehadiran}%</span>
+              </div>
+            </div>
+          </div>
+
           {/* Quick Stats */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-space-sm pt-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-space-sm pt-2 border-t border-surface-container">
             <div className="p-3.5 bg-surface-container rounded-lg flex items-center gap-3">
               <div className="w-9 h-9 rounded-lg bg-surface-container-lowest flex items-center justify-center text-secondary shadow-sm">
                 <span className="material-symbols-outlined text-[20px]">schedule</span>
               </div>
               <div className="flex flex-col">
                 <span className="font-label-sm text-label-sm text-on-surface-variant">Total Jam Kerja</span>
-                <span className="font-headline-sm text-headline-sm text-primary">14.820 <span className="font-body-sm text-body-sm text-on-surface-variant font-normal">Jam</span></span>
+                <span className="font-body-md-medium text-body-md-medium text-primary leading-snug">{(summary.hadir * 8).toLocaleString()} <span className="font-body-sm text-body-sm text-on-surface-variant font-normal">Jam</span></span>
               </div>
             </div>
             <div className="p-3.5 bg-surface-container rounded-lg flex items-center gap-3">
@@ -238,7 +261,7 @@ function RekapLaporanPage() {
               </div>
               <div className="flex flex-col">
                 <span className="font-label-sm text-label-sm text-on-surface-variant">Rata-rata Keterlambatan</span>
-                <span className="font-headline-sm text-headline-sm text-primary">6.4 <span className="font-body-sm text-body-sm text-on-surface-variant font-normal">Menit / staf</span></span>
+                <span className="font-body-md-medium text-body-md-medium text-primary leading-snug">{(summary.terlambat > 0 ? (chartData.reduce((s, d) => s + d.terlambat, 0) / Math.max(chartData.filter(d => d.terlambat > 0).length, 1)).toFixed(1) : '0.0')} <span className="font-body-sm text-body-sm text-on-surface-variant font-normal">Menit / staf</span></span>
               </div>
             </div>
             <div className="p-3.5 bg-surface-container rounded-lg flex items-center gap-3">
@@ -247,7 +270,7 @@ function RekapLaporanPage() {
               </div>
               <div className="flex flex-col">
                 <span className="font-label-sm text-label-sm text-on-surface-variant">Tingkat Kepatuhan Jadwal</span>
-                <span className="font-headline-sm text-headline-sm text-primary">{rataRataChart}% <span className="font-body-sm text-body-sm text-[#16A34A] font-normal">+1.2%</span></span>
+                <span className="font-body-md-medium text-body-md-medium text-primary leading-snug">{kepatuhanChart.kepatuhan}% <span className="font-body-sm text-body-sm text-[#16A34A] font-normal">+1.2%</span></span>
               </div>
             </div>
           </div>
@@ -258,7 +281,7 @@ function RekapLaporanPage() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-space-sm pb-1">
             <div className="flex flex-col">
               <h3 className="font-headline-sm text-headline-sm text-primary">Rincian Log Presensi Pegawai</h3>
-              <span className="font-body-sm text-body-sm text-on-surface-variant">Menampilkan 1–{filteredTable.length} dari {totalCatatan} baris data log terkini</span>
+              <span className="font-body-sm text-body-sm text-on-surface-variant">Menampilkan 1–{filteredTable.length} dari {tableData.length} baris data log terkini</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="relative w-full sm:w-64">
@@ -296,7 +319,7 @@ function RekapLaporanPage() {
                   <tr key={row.id} className="hover:bg-surface-container-low/50 transition-colors">
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-3">
-                        <div className={`w-8 h-8 rounded-full ${avatarStyles[idx] || 'bg-secondary-fixed text-on-secondary-fixed'} font-label-md text-label-md flex items-center justify-center flex-shrink-0`}>
+                        <div className={`w-8 h-8 rounded-full ${avatarStyles[idx % avatarStyles.length] || 'bg-secondary-fixed text-on-secondary-fixed'} font-label-md text-label-md flex items-center justify-center flex-shrink-0`}>
                           {row.initials}
                         </div>
                         <div className="flex flex-col">
@@ -327,20 +350,14 @@ function RekapLaporanPage() {
           {/* Pagination */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-space-sm pt-2">
             <span className="font-body-sm text-body-sm text-on-surface-variant">
-              Halaman <span className="font-body-sm-medium text-on-surface">1</span> dari <span className="font-body-sm-medium text-on-surface">{totalHalaman}</span> ({totalCatatan} total catatan)
+              Halaman <span className="font-body-sm-medium text-on-surface">1</span> dari <span className="font-body-sm-medium text-on-surface">1</span> ({tableData.length} total catatan)
             </span>
             <div className="flex items-center gap-1.5">
               <button className="px-3 py-1.5 rounded-lg bg-surface-container-low text-outline cursor-not-allowed font-label-sm text-label-sm flex items-center gap-1" disabled type="button">
                 <span className="material-symbols-outlined text-[16px]">chevron_left</span>
                 <span>Sebelumnya</span>
               </button>
-              <div className="flex items-center gap-1">
-                <button className="w-8 h-8 rounded-lg bg-primary text-on-primary font-label-md text-label-md flex items-center justify-center cursor-pointer" type="button">1</button>
-                <button className="w-8 h-8 rounded-lg bg-surface-container-low text-on-surface-variant hover:bg-surface-container font-label-md text-label-md flex items-center justify-center transition-colors cursor-pointer" type="button">2</button>
-                <button className="w-8 h-8 rounded-lg bg-surface-container-low text-on-surface-variant hover:bg-surface-container font-label-md text-label-md flex items-center justify-center transition-colors cursor-pointer" type="button">3</button>
-                <span className="px-1 text-outline">...</span>
-                <button className="w-8 h-8 rounded-lg bg-surface-container-low text-on-surface-variant hover:bg-surface-container font-label-md text-label-md flex items-center justify-center transition-colors cursor-pointer" type="button">{totalHalaman}</button>
-              </div>
+              <button className="w-8 h-8 rounded-lg bg-primary text-on-primary font-label-md text-label-md flex items-center justify-center cursor-pointer" type="button">1</button>
               <button className="px-3 py-1.5 rounded-lg bg-surface-container-low text-on-surface hover:bg-surface-container font-label-md text-label-md flex items-center gap-1 transition-colors cursor-pointer" type="button">
                 <span>Berikutnya</span>
                 <span className="material-symbols-outlined text-[16px]">chevron_right</span>
