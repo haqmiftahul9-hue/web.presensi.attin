@@ -1,4 +1,4 @@
-import { useSimPres, selectUnitName } from '../store/simPresStore.jsx'
+import { useSimPres, selectUnitName, addActivityLog } from '../store/simPresStore.jsx'
 import { useState } from 'react'
 import DetailEmployeeModal from './DetailEmployeeModal.jsx'
 import EditEmployeeModal from './EditEmployeeModal.jsx'
@@ -97,12 +97,16 @@ function StaffTable({ unitFilter, searchTerm, statusFilter, currentPage, setCurr
 
   const handleSaveEdit = (updatedStaff) => {
     dispatch({ type: 'UPDATE_STAFF', payload: updatedStaff })
+    addActivityLog(dispatch, state, 'Ubah', `Pegawai • ${updatedStaff.name}`, `Perbarui data pegawai: NIY ${updatedStaff.niy}, jabatan ${updatedStaff.role}, unit ${selectUnitName(state, updatedStaff.unitId)}, status ${updatedStaff.status}`, null, null, updatedStaff.unitId)
     setShowEditModal(false)
     setModalStaff(null)
   }
 
   const handleConfirmDelete = (staff) => {
+    const staffName = staff.name
+    const staffNiy = staff.niy
     dispatch({ type: 'DELETE_STAFF', payload: staff.id })
+    addActivityLog(dispatch, state, 'Hapus', `Pegawai • ${staffName}`, `Hapus pegawai ${staffNiy} dari sistem`, null, null, staff.unitId)
     setShowDeleteModal(false)
     setModalStaff(null)
   }

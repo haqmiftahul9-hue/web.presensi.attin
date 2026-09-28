@@ -1,4 +1,4 @@
-import { useSimPres } from '../store/simPresStore.jsx'
+import { useSimPres, addActivityLog } from '../store/simPresStore.jsx'
 import { useState } from 'react'
 import AddEmployeeModal from './AddEmployeeModal.jsx'
 
@@ -13,6 +13,7 @@ function ActionToolbar({ onImport, unitFilter, setUnitFilter, searchTerm, setSea
 
 const handleAddEmployee = (newStaff) => {
       dispatch({ type: 'ADD_STAFF', payload: newStaff })
+      addActivityLog(dispatch, state, 'Tambah', `Pegawai • ${newStaff.name}`, `Tambah pegawai baru NIY ${newStaff.niy} sebagai ${newStaff.role} di ${state.units.find(u => u.id === newStaff.unitId)?.nama || newStaff.unitId}`, null, null, newStaff.unitId)
       setShowAddModal(false)
       setCurrentPageReset(1)
     }

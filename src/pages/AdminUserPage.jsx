@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react'
-import { useSimPres, selectUnitName, initialsOf, ROLE_OPTIONS, MENU_OPTIONS, PERMISSION_ACTIONS, getRolePermissions } from '../store/simPresStore.jsx'
+import { useSimPres, selectUnitName, initialsOf, ROLE_OPTIONS, MENU_OPTIONS, PERMISSION_ACTIONS, getRolePermissions, addActivityLog } from '../store/simPresStore.jsx'
 import ConfirmDialog from '../components/ConfirmDialog.jsx'
 
 const roleMap = {
@@ -35,33 +35,6 @@ function AdminUserPage() {
 
   const nextId = state.adminUsers.length === 0 ? 1 : Math.max(0, ...state.adminUsers.map((u) => u.id)) + 1
   const generatePassword = () => `SimPres#${Math.floor(1000 + Math.random() * 9000)}!rj`
-
-  const generateLogTime = () => {
-    const now = new Date()
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
-    const day = String(now.getDate()).padStart(2, '0')
-    const month = months[now.getMonth()]
-    const year = now.getFullYear()
-    const hours = String(now.getHours()).padStart(2, '0')
-    const minutes = String(now.getMinutes()).padStart(2, '0')
-    return `${day} ${month} ${year}, ${hours}:${minutes}`
-  }
-
-  const addLog = (action, target, desc) => {
-    const logId = state.logs.length === 0 ? 1 : Math.max(0, ...state.logs.map((l) => l.id)) + 1
-    dispatch({
-      type: 'ADD_LOG',
-      payload: {
-        id: logId,
-        time: generateLogTime(),
-        actor: 'Superadmin Pusat',
-        role: 'Superadmin',
-        action,
-        target,
-        desc,
-      },
-    })
-  }
 
   const filtered = useMemo(() => {
     const term = searchTerm.toLowerCase()
@@ -175,7 +148,7 @@ function AdminUserPage() {
           status: form.status,
         },
       })
-      addLog('Tambah', `Akun • ${form.name.trim()}`, `Buat akun ${form.role} baru atas NIY ${form.niy.trim()}`)
+      addActivityLog(dispatch, state, 'Tambah', `Akun • ${form.name.trim()}`, `Buat akun ${form.role} baru atas NIY ${form.niy.trim()}`, null, null, form.unitId)
     } else if (editedUser) {
       const roleChanged = editedUser.role !== form.role
       const oldRole = editedUser.role
@@ -195,9 +168,9 @@ function AdminUserPage() {
       })
 
       if (roleChanged) {
-        addLog('Ubah Role', `Akun • ${form.name.trim()}`, `Mengubah peran dari ${oldRole} menjadi ${newRole}`)
+        addActivityLog(dispatch, state, 'Ubah Role', `Akun • ${form.name.trim()}`, `Mengubah peran dari ${oldRole} menjadi ${newRole}`, null, null, form.unitId)
       } else {
-        addLog('Ubah', `Akun • ${form.name.trim()}`, `Perbarui data akun: peran ${form.role}, unit ${selectUnitName(state, form.unitId)}`)
+        addActivityLog(dispatch, state, 'Ubah', `Akun • ${form.name.trim()}`, `Perbarui data akun: peran ${form.role}, unit ${selectUnitName(state, form.unitId)}`, null, null, form.unitId)
       }
     }
     closeForm()
@@ -216,7 +189,7 @@ function AdminUserPage() {
       `Anda yakin ingin menghapus akun "${row.name}"? Tindakan ini tidak dapat dibatalkan dan akan menghapus akses pengguna ke seluruh sistem.`,
       () => {
         dispatch({ type: 'DELETE_ADMIN_USER', payload: row.id })
-        addLog('Hapus', `Akun • ${row.name}`, `Hapus akun ${row.role} atas NIY ${row.niy}`)
+        addActivityLog(dispatch, state, 'Hapus', `Akun • ${row.name}`, `Hapus akun ${row.role} atas NIY ${row.niy}`, null, null, row.unitId)
       },
     )
   }
@@ -230,10 +203,13 @@ function AdminUserPage() {
       `Anda yakin ingin ${action} akun "${row.name}"?`,
       () => {
         dispatch({ type: 'UPDATE_ADMIN_USER', payload: { id: row.id, status: newStatus } })
-        addLog(
+        addActivityLog(
+          dispatch,
+          state,
           row.status === 'Aktif' ? 'Nonaktifkan' : 'Aktifkan',
           `Akun • ${row.name}`,
           `Akun ${row.role} di-${action} statusnya menjadi ${newStatus}`,
+          null, null, row.unitId
         )
       },
     )
@@ -247,7 +223,7 @@ function AdminUserPage() {
       () => {
         const pwd = generatePassword()
         dispatch({ type: 'UPDATE_ADMIN_USER', payload: { id: row.id, mustReset: true } })
-        addLog('Reset Password', `Akun • ${row.name}`, `Reset kata sandi akun ${row.role} atas NIY ${row.niy}`)
+        addActivityLog(dispatch, state, 'Reset Password', `Akun • ${row.name}`, `Reset kata sandi akun ${row.role} atas NIY ${row.niy}`, null, null, row.unitId)
         setSuccessMessage(`Password akun "${row.name}" telah direset. Kredensial baru: ${pwd}`)
         setTimeout(() => setSuccessMessage(''), 6000)
       },
@@ -282,7 +258,7 @@ function AdminUserPage() {
     link.download = `manajemen-admin-user-${new Date().toISOString().slice(0, 10)}.csv`
     link.click()
     URL.revokeObjectURL(link.href)
-    addLog('Ekspor', 'Admin User', 'Ekspor data admin/user ke CSV')
+    addActivityLog(dispatch, state, 'Ekspor', 'Admin User', 'Ekspor data admin/user ke CSV', null, null, currentUser?.unitId)
   }
 
   const openMatrix = () => {
@@ -311,7 +287,7 @@ function AdminUserPage() {
 
   const saveMatrix = () => {
     dispatch({ type: 'UPDATE_PERMISSIONS', payload: matrixPerms })
-    addLog('Ubah', 'Matriks Role & Izin', 'Memperbarui hak akses peran sistem')
+    addActivityLog(dispatch, state, 'Ubah', 'Matriks Role & Izin', 'Memperbarui hak akses peran sistem', null, null, currentUser?.unitId)
     setSuccessMessage('Perubahan izin berhasil disimpan')
     setTimeout(() => setSuccessMessage(''), 3000)
     closeMatrix()

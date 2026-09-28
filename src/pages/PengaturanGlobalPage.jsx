@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { useSimPres } from '../store/simPresStore.jsx'
+import { useSimPres, addActivityLog } from '../store/simPresStore.jsx'
 
 const tabs = [
   { id: 'informasi', label: 'Informasi Aplikasi', icon: 'info' },
@@ -58,18 +58,27 @@ function PengaturanGlobalPage() {
     setIsSaving(true)
     setTimeout(() => {
       // Simpan ke satu sumber data (store) agar konsisten di semua halaman.
+      const oldSettings = state.settings
       dispatch({ type: 'UPDATE_SETTINGS', payload: formData })
       setIsSaving(false)
       showNotification('Perubahan telah disimpan', 'success')
+      
+      // Log the settings change
+      const changes = Object.keys(formData).filter(key => formData[key] !== oldSettings[key])
+      if (changes.length > 0) {
+        addActivityLog(dispatch, state, 'Ubah', 'Pengaturan Global', 
+          `Mengubah pengaturan: ${changes.join(', ')}`, null, null, currentUser?.unitId)
+      }
     }, 1000)
   }
 
   const handleReset = () => {
     if (confirm('Yakin ingin mereset semua pengaturan ke nilai default?')) {
-      setFormData(settings)
+      setFormData(state.settings)
       setLogoPreview(null)
       setToggles({ gantiPassword: true, verifikasi2fa: true })
       showNotification('Pengaturan telah direset', 'info')
+      addActivityLog(dispatch, state, 'Reset', 'Pengaturan Global', 'Mereset semua pengaturan ke nilai default', null, null, currentUser?.unitId)
     }
   }
 

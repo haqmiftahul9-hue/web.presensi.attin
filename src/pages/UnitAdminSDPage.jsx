@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import EditUnitModal from '../components/EditUnitModal.jsx'
-import { useSimPres } from '../store/simPresStore.jsx'
+import { useSimPres, selectUnitName, addActivityLog } from '../store/simPresStore.jsx'
 
 function UnitAdminSDPage() {
   const { state, dispatch } = useSimPres()
@@ -109,6 +109,7 @@ function UnitAdminSDPage() {
           geofenceActive: data.geofenceActive,
         },
       })
+      addActivityLog(dispatch, state, 'Ubah', `Unit • ${data.name}`, `Memperbarui data unit: radius ${data.radius}m, jam ${data.jamMasuk}-${data.jamPulang}, geofence ${data.geofenceActive ? 'aktif' : 'nonaktif'}`, null, null, editingUnit.unitId)
       showNotification('Unit berhasil diperbarui')
     } else {
       const isDuplicate = state.units.some(
@@ -134,6 +135,7 @@ function UnitAdminSDPage() {
         icon: 'domain',
       }
       dispatch({ type: 'ADD_UNIT', payload: newUnit })
+      addActivityLog(dispatch, state, 'Tambah', `Unit • ${data.name}`, `Tambah unit baru ${data.name} (${data.jamMasuk}-${data.jamPulang}, radius ${data.radius}m)`, null, null, newUnit.unitId)
       showNotification('Unit baru berhasil ditambahkan')
     }
     setShowModal(false)
@@ -146,7 +148,9 @@ function UnitAdminSDPage() {
 
   const confirmDelete = () => {
     if (deleteTarget) {
+      const unitName = deleteTarget.nama
       dispatch({ type: 'DELETE_UNIT', payload: deleteTarget.id })
+      addActivityLog(dispatch, state, 'Hapus', `Unit • ${unitName}`, `Hapus unit ${unitName} beserta data terkait`, null, null, deleteTarget.unitId)
       showNotification(`Unit ${deleteTarget.nama} berhasil dihapus`)
       setDeleteTarget(null)
     }

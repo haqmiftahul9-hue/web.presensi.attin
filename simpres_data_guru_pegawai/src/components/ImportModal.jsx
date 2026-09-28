@@ -1,8 +1,9 @@
 import { useState, useRef } from 'react'
-import { useSimPres } from '../store/simPresStore.jsx'
+import { useSimPres, addActivityLog, selectCurrentUser } from '../store/simPresStore.jsx'
 
 function ImportModal({ show, onClose }) {
   const { state, dispatch } = useSimPres()
+  const currentUser = selectCurrentUser(state)
   const [selectedFile, setSelectedFile] = useState(null)
   const [previewRows, setPreviewRows] = useState([])
   const [isProcessing, setIsProcessing] = useState(false)
@@ -37,7 +38,7 @@ function ImportModal({ show, onClose }) {
     reader.readAsText(file)
   }
 
-  const handleImport = async () => {
+const handleImport = async () => {
     if (!selectedFile) return
     setIsProcessing(true)
     setResult(null)
@@ -65,7 +66,7 @@ function ImportModal({ show, onClose }) {
         const unitId = unitMap.get(unitName?.toLowerCase())
         if (!unitId) { errors.push(`Baris ${rowNum}: Unit "${unitName}" tidak ditemukan`); continue }
         
-const newStaff = {
+  const newStaff = {
            id: Date.now() + i,
            niy,
            name,
@@ -81,6 +82,9 @@ const newStaff = {
         dispatch({ type: 'ADD_STAFF', payload: newStaff })
         existingNIYs.add(niy)
         success++
+      }
+      if (success > 0) {
+        addActivityLog(dispatch, state, 'Import', `Pegawai • ${success} Data`, `Import massal ${success} pegawai baru dari file CSV`, null, null, currentUser?.unitId)
       }
       setResult({ success, errors })
     } catch (err) {

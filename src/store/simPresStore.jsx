@@ -270,18 +270,19 @@ function simPresReducer(state, action) {
             ...(action.payload.outsideRadius ? { outsideRadius: true } : {}),
           },
         ],
-        logs: [
-          {
-            id: Date.now(),
-            time: new Date().toLocaleString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
-            actor: 'Sistem Presensi',
-            role: 'Sistem',
-            action: 'Presensi',
-            target: `Pegawai • ${action.payload.name}`,
-            desc: `Presensi ${action.payload.method || 'manual'} ${action.payload.masuk ? `pukul ${action.payload.masuk} WIB` : ''}${action.payload.late ? ` (terlambat ${action.payload.late} menit)` : ''}`,
-          },
-          ...state.logs,
-        ],
+logs: [
+            {
+              id: Date.now(),
+              time: new Date().toLocaleString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+              actor: action.payload.name,
+              role: 'Sistem',
+              unit: state.units.find(u => u.id === action.payload.unitId)?.nama || '-',
+              action: 'Presensi',
+              target: `Pegawai • ${action.payload.name}`,
+              desc: `Presensi ${action.payload.method || 'manual'} ${action.payload.masuk ? `pukul ${action.payload.masuk} WIB` : ''}${action.payload.late ? ` (terlambat ${action.payload.late} menit)` : ''}`,
+            },
+            ...state.logs,
+          ],
         attendanceHistory: [historyEntryAdd, ...state.attendanceHistory],
       }
     case 'CHECK_IN':
@@ -307,18 +308,19 @@ function simPresReducer(state, action) {
             ? { ...s, masuk: action.payload.masuk, method: action.payload.method, late: action.payload.late ?? 0, status: 'Aktif' }
             : s,
         ),
-        logs: [
-          {
-            id: Date.now(),
-            time: new Date().toLocaleString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
-            actor: staffForLog?.name || 'Pegawai',
-            role: staffForLog?.role || 'Guru',
-            action: 'Presensi',
-            target: `Pegawai • ${staffForLog?.name || 'N/A'}`,
-            desc: `Presensi ${action.payload.method || 'Face Recognition'} pukul ${action.payload.masuk} WIB${action.payload.late ? ` (terlambat ${action.payload.late} menit)` : ''} di ${state.units.find(u => u.id === staffForLog?.unitId)?.nama || 'Unit'}`,
-          },
-          ...state.logs,
-        ],
+logs: [
+            {
+              id: Date.now(),
+              time: new Date().toLocaleString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+              actor: staffForLog?.name || 'Pegawai',
+              role: staffForLog?.role || 'Guru',
+              unit: state.units.find(u => u.id === staffForLog?.unitId)?.nama || 'Unit',
+              action: 'Presensi',
+              target: `Pegawai • ${staffForLog?.name || 'N/A'}`,
+              desc: `Presensi ${action.payload.method || 'Face Recognition'} pukul ${action.payload.masuk} WIB${action.payload.late ? ` (terlambat ${action.payload.late} menit)` : ''} di ${state.units.find(u => u.id === staffForLog?.unitId)?.nama || 'Unit'}`,
+            },
+            ...state.logs,
+          ],
         attendanceHistory: historyEntryCheckIn ? [historyEntryCheckIn, ...state.attendanceHistory] : state.attendanceHistory,
       }
     case 'ADD_LOG':
@@ -1339,6 +1341,45 @@ export function selectCurrentUser(state) {
 
 export function selectCurrentUserRole(state) {
   return state.currentUser?.role || 'Guru'
+}
+
+export function generateLogTime() {
+  const now = new Date()
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
+  const day = String(now.getDate()).padStart(2, '0')
+  const month = months[now.getMonth()]
+  const year = now.getFullYear()
+  const hours = String(now.getHours()).padStart(2, '0')
+  const minutes = String(now.getMinutes()).padStart(2, '0')
+  return `${day} ${month} ${year}, ${hours}:${minutes}`
+}
+
+export function createActivityLog(state, action, target, desc, actorName = null, actorRole = null, actorUnitId = null) {
+  const currentUser = selectCurrentUser(state)
+  const logId = state.logs.length === 0 ? 1 : Math.max(0, ...state.logs.map((l) => l.id)) + 1
+  const actor = actorName || currentUser?.name || 'Sistem'
+  const role = actorRole || currentUser?.role || 'Sistem'
+  const unitId = actorUnitId || currentUser?.unitId
+  let unit = '-'
+  if (unitId) {
+    const u = state.units.find((un) => un.id === unitId)
+    if (u) unit = u.nama
+  }
+  return {
+    id: logId,
+    time: generateLogTime(),
+    actor,
+    role,
+    unit,
+    action,
+    target,
+    desc,
+  }
+}
+
+export function addActivityLog(dispatch, state, action, target, desc, actorName = null, actorRole = null, actorUnitId = null) {
+  const log = createActivityLog(state, action, target, desc, actorName, actorRole, actorUnitId)
+  dispatch({ type: 'ADD_LOG', payload: log })
 }
 
 export function hasMenuPermission(state, menuKey) {

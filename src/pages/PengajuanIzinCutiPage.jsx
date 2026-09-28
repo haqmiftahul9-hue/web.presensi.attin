@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import * as XLSX from 'xlsx'
-import { useSimPres, selectLeavesEnriched, selectActiveStaff, selectUnitOptions, selectCurrentUserRole } from '../store/simPresStore.jsx'
+import { useSimPres, selectLeavesEnriched, selectActiveStaff, selectUnitOptions, selectCurrentUserRole, addActivityLog, selectUnitName } from '../store/simPresStore.jsx'
 import { initialsOf } from '../store/simPresStore.jsx'
 import { selectLeavesByStatus, selectPendingLeaves, selectApprovedLeaves, selectRejectedLeaves } from '../store/simPresStore.jsx'
 import LeaveRequestModal from '../components/LeaveRequestModal.jsx'
@@ -177,14 +177,22 @@ function PengajuanIzinCutiPage() {
 
   const handleSaveLeave = (newLeave) => {
     const newId = state.leaves.length > 0 ? Math.max(...state.leaves.map(l => l.id)) + 1 : 1
+    const leaveData = { ...newLeave, id: newId }
     dispatch({
       type: 'ADD_LEAVE',
-      payload: { ...newLeave, id: newId },
+      payload: leaveData,
     })
+    const staff = state.staff.find(s => s.id === newLeave.staffId)
+    addActivityLog(dispatch, state, 'Pengajuan', `Cuti/Izin • ${staff?.name || newLeave.staffId}`, `${staff?.name || 'Pegawai'} mengajukan ${newLeave.jenis} (${newLeave.durasi}): ${newLeave.keterangan}`, null, null, staff?.unitId)
   }
 
   const handleApprove = (id) => {
+    const leave = state.leaves.find(l => l.id === id)
+    const staff = leave ? state.staff.find(s => s.id === leave.staffId) : null
     dispatch({ type: 'UPDATE_LEAVE_STATUS', id, status: 'Disetujui' })
+    if (leave && staff) {
+      addActivityLog(dispatch, state, 'Persetujuan', `Cuti/Izin • ${staff.name}`, `Menyetujui pengajuan ${leave.jenis} (${leave.durasi}) untuk ${staff.name}`, null, null, staff.unitId)
+    }
   }
 
   const handleReject = (id) => {
@@ -193,7 +201,12 @@ function PengajuanIzinCutiPage() {
 
   const handleConfirmReject = () => {
     if (confirmRejectId) {
+      const leave = state.leaves.find(l => l.id === confirmRejectId)
+      const staff = leave ? state.staff.find(s => s.id === leave.staffId) : null
       dispatch({ type: 'UPDATE_LEAVE_STATUS', id: confirmRejectId, status: 'Ditolak' })
+      if (leave && staff) {
+        addActivityLog(dispatch, state, 'Penolakan', `Cuti/Izin • ${staff.name}`, `Menolak pengajuan ${leave.jenis} (${leave.durasi}) untuk ${staff.name}`, null, null, staff.unitId)
+      }
       setConfirmRejectId(null)
     }
   }
