@@ -1,7 +1,10 @@
 import { useState } from 'react'
-import { useSimPres, selectLeavesEnriched } from '../store/simPresStore.jsx'
+import * as XLSX from 'xlsx'
+import { useSimPres, selectLeavesEnriched, selectActiveStaff, selectUnitOptions, selectCurrentUserRole } from '../store/simPresStore.jsx'
 import { initialsOf } from '../store/simPresStore.jsx'
 import { selectLeavesByStatus, selectPendingLeaves, selectApprovedLeaves, selectRejectedLeaves } from '../store/simPresStore.jsx'
+import LeaveRequestModal from '../components/LeaveRequestModal.jsx'
+import LeaveDetailModal from '../components/LeaveDetailModal.jsx'
 
 const statusTabs = [
   { id: 'semua', label: 'Semua', count: 0, color: 'bg-surface-container-high text-on-surface-variant' },
@@ -12,11 +15,15 @@ const statusTabs = [
 
 const jenisOptions = [
   'Semua Jenis Izin/Cuti',
-  'Sakit (Surat Dokter)',
-  'Cuti Alasan Penting',
-  'Cuti Bersalin/Melahirkan',
-  'Cuti Besar',
-  'Izin Keperluan Pribadi',
+  'Sakit',
+  'Izin Pribadi',
+  'Cuti',
+]
+
+const periodeOptions = [
+  'Semua Periode',
+  'Bulan Ini',
+  'Tahun Ini',
 ]
 
 const statusClassMap = {
@@ -48,13 +55,28 @@ const avatarClassMap = {
 }
 
 function PengajuanIzinCutiPage() {
-  const { state } = useSimPres()
+  const { state, dispatch } = useSimPres()
   const [activeStatusTab, setActiveStatusTab] = useState('semua')
   const [searchTerm, setSearchTerm] = useState('')
   const [filterStatus, setFilterStatus] = useState('Semua Status')
   const [filterJenis, setFilterJenis] = useState('Semua Jenis Izin/Cuti')
   const [filterBulan, setFilterBulan] = useState('Sep 2026')
+  const [filterUnit, setFilterUnit] = useState('Semua Unit')
   const [currentPage, setCurrentPage] = useState(1)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [detailLeave, setDetailLeave] = useState(null)
+  const [isDetailOpen, setIsDetailOpen] = useState(false)
+  const [confirmRejectId, setConfirmRejectId] = useState(null)
+
+  const staffList = selectActiveStaff(state)
+  const unitOptions = selectUnitOptions(state)
+  const currentUserRole = selectCurrentUserRole(state)
+  const currentUser = state.currentUser
+  const isSuperadmin = currentUserRole === 'Superadmin'
+  const userUnitId = currentUser?.unitId
+
+  // Unit options untuk dropdown filter
+  const unitFilterOptions = ['Semua Unit', ...state.units.map(u => u.nama)]
 
   // Izin/cuti + identitas pegawai dari satu sumber data (store).
   const allLeaves = selectLeavesEnriched(state)
@@ -62,22 +84,68 @@ function PengajuanIzinCutiPage() {
   const approvedLeaves = selectApprovedLeaves(state)
   const rejectedLeaves = selectRejectedLeaves(state)
 
-  const updatedTabs = [
-    { ...statusTabs[0], count: allLeaves.length },
-    { ...statusTabs[1], count: pendingLeaves },
-    { ...statusTabs[2], count: approvedLeaves },
-    { ...statusTabs[3], count: rejectedLeaves },
-  ]
-
+  // 1. Terapkan filter ke allLeaves
   const filtered = allLeaves.filter((l) => {
+    // Unit filter - Superadmin bisa filter unit, Admin Unit hanya lihat unit sendiri
+    if (isSuperadmin) {
+      if (filterUnit !== 'Semua Unit' && l.unitName !== filterUnit) return false
+    } else {
+      // Admin Unit hanya bisa lihat unit sendiri
+      if (userUnitId && l.unitId !== userUnitId) return false
+    }
+    // Tab status filter
     if (activeStatusTab !== 'semua') {
       const statusMap = { menunggu: 'Menunggu', disetujui: 'Disetujui', ditolak: 'Ditolak' }
       if (l.status !== statusMap[activeStatusTab]) return false
     }
-    if (searchTerm && !l.name?.toLowerCase().includes(searchTerm.toLowerCase()) && !String(l.staffId).includes(searchTerm)) return false
+    // Search filter
+    if (searchTerm && !l.name?.toLowerCase().includes(searchTerm.toLowerCase()) && !String(l.staffId).includes(searchTerm) && !l.keterangan?.toLowerCase().includes(searchTerm.toLowerCase())) return false
+    // Filter Status dropdown
+    if (filterStatus !== 'Semua Status') {
+      const statusMap = { 'Menunggu Persetujuan': 'Menunggu', 'Disetujui': 'Disetujui', 'Ditolak': 'Ditolak' }
+      if (l.status !== statusMap[filterStatus]) return false
+    }
+    // Filter Jenis dropdown
+    if (filterJenis !== 'Semua Jenis Izin/Cuti') {
+      const jenisMap = { 'Sakit': 'Sakit', 'Izin Pribadi': 'Izin Pribadi', 'Cuti': 'Cuti' }
+      // Match by checking if leave.jenis contains the filter value
+      const filterKey = jenisMap[filterJenis]
+      if (filterKey) {
+        const matched = l.jenis === filterKey || l.jenis.includes(filterKey)
+        if (!matched) return false
+      }
+    }
+    // Filter Periode dropdown
+    if (filterBulan !== 'Semua Periode') {
+      const now = new Date()
+      const currentMonth = now.getMonth()
+      const currentYear = now.getFullYear()
+      // Parse period from leave.periode (format: "DD Mon YYYY - DD Mon YYYY" or "DD Mon YYYY")
+      const periodStartStr = l.periode.split(' - ')[0]
+      const periodDate = new Date(periodStartStr.replace(/(\d+) (\w+) (\d+)/, '$2 $1, $3'))
+      if (filterBulan === 'Bulan Ini') {
+        if (periodDate.getMonth() !== currentMonth || periodDate.getFullYear() !== currentYear) return false
+      } else if (filterBulan === 'Tahun Ini') {
+        if (periodDate.getFullYear() !== currentYear) return false
+      }
+    }
     return true
   })
 
+  // 2. Hitung statistik dari filtered
+  const filteredPending = filtered.filter(l => l.status === 'Menunggu').length
+  const filteredApproved = filtered.filter(l => l.status === 'Disetujui').length
+  const filteredRejected = filtered.filter(l => l.status === 'Ditolak').length
+
+  // 3. Update tab counts dari filtered
+  const updatedTabs = [
+    { ...statusTabs[0], count: filtered.length },
+    { ...statusTabs[1], count: filteredPending },
+    { ...statusTabs[2], count: filteredApproved },
+    { ...statusTabs[3], count: filteredRejected },
+  ]
+
+  // 4. Pagination
   const ITEMS_PER_PAGE = 5
   const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE))
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
@@ -96,15 +164,141 @@ function PengajuanIzinCutiPage() {
     durasi: leave.durasi,
     lampiran: leave.lampiran,
     status: leave.status,
+    keterangan: leave.keterangan,
+    unitName: leave.unitName,
     avatarClass: avatarClassMap[leave.jenis] || 'bg-surface-container text-on-surface',
     jenisClass: jenisClassMap[leave.jenis] || 'bg-surface-container text-on-surface',
     statusClass: statusClassMap[leave.status] || 'bg-surface-container text-on-surface',
     statusDot: statusDotMap[leave.status] || 'bg-outline',
   }))
 
+  const handleOpenModal = () => setIsModalOpen(true)
+  const handleCloseModal = () => setIsModalOpen(false)
+
+  const handleSaveLeave = (newLeave) => {
+    const newId = state.leaves.length > 0 ? Math.max(...state.leaves.map(l => l.id)) + 1 : 1
+    dispatch({
+      type: 'ADD_LEAVE',
+      payload: { ...newLeave, id: newId },
+    })
+  }
+
+  const handleApprove = (id) => {
+    dispatch({ type: 'UPDATE_LEAVE_STATUS', id, status: 'Disetujui' })
+  }
+
+  const handleReject = (id) => {
+    setConfirmRejectId(id)
+  }
+
+  const handleConfirmReject = () => {
+    if (confirmRejectId) {
+      dispatch({ type: 'UPDATE_LEAVE_STATUS', id: confirmRejectId, status: 'Ditolak' })
+      setConfirmRejectId(null)
+    }
+  }
+
+  const handleCancelReject = () => {
+    setConfirmRejectId(null)
+  }
+
+  const handleDetail = (leave) => {
+    setDetailLeave(leave)
+    setIsDetailOpen(true)
+  }
+
+  const handleCloseDetail = () => {
+    setIsDetailOpen(false)
+    setDetailLeave(null)
+  }
+
+  const handleViewAttachment = (leave) => {
+    // In real app, this would open the file. For now, show detail modal with attachment tab.
+    setDetailLeave(leave)
+    setIsDetailOpen(true)
+  }
+
+  const handleExportExcel = () => {
+    // Parse period for filename
+    let periodLabel = 'Semua_Periode'
+    const now = new Date()
+    const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
+    if (filterBulan === 'Bulan Ini') {
+      periodLabel = `${months[now.getMonth()]}_${now.getFullYear()}`
+    } else if (filterBulan === 'Tahun Ini') {
+      periodLabel = `Tahun_${now.getFullYear()}`
+    } else if (filterBulan && filterBulan !== 'Semua Periode') {
+      periodLabel = filterBulan.replace(/\s+/g, '_')
+    }
+
+    // Unit label for filename
+    let unitLabel = 'Semua_Unit'
+    if (!isSuperadmin) {
+      const userUnit = state.units.find(u => u.id === userUnitId)
+      unitLabel = userUnit?.nama?.replace(/\s+/g, '_') || 'SDIT_Attin_Sumbar'
+    } else if (filterUnit !== 'Semua Unit') {
+      unitLabel = filterUnit.replace(/\s+/g, '_')
+    }
+
+    // Prepare data for export - using filtered data
+    const exportData = filtered.map((leave, index) => {
+      // Parse periode to get start and end dates
+      const periodeParts = leave.periode.split(' - ')
+      const tanggalMulai = periodeParts[0] || '-'
+      const tanggalSelesai = periodeParts[1] || tanggalMulai
+
+      return {
+        No: index + 1,
+        'Nama Pegawai': leave.name,
+        'NIY/NIP': leave.niy,
+        Unit: leave.unitName || '-',
+        'Jenis Izin/Cuti': leave.jenis,
+        'Tanggal Mulai': tanggalMulai,
+        'Tanggal Selesai': tanggalSelesai,
+        Durasi: leave.durasi,
+        Alasan: leave.keterangan || '-',
+        Status: leave.status,
+      }
+    })
+
+    // Create workbook
+    const wb = XLSX.utils.book_new()
+
+    // Title row
+    const titleRow = [['Laporan Pengajuan Izin dan Cuti Pegawai']]
+    const ws = XLSX.utils.aoa_to_sheet(titleRow, { origin: 'A1' })
+
+    // Add data starting from row 3
+    XLSX.utils.sheet_add_json(ws, exportData, { origin: 'A3', skipHeader: false })
+
+    // Set column widths
+    const colWidths = [
+      { wch: 5 },   // No
+      { wch: 30 },  // Nama Pegawai
+      { wch: 18 },  // NIY/NIP
+      { wch: 25 },  // Unit
+      { wch: 25 },  // Jenis Izin/Cuti
+      { wch: 18 },  // Tanggal Mulai
+      { wch: 18 },  // Tanggal Selesai
+      { wch: 12 },  // Durasi
+      { wch: 30 },  // Alasan
+      { wch: 15 },  // Status
+    ]
+    ws['!cols'] = colWidths
+
+    XLSX.utils.book_append_sheet(wb, ws, 'Laporan Izin Cuti')
+
+    // Generate filename
+    const fileName = `Laporan_Izin_Cuti_${unitLabel}_${periodLabel}.xlsx`
+
+    // Save file
+    XLSX.writeFile(wb, fileName)
+  }
+
   return (
-    <div className="flex flex-col w-full">
-      <div className="p-space-lg md:p-space-xl flex flex-col gap-space-lg max-w-[1600px] mx-auto w-full">
+    <>
+      <div className="flex flex-col w-full">
+        <div className="p-space-lg md:p-space-xl flex flex-col gap-space-lg max-w-[1600px] mx-auto w-full">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-space-md">
           <div className="flex flex-col gap-space-2xs">
             <div className="flex items-center gap-space-xs text-on-surface-variant font-body-sm text-body-sm">
@@ -120,11 +314,19 @@ function PengajuanIzinCutiPage() {
             </p>
           </div>
           <div className="flex items-center gap-space-sm flex-wrap">
-            <button className="h-10 px-space-md rounded-lg bg-surface-container-lowest text-primary-container font-body-md-medium text-body-md-medium shadow-sm hover:bg-surface-container-low transition-colors flex items-center gap-space-xs cursor-pointer" type="button">
+            <button
+              onClick={handleExportExcel}
+              className="h-10 px-space-md rounded-lg bg-surface-container-lowest text-primary-container font-body-md-medium text-body-md-medium shadow-sm hover:bg-surface-container-low transition-colors flex items-center gap-space-xs cursor-pointer"
+              type="button"
+            >
               <span className="material-symbols-outlined text-[18px]">file_download</span>
               <span>Export Laporan (.XLSX)</span>
             </button>
-            <button className="h-10 px-space-md rounded-lg bg-primary-container text-on-primary font-body-md-medium text-body-md-medium shadow-sm hover:bg-primary transition-colors flex items-center gap-space-xs cursor-pointer" type="button">
+            <button
+              onClick={handleOpenModal}
+              className="h-10 px-space-md rounded-lg bg-primary-container text-on-primary font-body-md-medium text-body-md-medium shadow-sm hover:bg-primary transition-colors flex items-center gap-space-xs cursor-pointer"
+              type="button"
+            >
               <span className="material-symbols-outlined text-[18px]">add</span>
               <span>+ Ajukan Izin Staf (Manual TU)</span>
             </button>
@@ -137,7 +339,7 @@ function PengajuanIzinCutiPage() {
               <div className="flex flex-col">
                 <span className="font-label-md text-label-md uppercase tracking-wider text-on-surface-variant">Menunggu Persetujuan</span>
                 <div className="flex items-baseline gap-space-xs mt-1">
-                  <span className="font-headline-lg text-headline-lg text-primary tracking-tight">{pendingLeaves}</span>
+                  <span className="font-headline-lg text-headline-lg text-primary tracking-tight">{filteredPending}</span>
                   <span className="font-body-sm-medium text-body-sm-medium text-on-surface-variant">Pengajuan</span>
                 </div>
               </div>
@@ -156,7 +358,7 @@ function PengajuanIzinCutiPage() {
               <div className="flex flex-col">
                 <span className="font-label-md text-label-md uppercase tracking-wider text-on-surface-variant">Disetujui Bulan Ini</span>
                 <div className="flex items-baseline gap-space-xs mt-1">
-                  <span className="font-headline-lg text-headline-lg text-primary tracking-tight">{approvedLeaves}</span>
+                  <span className="font-headline-lg text-headline-lg text-primary tracking-tight">{filteredApproved}</span>
                   <span className="font-body-sm-medium text-body-sm-medium text-on-surface-variant">Pegawai</span>
                 </div>
               </div>
@@ -166,7 +368,12 @@ function PengajuanIzinCutiPage() {
             </div>
             <div className="flex items-center gap-space-xs mt-space-md">
               <span className="font-body-sm text-body-sm text-on-surface-variant">Unit Terdaftar:</span>
-              <span className="font-body-sm-medium text-body-sm-medium text-emerald-700">SDIT Attin Sumbar (Tercatat 100%)</span>
+              <span className="font-body-sm-medium text-body-sm-medium text-emerald-700">
+                {isSuperadmin 
+                  ? (filterUnit === 'Semua Unit' ? 'Semua Unit (4 Unit)' : `${filterUnit} (Tercatat 100%)`)
+                  : `${currentUser?.unitId ? state.units.find(u => u.id === currentUser.unitId)?.nama : 'SDIT Attin Sumbar'} (Tercatat 100%)`
+                }
+              </span>
             </div>
           </div>
 
@@ -175,7 +382,7 @@ function PengajuanIzinCutiPage() {
               <div className="flex flex-col">
                 <span className="font-label-md text-label-md uppercase tracking-wider text-on-surface-variant">Ditolak / Dibatalkan</span>
                 <div className="flex items-baseline gap-space-xs mt-1">
-                  <span className="font-headline-lg text-headline-lg text-primary tracking-tight">{rejectedLeaves}</span>
+                  <span className="font-headline-lg text-headline-lg text-primary tracking-tight">{filteredRejected}</span>
                   <span className="font-body-sm-medium text-body-sm-medium text-on-surface-variant">Pengajuan</span>
                 </div>
               </div>
@@ -210,7 +417,12 @@ function PengajuanIzinCutiPage() {
             </div>
             <div className="flex items-center gap-space-xs text-on-surface-variant font-body-sm text-body-sm">
               <span className="material-symbols-outlined text-[18px]">tune</span>
-              <span>Filter Aktif: Unit SDIT Attin Sumbar</span>
+              <span>
+                {isSuperadmin 
+                  ? `Filter Aktif: ${filterUnit}` 
+                  : `Filter Aktif: Unit ${currentUser?.unitId ? state.units.find(u => u.id === currentUser.unitId)?.nama : 'SDIT Attin Sumbar'}`
+                }
+              </span>
             </div>
           </div>
 
@@ -230,7 +442,7 @@ function PengajuanIzinCutiPage() {
                 <select
                   className="w-full h-10 pl-space-sm pr-8 bg-surface-container-low rounded-lg font-body-sm-medium text-body-sm-medium text-on-surface appearance-none focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-secondary/20"
                   value={filterStatus}
-                  onChange={(e) => setFilterStatus(e.target.value)}
+                  onChange={(e) => { setFilterStatus(e.target.value); setCurrentPage(1) }}
                 >
                   <option>Semua Status</option>
                   <option>Menunggu Persetujuan</option>
@@ -245,7 +457,7 @@ function PengajuanIzinCutiPage() {
                 <select
                   className="w-full h-10 pl-space-sm pr-8 bg-surface-container-low rounded-lg font-body-sm-medium text-body-sm-medium text-on-surface appearance-none focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-secondary/20"
                   value={filterJenis}
-                  onChange={(e) => setFilterJenis(e.target.value)}
+                  onChange={(e) => { setFilterJenis(e.target.value); setCurrentPage(1) }}
                 >
                   {jenisOptions.map((opt) => (
                     <option key={opt}>{opt}</option>
@@ -254,18 +466,34 @@ function PengajuanIzinCutiPage() {
                 <span className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-outline text-[18px] pointer-events-none">expand_more</span>
               </div>
             </div>
+            {isSuperadmin && (
+              <div className="md:col-span-2">
+                <div className="relative">
+                  <select
+                    className="w-full h-10 pl-space-sm pr-8 bg-surface-container-low rounded-lg font-body-sm-medium text-body-sm-medium text-on-surface appearance-none focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-secondary/20"
+                    value={filterUnit}
+                    onChange={(e) => { setFilterUnit(e.target.value); setCurrentPage(1) }}
+                  >
+                    {unitFilterOptions.map((opt) => (
+                      <option key={opt}>{opt}</option>
+                    ))}
+                  </select>
+                  <span className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-outline text-[18px] pointer-events-none">expand_more</span>
+                </div>
+              </div>
+            )}
             <div className="md:col-span-2">
               <div className="relative">
-                <button
-                  className="w-full h-10 px-space-sm bg-surface-container-low rounded-lg font-body-sm-medium text-body-sm-medium text-on-surface flex items-center justify-between hover:bg-surface-container transition-colors cursor-pointer"
-                  type="button"
+                <select
+                  className="w-full h-10 pl-space-sm pr-8 bg-surface-container-low rounded-lg font-body-sm-medium text-body-sm-medium text-on-surface appearance-none focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-secondary/20"
+                  value={filterBulan}
+                  onChange={(e) => { setFilterBulan(e.target.value); setCurrentPage(1) }}
                 >
-                  <div className="flex items-center gap-space-2xs truncate">
-                    <span className="material-symbols-outlined text-[16px] text-outline">calendar_month</span>
-                    <span className="truncate">{filterBulan}</span>
-                  </div>
-                  <span className="material-symbols-outlined text-[18px] text-outline">expand_more</span>
-                </button>
+                  {periodeOptions.map((opt) => (
+                    <option key={opt}>{opt}</option>
+                  ))}
+                </select>
+                <span className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-outline text-[18px] pointer-events-none">expand_more</span>
               </div>
             </div>
           </div>
@@ -273,75 +501,78 @@ function PengajuanIzinCutiPage() {
 
         <div className="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left">
+            <table className="w-full text-left table-fixed">
               <thead className="bg-surface-container-low">
                 <tr>
-                  <th className="py-3 px-space-md font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Pegawai</th>
-                  <th className="py-3 px-space-md font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Jenis</th>
-                  <th className="py-3 px-space-md font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Periode</th>
-                  <th className="py-3 px-space-md font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Durasi</th>
-                  <th className="py-3 px-space-md font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Lampiran</th>
-                  <th className="py-3 px-space-md font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Status</th>
-                  <th className="py-3 px-space-md font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-right">Aksi</th>
+                  <th className="py-2 px-3 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider w-[28%]">Pegawai</th>
+                  <th className="py-2 px-2 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider w-[11%]">Unit</th>
+                  <th className="py-2 px-2 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider w-[10%]">Jenis</th>
+                  <th className="py-2 px-2 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider w-[12%]">Periode</th>
+                  <th className="py-2 px-2 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider w-[7%]">Durasi</th>
+                  <th className="py-2 px-2 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider w-[12%]">Lampiran</th>
+                  <th className="py-2 px-2 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider w=[10%]">Status</th>
+                  <th className="py-2 px-2 font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider w-[10%]">Aksi</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-surface-container">
                 {tableData.map((row) => (
                   <tr key={row.id} className="hover:bg-surface-container-low/60 transition-colors">
-                    <td className="py-3.5 px-space-md">
-                      <div className="flex items-center gap-space-sm">
-                        <div className={`w-9 h-9 rounded-full flex items-center justify-center font-body-sm-medium text-body-sm-medium flex-shrink-0 ${row.avatarClass}`}>
+                    <td className="py-2 px-3">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-label-md text-label-md flex-shrink-0 ${row.avatarClass}`}>
                           {row.initials}
                         </div>
-                        <div className="flex flex-col min-w-0">
-                          <span className="font-body-md-medium text-body-md-medium text-on-surface truncate">{row.name}</span>
-                          <span className="font-body-sm text-body-sm text-on-surface-variant truncate">NIY: {row.niy} • {row.role}</span>
+                        <div className="flex flex-col min-w-0 overflow-hidden">
+                          <span className="font-body-sm-medium text-body-sm-medium text-on-surface truncate block">{row.name}</span>
+                          <span className="font-body-xs text-body-xs text-on-surface-variant truncate block">{row.niy} • {row.role}</span>
                         </div>
                       </div>
                     </td>
-                    <td className="py-3.5 px-space-md whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full font-body-sm-medium text-body-sm-medium ${row.jenisClass}`}>
+                    <td className="py-2 px-2 font-body-xs text-body-xs text-on-surface-variant whitespace-nowrap">
+                      {row.unitName || '-'}
+                    </td>
+                    <td className="py-2 px-2">
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full font-body-xs text-body-xs ${row.jenisClass} whitespace-nowrap`}>
                         {row.jenis}
                       </span>
                     </td>
-                    <td className="py-3.5 px-space-md whitespace-nowrap font-body-sm text-body-sm text-on-surface">
+                    <td className="py-2 px-2 font-body-xs text-body-xs text-on-surface whitespace-nowrap">
                       {row.periode}
                     </td>
-                    <td className="py-3.5 px-space-md whitespace-nowrap">
-                      <span className="font-body-sm-medium text-body-sm-medium text-primary">{row.durasi}</span>
+                    <td className="py-2 px-2 font-body-xs text-body-xs text-primary whitespace-nowrap">
+                      {row.durasi}
                     </td>
-                    <td className="py-3.5 px-space-md whitespace-nowrap">
-                      <button className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-surface-container-low text-secondary hover:bg-surface-container transition-colors font-body-sm-medium text-body-sm-medium cursor-pointer">
-                        <span className="material-symbols-outlined text-[16px]">attach_file</span>
-                        <span className="truncate max-w-[130px]">{row.lampiran}</span>
+                    <td className="py-2 px-2">
+                      <button onClick={() => handleViewAttachment(row)} className="inline-flex items-center gap-1 px-1.5 py-1 rounded bg-surface-container-low text-secondary hover:bg-surface-container hover:text-primary transition-colors font-body-xs text-body-xs cursor-pointer w-full justify-center" title={row.lampiran}>
+                        <span className="material-symbols-outlined text-[14px] flex-shrink-0">attach_file</span>
+                        <span className="truncate block max-w-[100px]">{row.lampiran}</span>
                       </button>
                     </td>
-                    <td className="py-3.5 px-space-md whitespace-nowrap">
-                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-body-sm-medium text-body-sm-medium ${row.statusClass}`}>
-                        <span className={`w-1.5 h-1.5 rounded-full ${row.statusDot}`}></span>
+                    <td className="py-2 px-2">
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-body-xs text-body-xs ${row.statusClass} whitespace-nowrap flex-shrink-0`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${row.statusDot} flex-shrink-0`}></span>
                         {row.status}
                       </span>
                     </td>
-                    <td className="py-3.5 px-space-md whitespace-nowrap text-right">
+                    <td className="py-2 px-2">
                       {row.status === 'Menunggu' ? (
-                        <div className="flex items-center justify-end gap-1.5">
-                          <button className="h-8 px-2.5 rounded-lg bg-emerald-600 text-on-primary hover:bg-emerald-700 transition-colors font-body-sm-medium text-body-sm-medium flex items-center gap-1 shadow-sm cursor-pointer" type="button">
+                        <div className="flex items-center justify-center gap-1">
+                          <button onClick={() => handleApprove(row.id)} className="h-7 w-7 rounded bg-emerald-600 text-on-primary hover:bg-emerald-700 transition-colors flex items-center justify-center shadow-sm cursor-pointer flex-shrink-0" type="button" title="Setujui">
                             <span className="material-symbols-outlined text-[16px]">check</span>
-                            <span>Setujui</span>
                           </button>
-                          <button className="h-8 px-2.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors font-body-sm-medium text-body-sm-medium flex items-center gap-1 cursor-pointer" type="button">
+                          <button onClick={() => handleReject(row.id)} className="h-7 w-7 rounded bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 transition-colors flex items-center justify-center cursor-pointer flex-shrink-0" type="button" title="Tolak">
                             <span className="material-symbols-outlined text-[16px]">close</span>
-                            <span>Tolak</span>
                           </button>
-                          <button className="w-8 h-8 rounded-lg text-on-surface-variant hover:bg-surface-container flex items-center justify-center transition-colors cursor-pointer" type="button">
+                          <button onClick={() => handleDetail(row)} className="h-7 w-7 rounded text-on-surface-variant hover:bg-surface-container flex items-center justify-center transition-colors cursor-pointer flex-shrink-0" type="button" title="Detail">
                             <span className="material-symbols-outlined text-[18px]">visibility</span>
                           </button>
                         </div>
                       ) : (
-                        <button className="h-7 px-2 rounded-lg bg-surface-container-low hover:bg-surface-container text-secondary font-body-sm text-body-sm transition-colors flex items-center gap-1 cursor-pointer" type="button">
-                          <span className="material-symbols-outlined text-[16px]">visibility</span>
-                          <span>Detail</span>
-                        </button>
+                        <div className="flex items-center justify-center">
+                          <button onClick={() => handleDetail(row)} className="h-7 w-7 rounded bg-surface-container-low hover:bg-surface-container text-secondary flex items-center justify-center transition-colors cursor-pointer flex-shrink-0" type="button" title="Detail">
+                            <span className="material-symbols-outlined text-[18px]">visibility</span>
+                          </button>
+                        </div>
                       )}
                     </td>
                   </tr>
@@ -457,9 +688,53 @@ function PengajuanIzinCutiPage() {
               <span className="font-body-sm text-body-sm text-on-surface-variant">Sinkronisasi Data SimPres Pusat: <strong className="text-on-surface">Realtime</strong></span>
             </div>
           </div>
-        </div>
+</div>
       </div>
-    </div>
+      </div>
+
+      {/* Confirm Reject Dialog */}
+      {confirmRejectId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" onClick={handleCancelReject}>
+          <div className="relative w-full max-w-md bg-surface-container-lowest rounded-2xl shadow-2xl border border-outline/20 overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
+            <div className="px-space-lg py-space-md border-b border-outline/20 flex items-center justify-between bg-surface-container/50">
+              <h3 className="font-headline-sm text-headline-sm text-primary">Konfirmasi Tolak</h3>
+              <button onClick={handleCancelReject} className="w-8 h-8 rounded-full flex items-center justify-center text-outline hover:bg-surface-container hover:text-on-surface transition-colors cursor-pointer" type="button">
+                <span className="material-symbols-outlined text-[20px]">close</span>
+              </button>
+            </div>
+            <div className="p-space-lg text-center">
+              <span className="material-symbols-outlined text-red-500 text-[48px] mb-4 block">help_outline</span>
+              <p className="font-body-md text-body-md text-on-surface mb-2">Tolak pengajuan ini?</p>
+              <p className="font-body-sm text-body-sm text-on-surface-variant">Status akan berubah menjadi <strong className="text-red-600">Ditolak</strong>. Tindakan ini tidak dapat dibatalkan.</p>
+            </div>
+            <div className="px-space-lg py-space-md bg-surface-container/50 border-t border-outline/20 flex items-center justify-end gap-space-md">
+              <button onClick={handleCancelReject} className="px-space-md py-2 rounded-lg border border-outline bg-surface-container-lowest hover:bg-surface-container text-on-surface-variant font-body-md-medium text-body-md-medium transition-colors cursor-pointer" type="button">
+                Batal
+              </button>
+              <button onClick={handleConfirmReject} className="px-space-md py-2 rounded-lg bg-red-600 hover:bg-red-700 text-on-primary font-body-md-medium text-body-md-medium flex items-center gap-2 shadow-sm transition-colors cursor-pointer" type="button">
+                <span className="material-symbols-outlined text-[18px]">close</span>
+                <span>Tolak</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Detail Modal */}
+      <LeaveDetailModal
+        isOpen={isDetailOpen}
+        onClose={handleCloseDetail}
+        leave={detailLeave}
+      />
+
+      <LeaveRequestModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onSave={handleSaveLeave}
+        staffList={staffList}
+        units={state.units}
+      />
+    </>
   )
 }
 
