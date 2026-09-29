@@ -19,6 +19,16 @@ const initialState = {
   settings: INITIAL_SETTINGS,
   weeklyTrend: WEEKLY_TREND,
   holidays: HOLIDAYS,
+  currentUser: ADMIN_USERS[0],
+}
+
+// Nomor berikutnya dihitung dari data yang ada, bukan dari state terpisah,
+// sehingga tidak pernah bentrok walau ada impor massal.
+function nextIdFrom(list, key = 'id') {
+  return list.reduce((max, item) => {
+    const n = Number(item[key])
+    return Number.isFinite(n) && n > max ? n : max
+  }, 0) + 1
 }
 
 function simPresReducer(state, action) {
@@ -39,8 +49,13 @@ function simPresReducer(state, action) {
           s.id === action.payload.id ? { ...s, ...action.payload } : s,
         ),
       }
-    case 'ADD_STAFF':
-      return { ...state, staff: [...state.staff, action.payload] }
+    case 'ADD_STAFF': {
+      // Id bentrok (mis. impor massal) selalu digenerate ulang dari data yang ada.
+      const id = state.staff.some((s) => s.id === action.payload.id)
+        ? nextIdFrom(state.staff)
+        : action.payload.id
+      return { ...state, staff: [...state.staff, { ...action.payload, id }] }
+    }
     case 'DELETE_STAFF':
       return { ...state, staff: state.staff.filter((s) => s.id !== action.payload) }
     case 'UPDATE_UNIT':
@@ -231,6 +246,95 @@ export function selectRejectedLeaves(state) {
 
 export function selectStaffById(state, id) {
   return state.staff.find((s) => s.id === id)
+}
+
+export function selectCurrentUser(state) {
+  return state.currentUser
+}
+
+export function selectCurrentUserRole(state) {
+  return state.currentUser?.role || 'Guru'
+}
+
+export function nextStaffId(state) {
+  return nextIdFrom(state.staff)
+}
+
+export function selectStaffByNiy(state, niy) {
+  const key = String(niy ?? '').trim()
+  if (!key) return undefined
+  return state.staff.find((s) => String(s.niy).trim() === key)
+}
+
+// Jabatan yang dipakai form = jabatan yang benar-benar ada di store,
+// digabung dengan daftar baku supaya pegawai baru pun bisa memilih.
+export function selectJabatanOptions(state) {
+  const base = [
+    'Guru Kelas',
+    'Guru Mapel',
+    'Guru PAI',
+    'Guru Tahfidz',
+    'Guru BK',
+    'Wali Kelas',
+    'Guru Sentra',
+    'Guru Kelompok Bermain',
+    'Asisten Guru TK',
+    'Laboran',
+    'Staf Administrasi',
+    'Staf TU',
+    'Kepala Unit',
+  ]
+  const fromStaff = state.staff.map((s) => s.role).filter(Boolean)
+  return Array.from(new Set([...base, ...fromStaff])).sort((a, b) => a.localeCompare(b, 'id'))
+}
+
+// Pencarian resmi: nama, NIY/NIP, jabatan, dan nama unit.
+export function selectFilteredStaff(state, { unitId = 'all', searchTerm = '', status = 'all' } = {}) {
+  const q = String(searchTerm || '').trim().toLowerCase()
+  return state.staff.filter((s) => {
+    if (unitId && unitId !== 'all' && s.unitId !== unitId) return false
+    if (status && status !== 'all' && s.status !== status) return false
+    if (!q) return true
+    const unit = state.units.find((u) => u.id === s.unitId)
+    return (
+      String(s.name || '').toLowerCase().includes(q) ||
+      String(s.niy || '').toLowerCase().includes(q) ||
+      String(s.nip || '').toLowerCase().includes(q) ||
+      String(s.role || '').toLowerCase().includes(q) ||
+      String(unit ? unit.nama : '').toLowerCase().includes(q)
+    )
+  })
+}
+
+export function generateLogTime() {
+  const now = new Date()
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
+  const day = String(now.getDate()).padStart(2, '0')
+  const month = months[now.getMonth()]
+  const year = now.getFullYear()
+  const hours = String(now.getHours()).padStart(2, '0')
+  const minutes = String(now.getMinutes()).padStart(2, '0')
+  return `${day} ${month} ${year}, ${hours}:${minutes}`
+}
+
+export function createActivityLog(state, action, target, desc, actorName = null, actorRole = null, actorUnitId = null) {
+  const currentUser = selectCurrentUser(state)
+  const unitId = actorUnitId || currentUser?.unitId
+  const unit = unitId ? state.units.find((u) => u.id === unitId) : null
+  return {
+    id: state.logs.length === 0 ? 1 : Math.max(0, ...state.logs.map((l) => l.id)) + 1,
+    time: generateLogTime(),
+    actor: actorName || currentUser?.name || 'Sistem',
+    role: actorRole || currentUser?.role || 'Sistem',
+    unit: unit ? unit.nama : '-',
+    action,
+    target,
+    desc,
+  }
+}
+
+export function addActivityLog(dispatch, state, action, target, desc, actorName = null, actorRole = null, actorUnitId = null) {
+  dispatch({ type: 'ADD_LOG', payload: createActivityLog(state, action, target, desc, actorName, actorRole, actorUnitId) })
 }
 
 export function selectUnitById(state, id) {

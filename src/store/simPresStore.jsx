@@ -160,12 +160,18 @@ function simPresReducer(state, action) {
         ),
         adminUsers: syncAdminUserFromStaff(state.adminUsers, action.payload),
       }
-    case 'ADD_STAFF':
+    case 'ADD_STAFF': {
+      // Id yang bentrok (mis. impor massal) selalu digenerate ulang dari data
+      // yang ada, supaya tidak pernah menimpa pegawai lain.
+      const staffToAdd = state.staff.some((s) => s.id === action.payload.id)
+        ? { ...action.payload, id: nextIdFrom(state.staff) }
+        : action.payload
       return {
         ...state,
-        staff: [...state.staff, action.payload],
-        adminUsers: syncAdminUserFromStaff(state.adminUsers, action.payload, 'add'),
+        staff: [...state.staff, staffToAdd],
+        adminUsers: syncAdminUserFromStaff(state.adminUsers, staffToAdd, 'add'),
       };
+    }
     case 'DELETE_STAFF':
       const staffId = action.payload;
       const staffToDelete = state.staff.find((s) => s.id === staffId);
@@ -493,6 +499,56 @@ export function selectRejectedLeaves(state) {
 
 export function selectStaffById(state, id) {
   return state.staff.find((s) => s.id === id)
+}
+
+// Nomor berikutnya dihitung dari data yang ada, bukan dari state terpisah,
+// sehingga tidak pernah bentrok walau ada impor massal.
+function nextIdFrom(list, key = 'id') {
+  return list.reduce((max, item) => {
+    const n = Number(item[key])
+    return Number.isFinite(n) && n > max ? n : max
+  }, 0) + 1
+}
+
+export function nextStaffId(state) {
+  return nextIdFrom(state.staff)
+}
+
+export function selectStaffByNiy(state, niy) {
+  const key = String(niy ?? '').trim()
+  if (!key) return undefined
+  return state.staff.find((s) => String(s.niy).trim() === key)
+}
+
+// Jabatan untuk form = jabatan yang benar-benar ada di store, digabung dengan
+// daftar baku supaya pegawai baru pun tetap bisa memilih jabatan yang relevan.
+export function selectJabatanOptions(state) {
+  const base = [
+    'Guru Kelas', 'Guru Mapel', 'Guru PAI', 'Guru Tahfidz', 'Guru BK', 'Wali Kelas',
+    'Guru Sentra', 'Guru Kelompok Bermain', 'Asisten Guru TK', 'Laboran',
+    'Staf Administrasi', 'Staf TU', 'Kepala Unit',
+  ]
+  const fromStaff = state.staff.map((s) => s.role).filter(Boolean)
+  return Array.from(new Set([...base, ...fromStaff])).sort((a, b) => a.localeCompare(b, 'id'))
+}
+
+// Satu-satunya sumber filtering tabel Data Guru/Pegawai: unit, status, dan
+// pencarian (nama, NIY/NIP, jabatan, nama unit).
+export function selectFilteredStaff(state, { unitId = 'all', searchTerm = '', status = 'all' } = {}) {
+  const q = String(searchTerm || '').trim().toLowerCase()
+  return state.staff.filter((s) => {
+    if (unitId && unitId !== 'all' && s.unitId !== unitId) return false
+    if (status && status !== 'all' && s.status !== status) return false
+    if (!q) return true
+    const unit = state.units.find((u) => u.id === s.unitId)
+    return (
+      String(s.name || '').toLowerCase().includes(q) ||
+      String(s.niy || '').toLowerCase().includes(q) ||
+      String(s.nip || '').toLowerCase().includes(q) ||
+      String(s.role || '').toLowerCase().includes(q) ||
+      String(unit ? unit.nama : '').toLowerCase().includes(q)
+    )
+  })
 }
 
 export function selectUnitById(state, id) {

@@ -7,14 +7,52 @@ import ImportModal from '../components/ImportModal.jsx'
 
 function DataGuruPegawaiPage() {
   const [showImport, setShowImport] = useState(false)
+  const [unitFilter, setUnitFilter] = useState('all')
+  const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState('all')
+  const [currentPage, setCurrentPage] = useState(1)
+  const [focusStaffId, setFocusStaffId] = useState(null)
+
+  const handleResetFilters = () => {
+    setUnitFilter('all')
+    setSearchTerm('')
+    setStatusFilter('all')
+  }
 
   return (
-    <div className="px-space-xl py-space-lg flex flex-col gap-space-lg max-w-[1600px] mx-auto w-full">
+    <div className="px-space-xl py-space-lg flex flex-col gap-space-lg w-full min-w-0">
       <BreadcrumbHeader />
-      <ActionToolbar onImport={() => setShowImport(true)} />
-      <StaffTable />
+      <ActionToolbar
+        onImport={() => setShowImport(true)}
+        unitFilter={unitFilter}
+        setUnitFilter={setUnitFilter}
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        statusFilter={statusFilter}
+        setStatusFilter={setStatusFilter}
+        onResetFilters={handleResetFilters}
+        setCurrentPageReset={setCurrentPage}
+        onStaffAdded={setFocusStaffId}
+      />
+      <StaffTable
+        unitFilter={unitFilter}
+        searchTerm={searchTerm}
+        statusFilter={statusFilter}
+        currentPage={currentPage}
+        setCurrentPage={setCurrentPage}
+        focusStaffId={focusStaffId}
+      />
       <UnitCards />
-      <ImportModal show={showImport} onClose={() => setShowImport(false)} />
+      <ImportModal
+        show={showImport}
+        onClose={() => setShowImport(false)}
+        onImported={(firstAddedId) => {
+          // Baris hasil impor berada di urutan terakhir: arahkan tabel ke sana
+          // supaya data baru langsung terlihat.
+          setCurrentPage(1)
+          if (firstAddedId != null) setFocusStaffId(firstAddedId)
+        }}
+      />
     </div>
   )
 }

@@ -9,14 +9,14 @@ export const UNITS = [
 ]
 
 export const STAFF = [
-  { id: 1, niy: '049005069', name: 'Erianto, S.Ag, M.Pd.I', role: 'Guru PAI', unitId: 'smp', status: 'Aktif', masuk: '06:45:12', method: 'Face Recognition', late: 0 },
-  { id: 2, niy: '049097021', name: 'Bustanul Abidin, S.Pd', role: 'Guru Kelas 6 & Kurikulum', unitId: 'sd', status: 'Aktif', masuk: '06:52:04', method: 'QR Code', late: 0 },
-  { id: 3, niy: '049098034', name: 'Sulasmi, S.Pd', role: 'Guru Kelas 3 • Tahfidz', unitId: 'sd', status: 'Aktif', masuk: '06:50:33', method: 'Face Recognition', late: 0 },
-  { id: 4, niy: '049001054', name: 'Wisna Yunita, S.Pd', role: 'Guru Kelas 1 • Tematik', unitId: 'sd', status: 'Aktif', masuk: '06:58:33', method: 'Face Recognition', late: 0 },
-  { id: 5, niy: '029011052', name: 'Irmawati, S.Pd', role: 'Guru Sentra', unitId: 'tk', status: 'Aktif', masuk: '07:20:10', method: 'QR Code', late: 20 },
-  { id: 6, niy: '029012056', name: 'Risa Fadillah, S.Pd', role: 'Guru Biologi & Laboran', unitId: 'sma', status: 'Nonaktif', masuk: null, method: null, late: 0 },
-  { id: 7, niy: '049033108', name: 'Hendra Kurniawan, S.Pd.I', role: 'Guru Agama', unitId: 'sd', status: 'Aktif', masuk: null, method: null, late: 0, alpha: true },
-  { id: 8, niy: '049023183', name: 'Silvana Monica, S.Ak', role: 'Staf Administrasi', unitId: 'sma', status: 'Aktif', masuk: '07:08:45', method: 'QR Code', late: 0, outsideRadius: true },
+  { id: 1, niy: '049005069', nip: '198501012005011001', name: 'Erianto, S.Ag, M.Pd.I', role: 'Guru PAI', unitId: 'smp', status: 'Aktif', masuk: '06:45:12', method: 'Face Recognition', late: 0, nomorIdentitas: '3174012345678901', kontak: '081234567890', email: 'erianto@simpres.sch.id', gelar: 'S.Ag, M.Pd.I', tempatLahir: 'Jakarta', tanggalLahir: '1985-01-01', jenisKelamin: 'Laki-laki', agama: 'Islam', alamat: 'Jl. Cendekia No. 45, Jakarta Selatan', statusPegawai: 'PNS', tanggalMasuk: '2005-01-01', skPengangkatan: 'SK-001/2005', pendTerakhir: 'S2 Pendidikan Islam', jurusan: 'Pendidikan Agama Islam', npwp: '12.345.678.9-012.000', bpjsKesehatan: '1234567890', bpjsKetenagakerjaan: '0987654321', rekeningBank: 'BCA - 1234567890', namaRekening: 'Erianto, S.Ag, M.Pd.I' },
+  { id: 2, niy: '049097021', nip: '199002152010012002', name: 'Bustanul Abidin, S.Pd', role: 'Guru Kelas 6 & Kurikulum', unitId: 'sd', status: 'Aktif', masuk: '06:52:04', method: 'QR Code', late: 0, nomorIdentitas: '3174012345678902', kontak: '081234567891', email: 'bustanul@simpres.sch.id', gelar: 'S.Pd', tempatLahir: 'Jakarta', tanggalLahir: '1990-02-15', jenisKelamin: 'Laki-laki', agama: 'Islam', alamat: 'Jl. Cendekia No. 43, Cilandak', statusPegawai: 'PNS', tanggalMasuk: '2010-01-01', skPengangkatan: 'SK-002/2010', pendTerakhir: 'S1 Pendidikan Dasar', jurusan: 'Pendidikan Guru Sekolah Dasar', npwp: '12.345.678.9-012.001', bpjsKesehatan: '1234567891', bpjsKetenagakerjaan: '0987654322', rekeningBank: 'BRI - 1234567891', namaRekening: 'Bustanul Abidin, S.Pd' },
+  { id: 3, niy: '049098034', nip: '198803202012022003', name: 'Sulasmi, S.Pd', role: 'Guru Kelas 3 • Tahfidz', unitId: 'sd', status: 'Aktif', masuk: '06:50:33', method: 'Face Recognition', late: 0, nomorIdentitas: '3174012345678903', kontak: '081234567892', email: 'sulasmi@simpres.sch.id', gelar: 'S.Pd', tempatLahir: 'Jakarta', tanggalLahir: '1988-03-20', jenisKelamin: 'Perempuan', agama: 'Islam', alamat: 'Jl. Cendekia No. 43, Cilandak', statusPegawai: 'PNS', tanggalMasuk: '2012-02-01', skPengangkatan: 'SK-003/2012', pendTerakhir: 'S1 Pendidikan Dasar', jurusan: 'Pendidikan Guru Sekolah Dasar', npwp: '12.345.678.9-012.002', bpjsKesehatan: '1234567892', bpjsKetenagakerjaan: '0987654323', rekeningBank: 'BNI - 1234567892', namaRekening: 'Sulasmi, S.Pd' },
+  { id: 4, niy: '049001054', nip: '199204102015022004', name: 'Wisna Yunita, S.Pd', role: 'Guru Kelas 1 • Tematik', unitId: 'sd', status: 'Aktif', masuk: '06:58:33', method: 'Face Recognition', late: 0, nomorIdentitas: '3174012345678904', kontak: '081234567893', email: 'wisna@simpres.sch.id', gelar: 'S.Pd', tempatLahir: 'Jakarta', tanggalLahir: '1992-04-10', jenisKelamin: 'Perempuan', agama: 'Islam', alamat: 'Jl. Cendekia No. 43, Cilandak', statusPegawai: 'PNS', tanggalMasuk: '2015-02-01', skPengangkatan: 'SK-004/2015', pendTerakhir: 'S1 Pendidikan Dasar', jurusan: 'Pendidikan Guru Sekolah Dasar', npwp: '12.345.678.9-012.003', bpjsKesehatan: '1234567893', bpjsKetenagakerjaan: '0987654324', rekeningBank: 'Mandiri - 1234567893', namaRekening: 'Wisna Yunita, S.Pd' },
+  { id: 5, niy: '029011052', nip: '199505252018022005', name: 'Irmawati, S.Pd', role: 'Guru Sentra', unitId: 'tk', status: 'Aktif', masuk: '07:20:10', method: 'QR Code', late: 20, nomorIdentitas: '3174012345678905', kontak: '081234567894', email: 'irmawati@simpres.sch.id', gelar: 'S.Pd', tempatLahir: 'Jakarta', tanggalLahir: '1995-05-25', jenisKelamin: 'Perempuan', agama: 'Islam', alamat: 'Jl. Cendekia No. 41', statusPegawai: 'GTT', tanggalMasuk: '2018-05-01', skPengangkatan: 'SK-005/2018', pendTerakhir: 'S1 Pendidikan Anak Usia Dini', jurusan: 'PAUD', npwp: '12.345.678.9-012.004', bpjsKesehatan: '1234567894', bpjsKetenagakerjaan: '0987654325', rekeningBank: 'BCA - 1234567894', namaRekening: 'Irmawati, S.Pd' },
+  { id: 6, niy: '029012056', nip: '198206152008011006', name: 'Risa Fadillah, S.Pd', role: 'Guru Biologi & Laboran', unitId: 'sma', status: 'Nonaktif', masuk: null, method: null, late: 0, nomorIdentitas: '3174012345678906', kontak: '081234567895', email: 'risa@simpres.sch.id', gelar: 'S.Pd', tempatLahir: 'Jakarta', tanggalLahir: '1982-06-15', jenisKelamin: 'Perempuan', agama: 'Islam', alamat: 'Jl. Cendekia No. 47', statusPegawai: 'PNS', tanggalMasuk: '2008-01-01', skPengangkatan: 'SK-006/2008', pendTerakhir: 'S1 Biologi', jurusan: 'Biologi', npwp: '12.345.678.9-012.005', bpjsKesehatan: '1234567895', bpjsKetenagakerjaan: '0987654326', rekeningBank: 'BRI - 1234567895', namaRekening: 'Risa Fadillah, S.Pd' },
+  { id: 7, niy: '049033108', nip: '198707202013011007', name: 'Hendra Kurniawan, S.Pd.I', role: 'Guru Agama', unitId: 'sd', status: 'Aktif', masuk: null, method: null, late: 0, alpha: true, nomorIdentitas: '3174012345678907', kontak: '081234567896', email: 'hendra@simpres.sch.id', gelar: 'S.Pd.I', tempatLahir: 'Jakarta', tanggalLahir: '1987-07-20', jenisKelamin: 'Laki-laki', agama: 'Islam', alamat: 'Jl. Cendekia No. 43, Cilandak', statusPegawai: 'PNS', tanggalMasuk: '2013-07-01', skPengangkatan: 'SK-007/2013', pendTerakhir: 'S1 Pendidikan Agama Islam', jurusan: 'Pendidikan Agama Islam', npwp: '12.345.678.9-012.006', bpjsKesehatan: '1234567896', bpjsKetenagakerjaan: '0987654327', rekeningBank: 'BNI - 1234567896', namaRekening: 'Hendra Kurniawan, S.Pd.I' },
+  { id: 8, niy: '049023183', nip: '198908302014022008', name: 'Silvana Monica, S.Ak', role: 'Staf Administrasi', unitId: 'sma', status: 'Aktif', masuk: '07:08:45', method: 'QR Code', late: 0, outsideRadius: true, nomorIdentitas: '3174012345678908', kontak: '081234567897', email: 'silvana@simpres.sch.id', gelar: 'S.Ak', tempatLahir: 'Jakarta', tanggalLahir: '1989-08-30', jenisKelamin: 'Perempuan', agama: 'Islam', alamat: 'Jl. Cendekia No. 47', statusPegawai: 'PNS', tanggalMasuk: '2014-08-01', skPengangkatan: 'SK-008/2014', pendTerakhir: 'S1 Akuntansi', jurusan: 'Akuntansi', npwp: '12.345.678.9-012.007', bpjsKesehatan: '1234567897', bpjsKetenagakerjaan: '0987654328', rekeningBank: 'Mandiri - 1234567897', namaRekening: 'Silvana Monica, S.Ak' },
 ]
 
 export const LEAVES = [
@@ -113,13 +113,43 @@ export function buildFullStaff() {
       const late = isHadir && h % 13 === 0 ? 5 + (h % 15) : 0
       const hh = unitId === 'pst' ? '07' : '06'
       const mm = String(30 + (h % 28)).padStart(2, '0')
+      const gender = h % 2 === 0 ? 'Laki-laki' : 'Perempuan'
+      const agama = ['Islam', 'Kristen', 'Katolik', 'Hindu', 'Buddha', 'Konghucu'][h % 6]
+      const statusPegawai = ['PNS', 'GTT', 'Honorer'][h % 3]
+      const gelar = TITLES[(h >> 6) % TITLES.length]
+      const jurusanList = {
+        tk: 'Pendidikan Anak Usia Dini',
+        sd: 'Pendidikan Guru Sekolah Dasar',
+        smp: 'Pendidikan Matematika',
+        sma: 'Pendidikan Biologi'
+      }
       out.push({
         id: id++,
         niy: `049${String(100000 + (h % 899999))}`,
+        nip: `19${String(70 + (h % 30))}${String((h % 12) + 1).padStart(2, '0')}${String((h % 28) + 1).padStart(2, '0')}20${String(10 + (h % 15)).padStart(2, '0')}${String((h % 2) + 1).padStart(2, '0')}${String((h % 3) + 1).padStart(3, '0')}`,
         name, role, unitId, status: 'Aktif',
         masuk: isHadir ? `${hh}:${mm}:${String(10 + (h % 49))}` : null,
         method: isHadir ? (h % 2 ? 'Face Recognition' : 'QR Code') : null,
         late,
+        nomorIdentitas: `31740${String(10000 + (h % 90000))}${String(h % 1000).padStart(3, '0')}`,
+        kontak: `081${String(200000000 + (h % 800000000))}`,
+        email: `${FIRST[h % FIRST.length].toLowerCase()}.${LAST[(h >> 3) % LAST.length].toLowerCase()}@simpres.sch.id`,
+        gelar,
+        tempatLahir: 'Jakarta',
+        tanggalLahir: `19${String(70 + (h % 30))}-${String((h % 12) + 1).padStart(2, '0')}-${String((h % 28) + 1).padStart(2, '0')}`,
+        jenisKelamin: gender,
+        agama,
+        alamat: unit ? unit.alamat : 'Jl. Cendekia',
+        statusPegawai,
+        tanggalMasuk: `20${String(10 + (h % 15)).padStart(2, '0')}-${String((h % 12) + 1).padStart(2, '0')}-01`,
+        skPengangkatan: `SK-${String(100 + (h % 900))}/${2010 + (h % 15)}`,
+        pendTerakhir: `S1 ${jurusanList[unitId] || 'Pendidikan'}`,
+        jurusan: jurusanList[unitId] || 'Pendidikan',
+        npwp: `12.345.678.9-${String(10000 + (h % 90000)).padStart(6, '0')}`,
+        bpjsKesehatan: `${100000000 + (h % 900000000)}`,
+        bpjsKetenagakerjaan: `${100000000 + ((h + 100) % 900000000)}`,
+        rekeningBank: ['BCA', 'BRI', 'BNI', 'Mandiri'][h % 4] + ` - ${100000000 + (h % 900000000)}`,
+        namaRekening: name,
       })
     }
   })

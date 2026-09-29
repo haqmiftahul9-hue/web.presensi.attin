@@ -1,41 +1,57 @@
-import { useSimPres, addActivityLog } from '../store/simPresStore.jsx'
+import { useSimPres, addActivityLog, selectCurrentUser } from '../store/simPresStore.jsx'
 import { useState } from 'react'
 import AddEmployeeModal from './AddEmployeeModal.jsx'
+import { downloadTemplate } from '../data/employeeTemplate.js'
 
-function ActionToolbar({ onImport, unitFilter, setUnitFilter, searchTerm, setSearchTerm, statusFilter, setStatusFilter, onResetFilters, setCurrentPageReset }) {
+const STATUS_OPTIONS = [
+  { value: 'all', label: 'Semua Status' },
+  { value: 'Aktif', label: 'Aktif' },
+  { value: 'Nonaktif', label: 'Nonaktif' },
+]
+
+function ActionToolbar({
+  onImport,
+  unitFilter, setUnitFilter,
+  searchTerm, setSearchTerm,
+  statusFilter, setStatusFilter,
+  onResetFilters, setCurrentPageReset,
+}) {
   const { state, dispatch } = useSimPres()
   const [showAddModal, setShowAddModal] = useState(false)
-  const statusOptions = [
-    { value: 'all', label: 'Semua Status' },
-    { value: 'Aktif', label: 'Aktif' },
-    { value: 'Nonaktif', label: 'Nonaktif' },
-  ]
+  const [toast, setToast] = useState(null)
 
-const handleAddEmployee = (newStaff) => {
-      dispatch({ type: 'ADD_STAFF', payload: newStaff })
-      addActivityLog(dispatch, state, 'Tambah', `Pegawai • ${newStaff.name}`, `Tambah pegawai baru NIY ${newStaff.niy} sebagai ${newStaff.role} di ${state.units.find(u => u.id === newStaff.unitId)?.nama || newStaff.unitId}`, null, null, newStaff.unitId)
-      setShowAddModal(false)
-      setCurrentPageReset(1)
-    }
+  const flash = (text) => {
+    setToast(text)
+    setTimeout(() => setToast(null), 4000)
+  }
+
+  const handleAddEmployee = (newStaff) => {
+    dispatch({ type: 'ADD_STAFF', payload: newStaff })
+    addActivityLog(
+      dispatch, state, 'Tambah', `Pegawai • ${newStaff.name}`,
+      `Tambah pegawai baru NIY ${newStaff.niy} (${newStaff.role}) di ${state.units.find((u) => u.id === newStaff.unitId)?.nama || newStaff.unitId}, kontak ${newStaff.kontak || '-'}, email ${newStaff.email || '-'}`,
+      null, null, newStaff.unitId,
+    )
+    setShowAddModal(false)
+    setCurrentPageReset(1)
+    setSearchTerm('')
+    flash(`Pegawai ${newStaff.name} berhasil ditambahkan.`)
+  }
 
   const handleDownloadTemplate = () => {
-    const headers = ['NIY', 'Nama', 'Gelar', 'Unit', 'Jabatan', 'Status']
-    const unitNames = state.units.map(u => u.nama).join(' | ')
-    const exampleRows = [
-      ['049001234', 'Budi Santoso, S.Pd', '', state.units[0]?.nama || 'TKIT Attin Sumbar', 'Guru Kelas', 'Aktif'],
-      ['049001235', 'Siti Rahayu, S.Ag', '', state.units[1]?.nama || 'SDIT Attin Sumbar', 'Guru PAI', 'Aktif'],
-    ]
-    const lines = [
-      headers.join(','),
-      ...exampleRows.map(r => r.join(',')),
-    ]
-    const csv = lines.join('\n')
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
-    const link = document.createElement('a')
-    link.href = URL.createObjectURL(blob)
-    link.download = 'template_import_pegawai.csv'
-    link.click()
-    URL.revokeObjectURL(link.href)
+    downloadTemplate(state)
+    addActivityLog(
+      dispatch, state, 'Ekspor', 'Template Import Pegawai',
+      'Unduh template Excel import data pegawai',
+      null, null, selectCurrentUser(state)?.unitId,
+    )
+    flash('Template Excel berhasil diunduh.')
+  }
+
+  // Setiap perubahan filter mengembalikan tabel ke halaman pertama.
+  const withPageReset = (setter) => (value) => {
+    setter(value)
+    setCurrentPageReset(1)
   }
 
   return (
@@ -58,14 +74,14 @@ const handleAddEmployee = (newStaff) => {
             <span className="material-symbols-outlined text-[18px] text-on-surface-variant">download</span>
             <span>Download Template</span>
           </button>
-<button
-             onClick={() => setShowAddModal(prev => true)}
-             className="h-10 px-4 rounded-lg bg-primary-container hover:bg-[#132c54] text-on-primary font-body-md-medium text-body-md-medium flex items-center gap-2 transition-colors shadow-sm whitespace-nowrap"
-             type="button"
-           >
-             <span className="material-symbols-outlined text-[18px]">person_add</span>
-             <span>Tambah Pegawai Baru</span>
-           </button>
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="h-10 px-4 rounded-lg bg-primary-container hover:bg-[#132c54] text-on-primary font-body-md-medium text-body-md-medium flex items-center gap-2 transition-colors shadow-sm whitespace-nowrap"
+            type="button"
+          >
+            <span className="material-symbols-outlined text-[18px]">person_add</span>
+            <span>Tambah Pegawai Baru</span>
+          </button>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0 flex-nowrap">
           <div className="relative w-40">
@@ -73,7 +89,7 @@ const handleAddEmployee = (newStaff) => {
             <select
               className="w-full h-10 pl-9 pr-8 bg-surface-container-low hover:bg-surface-container text-on-surface font-body-md text-body-md rounded-lg focus:outline-none focus:bg-surface-container-lowest appearance-none cursor-pointer"
               value={unitFilter}
-              onChange={(e) => setUnitFilter(e.target.value)}
+              onChange={(e) => withPageReset(setUnitFilter)(e.target.value)}
             >
               <option value="all">Semua Unit ({state.units.length} Unit)</option>
               {state.units.map((u) => (
@@ -86,10 +102,10 @@ const handleAddEmployee = (newStaff) => {
             <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">search</span>
             <input
               className="w-full h-10 pl-9 pr-4 bg-surface-container-low rounded-lg font-body-md text-body-md text-on-surface placeholder:text-outline focus:outline-none focus:bg-surface-container-lowest"
-              placeholder="Cari Nama / Jabatan / NIY..."
+              placeholder="Cari Nama / Jabatan / NIY / Unit..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              type="text"
+              onChange={(e) => withPageReset(setSearchTerm)(e.target.value)}
+              type="search"
             />
           </div>
           <div className="relative w-36">
@@ -97,16 +113,19 @@ const handleAddEmployee = (newStaff) => {
             <select
               className="w-full h-10 pl-9 pr-8 bg-surface-container-low hover:bg-surface-container text-on-surface font-body-md text-body-md rounded-lg focus:outline-none focus:bg-surface-container-lowest appearance-none cursor-pointer"
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+              onChange={(e) => withPageReset(setStatusFilter)(e.target.value)}
             >
-              {statusOptions.map(option => (
+              {STATUS_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>{option.label}</option>
               ))}
             </select>
             <span className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px] pointer-events-none">expand_more</span>
           </div>
           <button
-            onClick={onResetFilters}
+            onClick={() => {
+              onResetFilters()
+              setCurrentPageReset(1)
+            }}
             className="h-10 px-4 rounded-lg bg-surface-container-lowest hover:bg-surface-container-low text-on-surface font-body-md-medium text-body-md-medium flex items-center gap-2 transition-colors shadow-sm whitespace-nowrap"
             type="button"
           >
@@ -115,12 +134,18 @@ const handleAddEmployee = (newStaff) => {
           </button>
         </div>
       </div>
-{showAddModal && (
-         <AddEmployeeModal
-           onClose={() => setShowAddModal(prev => false)}
-           onSave={handleAddEmployee}
-         />
-       )}
+      {toast && (
+        <div className="px-space-md py-2 bg-emerald-50 text-emerald-800 text-xs flex items-center gap-2 border-t border-outline/20">
+          <span className="material-symbols-outlined text-[16px]">check_circle</span>
+          <span>{toast}</span>
+        </div>
+      )}
+      {showAddModal && (
+        <AddEmployeeModal
+          onClose={() => setShowAddModal(false)}
+          onSave={handleAddEmployee}
+        />
+      )}
     </div>
   )
 }

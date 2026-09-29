@@ -19,9 +19,9 @@ function DataGuruPegawaiPage() {
   }
 
   return (
-    <div className="px-space-xl py-space-lg flex flex-col gap-space-lg w-full overflow-x-auto">
+    <div className="px-space-xl py-space-lg flex flex-col gap-space-lg w-full min-w-0">
       <BreadcrumbHeader />
-      <ActionToolbar 
+      <ActionToolbar
         onImport={() => setShowImport(true)}
         unitFilter={unitFilter}
         setUnitFilter={setUnitFilter}
@@ -32,7 +32,7 @@ function DataGuruPegawaiPage() {
         onResetFilters={handleResetFilters}
         setCurrentPageReset={setCurrentPage}
       />
-      <StaffTable 
+      <StaffTable
         unitFilter={unitFilter}
         searchTerm={searchTerm}
         statusFilter={statusFilter}
@@ -40,7 +40,11 @@ function DataGuruPegawaiPage() {
         setCurrentPage={setCurrentPage}
       />
       <UnitCards />
-      <ImportModal show={showImport} onClose={() => setShowImport(false)} />
+      <ImportModal
+        show={showImport}
+        onClose={() => setShowImport(false)}
+        onImported={() => setCurrentPage(1)}
+      />
     </div>
   )
 }
