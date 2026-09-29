@@ -102,6 +102,52 @@ export default {
         "body-md-medium": ["14px", { lineHeight: "20px", fontWeight: "500" }],
         "display-lg": ["32px", { lineHeight: "40px", letterSpacing: "-0.02em", fontWeight: "700" }],
       },
+      // Animasi microenvironment: hanya transform + opacity (tidak menyentuh
+      // layout), jadi tetap murah di GPU. Prefix "sp" = SimPres.
+      keyframes: {
+        "sp-rise": {
+          "0%": { opacity: "0", transform: "translate3d(0, 12px, 0)" },
+          "100%": { opacity: "1", transform: "translate3d(0, 0, 0)" },
+        },
+        "sp-slide": {
+          "0%": { opacity: "0", transform: "translate3d(16px, 0, 0)" },
+          "100%": { opacity: "1", transform: "translate3d(0, 0, 0)" },
+        },
+        "sp-drift-x": {
+          "0%": { transform: "translate3d(0, 0, 0)" },
+          "100%": { transform: "translate3d(12px, -8px, 0)" },
+        },
+        "sp-glow": {
+          "0%, 100%": { opacity: "0.45" },
+          "50%": { opacity: "1" },
+        },
+        "sp-sweep": {
+          "0%": { transform: "translateX(-120%)" },
+          "100%": { transform: "translateX(320%)" },
+        },
+        "sp-dot": {
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: "0.3" },
+        },
+        "sp-fade": {
+          "0%": { opacity: "0" },
+          "100%": { opacity: "1" },
+        },
+        "sp-scan": {
+          "0%": { transform: "translate3d(-20%, 0, 0)" },
+          "100%": { transform: "translate3d(120%, 0, 0)" },
+        },
+      },
+      animation: {
+        "sp-rise": "sp-rise 0.62s cubic-bezier(0.22, 1, 0.36, 1) both",
+        "sp-slide": "sp-slide 0.72s cubic-bezier(0.22, 1, 0.36, 1) both",
+        "sp-drift-x": "sp-drift-x 32s ease-in-out infinite alternate",
+        "sp-glow": "sp-glow 5.5s ease-in-out infinite",
+        "sp-sweep": "sp-sweep 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite",
+        "sp-dot": "sp-dot 2.6s ease-in-out infinite",
+        "sp-fade": "sp-fade 0.5s cubic-bezier(0.22, 1, 0.36, 1) both",
+        "sp-scan": "sp-scan 34s linear infinite",
+      },
     },
   },
   plugins: [],

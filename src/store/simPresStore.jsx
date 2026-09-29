@@ -68,6 +68,48 @@ export const ROLE_ADMIN_UNIT = 'Admin Unit'
 export const ROLE_GURU = 'Guru'
 export const ROLE_PETUGAS_PRESENSI = 'Petugas Presensi'
 
+// Peta path -> menu key. Dipakai bersama oleh guard rute dan penentuan
+// halaman tujuan setelah login, supaya keduanya memakai satu daftar yang sama.
+export const ROUTE_MENU_KEYS = {
+  '/': 'dashboard',
+  '/unit-sd-islam-rj': 'manajemenUnit',
+  '/manajemen-admin-user': 'manajemenAdminUser',
+  '/data-guru-dan-pegawai': 'dataGuruPegawai',
+  '/presensi': 'presensi',
+  '/rekap-dan-laporan': 'rekapLaporan',
+  '/ranking-kehadiran': 'rankingKehadiran',
+  '/pengajuan-izin-dan-cuti': 'pengajuanIzinCuti',
+  '/log-aktivitas': 'logAktivitas',
+  '/pengaturan-global': 'pengaturanGlobal',
+}
+
+// Kandidat beranda per role, diurut dari yang paling relevan. Alur login
+// mengambil path pertama yang benar-benar boleh dibuka role tersebut
+// (lihat PERMISSION_MATRIX), jadi role tanpa akses dashboard tidak pernah
+// terjebak redirect berulang ke "/".
+export const ROLE_HOME_CANDIDATES = {
+  [ROLE_SUPERADMIN]: ['/', '/manajemen-admin-user', '/unit-sd-islam-rj', '/data-guru-dan-pegawai', '/presensi', '/rekap-dan-laporan', '/pengaturan-global', '/log-aktivitas'],
+  [ROLE_ADMIN_UNIT]: ['/', '/data-guru-dan-pegawai', '/presensi', '/pengajuan-izin-dan-cuti', '/rekap-dan-laporan', '/ranking-kehadiran', '/log-aktivitas'],
+  [ROLE_GURU]: ['/presensi', '/pengajuan-izin-dan-cuti', '/', '/data-guru-dan-pegawai', '/rekap-dan-laporan', '/ranking-kehadiran'],
+  [ROLE_PETUGAS_PRESENSI]: ['/presensi', '/', '/data-guru-dan-pegawai', '/rekap-dan-laporan', '/ranking-kehadiran', '/pengajuan-izin-dan-cuti', '/log-aktivitas'],
+}
+
+// Kata sandi awal seluruh akun seed. Pada aplikasi nyata nilai ini berasal dari
+// server; di sini satu konstanta agar alur login tetap bisa dicoba tanpa backend,
+// dan tetap bisa ditimpa per akun lewat field `password` (hasil reset/kirim kredensial).
+export const INITIAL_ACCOUNT_PASSWORD = 'SimPresSecure2026!'
+
+const AUTH_SESSION_KEY = 'simpres.auth.session'
+
+export const AUTH_ERRORS = {
+  EMPTY_IDENTIFIER: 'NIY atau email dinas wajib diisi.',
+  EMPTY_PASSWORD: 'Kata sandi wajib diisi.',
+  NOT_FOUND: 'Akun tidak ditemukan. Periksa kembali NIY atau email dinas Anda.',
+  WRONG_PASSWORD: 'Kata sandi salah. Silakan coba lagi atau hubungi Biro Kepegawaian.',
+  INACTIVE: 'Akun Anda sedang nonaktif. Hubungi administrator unit untuk mengaktifkannya kembali.',
+  NO_PERMISSION: 'Akun Anda belum memiliki hak akses pada modul SimPres.',
+}
+
 // Nilai khusus "melihat seluruh unit" (hanya Superadmin).
 export const ALL_UNITS = 'all'
 
@@ -166,11 +208,16 @@ const initialState = {
   trend30: TREND_30,
   holidays: HOLIDAYS,
   permissionMatrix: PERMISSION_MATRIX,
-  currentUser: ADMIN_USERS[0],
+  // Sesi login. currentUser null = belum masuk; authenticateCredentials()
+  // yang mengisinya, sehingga aplikasi tidak pernah diam-diamauto-login.
+  currentUser: null,
+  isAuthenticated: false,
+  authStatus: 'idle',
+  authError: null,
   attendanceHistory: initialAttendanceHistory,
   // Unit yang sedang dilihat. Hanya Superadmin yang boleh mengubahnya
   // (termasuk ke "Semua Unit"); role lain selalu mengikuti unit akunnya.
-  selectedUnitId: initialUnitScope(ADMIN_USERS[0]),
+  selectedUnitId: ALL_UNITS,
 }
 
 function simPresReducer(state, action) {
@@ -395,6 +442,28 @@ logs: [
         selectedUnitId: initialUnitScope(action.payload),
       }
     }
+    case 'LOGIN_START':
+      return { ...state, authStatus: 'loading', authError: null }
+    case 'LOGIN_SUCCESS':
+      return {
+        ...state,
+        currentUser: action.payload.user,
+        isAuthenticated: true,
+        selectedUnitId: initialUnitScope(action.payload.user),
+        authStatus: 'idle',
+        authError: null,
+      }
+    case 'LOGIN_FAILURE':
+      return { ...state, isAuthenticated: false, currentUser: null, authStatus: 'error', authError: action.payload }
+    case 'LOGOUT':
+      return {
+        ...state,
+        currentUser: null,
+        isAuthenticated: false,
+        selectedUnitId: ALL_UNITS,
+        authStatus: 'idle',
+        authError: null,
+      }
     case 'SET_SELECTED_UNIT': {
       // Guard lapis reducer: role non-Superadmin tidak pernah bisa mengunci
       // dirinya ke unit lain, apa pun yang dikirim komponen.
@@ -408,10 +477,210 @@ logs: [
   }
 }
 
+// ===== AUTENTIKASI =====
+// Sesi hanya menyimpan identitas (tanpa kata sandi) dan selalu diturunkan ulang
+// dari data aplikasi saat start. Jadi role atau status akun yang berubah di
+// aplikasi langsung berlaku, dan akun yang sudah dihapus tidak bisa "dihidupkan"
+// lagi lewat sisa sesi di browser.
+
+function readStoredSession() {
+  if (typeof window === 'undefined') return null
+  const stores = []
+  try { stores.push(window.sessionStorage) } catch { /* storage diblokir */ }
+  try { stores.push(window.localStorage) } catch { /* storage diblokir */ }
+  for (const store of stores) {
+    try {
+      const raw = store.getItem(AUTH_SESSION_KEY)
+      if (raw) return JSON.parse(raw)
+    } catch { /* data rusak / tidak terbaca */ }
+  }
+  return null
+}
+
+function clearStoredSession() {
+  if (typeof window === 'undefined') return
+  try { window.localStorage.removeItem(AUTH_SESSION_KEY) } catch { /* storage diblokir */ }
+  try { window.sessionStorage.removeItem(AUTH_SESSION_KEY) } catch { /* storage diblokir */ }
+}
+
+// "Ingat saya" -> localStorage (bertahan setelah browser ditutup),
+// selain itu sessionStorage (hanya untuk tab ini saja).
+function writeStoredSession(session, remember) {
+  if (typeof window === 'undefined') return
+  clearStoredSession()
+  try {
+    const store = remember ? window.localStorage : window.sessionStorage
+    store.setItem(AUTH_SESSION_KEY, JSON.stringify(session))
+  } catch { /* storage penuh / diblokir: sesi tetap jalan di memori */ }
+}
+
+function normalizeIdentifier(value) {
+  return String(value || '').trim().toLowerCase()
+}
+
+function identifierMatches(account, key) {
+  const niy = String(account.niy || '').trim().toLowerCase()
+  const email = String(account.email || '').trim().toLowerCase()
+  return (niy !== '' && niy === key) || (email !== '' && email === key)
+}
+
+// Akun portal = baris di adminUsers (Superadmin, Admin Unit, Petugas Presensi).
+// Guru/Pegawai tidak punya baris di sana, jadi akunnya diturunkan dari data
+// pegawai: role Guru, unit mengikuti penugasan, status mengikuti keaktifan pegawai.
+export function findAccountByIdentifier(state, identifier) {
+  const key = normalizeIdentifier(identifier)
+  if (!key) return null
+
+  const adminUser = state.adminUsers.find((u) => identifierMatches(u, key))
+  if (adminUser) return { ...adminUser, isStaffAccount: false }
+
+  const staff = state.staff.find((s) => identifierMatches(s, key))
+  if (staff) {
+    return {
+      id: `staff-${staff.id}`,
+      staffId: staff.id,
+      name: staff.name,
+      niy: staff.niy,
+      email: staff.email,
+      role: ROLE_GURU,
+      unitId: staff.unitId,
+      status: staff.status,
+      isStaffAccount: true,
+    }
+  }
+
+  return null
+}
+
+export function roleCanViewMenu(state, role, menuKey) {
+  const permissions = state.permissionMatrix?.[role]
+  if (!permissions) return false
+  return permissions[menuKey]?.includes('view') ?? false
+}
+
+// Halaman tujuan setelah login: kembali ke URL yang tadi dicoba kalau role
+// memang berwenang, kalau tidak ke beranda role tersebut.
+export function resolvePostLoginPath(state, user, requestedPath) {
+  const role = user?.role
+  const allowed = (path) => {
+    const menuKey = ROUTE_MENU_KEYS[path]
+    return menuKey ? roleCanViewMenu(state, role, menuKey) : false
+  }
+  if (requestedPath && allowed(requestedPath)) return requestedPath
+  const candidates = ROLE_HOME_CANDIDATES[role] || ROLE_HOME_CANDIDATES[ROLE_GURU]
+  return candidates.find(allowed) || '/'
+}
+
+export function authenticateCredentials(state, identifier, password) {
+  if (!normalizeIdentifier(identifier)) return { ok: false, error: AUTH_ERRORS.EMPTY_IDENTIFIER }
+  if (!password) return { ok: false, error: AUTH_ERRORS.EMPTY_PASSWORD }
+
+  const account = findAccountByIdentifier(state, identifier)
+  if (!account) return { ok: false, error: AUTH_ERRORS.NOT_FOUND }
+  if (account.status !== 'Aktif') return { ok: false, error: AUTH_ERRORS.INACTIVE }
+
+  const expectedPassword = account.password || INITIAL_ACCOUNT_PASSWORD
+  if (password !== expectedPassword) return { ok: false, error: AUTH_ERRORS.WRONG_PASSWORD }
+  if (!state.permissionMatrix?.[account.role]) return { ok: false, error: AUTH_ERRORS.NO_PERMISSION }
+
+  return { ok: true, user: account }
+}
+
+function describeDevice() {
+  if (typeof navigator === 'undefined') return 'Perangkat Tidak Diketahui'
+  const ua = navigator.userAgent
+  const browser = /Edg\//.test(ua) ? 'Edge'
+    : /OPR\//.test(ua) || /Chrome\//.test(ua) ? 'Chrome'
+      : /Safari\//.test(ua) ? 'Safari'
+        : /Firefox\//.test(ua) ? 'Firefox'
+          : 'Browser'
+  const platform = /Windows/.test(ua) ? 'Windows'
+    : /Android/.test(ua) ? 'Android'
+      : /iPhone|iPad|iPod/.test(ua) ? 'iOS'
+        : /Mac/.test(ua) ? 'macOS'
+          : /Linux/.test(ua) ? 'Linux'
+            : 'Sistem'
+  return `${browser} • ${platform}`
+}
+
+// Penundaan singkat supaya state "memproses" di tombol terlihat, meniru
+// proses verifikasi di server sebelum sesi diterbitkan.
+const LOGIN_LATENCY_MS = 600
+
+export async function performLogin({ state, dispatch, identifier, password, remember, requestedPath }) {
+  dispatch({ type: 'LOGIN_START' })
+  await new Promise((resolve) => setTimeout(resolve, LOGIN_LATENCY_MS))
+
+  const result = authenticateCredentials(state, identifier, password)
+  if (!result.ok) {
+    dispatch({ type: 'LOGIN_FAILURE', payload: result.error })
+    return { ok: false, error: result.error }
+  }
+
+  const user = result.user
+  // Path dihitung dari state pasca-login, bukan state lama yang currentUser-nya null.
+  const loggedInState = { ...state, currentUser: user, isAuthenticated: true, selectedUnitId: initialUnitScope(user) }
+  const path = resolvePostLoginPath(loggedInState, user, requestedPath)
+
+  dispatch({ type: 'LOGIN_SUCCESS', payload: { user, remember } })
+  writeStoredSession({ user, remember, at: Date.now() }, remember)
+  addActivityLog(
+    dispatch,
+    loggedInState,
+    'Login',
+    'Sesi • Web',
+    `Login ${user.niy || user.email} (${describeDevice()})`,
+    user.name,
+    user.role,
+    user.unitId,
+  )
+
+  return { ok: true, path }
+}
+
+export function performLogout(dispatch) {
+  clearStoredSession()
+  dispatch({ type: 'LOGOUT' })
+}
+
+function initWithStoredSession(state) {
+  const stored = readStoredSession()
+  if (!stored?.user) return state
+
+  const account = findAccountByIdentifier(state, stored.user.niy || stored.user.email)
+  if (!account || account.status !== 'Aktif' || !state.permissionMatrix?.[account.role]) {
+    clearStoredSession()
+    return { ...state, currentUser: null, isAuthenticated: false }
+  }
+
+  return {
+    ...state,
+    currentUser: account,
+    isAuthenticated: true,
+    selectedUnitId: initialUnitScope(account),
+  }
+}
+
+export function selectIsAuthenticated(state) {
+  return Boolean(state.isAuthenticated && state.currentUser)
+}
+
+export function selectAuthStatus(state) {
+  return state.authStatus || 'idle'
+}
+
+export function selectAuthError(state) {
+  return state.authError || null
+}
+
+export function selectIsAuthenticating(state) {
+  return selectAuthStatus(state) === 'loading'
+}
+
 const SimPresContext = createContext(null)
 
 export function SimPresProvider({ children }) {
-  const [state, dispatch] = useReducer(simPresReducer, initialState)
+  const [state, dispatch] = useReducer(simPresReducer, initialState, initWithStoredSession)
   // attendance selalu turunan state.staff (satu sumber data presensi).
   const value = useMemo(
     () => ({ state: { ...state, attendance: buildAttendance(state.staff) }, dispatch }),

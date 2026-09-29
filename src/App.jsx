@@ -11,12 +11,14 @@ import LogAktivitasPage from './pages/LogAktivitasPage.jsx'
 import PengaturanGlobalPage from './pages/PengaturanGlobalPage.jsx'
 import PengajuanIzinCutiPage from './pages/PengajuanIzinCutiPage.jsx'
 import MonitoringPresensiPage from './pages/MonitoringPresensiPage.jsx'
-import ProtectedRoute from './components/ProtectedRoute.jsx'
+import LoginPage from './pages/LoginPage.jsx'
+import ProtectedRoute, { GuestOnlyRoute } from './components/ProtectedRoute.jsx'
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/login" element={<GuestOnlyRoute><LoginPage /></GuestOnlyRoute>} />
         <Route element={<Layout />}>
           <Route path="/" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
           <Route path="/unit-sd-islam-rj" element={<ProtectedRoute><UnitAdminSDPage /></ProtectedRoute>} />

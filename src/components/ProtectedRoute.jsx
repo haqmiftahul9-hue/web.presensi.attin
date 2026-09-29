@@ -1,29 +1,43 @@
 import { Navigate, useLocation } from 'react-router-dom'
-import { useSimPres, hasMenuPermission } from '../store/simPresStore.jsx'
-
-const routeMenuKeyMap = {
-  '/': 'dashboard',
-  '/unit-sd-islam-rj': 'manajemenUnit',
-  '/manajemen-admin-user': 'manajemenAdminUser',
-  '/data-guru-dan-pegawai': 'dataGuruPegawai',
-  '/presensi': 'presensi',
-  '/rekap-dan-laporan': 'rekapLaporan',
-  '/ranking-kehadiran': 'rankingKehadiran',
-  '/pengajuan-izin-dan-cuti': 'pengajuanIzinCuti',
-  '/log-aktivitas': 'logAktivitas',
-  '/pengaturan-global': 'pengaturanGlobal',
-}
+import {
+  useSimPres,
+  hasMenuPermission,
+  resolvePostLoginPath,
+  selectCurrentUser,
+  selectIsAuthenticated,
+  ROUTE_MENU_KEYS,
+} from '../store/simPresStore.jsx'
 
 function ProtectedRoute({ children }) {
   const { state } = useSimPres()
   const location = useLocation()
-  const menuKey = routeMenuKeyMap[location.pathname]
 
+  if (!selectIsAuthenticated(state)) {
+    // Simpan tujuan awal supaya setelah loginGuard membalas ke halaman itu,
+    // selama role-nya memang berwenang.
+    return <Navigate to="/login" state={{ from: location }} replace />
+  }
+
+  const menuKey = ROUTE_MENU_KEYS[location.pathname]
   if (!menuKey || hasMenuPermission(state, menuKey)) {
     return children
   }
 
-  return <Navigate to="/" replace />
+  // Sudah masuk tapi tidak berwenang: lempar ke beranda role, bukan ke login.
+  return <Navigate to={resolvePostLoginPath(state, selectCurrentUser(state), location.pathname)} replace />
+}
+
+// Halaman yang hanya boleh dilihat saat belum masuk (mis. /login).
+export function GuestOnlyRoute({ children }) {
+  const { state } = useSimPres()
+  const location = useLocation()
+
+  if (selectIsAuthenticated(state)) {
+    const from = location.state?.from?.pathname
+    return <Navigate to={resolvePostLoginPath(state, selectCurrentUser(state), from)} replace />
+  }
+
+  return children
 }
 
 export default ProtectedRoute

@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
-import { NavLink } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
 import {
   useSimPres, selectCurrentUser, selectCurrentUserRole, hasMenuPermission, MENU_OPTIONS,
   selectCanSwitchUnit, selectActiveUnitId, selectActiveUnitLabel, selectUnitOptionsById, ALL_UNITS,
+  performLogout,
 } from '../store/simPresStore.jsx'
 
 const navItems = [
@@ -104,7 +105,8 @@ function UnitScopeSelector() {
 }
 
 function SidebarNav() {
-  const { state } = useSimPres()
+  const { state, dispatch } = useSimPres()
+  const navigate = useNavigate()
   const currentUser = selectCurrentUser(state)
   const currentRole = selectCurrentUserRole(state)
   const visibleItems = navItems.filter((item) => hasMenuPermission(state, item.menuKey))
@@ -115,6 +117,11 @@ function SidebarNav() {
     'Petugas Presensi': { roleBg: 'bg-teal-50', roleText: 'text-teal-700', roleDot: 'bg-teal-600', unitIcon: 'school' },
   }
   const r = roleMap[currentRole] || roleMap.Guru
+
+  const handleLogout = () => {
+    performLogout(dispatch)
+    navigate('/login', { replace: true })
+  }
 
   return (
     <aside className="fixed left-0 top-0 h-full w-[260px] bg-primary-container z-50 flex flex-col justify-between overflow-y-auto">
@@ -162,7 +169,13 @@ function SidebarNav() {
             <span className="font-body-sm-medium text-body-sm-medium text-on-primary truncate">{currentUser?.name || 'Superadmin'}</span>
             <span className="font-label-sm text-label-sm text-on-primary-container truncate">{currentUser?.email || 'superadmin@simpres.sch.id'}</span>
           </div>
-          <button className="text-on-primary-container hover:text-on-primary transition-colors p-1">
+          <button
+            type="button"
+            onClick={handleLogout}
+            title="Keluar"
+            aria-label="Keluar dari akun"
+            className="text-on-primary-container hover:text-on-primary transition-colors p-1 cursor-pointer"
+          >
             <span className="material-symbols-outlined text-[18px]">logout</span>
           </button>
         </div>

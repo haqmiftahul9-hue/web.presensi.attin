@@ -22,3 +22,27 @@ main > :first-child {
 main > :last-child {
   margin-bottom: 0 !important;
 }
+
+/* Halaman login menandai akarnya dengan .sp-motion. Untuk pengguna yang
+   meminta reduced motion, seluruh animasi microenvironment dimatikan sehingga
+   semua elemen langsung tampil pada kondisi akhir (tidak ada yang tersangkut
+   pada frame opacity:0 dari animasi entrances). */
+/* Halaman login dikunci dalam satu viewport pada layar desktop: kartunya
+   punya tinggi tetap, jadi body tidak boleh tergulir selama halaman itu
+   terpasang. Selector :has() dipakai supaya halaman lain (dashboard) tetap
+   perilaku scroll normal. */
+@media (min-width: 1024px) and (min-height: 700px) {
+  body:has(.sp-login-root) {
+    overflow: hidden;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sp-motion *,
+  .sp-motion *::before,
+  .sp-motion *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
