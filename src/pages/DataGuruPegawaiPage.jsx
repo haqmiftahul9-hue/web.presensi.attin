@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useSimPres, selectActiveUnitId } from '../store/simPresStore.jsx'
 import BreadcrumbHeader from '../components/BreadcrumbHeader.jsx'
 import ActionToolbar from '../components/ActionToolbar.jsx'
 import StaffTable from '../components/StaffTable.jsx'
@@ -6,15 +7,16 @@ import UnitCards from '../components/UnitCards.jsx'
 import ImportModal from '../components/ImportModal.jsx'
 
 function DataGuruPegawaiPage() {
+  const { state } = useSimPres()
   const [showImport, setShowImport] = useState(false)
-  const [unitFilter, setUnitFilter] = useState('all')
+  // Unit filter bukan lagi state lokal: dibaca dari unit terpilih di store.
+  const unitFilter = selectActiveUnitId(state)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [currentPage, setCurrentPage] = useState(1)
   const [focusStaffId, setFocusStaffId] = useState(null)
 
   const handleResetFilters = () => {
-    setUnitFilter('all')
     setSearchTerm('')
     setStatusFilter('all')
   }
@@ -24,8 +26,6 @@ function DataGuruPegawaiPage() {
       <BreadcrumbHeader />
       <ActionToolbar
         onImport={() => setShowImport(true)}
-        unitFilter={unitFilter}
-        setUnitFilter={setUnitFilter}
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
         statusFilter={statusFilter}

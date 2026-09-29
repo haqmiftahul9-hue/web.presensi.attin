@@ -1,5 +1,5 @@
 import { useState, useMemo, Fragment } from 'react'
-import { useSimPres, selectRecentActivity, selectIzinCutiSummary } from '../store/simPresStore.jsx'
+import { useSimPres, selectRecentActivity, selectIzinCutiSummary, selectCanSwitchUnit, selectActiveUnitId, selectUnitOptionsById, ALL_UNITS } from '../store/simPresStore.jsx'
 
 function downloadCsv(filename, rows) {
   const headers = Object.keys(rows[0] || {})
@@ -20,18 +20,19 @@ function downloadCsv(filename, rows) {
 
 function RecentActivity() {
   const { state, dispatch } = useSimPres()
-  const [unitFilter, setUnitFilter] = useState('')
   const [page, setPage] = useState(1)
   const [expandedId, setExpandedId] = useState(null)
   const pageSize = 6
   const izinCuti = selectIzinCutiSummary(state)
 
+  // Unit feed mengikuti unit terpilih di sidebar; hanya Superadmin yang bisa menggantinya.
+  const canSwitchUnit = selectCanSwitchUnit(state)
+  const unitFilter = selectActiveUnitId(state)
+  const unitOptions = selectUnitOptionsById(state)
+
   const filtered = useMemo(
-    () =>
-      selectRecentActivity(state).filter(
-        (s) => unitFilter === '' || s.unitId === unitFilter,
-      ),
-    [state, unitFilter],
+    () => selectRecentActivity(state),
+    [state],
   )
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize))
@@ -119,19 +120,28 @@ function RecentActivity() {
           <span className="ml-2 font-label-sm text-label-sm text-on-surface-variant bg-surface-container-low px-2 py-0.5 rounded-full">Live Feed</span>
         </div>
         <div className="flex items-center gap-space-sm flex-wrap">
-          <div className="relative min-w-[170px]">
-            <select
-              className="w-full h-9 pl-space-sm pr-space-lg bg-surface-container-low rounded-lg font-body-sm text-body-sm text-on-surface appearance-none focus:outline-none focus:bg-surface-container"
-              value={unitFilter}
-              onChange={(e) => { setUnitFilter(e.target.value); setPage(1) }}
-            >
-              <option value="">Semua Unit Sekolah</option>
-              {state.units.map((u) => (
-                <option key={u.id} value={u.id}>{u.nama}</option>
-              ))}
-            </select>
-            <span className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-outline pointer-events-none text-[18px]">expand_more</span>
-          </div>
+          {canSwitchUnit ? (
+            <div className="relative min-w-[170px]">
+              <select
+                className="w-full h-9 pl-space-sm pr-space-lg bg-surface-container-low rounded-lg font-body-sm text-body-sm text-on-surface appearance-none focus:outline-none focus:bg-surface-container"
+                value={unitFilter}
+                onChange={(e) => { dispatch({ type: 'SET_SELECTED_UNIT', payload: e.target.value }); setPage(1) }}
+              >
+                <option value={ALL_UNITS}>Semua Unit Sekolah</option>
+                {unitOptions.map((u) => (
+                  <option key={u.id} value={u.id}>{u.nama}</option>
+                ))}
+              </select>
+              <span className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-outline pointer-events-none text-[18px]">expand_more</span>
+            </div>
+          ) : (
+            <div className="relative min-w-[170px]">
+              <div className="w-full h-9 pl-space-sm pr-space-lg bg-surface-container flex items-center rounded-lg font-body-sm text-body-sm text-on-surface-variant truncate">
+                {unitOptions[0]?.nama || 'Semua Unit Sekolah'}
+              </div>
+              <span className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-outline/60 pointer-events-none text-[18px]">lock</span>
+            </div>
+          )}
           <button
             onClick={handleDownload}
             className="h-9 px-space-md rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface font-body-sm-medium text-body-sm-medium flex items-center gap-1.5 transition-colors"

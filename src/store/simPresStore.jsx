@@ -48,7 +48,28 @@ export const PERMISSION_MATRIX = {
     logAktivitas: [],
     pengaturanGlobal: [],
   },
+  'Petugas Presensi': {
+    dashboard: ['view'],
+    manajemenUnit: [],
+    manajemenAdminUser: [],
+    dataGuruPegawai: ['view'],
+    presensi: ['view', 'add', 'edit'],
+    rekapLaporan: ['view'],
+    rankingKehadiran: ['view'],
+    pengajuanIzinCuti: ['view'],
+    logAktivitas: ['view'],
+    pengaturanGlobal: [],
+  },
 }
+
+// Hanya Superadmin yang boleh berpindah unit. Role lain terkunci ke unit akunnya.
+export const ROLE_SUPERADMIN = 'Superadmin'
+export const ROLE_ADMIN_UNIT = 'Admin Unit'
+export const ROLE_GURU = 'Guru'
+export const ROLE_PETUGAS_PRESENSI = 'Petugas Presensi'
+
+// Nilai khusus "melihat seluruh unit" (hanya Superadmin).
+export const ALL_UNITS = 'all'
 
 const initialStaff = buildFullStaff()
 
@@ -126,6 +147,14 @@ function buildInitialAttendanceHistory(staff, trend30) {
 
 const initialAttendanceHistory = buildInitialAttendanceHistory(initialStaff, TREND_30)
 
+// Unit awal untuk sebuah akun: Superadmin mulai dari "Semua Unit",
+// role lain langsung terkunci ke unit yang melekat pada akunnya.
+export function initialUnitScope(user) {
+  if (!user) return ALL_UNITS
+  if (user.role === ROLE_SUPERADMIN) return ALL_UNITS
+  return user.unitId || ALL_UNITS
+}
+
 const initialState = {
   staff: initialStaff,
   units: UNITS,
@@ -139,6 +168,9 @@ const initialState = {
   permissionMatrix: PERMISSION_MATRIX,
   currentUser: ADMIN_USERS[0],
   attendanceHistory: initialAttendanceHistory,
+  // Unit yang sedang dilihat. Hanya Superadmin yang boleh mengubahnya
+  // (termasuk ke "Semua Unit"); role lain selalu mengikuti unit akunnya.
+  selectedUnitId: initialUnitScope(ADMIN_USERS[0]),
 }
 
 function simPresReducer(state, action) {
@@ -355,8 +387,22 @@ logs: [
       return { ...state, settings: { ...state.settings, ...action.payload } }
     case 'UPDATE_PERMISSIONS':
       return { ...state, permissionMatrix: action.payload }
-    case 'SET_CURRENT_USER':
-      return { ...state, currentUser: action.payload }
+    case 'SET_CURRENT_USER': {
+      // Ganti akun = unit ikut akun baru, bukan sisa pilihan sebelumnya.
+      return {
+        ...state,
+        currentUser: action.payload,
+        selectedUnitId: initialUnitScope(action.payload),
+      }
+    }
+    case 'SET_SELECTED_UNIT': {
+      // Guard lapis reducer: role non-Superadmin tidak pernah bisa mengunci
+      // dirinya ke unit lain, apa pun yang dikirim komponen.
+      if (selectCurrentUserRole(state) !== ROLE_SUPERADMIN) return state
+      const next = action.payload === ALL_UNITS ? ALL_UNITS : action.payload
+      if (next !== ALL_UNITS && !state.units.some((u) => u.id === next)) return state
+      return { ...state, selectedUnitId: next }
+    }
     default:
       return state
   }
@@ -384,8 +430,10 @@ export function useSimPres() {
   return ctx
 }
 
+// Semua angka & tabel di bawah otomatis mengikuti unit terpilih karena
+// filter unit berlaku di satu titik ini (sumber data tetap state.staff).
 export function selectActiveStaff(state) {
-  return state.staff.filter((s) => s.status === 'Aktif')
+  return selectScopedStaff(state).filter((s) => s.status === 'Aktif')
 }
 
 export function selectTotalPegawai(state) {
@@ -410,7 +458,7 @@ export function selectJumlahTerlambat(state) {
 
 export function selectAlpha(state) {
   const activeLeaveStaffIds = new Set(
-    state.leaves
+    selectScopedLeaves(state)
       .filter((l) => l.status === 'Disetujui' || l.status === 'Menunggu')
       .map((l) => l.staffId),
   )
@@ -436,8 +484,15 @@ export function selectRataRataTerlambat(state) {
   return (totalMin / late.length).toFixed(1)
 }
 
+// Unit efektif untuk selector yang menerima parameter unit:
+// "Semua Unit" hanya sah bila role memang berhak melihat seluruh unit.
+export function resolveUnitFilter(state, unitId) {
+  if (!selectIsAllUnits(state)) return selectActiveUnitId(state)
+  return !unitId || unitId === ALL_UNITS ? null : unitId
+}
+
 export function selectUnitSummary(state) {
-  return state.units.map((unit) => {
+  return selectVisibleUnits(state).map((unit) => {
     const staffInUnit = state.staff.filter(
       (s) => s.unitId === unit.id && s.status === 'Aktif',
     )
@@ -470,10 +525,11 @@ export function selectTrendByRange(state, days) {
 }
 
 export function selectIzinCutiSummary(state) {
-  const menunggu = selectPendingLeaves(state)
-  const disetujui = selectApprovedLeaves(state)
-  const ditolak = selectRejectedLeaves(state)
-  return { menunggu, disetujui, ditolak, total: state.leaves.length }
+  const leaves = selectScopedLeaves(state)
+  const menunggu = leaves.filter((l) => l.status === 'Menunggu').length
+  const disetujui = leaves.filter((l) => l.status === 'Disetujui').length
+  const ditolak = leaves.filter((l) => l.status === 'Ditolak').length
+  return { menunggu, disetujui, ditolak, total: leaves.length }
 }
 
 export function selectBelumPresensi(state) {
@@ -481,20 +537,21 @@ export function selectBelumPresensi(state) {
 }
 
 export function selectLeavesByStatus(state, status) {
-  if (!status || status === 'semua') return state.leaves
-  return state.leaves.filter((l) => l.status === status)
+  const leaves = selectScopedLeaves(state)
+  if (!status || status === 'semua') return leaves
+  return leaves.filter((l) => l.status === status)
 }
 
 export function selectPendingLeaves(state) {
-  return state.leaves.filter((l) => l.status === 'Menunggu').length
+  return selectScopedLeaves(state).filter((l) => l.status === 'Menunggu').length
 }
 
 export function selectApprovedLeaves(state) {
-  return state.leaves.filter((l) => l.status === 'Disetujui').length
+  return selectScopedLeaves(state).filter((l) => l.status === 'Disetujui').length
 }
 
 export function selectRejectedLeaves(state) {
-  return state.leaves.filter((l) => l.status === 'Ditolak').length
+  return selectScopedLeaves(state).filter((l) => l.status === 'Ditolak').length
 }
 
 export function selectStaffById(state, id) {
@@ -534,10 +591,11 @@ export function selectJabatanOptions(state) {
 
 // Satu-satunya sumber filtering tabel Data Guru/Pegawai: unit, status, dan
 // pencarian (nama, NIY/NIP, jabatan, nama unit).
-export function selectFilteredStaff(state, { unitId = 'all', searchTerm = '', status = 'all' } = {}) {
+export function selectFilteredStaff(state, { unitId = ALL_UNITS, searchTerm = '', status = 'all' } = {}) {
   const q = String(searchTerm || '').trim().toLowerCase()
-  return state.staff.filter((s) => {
-    if (unitId && unitId !== 'all' && s.unitId !== unitId) return false
+  const effUnit = resolveUnitFilter(state, unitId)
+  return selectScopedStaff(state).filter((s) => {
+    if (effUnit && s.unitId !== effUnit) return false
     if (status && status !== 'all' && s.status !== status) return false
     if (!q) return true
     const unit = state.units.find((u) => u.id === s.unitId)
@@ -560,14 +618,11 @@ export function selectUnitName(state, unitId) {
   return unit ? unit.nama : '-'
 }
 
-export function selectUnitOptions(state) {
-  return ['Semua Unit (Pusat)', ...state.units.map((u) => u.nama)]
-}
-
 export const ROLE_OPTIONS = [
   { value: 'Superadmin', label: 'Superadmin Pusat' },
   { value: 'Admin Unit', label: 'Admin Unit Sekolah' },
   { value: 'Guru', label: 'Guru / Staf' },
+  { value: 'Petugas Presensi', label: 'Petugas Presensi' },
 ]
 
 export const MENU_OPTIONS = [
@@ -694,7 +749,7 @@ function syncAdminUserFromStaff(adminUsers, staffUser, action) {
 }
 
 export function selectLeavesEnriched(state) {
-  return state.leaves.map((l) => {
+  return selectScopedLeaves(state).map((l) => {
     const staff = selectStaffById(state, l.staffId)
     return {
       ...l,
@@ -708,11 +763,16 @@ export function selectLeavesEnriched(state) {
 }
 
 export function selectAttendance(state) {
-  return state.attendance || buildAttendance(state.staff)
+  const scoped = selectScopedStaff(state)
+  if (selectIsAllUnits(state)) return state.attendance || buildAttendance(scoped)
+  return buildAttendance(scoped)
 }
 
 export function selectAttendanceByUnit(state, unitId) {
-  return selectAttendance(state).filter((a) => a.unitId === unitId)
+  const effUnit = resolveUnitFilter(state, unitId)
+  const attendance = selectAttendance(state)
+  if (!effUnit) return attendance
+  return attendance.filter((a) => a.unitId === effUnit)
 }
 
 export function selectAttendanceSummary(state) {
@@ -733,9 +793,10 @@ export function selectFilterTabCounts(state) {
 }
 
 export function selectRekapTableData(state, unitId = null, period = 'Bulanan') {
-  let staff = state.staff.filter((s) => s.status === 'Aktif')
-  if (unitId && unitId !== 'all') {
-    staff = staff.filter((s) => s.unitId === unitId)
+  let staff = selectActiveStaff(state)
+  const effUnit = resolveUnitFilter(state, unitId)
+  if (effUnit) {
+    staff = staff.filter((s) => s.unitId === effUnit)
   }
   return staff.map((s) => {
     const unit = state.units.find((u) => u.id === s.unitId)
@@ -779,14 +840,15 @@ export function selectRekapTableData(state, unitId = null, period = 'Bulanan') {
 }
 
 export function selectRekapReportData(state, unitId = null, period = 'Bulanan') {
-  let staff = state.staff.filter((s) => s.status === 'Aktif')
-  if (unitId && unitId !== 'all') {
-    staff = staff.filter((s) => s.unitId === unitId)
+  let staff = selectActiveStaff(state)
+  const effUnit = resolveUnitFilter(state, unitId)
+  if (effUnit) {
+    staff = staff.filter((s) => s.unitId === effUnit)
   }
-  
+
   let attendance = buildAttendance(staff)
-  if (unitId && unitId !== 'all') {
-    attendance = attendance.filter((a) => a.unitId === unitId)
+  if (effUnit) {
+    attendance = attendance.filter((a) => a.unitId === effUnit)
   }
   
   let daysInPeriod = 15
@@ -797,8 +859,8 @@ export function selectRekapReportData(state, unitId = null, period = 'Bulanan') 
     case 'Tahunan': daysInPeriod = 240; break
   }
   
-  const leaves = state.leaves || []
-  
+  const leaves = selectScopedLeaves(state)
+
   return staff.map((s, idx) => {
     const unit = state.units.find((u) => u.id === s.unitId)
     const staffAttendance = attendance.filter((a) => a.staffId === s.id)
@@ -854,19 +916,21 @@ function getPeriodLabel(period) {
 }
 
 export function selectRekapSummary(state, unitId = null, period = 'Bulanan') {
-  let staff = state.staff.filter((s) => s.status === 'Aktif')
-  if (unitId && unitId !== 'all') {
-    staff = staff.filter((s) => s.unitId === unitId)
+  let staff = selectActiveStaff(state)
+  const effUnit = resolveUnitFilter(state, unitId)
+  if (effUnit) {
+    staff = staff.filter((s) => s.unitId === effUnit)
   }
   const totalPegawai = staff.length
   const hadir = staff.filter((s) => s.masuk !== null).length
   const tepatWaktu = staff.filter((s) => s.masuk !== null && s.late === 0).length
   const terlambat = staff.filter((s) => s.masuk !== null && s.late > 0).length
-  const izinSakit = state.leaves.filter((l) => 
-    (l.status === 'Disetujui' || l.status === 'Menunggu') && 
+  const leaves = selectScopedLeaves(state)
+  const izinSakit = leaves.filter((l) =>
+    (l.status === 'Disetujui' || l.status === 'Menunggu') &&
     staff.some((s) => s.id === l.staffId)
   ).length
-  const alpha = staff.filter((s) => s.masuk === null && !state.leaves.some((l) => 
+  const alpha = staff.filter((s) => s.masuk === null && !leaves.some((l) =>
     (l.status === 'Disetujui' || l.status === 'Menunggu') && l.staffId === s.id
   )).length
   const persentaseKehadiran = totalPegawai > 0 ? ((hadir / totalPegawai) * 100).toFixed(1) : '0.0'
@@ -899,15 +963,16 @@ export function selectRekapChartData(state, unitId = null, period = 'Bulanan') {
       daysInPeriod = 30
   }
 
-  let staff = state.staff.filter((s) => s.status === 'Aktif')
-  if (unitId && unitId !== 'all') {
-    staff = staff.filter((s) => s.unitId === unitId)
+  let staff = selectActiveStaff(state)
+  const effUnit = resolveUnitFilter(state, unitId)
+  if (effUnit) {
+    staff = staff.filter((s) => s.unitId === effUnit)
   }
   let attendance = state.attendance || buildAttendance(staff)
-  if (unitId && unitId !== 'all') {
-    attendance = attendance.filter((a) => a.unitId === unitId)
+  if (effUnit) {
+    attendance = attendance.filter((a) => a.unitId === effUnit)
   }
-  const leaves = state.leaves || []
+  const leaves = selectScopedLeaves(state)
   const approvedLeaves = leaves.filter((l) => l.status === 'Disetujui' && staff.some((s) => s.id === l.staffId)).length
   const pendingLeaves = leaves.filter((l) => l.status === 'Menunggu' && staff.some((s) => s.id === l.staffId)).length
   const alphaCount = attendance.filter((a) => a.alpha && !a.masuk).length
@@ -933,13 +998,14 @@ export function selectRekapChartData(state, unitId = null, period = 'Bulanan') {
 }
 
 export function selectRekapKepatuhanChart(state, unitId = null, period = 'Bulanan') {
-  let staff = state.staff.filter((s) => s.status === 'Aktif')
-  if (unitId && unitId !== 'all') {
-    staff = staff.filter((s) => s.unitId === unitId)
+  let staff = selectActiveStaff(state)
+  const effUnit = resolveUnitFilter(state, unitId)
+  if (effUnit) {
+    staff = staff.filter((s) => s.unitId === effUnit)
   }
   let attendance = state.attendance || buildAttendance(staff)
-  if (unitId && unitId !== 'all') {
-    attendance = attendance.filter((a) => a.unitId === unitId)
+  if (effUnit) {
+    attendance = attendance.filter((a) => a.unitId === effUnit)
   }
   const hadirTepat = attendance.filter((a) => a.status === 'Tepat Waktu').length
   const terlambat = attendance.filter((a) => a.status === 'Terlambat').length
@@ -1071,8 +1137,8 @@ export function selectRankingData(state) {
       desc: `${s.terlambatCount}x Terlambat • ${s.persentaseKehadiran}% Kehadiran`,
     }))
   
-  // Toleransi per unit
-  const unitLateAvg = state.units.map(u => {
+  // Toleransi per unit (hanya unit yang terlihat pada scope aktif)
+  const unitLateAvg = selectVisibleUnits(state).map(u => {
     const staffInUnit = staffWithStats.filter(s => s.unitId === u.id)
     const totalLate = staffInUnit.reduce((sum, s) => sum + s.terlambatCount, 0)
     const totalStaff = staffInUnit.length
@@ -1101,15 +1167,15 @@ export function selectRankingData(state) {
       icon: 'assignment',
     }))
   
-  // Check if there's any attendance data in the filtered range
-  const hasAttendanceData = filteredHistory.length > 0
+  const hasAttendanceData = history.length > 0
   const totalStaffWithAttendance = staffWithStats.filter(s => s.totalDays > 0).length
-  
+
   return { topOnTime, topLate, insentif, toleransi: unitLateAvg, pembinaan, hasAttendanceData, totalStaffWithAttendance }
 }
 
-export function selectRankingDataFiltered(state, { period = 'Bulanan', unitId = 'all', dateRange = null } = {}) {
+export function selectRankingDataFiltered(state, { period = 'Bulanan', unitId = ALL_UNITS, dateRange = null } = {}) {
   const active = selectActiveStaff(state)
+  const effUnit = resolveUnitFilter(state, unitId)
   const history = state.attendanceHistory || []
   
   // Filter history by period and date range
@@ -1146,8 +1212,8 @@ export function selectRankingDataFiltered(state, { period = 'Bulanan', unitId = 
   
   // Filter by unit
   let targetStaffIds = active.map(s => s.id)
-  if (unitId !== 'all') {
-    targetStaffIds = active.filter(s => s.unitId === unitId).map(s => s.id)
+  if (effUnit) {
+    targetStaffIds = active.filter(s => s.unitId === effUnit).map(s => s.id)
   }
   
   // Build staff attendance stats from filtered history
@@ -1268,9 +1334,9 @@ export function selectRankingDataFiltered(state, { period = 'Bulanan', unitId = 
       desc: `${s.terlambatCount}x Terlambat • ${s.persentaseKehadiran}% Kehadiran`,
     }))
   
-  // Toleransi per unit
-  const unitLateAvg = state.units.map(u => {
-    if (unitId !== 'all' && u.id !== unitId) return null
+  // Toleransi per unit (hanya unit yang sedang terlihat)
+  const unitLateAvg = selectVisibleUnits(state).map(u => {
+    if (effUnit && u.id !== effUnit) return null
     const staffInUnit = staffWithStats.filter(s => s.unitId === u.id)
     const totalLate = staffInUnit.reduce((sum, s) => sum + s.terlambatCount, 0)
     const totalStaff = staffInUnit.length
@@ -1395,8 +1461,89 @@ export function selectCurrentUser(state) {
   return state.currentUser
 }
 
+// ===== SCOPE UNIT =====
+// Satu sumber kebenaran untuk "unit terpilih": state.selectedUnitId,
+// yang selalu divalidasi terhadap role pengguna.
+
 export function selectCurrentUserRole(state) {
-  return state.currentUser?.role || 'Guru'
+  return state.currentUser?.role || ROLE_GURU
+}
+
+// Hanya Superadmin yang punya selector unit.
+export function selectCanSwitchUnit(state) {
+  return selectCurrentUserRole(state) === ROLE_SUPERADMIN
+}
+
+// Unit aktif hasil resolusi role: Superadmin bebas (all atau unit tertentu),
+// role lain hanya boleh unit akunnya sendiri.
+export function selectActiveUnitId(state) {
+  const role = selectCurrentUserRole(state)
+  if (role !== ROLE_SUPERADMIN) {
+    return state.currentUser?.unitId || ALL_UNITS
+  }
+  const selected = state.selectedUnitId
+  if (selected === ALL_UNITS) return ALL_UNITS
+  return state.units.some((u) => u.id === selected) ? selected : ALL_UNITS
+}
+
+export function selectIsAllUnits(state) {
+  return selectActiveUnitId(state) === ALL_UNITS
+}
+
+// Opsi unit sesuai hak akses role.
+export function selectUnitOptions(state) {
+  const units = selectUnitOptionsById(state)
+  if (selectCanSwitchUnit(state)) {
+    return ['Semua Unit (Pusat)', ...units.map((u) => u.nama)]
+  }
+  return units.length > 0 ? [units[0].nama] : []
+}
+
+export function selectUnitOptionsById(state) {
+  if (selectCanSwitchUnit(state)) return state.units
+  const activeId = selectActiveUnitId(state)
+  return state.units.filter((u) => u.id === activeId)
+}
+
+export function selectActiveUnitLabel(state) {
+  if (selectIsAllUnits(state)) return 'Semua Unit'
+  return selectUnitName(state, selectActiveUnitId(state))
+}
+
+// Unit yang boleh dilihat role ini: Superadmin melihat seluruh unit saat
+// "Semua Unit" aktif, role lain hanya unit sendiri.
+export function selectVisibleUnits(state) {
+  if (selectIsAllUnits(state)) return state.units
+  return state.units.filter((u) => u.id === selectActiveUnitId(state))
+}
+
+// Staff setelah pembatasan unit terpilih — dipakai semua halaman.
+export function selectScopedStaff(state) {
+  if (selectIsAllUnits(state)) return state.staff
+  const activeId = selectActiveUnitId(state)
+  return state.staff.filter((s) => s.unitId === activeId)
+}
+
+export function selectScopedLeaves(state) {
+  if (selectIsAllUnits(state)) return state.leaves
+  const staffIds = new Set(selectScopedStaff(state).map((s) => s.id))
+  return state.leaves.filter((l) => staffIds.has(l.staffId))
+}
+
+export function selectScopedLogs(state) {
+  if (selectIsAllUnits(state)) return state.logs
+  const activeId = selectActiveUnitId(state)
+  const unitName = selectUnitName(state, activeId)
+  const staffNames = new Set(selectScopedStaff(state).map((s) => s.name))
+  return state.logs.filter(
+    (l) => (l.unitId && l.unitId === activeId) || l.unit === unitName || staffNames.has(l.actor),
+  )
+}
+
+export function selectScopedAdminUsers(state) {
+  if (selectIsAllUnits(state)) return state.adminUsers
+  const activeId = selectActiveUnitId(state)
+  return state.adminUsers.filter((u) => u.unitId === activeId)
 }
 
 export function generateLogTime() {

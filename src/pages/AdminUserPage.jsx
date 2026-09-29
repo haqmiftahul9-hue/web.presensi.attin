@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react'
-import { useSimPres, selectUnitName, initialsOf, ROLE_OPTIONS, MENU_OPTIONS, PERMISSION_ACTIONS, getRolePermissions, addActivityLog } from '../store/simPresStore.jsx'
+import { useSimPres, selectUnitName, initialsOf, ROLE_OPTIONS, MENU_OPTIONS, PERMISSION_ACTIONS, getRolePermissions, addActivityLog, selectScopedAdminUsers, selectCanSwitchUnit, selectActiveUnitId, selectUnitOptionsById, ALL_UNITS } from '../store/simPresStore.jsx'
 import ConfirmDialog from '../components/ConfirmDialog.jsx'
 
 const roleMap = {
@@ -12,8 +12,10 @@ function AdminUserPage() {
   const { state, dispatch } = useSimPres()
   const [searchTerm, setSearchTerm] = useState('')
   const [roleFilter, setRoleFilter] = useState('all')
-  const [unitFilter, setUnitFilter] = useState('all')
   const [statusFilter, setStatusFilter] = useState('all')
+  // Unit daftar akun mengikuti unit terpilih di store utama.
+  const canSwitchUnit = selectCanSwitchUnit(state)
+  const unitFilter = selectCanSwitchUnit(state) ? 'all' : selectActiveUnitId(state)
 
   const [showForm, setShowForm] = useState(false)
   const [formMode, setFormMode] = useState('add')
@@ -472,8 +474,8 @@ function AdminUserPage() {
                 value={unitFilter}
                 onChange={(e) => setUnitFilter(e.target.value)}
               >
-                <option value="all">Semua Unit</option>
-                {state.units.map((u) => (
+                {selectCanSwitchUnit(state) && <option value={ALL_UNITS}>Semua Unit</option>}
+                {selectUnitOptionsById(state).map((u) => (
                   <option key={u.id} value={u.id}>{u.nama}</option>
                 ))}
               </select>

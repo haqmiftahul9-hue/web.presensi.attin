@@ -32,7 +32,7 @@ function SidebarNav() {
               <span className="material-symbols-outlined text-on-primary-container text-[18px]">domain</span>
               <div className="flex flex-col">
                 <span className="font-label-sm text-label-sm text-on-primary-container uppercase">Unit Terpilih</span>
-                <span className="font-body-sm-medium text-body-sm-medium text-on-primary truncate max-w-[120px]">Semua Unit (Pusat)</span>
+                <span className="font-body-sm-medium text-body-sm-medium text-on-primary truncate max-w-[120px]">Semua Unit</span>
               </div>
             </div>
             <span className="material-symbols-outlined text-on-primary-container text-[18px]">expand_more</span>

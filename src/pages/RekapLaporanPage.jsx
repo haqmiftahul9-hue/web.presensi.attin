@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useSimPres } from '../store/simPresStore.jsx'
-import { selectRekapTableData, selectRekapSummary, selectRekapChartData, selectRekapKepatuhanChart, selectRekapReportData, buildAttendance, initialsOf } from '../store/simPresStore.jsx'
+import { selectRekapTableData, selectRekapSummary, selectRekapChartData, selectRekapKepatuhanChart, selectRekapReportData, buildAttendance, initialsOf, selectActiveUnitId, selectCanSwitchUnit, selectUnitOptionsById, ALL_UNITS } from '../store/simPresStore.jsx'
 import * as XLSX from 'xlsx'
 import { jsPDF } from 'jspdf'
 import autoTable from 'jspdf-autotable'
@@ -904,9 +904,11 @@ function NotifToast({ notification }) {
 }
 
 function RekapLaporanPage() {
-  const { state } = useSimPres()
+  const { state, dispatch } = useSimPres()
   const [activePeriod, setActivePeriod] = useState('Bulanan')
-  const [selectedUnit, setSelectedUnit] = useState('all')
+  // Unit berasal dari unit terpilih di store (role-aware), bukan state lokal.
+  const selectedUnit = selectActiveUnitId(state)
+  const canSwitchUnit = selectCanSwitchUnit(state)
   const [search, setSearch] = useState('')
   const [sortConfig, setSortConfig] = useState({ key: 'no', direction: 'asc' })
   const [currentPage, setCurrentPage] = useState(1)
@@ -936,7 +938,11 @@ function RekapLaporanPage() {
   }
 
   const periods = ['Harian', 'Mingguan', 'Bulanan', 'Tahunan']
-  const unitOptions = ['all', ...state.units.map(u => u.id)]
+  // Unit terpilih = store utama; role non-Superadmin hanya punya satu opsi (unitnya).
+  const unitOptions = [
+    ...(canSwitchUnit ? [{ id: ALL_UNITS, nama: `Semua Unit (${state.units.length} Unit)` }] : []),
+    ...selectUnitOptionsById(state),
+  ]
 
   const summary = useMemo(() => selectRekapSummary(state, selectedUnit, activePeriod), [state, selectedUnit, activePeriod])
   const chartData = useMemo(() => selectRekapChartData(state, selectedUnit, activePeriod), [state, selectedUnit, activePeriod])
@@ -1092,7 +1098,7 @@ function RekapLaporanPage() {
   }
 
   const selectedUnitObj = state.units.find(u => u.id === selectedUnit)
-  const unitLabel = selectedUnit === 'all' ? `Semua Unit (${state.units.length} Unit)` : selectedUnitObj?.nama || 'Semua Unit'
+  const unitLabel = selectedUnit === ALL_UNITS ? `Semua Unit (${state.units.length} Unit)` : selectedUnitObj?.nama || 'Semua Unit'
 
   const getPeriodLabel = (period) => {
     switch (period) {
@@ -1952,39 +1958,47 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
               <span className="font-body-md-medium text-body-md-medium text-on-surface">{getPeriodLabel(activePeriod)}</span>
               <span className="material-symbols-outlined text-[18px] text-outline ml-2">arrow_drop_down</span>
             </div>
-            <div className="relative" onMouseLeave={() => setShowUnitDropdown(false)}>
-              <button
-                onClick={() => setShowUnitDropdown(!showUnitDropdown)}
-                className="flex items-center gap-2 px-3 py-2 bg-surface-container rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer"
-                type="button"
-              >
-                <span className="material-symbols-outlined text-[18px] text-outline">domain</span>
-                <span className="font-body-md-medium text-body-md-medium text-on-surface">{unitLabel}</span>
-                <span className="material-symbols-outlined text-[18px] text-outline">{showUnitDropdown ? 'expand_less' : 'expand_more'}</span>
-              </button>
-              {showUnitDropdown && (
-                <div className="absolute left-0 top-full mt-1.5 min-w-[220px] bg-surface-container-lowest rounded-lg shadow-lg border border-surface-container py-2 z-50 animate-fade-in">
-                  {state.units.map(u => (
+            {canSwitchUnit ? (
+              <div className="relative" onMouseLeave={() => setShowUnitDropdown(false)}>
+                <button
+                  onClick={() => setShowUnitDropdown(!showUnitDropdown)}
+                  className="flex items-center gap-2 px-3 py-2 bg-surface-container rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer"
+                  type="button"
+                >
+                  <span className="material-symbols-outlined text-[18px] text-outline">domain</span>
+                  <span className="font-body-md-medium text-body-md-medium text-on-surface">{unitLabel}</span>
+                  <span className="material-symbols-outlined text-[18px] text-outline">{showUnitDropdown ? 'expand_less' : 'expand_more'}</span>
+                </button>
+                {showUnitDropdown && (
+                  <div className="absolute left-0 top-full mt-1.5 min-w-[220px] bg-surface-container-lowest rounded-lg shadow-lg border border-surface-container py-2 z-50 animate-fade-in">
+                    {unitOptions.map(u => (
+                      <button
+                        key={u.id}
+                        onClick={() => { dispatch({ type: 'SET_SELECTED_UNIT', payload: u.id }); setShowUnitDropdown(false); }}
+                        className={`w-full px-4 py-2 text-left font-body-md text-body-md transition-colors ${selectedUnit === u.id ? 'bg-primary/10 text-primary' : 'text-on-surface hover:bg-surface-container'}`}
+                        type="button"
+                      >
+                        {u.nama}
+                      </button>
+                    ))}
+                    <hr className="my-1 border-surface-container" />
                     <button
-                      key={u.id}
-                      onClick={() => { setSelectedUnit(u.id); setShowUnitDropdown(false); }}
-                      className={`w-full px-4 py-2 text-left font-body-md text-body-md transition-colors ${selectedUnit === u.id ? 'bg-primary/10 text-primary' : 'text-on-surface hover:bg-surface-container'}`}
+                      onClick={() => { dispatch({ type: 'SET_SELECTED_UNIT', payload: ALL_UNITS }); setShowUnitDropdown(false); }}
+                      className={`w-full px-4 py-2 text-left font-body-md text-body-md transition-colors ${selectedUnit === ALL_UNITS ? 'bg-primary/10 text-primary' : 'text-on-surface hover:bg-surface-container'}`}
                       type="button"
                     >
-                      {u.nama}
+                      Semua Unit ({state.units.length} Unit)
                     </button>
-                  ))}
-                  <hr className="my-1 border-surface-container" />
-                  <button
-                    onClick={() => { setSelectedUnit('all'); setShowUnitDropdown(false); }}
-                    className={`w-full px-4 py-2 text-left font-body-md text-body-md transition-colors ${selectedUnit === 'all' ? 'bg-primary/10 text-primary' : 'text-on-surface hover:bg-surface-container'}`}
-                    type="button"
-                  >
-                    Semua Unit ({state.units.length} Unit)
-                  </button>
-                </div>
-              )}
-            </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 px-3 py-2 bg-surface-container rounded-lg cursor-not-allowed" title="Unit mengikuti akun Anda">
+                <span className="material-symbols-outlined text-[18px] text-outline">domain</span>
+                <span className="font-body-md-medium text-body-md-medium text-on-surface">{unitLabel}</span>
+                <span className="material-symbols-outlined text-[16px] text-outline/70">lock</span>
+              </div>
+            )}
           </div>
           <div className="flex items-center gap-2 flex-nowrap">
             <div className="relative" onMouseLeave={() => setShowReportSettings(false)}>

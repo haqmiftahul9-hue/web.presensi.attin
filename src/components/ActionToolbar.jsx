@@ -1,4 +1,4 @@
-import { useSimPres, addActivityLog, selectCurrentUser } from '../store/simPresStore.jsx'
+import { useSimPres, addActivityLog, selectCurrentUser, selectCanSwitchUnit, selectActiveUnitId, selectUnitOptionsById, ALL_UNITS } from '../store/simPresStore.jsx'
 import { useState } from 'react'
 import AddEmployeeModal from './AddEmployeeModal.jsx'
 import { downloadTemplate } from '../data/employeeTemplate.js'
@@ -11,7 +11,6 @@ const STATUS_OPTIONS = [
 
 function ActionToolbar({
   onImport,
-  unitFilter, setUnitFilter,
   searchTerm, setSearchTerm,
   statusFilter, setStatusFilter,
   onResetFilters, setCurrentPageReset,
@@ -20,6 +19,16 @@ function ActionToolbar({
   const { state, dispatch } = useSimPres()
   const [showAddModal, setShowAddModal] = useState(false)
   const [toast, setToast] = useState(null)
+
+  // Unit terpilih berasal dari store utama; role non-Superadmin tidak punya
+  // selector sehingga toolbox ini menampilkan unitnya secara terkunci.
+  const canSwitchUnit = selectCanSwitchUnit(state)
+  const activeUnitId = selectActiveUnitId(state)
+  const unitOptions = selectUnitOptionsById(state)
+  const handleUnitChange = (value) => {
+    dispatch({ type: 'SET_SELECTED_UNIT', payload: value })
+    setCurrentPageReset(1)
+  }
 
   const flash = (text) => {
     setToast(text)
@@ -90,20 +99,30 @@ function ActionToolbar({
       {/* Baris 2 — Filter: Unit, Search, Status, Reset (paling kanan).
           flex-wrap menjaga agar tidak pernah meluber saat container menyempit. */}
       <div className="px-space-md pb-2.5 pt-2 flex flex-wrap items-center gap-2">
-        <div className="relative w-full sm:w-56 sm:flex-none">
-          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px] pointer-events-none leading-none">domain</span>
-          <select
-            className="w-full h-10 pl-9 pr-8 bg-surface-container-low hover:bg-surface-container text-on-surface font-body-md text-body-md rounded-lg focus:outline-none focus:bg-surface-container-lowest focus:ring-1 focus:ring-secondary/30 appearance-none cursor-pointer truncate"
-            value={unitFilter}
-            onChange={(e) => withPageReset(setUnitFilter)(e.target.value)}
-          >
-            <option value="all">Semua Unit ({state.units.length} Unit)</option>
-            {state.units.map((u) => (
-              <option key={u.id} value={u.id}>{u.nama}</option>
-            ))}
-          </select>
-          <span className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px] pointer-events-none leading-none">expand_more</span>
-        </div>
+        {canSwitchUnit ? (
+          <div className="relative w-full sm:w-56 sm:flex-none">
+            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px] pointer-events-none leading-none">domain</span>
+            <select
+              className="w-full h-10 pl-9 pr-8 bg-surface-container-low hover:bg-surface-container text-on-surface font-body-md text-body-md rounded-lg focus:outline-none focus:bg-surface-container-lowest focus:ring-1 focus:ring-secondary/30 appearance-none cursor-pointer truncate"
+              value={activeUnitId}
+              onChange={(e) => handleUnitChange(e.target.value)}
+            >
+              <option value={ALL_UNITS}>Semua Unit ({state.units.length} Unit)</option>
+              {unitOptions.map((u) => (
+                <option key={u.id} value={u.id}>{u.nama}</option>
+              ))}
+            </select>
+            <span className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px] pointer-events-none leading-none">expand_more</span>
+          </div>
+        ) : (
+          <div className="relative w-full sm:w-56 sm:flex-none">
+            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px] pointer-events-none leading-none">domain</span>
+            <div className="w-full h-10 pl-9 pr-8 bg-surface-container flex items-center text-on-surface-variant font-body-md text-body-md rounded-lg truncate cursor-not-allowed" title="Unit mengikuti akun Anda">
+              {unitOptions[0]?.nama || 'Semua Unit'}
+            </div>
+            <span className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-on-surface-variant/40 text-[18px] pointer-events-none leading-none">lock</span>
+          </div>
+        )}
         <div className="relative w-full sm:flex-1 sm:min-w-[220px]">
           <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px] pointer-events-none leading-none">search</span>
           <input

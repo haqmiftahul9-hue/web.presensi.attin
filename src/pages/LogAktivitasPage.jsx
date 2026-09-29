@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { useSimPres } from '../store/simPresStore.jsx'
-import { initialsOf, selectUnitName, selectCurrentUser, selectCurrentUserRole, hasMenuPermission } from '../store/simPresStore.jsx'
+import { initialsOf, selectUnitName, selectCurrentUser, selectCurrentUserRole, hasMenuPermission, selectScopedLogs, selectScopedAdminUsers, selectActiveUnitId } from '../store/simPresStore.jsx'
 
 const actionStyles = {
   tambah: 'bg-blue-50 text-blue-700',
@@ -177,7 +177,7 @@ function LogAktivitasPage() {
   const currentUser = selectCurrentUser(state)
   const currentUserRole = selectCurrentUserRole(state)
   const canViewLogs = hasMenuPermission(state, 'logAktivitas')
-  const currentUserUnitId = currentUser?.unitId
+  const currentUserUnitId = selectActiveUnitId(state)
 
   // Block access for users without permission (Guru, etc.)
   if (!canViewLogs) {
@@ -277,17 +277,13 @@ function LogAktivitasPage() {
     return labels[range] || range
   }
 
-  const unitAdminUsers = useMemo(() => {
-    if (currentUserRole === 'Superadmin') return state.adminUsers
-    return state.adminUsers.filter(u => u.unitId === currentUserUnitId)
-  }, [state.adminUsers, currentUserRole, currentUserUnitId])
+  // Log mengikuti unit terpilih (Superadmin) atau unit akun (role lain).
+  const unitAdminUsers = useMemo(
+    () => selectScopedAdminUsers(state),
+    [state],
+  )
 
-  const roleFilteredLogs = useMemo(() => {
-    if (currentUserRole === 'Superadmin') return state.logs
-    
-    const unitUserNames = new Set(unitAdminUsers.map(u => u.name))
-    return state.logs.filter(log => unitUserNames.has(log.actor) || log.role === 'Sistem')
-  }, [state.logs, currentUserRole, unitAdminUsers])
+  const roleFilteredLogs = useMemo(() => selectScopedLogs(state), [state])
 
   const logs = useMemo(() => roleFilteredLogs.map((log, idx) => ({
     id: log.id,

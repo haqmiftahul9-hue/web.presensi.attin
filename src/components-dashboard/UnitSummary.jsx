@@ -1,16 +1,17 @@
 import { Link } from 'react-router-dom'
-import { useSimPres, selectUnitSummary } from '../store/simPresStore.jsx'
+import { useSimPres, selectUnitSummary, selectIsAllUnits } from '../store/simPresStore.jsx'
 
 function UnitSummary() {
   const { state } = useSimPres()
-  // Ringkasan per unit dari satu sumber data (store).
+  // Ringkasan per unit dari satu sumber data (store), mengikuti unit terpilih.
   const summary = selectUnitSummary(state)
+  const isAllUnits = selectIsAllUnits(state)
 
   return (
     <div className="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col justify-between">
       <div className="flex items-center justify-between pb-space-sm">
         <h2 className="font-headline-sm text-headline-sm text-on-surface">Ringkasan per Unit</h2>
-        <span className="px-2 py-0.5 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm">{state.units.length} Unit Terdaftar</span>
+        <span className="px-2 py-0.5 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm">{summary.length} Unit {isAllUnits ? 'Terdaftar' : 'Terpilih'}</span>
       </div>
       <div className="flex flex-col gap-space-sm my-space-xs">
         {summary.map((unit) => (

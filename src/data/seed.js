@@ -28,11 +28,15 @@ export const LEAVES = [
   { id: 6, staffId: 2, jenis: 'Izin Pribadi', periode: '02 Sep 2026', durasi: '1 Hari', lampiran: 'Dispensasi.pdf', status: 'Ditolak' },
 ]
 
+// Superadmin TIDAK punya unit: ia oversee seluruh unit (unitId null = pusat).
+// Role selain Superadmin selalu terikat ke satu unit sesuai akunnya.
 export const ADMIN_USERS = [
-  { id: 1, name: 'Bambang Hidayat, S.Kom', niy: '019001001', email: 'bambang.h@simpres.sch.id', role: 'Superadmin', unitId: 'sd', status: 'Aktif' },
+  { id: 1, name: 'Bambang Hidayat, S.Kom', niy: '019001001', email: 'bambang.h@simpres.sch.id', role: 'Superadmin', unitId: null, status: 'Aktif' },
   { id: 2, name: 'Bustanul Abidin, S.Pd', niy: '049097021', email: 'bustanul.a@sd.rj.sch.id', role: 'Admin Unit', unitId: 'sd', status: 'Aktif' },
   { id: 3, name: 'Reki Gusman, S.E.', niy: '029010036', email: 'reki.g@smp.rj.sch.id', role: 'Admin Unit', unitId: 'smp', status: 'Aktif' },
-  { id: 4, name: 'Silvana Monica, S.Ak', niy: '049023183', email: 'silvana.m@simpres.sch.id', role: 'Superadmin', unitId: 'sma', status: 'Aktif' },
+  { id: 4, name: 'Silvana Monica, S.Ak', niy: '049023183', email: 'silvana.m@simpres.sch.id', role: 'Superadmin', unitId: null, status: 'Aktif' },
+  { id: 5, name: 'Rizal Ramli, S.Pd.I', niy: '029045122', email: 'rizal.r@sd.rj.sch.id', role: 'Guru', unitId: 'sd', status: 'Aktif' },
+  { id: 6, name: 'Marni Andayani, S.Kom', niy: '049066311', email: 'marni.a@smp.rj.sch.id', role: 'Petugas Presensi', unitId: 'smp', status: 'Aktif' },
 ]
 
 export const INITIAL_LOGS = [

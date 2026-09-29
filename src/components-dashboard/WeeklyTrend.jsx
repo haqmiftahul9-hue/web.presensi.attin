@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useSimPres, selectTrendByRange } from '../store/simPresStore.jsx'
+import { useSimPres, selectTrendByRange, selectActiveStaff } from '../store/simPresStore.jsx'
 
 function WeeklyTrend() {
   const { state } = useSimPres()
@@ -15,7 +15,8 @@ function WeeklyTrend() {
   const rataRataKehadiran = trend.length > 0
     ? ((trend.reduce((sum, d) => sum + d.hadir / Math.max(d.hadir + d.terlambat, 1), 0) / trend.length) * 100).toFixed(1)
     : '0.0'
-  const hadirStaff = state.staff.filter((s) => s.status === 'Aktif' && s.masuk)
+  // Kepatuhan dihitung dari pegawai pada unit terpilih saja.
+  const hadirStaff = selectActiveStaff(state).filter((s) => s.status === 'Aktif' && s.masuk)
   const sebelumTujuh = hadirStaff.filter((s) => (s.masuk || '') < '07:00').length
   const kepatuhan = hadirStaff.length > 0 ? ((sebelumTujuh / hadirStaff.length) * 100).toFixed(1) : '0.0'
 

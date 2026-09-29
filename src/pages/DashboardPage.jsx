@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useSimPres, selectCurrentUser, selectCurrentUserRole } from '../store/simPresStore.jsx'
+import { useSimPres, selectCurrentUser, selectCurrentUserRole, selectActiveUnitLabel, selectIsAllUnits } from '../store/simPresStore.jsx'
 import Header from '../components/Header.jsx'
 import StatCards from '../components-dashboard/StatCards.jsx'
 import WeeklyTrend from '../components-dashboard/WeeklyTrend.jsx'
@@ -54,7 +54,11 @@ function DashboardPage() {
             <span className="material-symbols-outlined text-[16px]">home</span>
             <span className="font-body-sm text-body-sm">Home</span>
             <span className="text-outline font-body-sm text-body-sm">/</span>
-            <span className="font-body-sm text-body-sm">Superadmin</span>
+            <span className="font-body-sm text-body-sm">{currentRole}</span>
+            <span className="text-outline font-body-sm text-body-sm">/</span>
+            <span className="font-body-sm text-body-sm">
+              {selectIsAllUnits(state) ? 'Semua Unit' : selectActiveUnitLabel(state)}
+            </span>
             <span className="text-outline font-body-sm text-body-sm">/</span>
             <span className="font-body-sm-medium text-body-sm-medium text-secondary">Dashboard</span>
           </div>

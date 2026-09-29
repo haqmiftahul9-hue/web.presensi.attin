@@ -1,9 +1,10 @@
-import { useSimPres } from '../store/simPresStore.jsx'
+import { useSimPres, selectVisibleUnits } from '../store/simPresStore.jsx'
 
 function UnitCards() {
   const { state } = useSimPres()
-  // Icon & nama unit dari satu sumber data (store); subtitle tetap copy tampilan.
-  const cards = state.units.slice(0, 4).map((u) => {
+  // Hanya unit dalam scope aktif yang tampil, dan jumlahnya menyesuaikan.
+  const visibleUnits = selectVisibleUnits(state)
+  const cards = visibleUnits.map((u) => {
     const staffInUnit = state.staff.filter((s) => s.unitId === u.id).length
     return {
       icon: u.icon,
@@ -17,7 +18,7 @@ function UnitCards() {
   })
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-space-md">
+    <div className={`grid grid-cols-1 gap-space-md ${visibleUnits.length > 1 ? 'md:grid-cols-4' : 'md:grid-cols-1'}`}>
       {cards.map((unit) => (
         <div key={unit.label} className="p-space-md rounded-xl bg-surface-container-lowest shadow-sm flex items-center gap-space-md">
           <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-secondary flex-shrink-0">

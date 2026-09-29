@@ -1,8 +1,9 @@
-import { useSimPres, selectTotalPegawai } from '../store/simPresStore.jsx'
+import { useSimPres, selectTotalPegawai, selectScopedStaff } from '../store/simPresStore.jsx'
 
 function BreadcrumbHeader() {
   const { state } = useSimPres()
-  const total = state.staff.length
+  // Angka mengikuti unit terpilih, bukan seluruh sekolah.
+  const total = selectScopedStaff(state).length
   const aktif = selectTotalPegawai(state)
 
   return (

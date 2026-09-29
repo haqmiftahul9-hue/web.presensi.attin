@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import * as XLSX from 'xlsx'
-import { useSimPres, selectLeavesEnriched, selectActiveStaff, selectUnitOptions, selectCurrentUserRole, addActivityLog, selectUnitName } from '../store/simPresStore.jsx'
+import { useSimPres, selectLeavesEnriched, selectActiveStaff, selectCurrentUserRole, addActivityLog, selectUnitName, selectActiveUnitId, selectCanSwitchUnit, selectIsAllUnits, ALL_UNITS } from '../store/simPresStore.jsx'
 import { initialsOf } from '../store/simPresStore.jsx'
 import { selectLeavesByStatus, selectPendingLeaves, selectApprovedLeaves, selectRejectedLeaves } from '../store/simPresStore.jsx'
 import LeaveRequestModal from '../components/LeaveRequestModal.jsx'
@@ -61,7 +61,6 @@ function PengajuanIzinCutiPage() {
   const [filterStatus, setFilterStatus] = useState('Semua Status')
   const [filterJenis, setFilterJenis] = useState('Semua Jenis Izin/Cuti')
   const [filterBulan, setFilterBulan] = useState('Sep 2026')
-  const [filterUnit, setFilterUnit] = useState('Semua Unit')
   const [currentPage, setCurrentPage] = useState(1)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [detailLeave, setDetailLeave] = useState(null)
@@ -69,11 +68,16 @@ function PengajuanIzinCutiPage() {
   const [confirmRejectId, setConfirmRejectId] = useState(null)
 
   const staffList = selectActiveStaff(state)
-  const unitOptions = selectUnitOptions(state)
   const currentUserRole = selectCurrentUserRole(state)
   const currentUser = state.currentUser
   const isSuperadmin = currentUserRole === 'Superadmin'
-  const userUnitId = currentUser?.unitId
+  const canSwitchUnit = isSuperadmin
+  const userUnitId = selectActiveUnitId(state)
+  // Unit terpilih (store utama) menggantikan filter unit lokal.
+  const selectedUnitObj = state.units.find(u => u.id === userUnitId)
+  const filterUnit = isSuperadmin
+    ? (selectedUnitObj ? selectedUnitObj.nama : 'Semua Unit')
+    : (selectedUnitObj ? selectedUnitObj.nama : 'Semua Unit')
 
   // Ambil konfigurasi penandatangan dari global settings
   const settings = state.settings
@@ -97,10 +101,9 @@ function PengajuanIzinCutiPage() {
     return penandatangan.kepalaYayasan || { nama: '', jabatan: 'Ketua Yayasan' }
   }
 
-  // Unit options untuk dropdown filter
-  const unitFilterOptions = ['Semua Unit', ...state.units.map(u => u.nama)]
-
   // Izin/cuti + identitas pegawai dari satu sumber data (store).
+  // selectLeavesEnriched sudah membatasi data ke unit terpilih, jadi halaman
+  // ini tidak lagi memfilter unit secara manual.
   const allLeaves = selectLeavesEnriched(state)
   const pendingLeaves = selectPendingLeaves(state)
   const approvedLeaves = selectApprovedLeaves(state)
@@ -108,13 +111,7 @@ function PengajuanIzinCutiPage() {
 
   // 1. Terapkan filter ke allLeaves
   const filtered = allLeaves.filter((l) => {
-    // Unit filter - Superadmin bisa filter unit, Admin Unit hanya lihat unit sendiri
-    if (isSuperadmin) {
-      if (filterUnit !== 'Semua Unit' && l.unitName !== filterUnit) return false
-    } else {
-      // Admin Unit hanya bisa lihat unit sendiri
-      if (userUnitId && l.unitId !== userUnitId) return false
-    }
+    // Unit sudah dibatasi oleh unit terpilih di store.
     // Tab status filter
     if (activeStatusTab !== 'semua') {
       const statusMap = { menunggu: 'Menunggu', disetujui: 'Disetujui', ditolak: 'Ditolak' }
@@ -266,14 +263,10 @@ function PengajuanIzinCutiPage() {
       periodLabel = filterBulan.replace(/\s+/g, '_')
     }
 
-    // Unit label for filename
-    let unitLabel = 'Semua_Unit'
-    if (!isSuperadmin) {
-      const userUnit = state.units.find(u => u.id === userUnitId)
-      unitLabel = userUnit?.nama?.replace(/\s+/g, '_') || 'SDIT_Attin_Sumbar'
-    } else if (filterUnit !== 'Semua Unit') {
-      unitLabel = filterUnit.replace(/\s+/g, '_')
-    }
+    // Unit label for filename — mengikuti unit terpilih di store
+    const unitLabel = selectIsAllUnits(state)
+      ? 'Semua_Unit'
+      : (filterUnit || '').replace(/\s+/g, '_')
 
     // Prepare data for export - using filtered data
     const exportData = filtered.map((leave, index) => {
@@ -404,9 +397,9 @@ function PengajuanIzinCutiPage() {
             <div className="flex items-center gap-space-xs mt-space-md">
               <span className="font-body-sm text-body-sm text-on-surface-variant">Unit Terdaftar:</span>
               <span className="font-body-sm-medium text-body-sm-medium text-emerald-700">
-                {isSuperadmin 
-                  ? (filterUnit === 'Semua Unit' ? 'Semua Unit (4 Unit)' : `${filterUnit} (Tercatat 100%)`)
-                  : `${currentUser?.unitId ? state.units.find(u => u.id === currentUser.unitId)?.nama : 'SDIT Attin Sumbar'} (Tercatat 100%)`
+                {selectIsAllUnits(state)
+                  ? `Semua Unit (${state.units.length} Unit)`
+                  : `${filterUnit} (Tercatat 100%)`
                 }
               </span>
             </div>
@@ -453,10 +446,7 @@ function PengajuanIzinCutiPage() {
             <div className="flex items-center gap-space-xs text-on-surface-variant font-body-sm text-body-sm">
               <span className="material-symbols-outlined text-[18px]">tune</span>
               <span>
-                {isSuperadmin 
-                  ? `Filter Aktif: ${filterUnit}` 
-                  : `Filter Aktif: Unit ${currentUser?.unitId ? state.units.find(u => u.id === currentUser.unitId)?.nama : 'SDIT Attin Sumbar'}`
-                }
+                {`Filter Aktif: ${selectIsAllUnits(state) ? 'Semua Unit' : filterUnit}`}
               </span>
             </div>
           </div>
@@ -501,16 +491,17 @@ function PengajuanIzinCutiPage() {
                 <span className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-outline text-[18px] pointer-events-none">expand_more</span>
               </div>
             </div>
-            {isSuperadmin && (
+            {canSwitchUnit && (
               <div className="md:col-span-2">
                 <div className="relative">
                   <select
                     className="w-full h-10 pl-space-sm pr-8 bg-surface-container-low rounded-lg font-body-sm-medium text-body-sm-medium text-on-surface appearance-none focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-secondary/20"
-                    value={filterUnit}
-                    onChange={(e) => { setFilterUnit(e.target.value); setCurrentPage(1) }}
+                    value={userUnitId}
+                    onChange={(e) => { dispatch({ type: 'SET_SELECTED_UNIT', payload: e.target.value }); setCurrentPage(1) }}
                   >
-                    {unitFilterOptions.map((opt) => (
-                      <option key={opt}>{opt}</option>
+                    <option value={ALL_UNITS}>Semua Unit</option>
+                    {state.units.map((opt) => (
+                      <option key={opt.id} value={opt.id}>{opt.nama}</option>
                     ))}
                   </select>
                   <span className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-outline text-[18px] pointer-events-none">expand_more</span>

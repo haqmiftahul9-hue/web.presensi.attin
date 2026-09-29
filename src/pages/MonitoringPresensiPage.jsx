@@ -1,17 +1,21 @@
 import { useState, useEffect } from 'react'
 import { useSimPres } from '../store/simPresStore.jsx'
-import { selectJumlahHadir, selectJumlahTerlambat, selectTotalPegawai, selectUnitSummary, selectFilterTabCounts, selectMonitoringActivity, selectBelumPresensi, selectUnitOptions, selectHadirHariIni } from '../store/simPresStore.jsx'
+import { selectJumlahHadir, selectJumlahTerlambat, selectTotalPegawai, selectUnitSummary, selectFilterTabCounts, selectMonitoringActivity, selectBelumPresensi, selectHadirHariIni, selectCanSwitchUnit, selectActiveUnitId, selectUnitOptionsById, ALL_UNITS } from '../store/simPresStore.jsx'
 
 function MonitoringPresensiPage() {
   const { state, dispatch } = useSimPres()
   const [activeFilter, setActiveFilter] = useState('semua')
   const [searchTerm, setSearchTerm] = useState('')
-  const [selectedUnit, setSelectedUnit] = useState('Semua Unit (Pusat)')
   const [autoRefresh, setAutoRefresh] = useState('15s')
   const [isAutoRefreshOn, setIsAutoRefreshOn] = useState(true)
   const [liveTime, setLiveTime] = useState('')
   const [lastUpdate, setLastUpdate] = useState('')
   const [syncError, setSyncError] = useState(null)
+
+  // Semua angka & feed mengikuti unit terpilih di store; role non-Superadmin
+  // tidak punya selector dan otomatis terkunci ke unit akunnya.
+  const canSwitchUnit = selectCanSwitchUnit(state)
+  const selectedUnit = selectActiveUnitId(state)
 
   const hadir = selectJumlahHadir(state)
   const terlambat = selectJumlahTerlambat(state)
@@ -23,7 +27,7 @@ function MonitoringPresensiPage() {
   const hadirHariIni = selectHadirHariIni(state)
 
   // Opsi unit dari satu sumber data (store), bukan daftar hardcoded.
-  const unitOptions = selectUnitOptions(state)
+  const unitOptions = selectUnitOptionsById(state)
 
   // Ambil konfigurasi presensi dari global settings
   const settings = state.settings
@@ -89,8 +93,7 @@ function MonitoringPresensiPage() {
     if (activeFilter === 'terlambat' && !item.status.includes('Terlambat')) return false
     if (activeFilter === 'face' && item.method.label !== 'Face Recognition') return false
     if (activeFilter === 'qr' && item.method.label !== 'QR Code' && item.method.label !== 'Mobile GPS') return false
-    // Filter by unit
-    if (selectedUnit !== 'Semua Unit (Pusat)' && item.unit !== selectedUnit) return false
+    // Unit sudah dibatasi oleh store (unit terpilih), jadi tidak difilter lagi di sini.
     // Filter by search term
     if (searchTerm) {
       const term = searchTerm.toLowerCase()
@@ -204,18 +207,27 @@ function MonitoringPresensiPage() {
                 </div>
               )}
 
-              <div className="relative hidden sm:block">
-                <select
-                  className="appearance-none bg-white text-gray-900 font-body-sm-medium text-body-sm-medium pl-3 pr-8 py-2 rounded-lg shadow-sm border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20"
-                  value={selectedUnit}
-                  onChange={(e) => setSelectedUnit(e.target.value)}
-                >
-                  {unitOptions.map((opt) => (
-                    <option key={opt} value={opt}>{opt}</option>
-                  ))}
-                </select>
-                <span className="material-symbols-outlined pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[18px] text-gray-400">expand_more</span>
-              </div>
+              {canSwitchUnit ? (
+                <div className="relative hidden sm:block">
+                  <select
+                    className="appearance-none bg-white text-gray-900 font-body-sm-medium text-body-sm-medium pl-3 pr-8 py-2 rounded-lg shadow-sm border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    value={selectedUnit}
+                    onChange={(e) => dispatch({ type: 'SET_SELECTED_UNIT', payload: e.target.value })}
+                  >
+                    <option value={ALL_UNITS}>Semua Unit (Pusat)</option>
+                    {unitOptions.map((opt) => (
+                      <option key={opt.id} value={opt.id}>{opt.nama}</option>
+                    ))}
+                  </select>
+                  <span className="material-symbols-outlined pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[18px] text-gray-400">expand_more</span>
+                </div>
+              ) : (
+                <div className="hidden sm:flex items-center gap-2 bg-white px-3 py-2 rounded-lg shadow-sm border border-gray-200 cursor-not-allowed" title="Unit mengikuti akun Anda">
+                  <span className="material-symbols-outlined text-[18px] text-gray-400">domain</span>
+                  <span className="font-body-sm-medium text-body-sm-medium text-gray-900 whitespace-nowrap">{unitOptions[0]?.nama || 'Semua Unit (Pusat)'}</span>
+                  <span className="material-symbols-outlined text-[16px] text-gray-400">lock</span>
+                </div>
+              )}
 
               <div className="flex items-center gap-2">
                 <div className="relative hidden sm:block">

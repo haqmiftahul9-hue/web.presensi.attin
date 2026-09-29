@@ -1,11 +1,13 @@
 import { useState, useRef, useEffect } from 'react'
-import { useSimPres, selectRankingDataFiltered } from '../store/simPresStore.jsx'
+import { useSimPres, selectRankingDataFiltered, selectCanSwitchUnit, selectActiveUnitId, selectActiveUnitLabel, selectUnitOptionsById, ALL_UNITS } from '../store/simPresStore.jsx'
 import * as XLSX from 'xlsx'
 
 function RankingKehadiranPage() {
-  const { state } = useSimPres()
+  const { state, dispatch } = useSimPres()
   const [activeTab, setActiveTab] = useState('Bulanan')
-  const [selectedUnit, setSelectedUnit] = useState('all')
+  // Unit berasal dari store utama; hanya Superadmin yang boleh berpindah unit.
+  const canSwitchUnit = selectCanSwitchUnit(state)
+  const selectedUnit = selectActiveUnitId(state)
   const [selectedDateRange, setSelectedDateRange] = useState(null)
   const [openUnitMenu, setOpenUnitMenu] = useState(false)
   const [openDateMenu, setOpenDateMenu] = useState(false)
@@ -98,7 +100,7 @@ function RankingKehadiranPage() {
   
   // Get unit label for export
   const getUnitLabel = () => {
-    if (selectedUnit === 'all') return 'Semua_Unit'
+    if (selectedUnit === ALL_UNITS) return 'Semua_Unit'
     const unit = state.units.find(u => u.id === selectedUnit)
     return unit ? unit.nama.replace(/\s+/g, '_') : 'Semua_Unit'
   }
@@ -164,7 +166,7 @@ function RankingKehadiranPage() {
     // Info rows
     const infoRows = [
       ['Periode', getPeriodLabel()],
-      ['Unit', selectedUnit === 'all' ? 'Semua Unit' : (state.units.find(u => u.id === selectedUnit)?.nama || 'Semua Unit')],
+      ['Unit', selectedUnit === ALL_UNITS ? 'Semua Unit' : (state.units.find(u => u.id === selectedUnit)?.nama || 'Semua Unit')],
       ['Tanggal Export', new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })],
       [] // empty row
     ]
@@ -207,11 +209,11 @@ function RankingKehadiranPage() {
   }
   
   const unitOptions = [
-    { id: 'all', label: `Semua Unit (${state.units.length} Unit)` },
-    ...state.units.map(u => ({ id: u.id, label: u.nama }))
+    ...(canSwitchUnit ? [{ id: ALL_UNITS, label: `Semua Unit (${state.units.length} Unit)` }] : []),
+    ...selectUnitOptionsById(state).map(u => ({ id: u.id, label: u.nama })),
   ]
-  
-  const selectedUnitOption = unitOptions.find(u => u.id === selectedUnit) || unitOptions[0]
+
+  const selectedUnitOption = unitOptions.find(u => u.id === selectedUnit) || { id: selectedUnit, label: selectActiveUnitLabel(state) }
   
   const tabs = ['Harian', 'Mingguan', 'Bulanan', 'Tahunan']
 
@@ -274,7 +276,8 @@ function RankingKehadiranPage() {
               ))}
             </div>
             
-            {/* Unit Selector Dropdown */}
+            {/* Unit Selector — hanya Superadmin */}
+            {canSwitchUnit && (
             <div className="relative" ref={unitMenuRef}>
               <button
                 onClick={() => {
@@ -294,7 +297,7 @@ function RankingKehadiranPage() {
                     <button
                       key={opt.id}
                       onClick={() => {
-                        setSelectedUnit(opt.id)
+                        dispatch({ type: 'SET_SELECTED_UNIT', payload: opt.id })
                         setOpenUnitMenu(false)
                       }}
                       className={`w-full px-space-md py-2 text-left font-body-sm text-body-sm transition-colors ${
@@ -310,6 +313,7 @@ function RankingKehadiranPage() {
                 </div>
               )}
             </div>
+            )}
             
             {/* Month/Date Range Badge */}
             <div className="relative" ref={dateMenuRef}>

@@ -1,4 +1,4 @@
-import { useSimPres, selectCurrentUser, selectCurrentUserRole } from '../store/simPresStore.jsx'
+import { useSimPres, selectCurrentUser, selectCurrentUserRole, selectActiveUnitLabel, selectIsAllUnits } from '../store/simPresStore.jsx'
 
 function Header() {
   const { state } = useSimPres()
@@ -38,7 +38,7 @@ function Header() {
           )}
           <div className="hidden md:flex flex-col text-left">
             <span className="font-body-sm-medium text-body-sm-medium text-on-surface leading-tight">{settings.namaAplikasi || 'SimPres'}</span>
-            <span className="font-label-sm text-label-sm text-on-surface-variant leading-tight mt-1">{currentUser?.unitId ? 'Unit ' + currentUser.unitId.toUpperCase() : (settings.namaYayasan || 'Yayasan Pendidikan')}</span>
+            <span className="font-label-sm text-label-sm text-on-surface-variant leading-tight mt-1">{selectIsAllUnits(state) ? (settings.namaYayasan || 'Yayasan Pendidikan') : selectActiveUnitLabel(state)}</span>
           </div>
           <span className="material-symbols-outlined text-on-surface-variant text-[18px]">arrow_drop_down</span>
         </div>
