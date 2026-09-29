@@ -58,6 +58,11 @@ function AdminUserPage() {
     () => Math.max(1, Math.ceil(filtered.length / pageSize)),
     [filtered.length, pageSize],
   )
+
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages)
+  }, [page, totalPages])
+
   const paged = useMemo(() => {
     const start = (page - 1) * pageSize
     return filtered.slice(start, start + pageSize)
@@ -516,27 +521,27 @@ function AdminUserPage() {
 
         <div className="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full min-w-[760px] text-left border-collapse">
               <thead>
                 <tr className="bg-surface-container-low border-b border-surface-container text-on-surface-variant font-label-sm text-label-sm uppercase tracking-wider leading-tight">
-                  <th className="py-3 px-4 w-10 text-center">
+                  <th className="py-3 px-3 w-12 text-center">
                     <input className="rounded w-4 h-4 text-secondary focus:ring-0 cursor-pointer" type="checkbox" />
                   </th>
-                  <th className="py-3 px-4 font-semibold">Pengguna</th>
-                  <th className="py-3 px-4 font-semibold">Kontak & NIY</th>
-                  <th className="py-3 px-4 font-semibold">Peran</th>
-                  <th className="py-3 px-4 font-semibold">Unit</th>
-                  <th className="py-3 px-4 font-semibold">Status</th>
-                  <th className="py-3 px-4 w-40 font-semibold text-right">Aksi</th>
+                  <th className="py-3 px-3 font-semibold">Pengguna</th>
+                  <th className="py-3 px-3 font-semibold">Kontak & NIY</th>
+                  <th className="py-3 px-3 font-semibold">Peran</th>
+                  <th className="py-3 px-3 font-semibold">Unit</th>
+                  <th className="py-3 px-3 font-semibold">Status</th>
+                  <th className="py-3 px-2 w-[200px] font-semibold text-center whitespace-nowrap">Aksi</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-surface-container font-body-sm text-body-sm">
                 {rows.map((user) => (
                   <tr key={user.id} className={`hover:bg-surface-container-low/60 transition-colors duration-150 ${user.rowBg}`}>
-                    <td className="py-3 px-4 text-center w-10">
+                    <td className="py-3 px-3 text-center w-12">
                       <input className="rounded w-4 h-4 text-secondary focus:ring-0 cursor-pointer" type="checkbox" />
                     </td>
-                    <td className="py-3 px-4">
+                    <td className="py-3 px-3 max-w-[280px]">
                       <div className="flex items-center gap-3">
                         <div className={`w-9 h-9 rounded-full font-headline-xs text-headline-xs flex items-center justify-center font-semibold flex-shrink-0 ${user.roleBg} ${user.roleText}`}>
                           {user.initials}
@@ -547,32 +552,32 @@ function AdminUserPage() {
                         </div>
                       </div>
                     </td>
-                    <td className="py-3 px-4">
+                    <td className="py-3 px-3 max-w-[240px]">
                       <div className="flex flex-col min-w-0 gap-0.5">
                         <span className="font-body-sm text-body-sm text-on-surface truncate">{user.email}</span>
                         <span className="font-label-xs text-label-xs text-on-surface-variant font-mono">NIY {user.niy}</span>
                       </div>
                     </td>
-                    <td className="py-3 px-4">
-                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-label-xs text-label-xs font-medium ${user.roleBg} ${user.roleText}`}>
+                    <td className="py-3 px-3 w-[150px]">
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-label-xs text-label-xs font-medium whitespace-nowrap ${user.roleBg} ${user.roleText}`}>
                         <span className={`w-1.5 h-1.5 rounded-full ${user.roleDot}`}></span>
                         {user.role}
                       </span>
                     </td>
-                    <td className="py-3 px-4">
-                      <div className="flex items-center gap-2 text-on-surface">
+                    <td className="py-3 px-3 max-w-[200px]">
+                      <div className="flex items-center gap-2 text-on-surface min-w-0">
                         <span className="material-symbols-outlined text-[15px] text-outline flex-shrink-0">{user.unitIcon}</span>
                         <span className="font-body-sm-medium text-body-sm-medium truncate">{user.unit}</span>
                       </div>
                     </td>
-                    <td className="py-3 px-4">
-                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-label-xs text-label-xs font-medium ${user.statusBg} ${user.statusText}`}>
+                    <td className="py-3 px-3 w-[140px]">
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-label-xs text-label-xs font-medium whitespace-nowrap ${user.statusBg} ${user.statusText}`}>
                         <span className={`w-1.5 h-1.5 rounded-full ${user.statusDot}`}></span>
                         {user.status}
                       </span>
                     </td>
-                    <td className="py-3 px-4 w-40 text-right">
-                      <div className="inline-flex items-center justify-end gap-1">
+                    <td className="py-3 px-2 w-[200px] text-center whitespace-nowrap">
+                      <div className="flex items-center justify-center gap-1 flex-nowrap">
                         <button
                           onClick={() => openDetail(user)}
                           className="w-8 h-8 rounded-lg flex items-center justify-center text-secondary hover:bg-secondary/10 transition-colors cursor-pointer"
