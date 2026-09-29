@@ -46,11 +46,87 @@ export const INITIAL_LOGS = [
 export const INITIAL_SETTINGS = {
   namaAplikasi: 'SimPres',
   tagline: 'Sistem Presensi Kepegawaian Terpadu',
+  logo: null,
   namaYayasan: 'Yayasan Pendidikan Islam Raudhatul Jannah',
   emailSekretariat: 'sekretariat@attinsumbar.sch.id',
   alamatYayasan: 'Jl. Raya Cendekia No. 45, Jakarta Selatan',
   noWhatsapp: '+62 811-9876-5432',
   zonaWaktu: 'WIB',
+  presensi: {
+    // Default jam operasional
+    jamMasukDefault: '07:00',
+    jamPulangDefault: '15:00',
+    // Batas toleransi terlambat (menit)
+    toleransiTerlambat: 15,
+    // Radius geofence default (meter)
+    radiusGeofenceDefault: 50,
+    // Aktif/nonaktif lokasi presensi
+    lokasiAktif: true,
+    // Radius geofence per unit (override)
+    radiusGeofencePerUnit: {
+      tk: 50,
+      sd: 75,
+      smp: 50,
+      sma: 80,
+    },
+    // Toleransi keterlambatan per unit (menit)
+    toleransiKeterlambatanPerUnit: {
+      tk: 15,
+      sd: 15,
+      smp: 15,
+      sma: 15,
+    },
+  },
+  rekap: {
+    // Format nomor laporan
+    formatNomorLaporan: 'LPR/{UNIT}/{TAHUN}/{BULAN}/{URUT:04d}',
+    // Prefix dokumen
+    prefixDokumen: 'SIMPRES',
+    // Default periode laporan
+    defaultPeriodeLaporan: 'Bulanan',
+  },
+  notifikasi: {
+    // Aktifkan notifikasi email
+    emailAktif: true,
+    // Aktifkan notifikasi WhatsApp
+    whatsappAktif: true,
+    // Notifikasi approval izin
+    approvalIzinAktif: true,
+  },
+  keamanan: {
+    // Minimal password
+    minimalPassword: 8,
+    // Wajib ganti password pertama kali login
+    wajibGantiPasswordPertama: true,
+    // Durasi session login (jam)
+    durasiSession: 8,
+    // Auto logout (menit tidak aktif)
+    autoLogout: 30,
+  },
+  penandatangan: {
+    kepalaYayasan: {
+      nama: '',
+      jabatan: 'Ketua Yayasan',
+      nip: '',
+    },
+    kepalaSekolah: {
+      tk: { nama: '', jabatan: 'Kepala TKIT Attin Sumbar' },
+      sd: { nama: '', jabatan: 'Kepala SDIT Attin Sumbar' },
+      smp: { nama: '', jabatan: 'Kepala SMPIT Attin Sumbar' },
+      sma: { nama: '', jabatan: 'Kepala SMAIT Attin Sumbar' },
+    },
+    petugasPresensi: {
+      yayasan: { nama: '', jabatan: 'Petugas Presensi Yayasan' },
+      tk: { nama: '', jabatan: 'Petugas Presensi TKIT' },
+      sd: { nama: '', jabatan: 'Petugas Presensi SDIT' },
+      smp: { nama: '', jabatan: 'Petugas Presensi SMPIT' },
+      sma: { nama: '', jabatan: 'Petugas Presensi SMAIT' },
+    },
+    adminTU: {
+      kepalaTU: { nama: '', jabatan: 'Kepala Tata Usaha' },
+      operatorSistem: { nama: '', jabatan: 'Operator Sistem' },
+    },
+  },
 }
 
 export const WEEKLY_TREND = [

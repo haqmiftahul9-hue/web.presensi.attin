@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useSimPres, selectCurrentUser, selectCurrentUserRole } from '../store/simPresStore.jsx'
 import Header from '../components/Header.jsx'
 import StatCards from '../components-dashboard/StatCards.jsx'
 import WeeklyTrend from '../components-dashboard/WeeklyTrend.jsx'
@@ -6,6 +7,11 @@ import UnitSummary from '../components-dashboard/UnitSummary.jsx'
 import RecentActivity from '../components-dashboard/RecentActivity.jsx'
 
 function DashboardPage() {
+  const { state } = useSimPres()
+  const currentUser = selectCurrentUser(state)
+  const currentRole = selectCurrentUserRole(state)
+  const settings = state.settings
+  
   const [liveTime, setLiveTime] = useState('')
 
   useEffect(() => {
@@ -19,12 +25,13 @@ function DashboardPage() {
       const year = now.getFullYear()
       const hours = String(now.getHours()).padStart(2, '0')
       const mins = String(now.getMinutes()).padStart(2, '0')
-      setLiveTime(`${dayName}, ${day} ${monthName} ${year} • ${hours}:${mins} WIB`)
+      const zonaWaktu = settings.zonaWaktu || 'WIB'
+      setLiveTime(`${dayName}, ${day} ${monthName} ${year} • ${hours}:${mins} ${zonaWaktu}`)
     }
     updateClock()
     const timer = setInterval(updateClock, 60000)
     return () => clearInterval(timer)
-  }, [])
+  }, [settings.zonaWaktu])
 
   return (
     <div className="flex flex-col w-full">
@@ -32,11 +39,15 @@ function DashboardPage() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-space-sm">
           <div className="flex items-center gap-space-sm">
             <div className="w-10 h-10 rounded-xl bg-surface-container-low flex items-center justify-center text-primary">
-              <span className="material-symbols-outlined text-[24px]">space_dashboard</span>
+              {settings.logo ? (
+                <img src={settings.logo} alt={settings.namaAplikasi} className="w-10 h-10 rounded-xl object-cover" />
+              ) : (
+                <span className="material-symbols-outlined text-[24px]">space_dashboard</span>
+              )}
             </div>
             <div className="flex flex-col">
-              <h1 className="font-headline-md text-headline-md text-on-surface tracking-tight leading-snug">Dashboard</h1>
-              <p className="font-body-md text-body-md text-on-surface-variant leading-relaxed">Pantau data presensi dan aktivitas pegawai multi-unit secara real-time</p>
+              <h1 className="font-headline-md text-headline-md text-on-surface tracking-tight leading-snug">{settings.namaAplikasi || 'SimPres'}</h1>
+              <p className="font-body-md text-body-md text-on-surface-variant leading-relaxed">{settings.tagline || 'Sistem Informasi Presensi Multi-Unit Sekolah'}</p>
             </div>
           </div>
           <div className="flex items-center gap-space-xs self-start md:self-auto bg-surface-container-lowest px-space-md py-space-xs rounded-full shadow-sm text-on-surface-variant">
@@ -55,7 +66,7 @@ function DashboardPage() {
               <span className="material-symbols-outlined text-[18px]">verified_user</span>
             </div>
             <div className="font-body-md text-body-md text-on-primary-fixed">
-              <span className="font-body-md-medium text-body-md-medium">Assalamualaikum, Super Admin.</span> Selamat datang di SimPres — Sistem Informasi Presensi Multi-Unit Sekolah.
+              <span className="font-body-md-medium text-body-md-medium">Assalamualaikum, {currentRole}.</span> Selamat datang di {settings.namaAplikasi || 'SimPres'} — {settings.tagline || 'Sistem Informasi Presensi Multi-Unit Sekolah'}.
             </div>
           </div>
           <div className="flex items-center gap-space-md text-on-surface-variant self-end lg:self-auto">

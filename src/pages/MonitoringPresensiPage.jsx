@@ -25,6 +25,31 @@ function MonitoringPresensiPage() {
   // Opsi unit dari satu sumber data (store), bukan daftar hardcoded.
   const unitOptions = selectUnitOptions(state)
 
+  // Ambil konfigurasi presensi dari global settings
+  const settings = state.settings
+  const presensiConfig = settings.presensi || {}
+  const zonaWaktu = settings.zonaWaktu || 'WIB'
+  
+  // Helper untuk mendapatkan toleransi per unit
+  const getToleransiUnit = (unitId) => {
+    return presensiConfig.toleransiKeterlambatanPerUnit?.[unitId] 
+      ?? presensiConfig.toleransiKeterlambatanDefault 
+      ?? 15
+  }
+  
+  // Helper untuk mendapatkan radius geofence per unit
+  const getRadiusUnit = (unitId) => {
+    return presensiConfig.radiusGeofencePerUnit?.[unitId] 
+      ?? presensiConfig.radiusGeofenceDefault 
+      ?? 50
+  }
+
+  // Format zona waktu untuk tampilan
+  const getZonaWaktuLabel = (zw) => {
+    const labels = { WIB: 'WIB (UTC+7)', WITA: 'WITA (UTC+8)', WIT: 'WIT (UTC+9)' }
+    return labels[zw] || zw
+  }
+
   const refreshIntervals = [
     { value: '5s', label: '5 detik' },
     { value: '15s', label: '15 detik' },
@@ -403,6 +428,19 @@ function MonitoringPresensiPage() {
                 <span className="font-body-md-medium text-body-md-medium text-emerald-700 leading-snug">99.1% <span className="font-label-sm text-label-sm font-medium">Valid</span></span>
               </div>
 
+              {/* Radius Geofence per Unit */}
+              <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                <span className="font-label-sm text-label-sm text-gray-600 uppercase tracking-wider">Radius Geofence per Unit</span>
+                <div className="grid grid-cols-2 gap-2 mt-2 text-sm">
+                  {state.units.map((unit) => (
+                    <div key={unit.id} className="flex justify-between">
+                      <span className="text-gray-600">{unit.nama}</span>
+                      <span className="font-medium text-gray-900">{getRadiusUnit(unit.id)} m</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               <div className="flex flex-col gap-4">
                 {unitSummary.map((unit) => (
                   <div key={unit.id} className="flex flex-col gap-1.5">
@@ -435,8 +473,21 @@ function MonitoringPresensiPage() {
               <div className="flex flex-col min-w-0">
                 <span className="font-body-sm-medium text-body-sm-medium text-gray-900">Toleransi Batas Jam Presensi</span>
                 <p className="font-body-sm text-body-sm text-gray-500 mt-1 leading-relaxed">
-                  <strong className="text-gray-900">TK & SD:</strong> 07:15 WIB<br />
-                  <strong className="text-gray-900">SMP & SMA:</strong> 07:00 WIB
+                  {state.units.map((unit) => {
+                    const toleransi = getToleransiUnit(unit.id)
+                    const unitEntry = unit.masuk || '07:00'
+                    const [hour, min] = unitEntry.split(':').map(Number)
+                    const toleransiHour = hour
+                    const toleransiMin = min + toleransi
+                    const finalHour = Math.floor(toleransiMin / 60)
+                    const finalMin = toleransiMin % 60
+                    const toleransiTime = `${String(finalHour).padStart(2, '0')}:${String(finalMin).padStart(2, '0')}`
+                    return (
+                      <span key={unit.id} className="block">
+                        <strong className="text-gray-900">{unit.nama}:</strong> {toleransiTime} {getZonaWaktuLabel(zonaWaktu)} (toleransi {toleransi} menit)
+                      </span>
+                    )
+                  })}
                 </p>
                 <span className="font-label-sm text-label-sm text-gray-400 mt-2">Log melebihi batas jam otomatis diberi status dispensasi/terlambat.</span>
               </div>

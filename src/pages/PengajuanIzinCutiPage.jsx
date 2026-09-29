@@ -75,6 +75,28 @@ function PengajuanIzinCutiPage() {
   const isSuperadmin = currentUserRole === 'Superadmin'
   const userUnitId = currentUser?.unitId
 
+  // Ambil konfigurasi penandatangan dari global settings
+  const settings = state.settings
+  const penandatangan = settings.penandatangan || {}
+  
+  // Helper untuk mendapatkan Kepala Sekolah per unit
+  const getKepalaSekolah = (unitId) => {
+    return penandatangan.kepalaSekolah?.[unitId] || { nama: '', jabatan: `Kepala ${state.units.find(u => u.id === unitId)?.nama || 'Sekolah'}` }
+  }
+  
+  // Helper untuk mendapatkan Admin TU
+  const getAdminTU = () => {
+    return {
+      kepalaTU: penandatangan.adminTU?.kepalaTU || { nama: '', jabatan: 'Kepala Tata Usaha' },
+      operatorSistem: penandatangan.adminTU?.operatorSistem || { nama: '', jabatan: 'Operator Sistem' },
+    }
+  }
+  
+  // Helper untuk mendapatkan Ketua Yayasan
+  const getKetuaYayasan = () => {
+    return penandatangan.kepalaYayasan || { nama: '', jabatan: 'Ketua Yayasan' }
+  }
+
   // Unit options untuk dropdown filter
   const unitFilterOptions = ['Semua Unit', ...state.units.map(u => u.nama)]
 

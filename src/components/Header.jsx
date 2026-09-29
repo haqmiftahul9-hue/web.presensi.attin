@@ -4,6 +4,7 @@ function Header() {
   const { state } = useSimPres()
   const currentUser = selectCurrentUser(state)
   const currentRole = selectCurrentUserRole(state)
+  const settings = state.settings
 
   return (
     <header className="fixed top-0 left-[260px] right-0 h-16 bg-surface-container-lowest shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 flex items-center justify-between px-space-lg">
@@ -28,12 +29,16 @@ function Header() {
         </button>
         <div className="h-6 w-px bg-surface-variant"></div>
         <div className="flex items-center gap-space-xs cursor-pointer p-1 rounded-lg hover:bg-surface-container transition-colors">
-          <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-            <span className="material-symbols-outlined text-on-primary text-[18px]">person</span>
-          </div>
+          {settings.logo ? (
+            <img src={settings.logo} alt={settings.namaAplikasi || 'SimPres'} className="w-8 h-8 rounded-full object-cover" />
+          ) : (
+            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+              <span className="material-symbols-outlined text-on-primary text-[18px]">person</span>
+            </div>
+          )}
           <div className="hidden md:flex flex-col text-left">
-            <span className="font-body-sm-medium text-body-sm-medium text-on-surface leading-tight">{currentRole}</span>
-            <span className="font-label-sm text-label-sm text-on-surface-variant leading-tight mt-1">{currentUser?.unitId ? 'Unit ' + currentUser.unitId.toUpperCase() : 'Yayasan Pendidikan'}</span>
+            <span className="font-body-sm-medium text-body-sm-medium text-on-surface leading-tight">{settings.namaAplikasi || 'SimPres'}</span>
+            <span className="font-label-sm text-label-sm text-on-surface-variant leading-tight mt-1">{currentUser?.unitId ? 'Unit ' + currentUser.unitId.toUpperCase() : (settings.namaYayasan || 'Yayasan Pendidikan')}</span>
           </div>
           <span className="material-symbols-outlined text-on-surface-variant text-[18px]">arrow_drop_down</span>
         </div>

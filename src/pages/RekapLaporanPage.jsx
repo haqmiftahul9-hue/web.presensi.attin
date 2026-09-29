@@ -50,7 +50,7 @@ function getMonthYearLabel(period, customMonth = null, customYear = null) {
   }
 }
 
-function exportPresensiToExcel(data, unitLabel, periodLabel) {
+function exportPresensiToExcel(data, unitLabel, periodLabel, yayasanInfo = null, signatory = null) {
   console.log('[exportPresensiToExcel] Starting export', { dataLength: data?.length, unitLabel, periodLabel })
   if (!data || !data.length) {
     console.error('[exportPresensiToExcel] No data provided')
@@ -58,6 +58,21 @@ function exportPresensiToExcel(data, unitLabel, periodLabel) {
   }
   try {
     const wb = XLSX.utils.book_new()
+    
+    const y = yayasanInfo || { nama: 'Yayasan Pendidikan Islam Raudhatul Jannah', alamat: 'Jl. Raya Cendekia No. 45, Jakarta Selatan', kontak: '+62 811-9876-5432' }
+    const s = signatory || {}
+    
+    // Header info rows
+    const infoRows = [
+      [y.nama],
+      [y.alamat],
+      [y.kontak],
+      [],
+      ['REKAP LAPORAN PRESENSI PEGAWAI'],
+      [unitLabel.replace(/_/g, ' ')],
+      [periodLabel.replace(/_/g, ' ')],
+      [],
+    ]
     
     const header = ['No', 'Nama Pegawai', 'NIY/NIP', 'Unit', 'Periode Rekap', 'Total Hari Kerja', 'Hadir', 'Terlambat', 'Izin/Sakit', 'Alpha', 'Persentase Kehadiran']
     
@@ -75,7 +90,15 @@ function exportPresensiToExcel(data, unitLabel, periodLabel) {
       row.persentaseKehadiran + '%'
     ])
     
-    const wsData = [header, ...rows]
+    // Signatory rows
+    const signRows = [
+      [],
+      ['Mengetahui,', '', '', '', '', '', '', '', '', '', 'Diperiksa oleh,'],
+      [s.kepalaSekolah?.jabatan || 'Kepala Sekolah', '', '', '', '', '', '', '', '', '', s.petugasPresensi?.jabatan || 'Petugas Presensi'],
+      [s.kepalaSekolah?.nama ? `(${s.kepalaSekolah.nama})` : '(________________________)', '', '', '', '', '', '', '', '', '', s.petugasPresensi?.nama ? `(${s.petugasPresensi.nama})` : '(________________________)'],
+    ]
+    
+    const wsData = [...infoRows, header, ...rows, ...signRows]
     const ws = XLSX.utils.aoa_to_sheet(wsData)
     
     ws['!cols'] = [
@@ -104,7 +127,7 @@ function exportPresensiToExcel(data, unitLabel, periodLabel) {
   }
 }
 
-function exportCutiToExcel(data, unitLabel, periodLabel) {
+function exportCutiToExcel(data, unitLabel, periodLabel, yayasanInfo = null, signatory = null) {
   console.log('[exportCutiToExcel] Starting export', { dataLength: data?.length, unitLabel, periodLabel })
   if (!data || !data.length) {
     console.error('[exportCutiToExcel] No data provided')
@@ -112,6 +135,21 @@ function exportCutiToExcel(data, unitLabel, periodLabel) {
   }
   try {
     const wb = XLSX.utils.book_new()
+    
+    const y = yayasanInfo || { nama: 'Yayasan Pendidikan Islam Raudhatul Jannah', alamat: 'Jl. Raya Cendekia No. 45, Jakarta Selatan', kontak: '+62 811-9876-5432' }
+    const s = signatory || {}
+    
+    // Header info rows
+    const infoRows = [
+      [y.nama],
+      [y.alamat],
+      [y.kontak],
+      [],
+      ['REKAP LAPORAN CUTI DAN IZIN PEGAWAI'],
+      [unitLabel.replace(/_/g, ' ')],
+      [periodLabel.replace(/_/g, ' ')],
+      [],
+    ]
     
     const header = ['No', 'Nama Pegawai', 'NIY/NIP', 'Unit', 'Jenis Izin/Cuti', 'Tanggal Mulai', 'Tanggal Selesai', 'Lama Cuti', 'Status Persetujuan']
     
@@ -127,7 +165,18 @@ function exportCutiToExcel(data, unitLabel, periodLabel) {
       row.status
     ])
     
-    const wsData = [header, ...rows]
+    // Signatory rows
+    const ketuaYayasan = s.ketuaYayasan || { nama: '', jabatan: 'Ketua Yayasan' }
+    const adminTU = s.adminTU?.kepalaTU || s.adminTU?.operatorSistem || { nama: '', jabatan: 'Admin TU' }
+    
+    const signRows = [
+      [],
+      ['Mengetahui,', '', '', '', '', '', '', '', 'Disiapkan oleh,'],
+      [ketuaYayasan.jabatan, '', '', '', '', '', '', '', adminTU.jabatan],
+      [ketuaYayasan.nama ? `(${ketuaYayasan.nama})` : '(________________________)', '', '', '', '', '', '', '', adminTU.nama ? `(${adminTU.nama})` : '(________________________)'],
+    ]
+    
+    const wsData = [...infoRows, header, ...rows, ...signRows]
     const ws = XLSX.utils.aoa_to_sheet(wsData)
     
     ws['!cols'] = [
@@ -154,13 +203,21 @@ function exportCutiToExcel(data, unitLabel, periodLabel) {
   }
 }
 
-function getUnitInfo(unitLabel) {
+function getUnitInfo(unitLabel, yayasanInfo = null) {
+  const defaultYayasan = {
+    nama: 'Yayasan Pendidikan Islam Raudhatul Jannah',
+    alamat: 'Jl. Raya Cendekia No. 45, Jakarta Selatan',
+    kontak: '+62 811-9876-5432',
+    email: 'sekretariat@attinsumbar.sch.id',
+  }
+  const y = yayasanInfo || defaultYayasan
+  
   const unitInfo = {
-    'Semua Unit': { nama: 'Yayasan Pendidikan Islam Attin', unit: 'Seluruh Unit Sekolah', alamat: 'Jl. Raya Attin No. 1, Jakarta Selatan', kontak: '(021) 1234-5678 | attin@sch.id' },
-    'TKIT Attin Sumbar': { nama: 'Yayasan Pendidikan Islam Attin', unit: 'TKIT Attin Sumbar', alamat: 'Jl. Raya Attin No. 1, Jakarta Selatan', kontak: '(021) 1234-5678 | attin@sch.id' },
-    'SDIT Attin Sumbar': { nama: 'Yayasan Pendidikan Islam Attin', unit: 'SDIT Attin Sumbar', alamat: 'Jl. Raya Attin No. 1, Jakarta Selatan', kontak: '(021) 1234-5678 | attin@sch.id' },
-    'SMPIT Attin Sumbar': { nama: 'Yayasan Pendidikan Islam Attin', unit: 'SMPIT Attin Sumbar', alamat: 'Jl. Raya Attin No. 1, Jakarta Selatan', kontak: '(021) 1234-5678 | attin@sch.id' },
-    'SMAIT Attin Sumbar': { nama: 'Yayasan Pendidikan Islam Attin', unit: 'SMAIT Attin Sumbar', alamat: 'Jl. Raya Attin No. 1, Jakarta Selatan', kontak: '(021) 1234-5678 | attin@sch.id' },
+    'Semua Unit': { nama: y.nama, unit: 'Seluruh Unit Sekolah', alamat: y.alamat, kontak: y.kontak },
+    'TKIT Attin Sumbar': { nama: y.nama, unit: 'TKIT Attin Sumbar', alamat: y.alamat, kontak: y.kontak },
+    'SDIT Attin Sumbar': { nama: y.nama, unit: 'SDIT Attin Sumbar', alamat: y.alamat, kontak: y.kontak },
+    'SMPIT Attin Sumbar': { nama: y.nama, unit: 'SMPIT Attin Sumbar', alamat: y.alamat, kontak: y.kontak },
+    'SMAIT Attin Sumbar': { nama: y.nama, unit: 'SMAIT Attin Sumbar', alamat: y.alamat, kontak: y.kontak },
   }
   return unitInfo[unitLabel] || unitInfo['Semua Unit']
 }
@@ -264,8 +321,8 @@ function drawFooter(doc, unitLabel) {
   }
 }
 
-function drawKopSurat(doc, unitLabel) {
-  const info = getUnitInfo(unitLabel)
+function drawKopSurat(doc, unitLabel, yayasanInfo = null) {
+  const info = getUnitInfo(unitLabel, yayasanInfo)
   const pageWidth = doc.internal.pageSize.width
   let y = 10
 
@@ -349,13 +406,13 @@ function drawFooterSignature(doc, unitLabel) {
   doc.text('(Administrasi Yayasan)', 15, y)
 }
 
-function exportPresensiToPDF(data, unitLabel, periodLabel) {
+function exportPresensiToPDF(data, unitLabel, periodLabel, yayasanInfo = null, signatory = null) {
   const doc = new jsPDF('portrait', 'mm', 'a4')
   const pageWidth = doc.internal.pageSize.width
   const centerX = pageWidth / 2
   
   // KOP Surat
-  let y = drawKopSurat(doc, unitLabel)
+  let y = drawKopSurat(doc, unitLabel, yayasanInfo)
   
   // Judul Laporan
   doc.setFontSize(16)
@@ -472,14 +529,14 @@ function exportPresensiToPDF(data, unitLabel, periodLabel) {
   doc.setPage(totalPages)
   const pageHeight = doc.internal.pageSize.height
   const footerY = pageHeight - 65
-  drawFooterSignatureAt(doc, unitLabel, footerY)
+  drawFooterSignatureAt(doc, unitLabel, footerY, signatory, 'presensi')
   
   const fileName = `Rekap_Presensi_${unitLabel.replace(/\s+/g, '_')}_${periodLabel}.pdf`
   doc.save(fileName)
 }
 
 // Helper function to draw footer at specific Y position (from top)
-function drawFooterSignatureAt(doc, unitLabel, startY) {
+function drawFooterSignatureAt(doc, unitLabel, startY, signatory = null, reportType = 'presensi') {
   const pageWidth = doc.internal.pageSize.width
   let y = startY
   
@@ -495,43 +552,86 @@ function drawFooterSignatureAt(doc, unitLabel, startY) {
   doc.setTextColor(80)
   doc.text(`Jakarta, ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}`, pageWidth - 15, y, { align: 'right' })
   
-  // Mengetahui dan Disiapkan
-  y += 12
-  doc.setTextColor(0)
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(10)
-  doc.text('Mengetahui,', pageWidth - 15, y, { align: 'right' })
-  doc.text('Disiapkan oleh,', 15, y)
-  
-  // Ruang tanda tangan
-  y += 22
-  doc.setFont('helvetica', 'normal')
-  doc.setFontSize(10)
-  doc.text('_________________________', pageWidth - 15, y, { align: 'right' })
-  doc.text('_________________________', 15, y)
-  
-  // Nama jabatan
-  y += 6
-  doc.setFont('helvetica', 'bold')
-  doc.text('Ketua Yayasan', pageWidth - 15, y, { align: 'right' })
-  doc.text('Staff Administrasi', 15, y)
-  
-  // Nama placeholder
-  y += 10
-  doc.setFont('helvetica', 'normal')
-  doc.setFontSize(9)
-  doc.setTextColor(120)
-  doc.text('(Dr. H. Ahmad Syarif, M.Pd.)', pageWidth - 15, y, { align: 'right' })
-  doc.text('(Administrasi Yayasan)', 15, y)
+  if (reportType === 'presensi') {
+    // ===== REKAP PRESENSI =====
+    // Mengetahui: Kepala Sekolah
+    // Diperiksa oleh: Petugas Presensi
+    const kepalaSekolah = signatory?.kepalaSekolah || { nama: '', jabatan: 'Kepala Sekolah' }
+    const petugasPresensi = signatory?.petugasPresensi || { nama: '', jabatan: 'Petugas Presensi' }
+    
+    // Mengetahui dan Diperiksa
+    y += 12
+    doc.setTextColor(0)
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(10)
+    doc.text('Mengetahui,', pageWidth - 15, y, { align: 'right' })
+    doc.text('Diperiksa oleh,', 15, y)
+    
+    // Ruang tanda tangan
+    y += 22
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(10)
+    doc.text('_________________________', pageWidth - 15, y, { align: 'right' })
+    doc.text('_________________________', 15, y)
+    
+    // Nama jabatan
+    y += 6
+    doc.setFont('helvetica', 'bold')
+    doc.text(kepalaSekolah.jabatan || 'Kepala Sekolah', pageWidth - 15, y, { align: 'right' })
+    doc.text(petugasPresensi.jabatan || 'Petugas Presensi', 15, y)
+    
+    // Nama (if available)
+    y += 10
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(9)
+    doc.setTextColor(120)
+    doc.text(kepalaSekolah.nama ? `(${kepalaSekolah.nama})` : '(________________________)', pageWidth - 15, y, { align: 'right' })
+    doc.text(petugasPresensi.nama ? `(${petugasPresensi.nama})` : '(________________________)', 15, y)
+  } else {
+    // ===== REKAP CUTI/IZIN =====
+    // Mengetahui: Ketua Yayasan
+    // Disiapkan oleh: Admin/TU (Kepala TU atau Operator)
+    const ketuaYayasan = signatory?.ketuaYayasan || { nama: '', jabatan: 'Ketua Yayasan' }
+    const adminTU = signatory?.adminTU?.kepalaTU || signatory?.adminTU?.operatorSistem || { nama: '', jabatan: 'Admin TU' }
+    
+    // Mengetahui dan Disiapkan
+    y += 12
+    doc.setTextColor(0)
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(10)
+    doc.text('Mengetahui,', pageWidth - 15, y, { align: 'right' })
+    doc.text('Disiapkan oleh,', 15, y)
+    
+    // Ruang tanda tangan
+    y += 22
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(10)
+    doc.text('_________________________', pageWidth - 15, y, { align: 'right' })
+    doc.text('_________________________', 15, y)
+    
+    // Nama jabatan
+    y += 6
+    doc.setFont('helvetica', 'bold')
+    doc.text(ketuaYayasan.jabatan || 'Ketua Yayasan', pageWidth - 15, y, { align: 'right' })
+    doc.text(adminTU.jabatan || 'Admin TU', 15, y)
+    
+    // Nama (if available)
+    y += 10
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(9)
+    doc.setTextColor(120)
+    doc.text(ketuaYayasan.nama ? `(${ketuaYayasan.nama})` : '(________________________)', pageWidth - 15, y, { align: 'right' })
+    doc.text(adminTU.nama ? `(${adminTU.nama})` : '(________________________)', 15, y)
+  }
 }
 
-function exportCutiToPDF(data, unitLabel, periodLabel) {
+function exportCutiToPDF(data, unitLabel, periodLabel, yayasanInfo = null, signatory = null) {
   const doc = new jsPDF('portrait', 'mm', 'a4')
   const pageWidth = doc.internal.pageSize.width
   const centerX = pageWidth / 2
   
   // KOP Surat
-  let y = drawKopSurat(doc, unitLabel)
+  let y = drawKopSurat(doc, unitLabel, yayasanInfo)
   
   // Judul Laporan
   doc.setFontSize(16)
@@ -643,7 +743,7 @@ function exportCutiToPDF(data, unitLabel, periodLabel) {
   doc.setPage(totalPages)
   const pageHeight = doc.internal.pageSize.height
   const footerY = pageHeight - 65
-  drawFooterSignatureAt(doc, unitLabel, footerY)
+  drawFooterSignatureAt(doc, unitLabel, footerY, signatory, 'cuti')
   
   const fileName = `Rekap_Cuti_Izin_${unitLabel.replace(/\s+/g, '_')}_${periodLabel}.pdf`
   doc.save(fileName)
@@ -866,6 +966,124 @@ function RekapLaporanPage() {
     setCurrentPage(1)
   }, [search, selectedUnit, activePeriod])
 
+  // ===== HELPER FUNCTIONS FOR GLOBAL SETTINGS INTEGRATION =====
+  
+  // Get yayasan info from global settings
+  const getYayasanInfo = () => {
+    const settings = state.settings
+    return {
+      nama: settings.namaYayasan || 'Yayasan Pendidikan Islam Raudhatul Jannah',
+      alamat: settings.alamatYayasan || 'Jl. Raya Cendekia No. 45, Jakarta Selatan',
+      kontak: settings.noWhatsapp || '+62 811-9876-5432',
+      email: settings.emailSekretariat || 'sekretariat@attinsumbar.sch.id',
+      logo: settings.logo || null,
+    }
+  }
+
+  // Get unit info combined with yayasan info
+  const getUnitInfo = (unitLabel) => {
+    const yayasanInfo = getYayasanInfo()
+    const unitMap = {
+      'Semua Unit': { nama: yayasanInfo.nama, unit: 'Seluruh Unit Sekolah' },
+      'TKIT Attin Sumbar': { nama: yayasanInfo.nama, unit: 'TKIT Attin Sumbar' },
+      'SDIT Attin Sumbar': { nama: yayasanInfo.nama, unit: 'SDIT Attin Sumbar' },
+      'SMPIT Attin Sumbar': { nama: yayasanInfo.nama, unit: 'SMPIT Attin Sumbar' },
+      'SMAIT Attin Sumbar': { nama: yayasanInfo.nama, unit: 'SMAIT Attin Sumbar' },
+    }
+    const info = unitMap[unitLabel] || unitMap['Semua Unit']
+    return {
+      ...info,
+      alamat: yayasanInfo.alamat,
+      kontak: yayasanInfo.kontak,
+    }
+  }
+
+  // Get signatory data for a specific unit
+  const getSignatory = (unitId) => {
+    const penandatangan = state.settings.penandatangan || {}
+    const unitIds = { tk: 'tk', sd: 'sd', smp: 'smp', sma: 'sma' }
+    const id = unitIds[unitId] || unitId
+    
+    return {
+      // Ketua Yayasan (for all units)
+      ketuaYayasan: {
+        nama: penandatangan.kepalaYayasan?.nama || '',
+        jabatan: penandatangan.kepalaYayasan?.jabatan || 'Ketua Yayasan',
+        nip: penandatangan.kepalaYayasan?.nip || '',
+      },
+      // Kepala Sekolah per unit
+      kepalaSekolah: {
+        nama: penandatangan.kepalaSekolah?.[id]?.nama || '',
+        jabatan: penandatangan.kepalaSekolah?.[id]?.jabatan || `Kepala ${state.units.find(u => u.id === id)?.nama || 'Sekolah'}`,
+        nip: penandatangan.kepalaSekolah?.[id]?.nip || '',
+      },
+      // Petugas Presensi per unit
+      petugasPresensi: {
+        nama: penandatangan.petugasPresensi?.[id]?.nama || '',
+        jabatan: penandatangan.petugasPresensi?.[id]?.jabatan || `Petugas Presensi ${state.units.find(u => u.id === id)?.nama || 'Sekolah'}`,
+      },
+      // Petugas Presensi Yayasan
+      petugasPresensiYayasan: {
+        nama: penandatangan.petugasPresensi?.yayasan?.nama || '',
+        jabatan: penandatangan.petugasPresensi?.yayasan?.jabatan || 'Petugas Presensi Yayasan',
+      },
+      // Admin/TU
+      adminTU: {
+        kepalaTU: {
+          nama: penandatangan.adminTU?.kepalaTU?.nama || '',
+          jabatan: penandatangan.adminTU?.kepalaTU?.jabatan || 'Kepala Tata Usaha',
+        },
+        operatorSistem: {
+          nama: penandatangan.adminTU?.operatorSistem?.nama || '',
+          jabatan: penandatangan.adminTU?.operatorSistem?.jabatan || 'Operator Sistem',
+        },
+      },
+    }
+  }
+
+  // Get signatory for "Semua Unit" (use yayasan-level signatories)
+  const getSignatoryAllUnits = () => {
+    const penandatangan = state.settings.penandatangan || {}
+    return {
+      ketuaYayasan: {
+        nama: penandatangan.kepalaYayasan?.nama || '',
+        jabatan: penandatangan.kepalaYayasan?.jabatan || 'Ketua Yayasan',
+        nip: penandatangan.kepalaYayasan?.nip || '',
+      },
+      kepalaSekolah: {
+        nama: penandatangan.kepalaSekolah?.tk?.nama || '',
+        jabatan: 'Kepala Sekolah',
+        nip: penandatangan.kepalaSekolah?.tk?.nip || '',
+      },
+      petugasPresensi: {
+        nama: penandatangan.petugasPresensi?.yayasan?.nama || '',
+        jabatan: penandatangan.petugasPresensi?.yayasan?.jabatan || 'Petugas Presensi Yayasan',
+      },
+      adminTU: {
+        kepalaTU: {
+          nama: penandatangan.adminTU?.kepalaTU?.nama || '',
+          jabatan: penandatangan.adminTU?.kepalaTU?.jabatan || 'Kepala Tata Usaha',
+        },
+        operatorSistem: {
+          nama: penandatangan.adminTU?.operatorSistem?.nama || '',
+          jabatan: penandatangan.adminTU?.operatorSistem?.jabatan || 'Operator Sistem',
+        },
+      },
+    }
+  }
+
+  // Format date for display
+  const getCurrentDateString = () => {
+    const now = new Date()
+    const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
+    return `${now.getDate()} ${monthNames[now.getMonth()]} ${now.getFullYear()}`
+  }
+
+  const getPeriodDisplayLabel = (period) => {
+    const labels = { Harian: 'Harian (Hari Ini)', Mingguan: 'Mingguan (Minggu Ini)', Bulanan: 'Bulanan (Bulan Ini)', Tahunan: 'Tahunan (Tahun Ini)' }
+    return labels[period] || period
+  }
+
   const handleSort = (key) => {
     setSortConfig(prev => ({
       key,
@@ -918,13 +1136,17 @@ function RekapLaporanPage() {
     setIsExporting(true)
     try {
       const data = getExportPresensiData(exportPresensiConfig.period, exportPresensiConfig.unit)
-      const unitLabel = exportPresensiConfig.unit === 'all' ? 'Semua_Unit' : (state.units.find(u => u.id === exportPresensiConfig.unit)?.nama || 'Semua_Unit').replace(/\s+/g, '_')
+      const unitLabel = exportPresensiConfig.unit === 'all' ? 'Semua_Unit' : (state.units.find(u => u.id === exportPresensiConfig.unit)?.nama || 'Semma_Unit').replace(/\s+/g, '_')
       const periodLabel = getMonthYearLabel(exportPresensiConfig.period)
       
+      // Get yayasan info and signatory from global settings
+      const yayasanInfo = getYayasanInfo()
+      const signatory = exportPresensiConfig.unit === 'all' ? getSignatoryAllUnits() : getSignatory(exportPresensiConfig.unit)
+      
       if (exportPresensiConfig.format === 'pdf') {
-        exportPresensiToPDF(data, unitLabel, periodLabel)
+        exportPresensiToPDF(data, unitLabel, periodLabel, yayasanInfo, signatory)
       } else {
-        exportPresensiToExcel(data, unitLabel, periodLabel)
+        exportPresensiToExcel(data, unitLabel, periodLabel, yayasanInfo, signatory)
       }
       
       setShowPresensiExport(false)
@@ -944,10 +1166,14 @@ function RekapLaporanPage() {
       const unitLabel = exportCutiConfig.unit === 'all' ? 'Semua_Unit' : (state.units.find(u => u.id === exportCutiConfig.unit)?.nama || 'Semua_Unit').replace(/\s+/g, '_')
       const periodLabel = getMonthYearLabel(exportCutiConfig.period)
       
+      // Get yayasan info and signatory from global settings
+      const yayasanInfo = getYayasanInfo()
+      const signatory = exportCutiConfig.unit === 'all' ? getSignatoryAllUnits() : getSignatory(exportCutiConfig.unit)
+      
       if (exportCutiConfig.format === 'pdf') {
-        exportCutiToPDF(data, unitLabel, periodLabel)
+        exportCutiToPDF(data, unitLabel, periodLabel, yayasanInfo, signatory)
       } else {
-        exportCutiToExcel(data, unitLabel, periodLabel)
+        exportCutiToExcel(data, unitLabel, periodLabel, yayasanInfo, signatory)
       }
       
       setShowCutiExport(false)
@@ -1146,6 +1372,10 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
       const unitLabel = unit === 'all' ? 'Semua_Unit' : (state.units.find(u => u.id === unit)?.nama || 'Semua_Unit').replace(/\s+/g, '_')
       const periodLabel = getMonthYearLabel(period, customStartDate, customEndDate)
       
+      // Get yayasan info and signatory from global settings
+      const yayasanInfo = getYayasanInfo()
+      const signatory = unit === 'all' ? getSignatoryAllUnits() : getSignatory(unit)
+      
       const reportTitle = reportType === 'presensi' ? 'Rekap Presensi' : 'Rekap Cuti/Izin'
       
       if (action === 'print') {
@@ -1163,6 +1393,8 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
         const dateStr = `${now.getDate()} ${monthNames[now.getMonth()]} ${now.getFullYear()}`
 
         let tableHtml = ''
+        let footerHtml = ''
+        
         if (reportType === 'presensi') {
           tableHtml = `
             <table>
@@ -1200,6 +1432,25 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
               </tbody>
             </table>
           `
+          // Footer for presensi: Kepala Sekolah & Petugas Presensi
+          const kepalaSekolah = signatory.kepalaSekolah || { nama: '', jabatan: 'Kepala Sekolah' }
+          const petugasPresensi = signatory.petugasPresensi || { nama: '', jabatan: 'Petugas Presensi' }
+          footerHtml = `
+            <div class="footer">
+              <div>
+                <div class="sign-line"></div>
+                <div class="footer-title">Mengetahui,</div>
+                <div>${kepalaSekolah.jabatan}</div>
+                <div style="margin-top: 10px; color: #888;">${kepalaSekolah.nama ? `(${kepalaSekolah.nama})` : '(________________________)'}</div>
+              </div>
+              <div>
+                <div class="sign-line"></div>
+                <div class="footer-title">Diperiksa oleh,</div>
+                <div>${petugasPresensi.jabatan}</div>
+                <div style="margin-top: 10px; color: #888;">${petugasPresensi.nama ? `(${petugasPresensi.nama})` : '(________________________)'}</div>
+              </div>
+            </div>
+          `
         } else {
           tableHtml = `
             <table>
@@ -1232,6 +1483,25 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
                 `).join('')}
               </tbody>
             </table>
+          `
+          // Footer for cuti: Ketua Yayasan & Admin/TU
+          const ketuaYayasan = signatory.ketuaYayasan || { nama: '', jabatan: 'Ketua Yayasan' }
+          const adminTU = signatory.adminTU?.kepalaTU || signatory.adminTU?.operatorSistem || { nama: '', jabatan: 'Admin TU' }
+          footerHtml = `
+            <div class="footer">
+              <div>
+                <div class="sign-line"></div>
+                <div class="footer-title">Mengetahui,</div>
+                <div>${ketuaYayasan.jabatan}</div>
+                <div style="margin-top: 10px; color: #888;">${ketuaYayasan.nama ? `(${ketuaYayasan.nama})` : '(________________________)'}</div>
+              </div>
+              <div>
+                <div class="sign-line"></div>
+                <div class="footer-title">Disiapkan oleh,</div>
+                <div>${adminTU.jabatan}</div>
+                <div style="margin-top: 10px; color: #888;">${adminTU.nama ? `(${adminTU.nama})` : '(________________________)'}</div>
+              </div>
+            </div>
           `
         }
 
@@ -1270,27 +1540,16 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
           <body>
             <div class="header">
               <div class="logo">LOGO</div>
-              <div class="org-name">Yayasan Pendidikan Islam Attin</div>
+              <div class="org-name">${yayasanInfo.nama}</div>
               <div class="unit-name">${unitDisplay}</div>
-              <div class="address">Jl. Raya Attin No. 1, Jakarta Selatan | (021) 1234-5678 | attin@sch.id</div>
+              <div class="address">${yayasanInfo.alamat} | ${yayasanInfo.kontak} | ${yayasanInfo.email}</div>
             </div>
             <div class="title">${reportTitle.toUpperCase()} PEGAWAI</div>
             <div class="info-row"><span class="info-label">Unit Laporan:</span> <span>${unitDisplay}</span></div>
             <div class="info-row"><span class="info-label">Periode Laporan:</span> <span>${periodDisplay}</span></div>
             <div class="info-row"><span class="info-label">Tanggal Cetak:</span> <span>${dateStr}</span></div>
             ${tableHtml}
-            <div class="footer">
-              <div>
-                <div class="sign-line"></div>
-                <div class="footer-title">Mengetahui,</div>
-                <div>Ketua Yayasan</div>
-              </div>
-              <div>
-                <div class="sign-line"></div>
-                <div class="footer-title">Disiapkan oleh,</div>
-                <div>Staff Administrasi</div>
-              </div>
-            </div>
+            ${footerHtml}
             <script>
               window.onload = function() {
                 window.print();
@@ -1306,15 +1565,15 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
       } else {
         if (format === 'pdf') {
           if (reportType === 'presensi') {
-            exportPresensiToPDF(data, unitLabel, periodLabel)
+            exportPresensiToPDF(data, unitLabel, periodLabel, yayasanInfo, signatory)
           } else {
-            exportCutiToPDF(data, unitLabel, periodLabel)
+            exportCutiToPDF(data, unitLabel, periodLabel, yayasanInfo, signatory)
           }
         } else {
           if (reportType === 'presensi') {
-            exportPresensiToExcel(data, unitLabel, periodLabel)
+            exportPresensiToExcel(data, unitLabel, periodLabel, yayasanInfo, signatory)
           } else {
-            exportCutiToExcel(data, unitLabel, periodLabel)
+            exportCutiToExcel(data, unitLabel, periodLabel, yayasanInfo, signatory)
           }
         }
         showNotification(`${reportTitle} (${format.toUpperCase()}) berhasil diekspor: ${data.length} ${reportType === 'presensi' ? 'pegawai' : 'record'}`, 'success')
@@ -1350,17 +1609,21 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
       const unitLabel = unit === 'all' ? 'Semua_Unit' : (state.units.find(u => u.id === unit)?.nama || 'Semua_Unit').replace(/\s+/g, '_')
       const periodLabel = getMonthYearLabel(period, customStartDate, customEndDate)
       
+      // Get yayasan info and signatory from global settings
+      const yayasanInfo = getYayasanInfo()
+      const signatory = unit === 'all' ? getSignatoryAllUnits() : getSignatory(unit)
+      
       if (reportType === 'presensi') {
         if (format === 'pdf') {
-          exportPresensiToPDF(data, unitLabel, periodLabel)
+          exportPresensiToPDF(data, unitLabel, periodLabel, yayasanInfo, signatory)
         } else {
-          exportPresensiToExcel(data, unitLabel, periodLabel)
+          exportPresensiToExcel(data, unitLabel, periodLabel, yayasanInfo, signatory)
         }
       } else {
         if (format === 'pdf') {
-          exportCutiToPDF(data, unitLabel, periodLabel)
+          exportCutiToPDF(data, unitLabel, periodLabel, yayasanInfo, signatory)
         } else {
-          exportCutiToExcel(data, unitLabel, periodLabel)
+          exportCutiToExcel(data, unitLabel, periodLabel, yayasanInfo, signatory)
         }
       }
       
@@ -1393,7 +1656,13 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
 
     const reportTitle = reportType === 'presensi' ? 'Rekap Presensi' : 'Rekap Cuti/Izin'
     
+    // Get yayasan info and signatory from global settings
+    const yayasanInfo = getYayasanInfo()
+    const signatory = unit === 'all' ? getSignatoryAllUnits() : getSignatory(unit)
+
     let tableHtml = ''
+    let footerHtml = ''
+    
     if (reportType === 'presensi') {
       tableHtml = `
         <table>
@@ -1431,6 +1700,25 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
           </tbody>
         </table>
       `
+      // Footer for presensi: Kepala Sekolah & Petugas Presensi
+      const kepalaSekolah = signatory.kepalaSekolah || { nama: '', jabatan: 'Kepala Sekolah' }
+      const petugasPresensi = signatory.petugasPresensi || { nama: '', jabatan: 'Petugas Presensi' }
+      footerHtml = `
+        <div class="footer">
+          <div>
+            <div class="sign-line"></div>
+            <div class="footer-title">Mengetahui,</div>
+            <div>${kepalaSekolah.jabatan}</div>
+            <div style="margin-top: 10px; color: #888;">${kepalaSekolah.nama ? `(${kepalaSekolah.nama})` : '(________________________)'}</div>
+          </div>
+          <div>
+            <div class="sign-line"></div>
+            <div class="footer-title">Diperiksa oleh,</div>
+            <div>${petugasPresensi.jabatan}</div>
+            <div style="margin-top: 10px; color: #888;">${petugasPresensi.nama ? `(${petugasPresensi.nama})` : '(________________________)'}</div>
+          </div>
+        </div>
+      `
     } else {
       tableHtml = `
         <table>
@@ -1464,6 +1752,25 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
           </tbody>
         </table>
       `
+      // Footer for cuti: Ketua Yayasan & Admin/TU
+      const ketuaYayasan = signatory.ketuaYayasan || { nama: '', jabatan: 'Ketua Yayasan' }
+      const adminTU = signatory.adminTU?.kepalaTU || signatory.adminTU?.operatorSistem || { nama: '', jabatan: 'Admin TU' }
+      footerHtml = `
+        <div class="footer">
+          <div>
+            <div class="sign-line"></div>
+            <div class="footer-title">Mengetahui,</div>
+            <div>${ketuaYayasan.jabatan}</div>
+            <div style="margin-top: 10px; color: #888;">${ketuaYayasan.nama ? `(${ketuaYayasan.nama})` : '(________________________)'}</div>
+          </div>
+          <div>
+            <div class="sign-line"></div>
+            <div class="footer-title">Disiapkan oleh,</div>
+            <div>${adminTU.jabatan}</div>
+            <div style="margin-top: 10px; color: #888;">${adminTU.nama ? `(${adminTU.nama})` : '(________________________)'}</div>
+          </div>
+        </div>
+      `
     }
 
     const html = `
@@ -1475,7 +1782,7 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
           * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
           body { padding: 20px; font-size: 11px; }
           .header { text-align: center; margin-bottom: 20px; border-bottom: 3px solid #0066CC; padding-bottom: 15px; }
-          .logo { width: 60px; height: 60px; border: 2px solid #0066CC; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; color: #0066CC; font-weight: bold; font-size: 14px; }
+          .logo { width: 60px; height: 60px; border: 2px solid #0066CC; margin: 0 auto 10px; display: flex; align-items: center; justify_content: center; color: #0066CC; font-weight: bold; font-size: 14px; }
           .org-name { font-size: 16px; font-weight: bold; color: #000; }
           .unit-name { font-size: 13px; color: #333; margin-top: 2px; }
           .address { font-size: 10px; color: #666; margin-top: 2px; }
@@ -1486,7 +1793,7 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
           th, td { border: 1px solid #ddd; padding: 6px 4px; text-align: center; }
           th { background: #0066CC; color: white; font-weight: bold; }
           tr:nth-child(even) td { background: #f5f8fc; }
-          td:first-child, td:nth-child(2), td:nth-child(3), td:nth_child(4) { text-align: left; padding-left: 8px; }
+          td:first-child, td:nth-child(2), td:nth-child(3), td:nth-child(4) { text-align: left; padding-left: 8px; }
           .footer { margin-top: 40px; display: flex; justify-content: space-between; font-size: 11px; }
           .footer div { text-align: center; width: 45%; }
           .sign-line { border-top: 1px solid #000; margin: 50px 0 10px; }
@@ -1501,27 +1808,16 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
       <body>
         <div class="header">
           <div class="logo">LOGO</div>
-          <div class="org-name">Yayasan Pendidikan Islam Attin</div>
+          <div class="org-name">${yayasanInfo.nama}</div>
           <div class="unit-name">${unitDisplay}</div>
-          <div class="address">Jl. Raya Attin No. 1, Jakarta Selatan | (021) 1234-5678 | attin@sch.id</div>
+          <div class="address">${yayasanInfo.alamat} | ${yayasanInfo.kontak} | ${yayasanInfo.email}</div>
         </div>
         <div class="title">${reportTitle.toUpperCase()} PEGAWAI</div>
         <div class="info-row"><span class="info-label">Unit Laporan:</span> <span>${unitDisplay}</span></div>
         <div class="info-row"><span class="info-label">Periode Laporan:</span> <span>${periodDisplay}</span></div>
         <div class="info-row"><span class="info-label">Tanggal Cetak:</span> <span>${dateStr}</span></div>
         ${tableHtml}
-        <div class="footer">
-          <div>
-            <div class="sign-line"></div>
-            <div class="footer-title">Mengetahui,</div>
-            <div>Ketua Yayasan</div>
-          </div>
-          <div>
-            <div class="sign-line"></div>
-            <div class="footer-title">Disiapkan oleh,</div>
-            <div>Staff Administrasi</div>
-          </div>
-        </div>
+        ${footerHtml}
         <script>
           window.onload = function() {
             window.print();
