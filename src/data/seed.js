@@ -28,8 +28,25 @@ export const LEAVES = [
   { id: 6, staffId: 2, jenis: 'Izin Pribadi', periode: '02 Sep 2026', durasi: '1 Hari', lampiran: 'Dispensasi.pdf', status: 'Ditolak' },
 ]
 
+// Kata sandi awal untuk seluruh akun yang berasal dari data pegawai
+// (role Guru/Pegawai). Format "<NIY>@2026" supaya tiap akun punya kredensial
+// awal yang unik dan bisa ditebak tanpa melihatBasis data.
+// Akun-akun ini SELALU berstatus mustChangePassword: true.
+export const STAFF_PASSWORD_SUFFIX = '@2026'
+
+export function initialStaffPassword(niy) {
+  return `${String(niy || '').trim()}${STAFF_PASSWORD_SUFFIX}`
+}
+
 // Superadmin TIDAK punya unit: ia oversee seluruh unit (unitId null = pusat).
 // Role selain Superadmin selalu terikat ke satu unit sesuai akunnya.
+//
+// Field tambahan pada akun:
+// - username  : nama_pengguna alternatif untuk login (NIY & email tetap berlaku).
+// - password  : kata sandi awal akun ini; bila kosong, dipakai konstanta
+//               INITIAL_ACCOUNT_PASSWORD milik auth store.
+// - mustChangePassword : wajib mengganti kata sandi sebelum bisa memakai sistem.
+// - demo      : akun bawaan untuk pengujian role/unit (ditampilkan di halaman login).
 export const ADMIN_USERS = [
   { id: 1, name: 'Bambang Hidayat, S.Kom', niy: '019001001', email: 'bambang.h@simpres.sch.id', role: 'Superadmin', unitId: null, status: 'Aktif' },
   { id: 2, name: 'Bustanul Abidin, S.Pd', niy: '049097021', email: 'bustanul.a@sd.rj.sch.id', role: 'Admin Unit', unitId: 'sd', status: 'Aktif' },
@@ -37,6 +54,17 @@ export const ADMIN_USERS = [
   { id: 4, name: 'Silvana Monica, S.Ak', niy: '049023183', email: 'silvana.m@simpres.sch.id', role: 'Superadmin', unitId: null, status: 'Aktif' },
   { id: 5, name: 'Rizal Ramli, S.Pd.I', niy: '029045122', email: 'rizal.r@sd.rj.sch.id', role: 'Guru', unitId: 'sd', status: 'Aktif' },
   { id: 6, name: 'Marni Andayani, S.Kom', niy: '049066311', email: 'marni.a@smp.rj.sch.id', role: 'Petugas Presensi', unitId: 'smp', status: 'Aktif' },
+
+  // ===== Akun default untuk pengujian (role & unit) =====
+  // Superadmin: oversee semua unit, unit terpilih default "Semua Unit".
+  { id: 7, name: 'Superadmin Pusat', niy: '019001007', username: 'superadmin', email: 'superadmin@simpres.sch.id', role: 'Superadmin', unitId: null, status: 'Aktif', password: 'superadmin1234!', mustChangePassword: false, demo: true },
+
+  // Admin Unit: terkunci ke unit akunnya, tidak bisa melihat unit lain.
+  { id: 8, name: 'Admin SD Unit 1', niy: '019001008', username: 'adminsd1', email: 'adminsd1@simpres.sch.id', role: 'Admin Unit', unitId: 'sd', status: 'Aktif', password: 'SDit@2026', mustChangePassword: false, demo: true },
+  { id: 9, name: 'Admin SD Unit 2', niy: '019001009', username: 'adminsd2', email: 'adminsd2@simpres.sch.id', role: 'Admin Unit', unitId: 'sd', status: 'Aktif', password: 'SDdua@2026', mustChangePassword: false, demo: true },
+  { id: 10, name: 'Admin TKIT Attin Sumbar', niy: '019001010', username: 'admintk', email: 'admintk@simpres.sch.id', role: 'Admin Unit', unitId: 'tk', status: 'Aktif', password: 'TKattin@2026', mustChangePassword: false, demo: true },
+  { id: 11, name: 'Admin SMPIT Attin Sumbar', niy: '019001011', username: 'adminsmp', email: 'adminsmp@simpres.sch.id', role: 'Admin Unit', unitId: 'smp', status: 'Aktif', password: 'SMPattin@2026', mustChangePassword: false, demo: true },
+  { id: 12, name: 'Admin SMAIT Attin Sumbar', niy: '019001012', username: 'adminsma', email: 'adminsma@simpres.sch.id', role: 'Admin Unit', unitId: 'sma', status: 'Aktif', password: 'SMAattin@2026', mustChangePassword: false, demo: true },
 ]
 
 export const INITIAL_LOGS = [

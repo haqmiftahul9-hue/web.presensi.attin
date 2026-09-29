@@ -7,6 +7,7 @@ function ConfirmDialog({
   confirmLabel = 'Konfirmasi',
   cancelLabel = 'Batal',
   variant = 'default',
+  confirmIcon,
 }) {
   if (!show) return null
 
@@ -64,7 +65,7 @@ function ConfirmDialog({
             type="button"
           >
             <span className="material-symbols-outlined text-[18px]">
-              {variant === 'danger' ? 'delete' : 'check'}
+              {confirmIcon || (variant === 'danger' ? 'delete' : 'check')}
             </span>
             <span>{confirmLabel}</span>
           </button>

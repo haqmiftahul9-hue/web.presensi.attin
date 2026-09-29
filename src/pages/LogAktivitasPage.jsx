@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useSimPres } from '../store/simPresStore.jsx'
 import { initialsOf, selectUnitName, selectCurrentUser, selectCurrentUserRole, hasMenuPermission, selectScopedLogs, selectScopedAdminUsers, selectActiveUnitId } from '../store/simPresStore.jsx'
 
@@ -223,7 +224,11 @@ function LogAktivitasPage() {
   const [dateRange, setDateRange] = useState('monthly')
   const [customStart, setCustomStart] = useState('')
   const [customEnd, setCustomEnd] = useState('')
-  const [selectedUser, setSelectedUser] = useState('')
+  // Menu "Aktivitas Saya" membuka halaman ini dengan ?pengguna=<nama akun>,
+  // sehingga tabel langsung tersaring ke aktivitas akun itu sendiri.
+  const [searchParams] = useSearchParams()
+  const actorFromQuery = searchParams.get('pengguna') || ''
+  const [selectedUser, setSelectedUser] = useState(actorFromQuery)
   const [selectedAction, setSelectedAction] = useState('')
   const [selectedLog, setSelectedLog] = useState(null)
   const [showDetailModal, setShowDetailModal] = useState(false)
@@ -233,6 +238,15 @@ function LogAktivitasPage() {
   const customDatePickerRef = useRef(null)
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(25)
+
+  // Berpindah dari menu pengguna ke halaman yang sudah terbuka harus ikut
+  // menyaring ke akun yang baru dipilih.
+  useEffect(() => {
+    if (actorFromQuery) {
+      setSelectedUser(actorFromQuery)
+      setCurrentPage(1)
+    }
+  }, [actorFromQuery])
 
   const openDetailModal = (log) => {
     setSelectedLog(log)

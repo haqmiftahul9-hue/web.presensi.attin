@@ -153,6 +153,11 @@ function AdminUserPage() {
           role: form.role,
           unitId: form.unitId,
           status: form.status,
+          // Field kredensial ini dibaca auth store (findAccountByIdentifier ->
+          // authenticateCredentials), jadi isi form kredensial tidak disimpan
+          // sebagai data mati.
+          password: form.password || undefined,
+          mustChangePassword: Boolean(form.forceChange),
         },
       })
       addActivityLog(dispatch, state, 'Tambah', `Akun • ${form.name.trim()}`, `Buat akun ${form.role} baru atas NIY ${form.niy.trim()}`, null, null, form.unitId)
@@ -160,6 +165,10 @@ function AdminUserPage() {
       const roleChanged = editedUser.role !== form.role
       const oldRole = editedUser.role
       const newRole = form.role
+      // Field kosong pada form edit = "jangan sentuh", bukan "hapus kata sandi".
+      const credentialPayload = form.password
+        ? { password: form.password, mustChangePassword: Boolean(form.forceChange) }
+        : {}
 
       dispatch({
         type: 'UPDATE_ADMIN_USER',
@@ -171,6 +180,7 @@ function AdminUserPage() {
           role: form.role,
           unitId: form.unitId,
           status: form.status,
+          ...credentialPayload,
         },
       })
 
@@ -226,10 +236,13 @@ function AdminUserPage() {
     confirmAction(
       'default',
       'Reset Password',
-      `Reset kata sandi akun "${row.name}"? Kata sandi baru akan disetel dan kredensial dikirim via email.`,
+      `Reset kata sandi akun "${row.name}"? Kata sandi baru akan disetel dan pengguna wajib menggantinya saat login berikutnya.`,
       () => {
         const pwd = generatePassword()
-        dispatch({ type: 'UPDATE_ADMIN_USER', payload: { id: row.id, mustReset: true } })
+        // Kata sandi ikut ditulis ke akun agar kredensial di bawah benar-benar
+        // bisa dipakai, dan mustChangePassword mengarahkan pengguna ke form
+        // ganti kata sandi sebelum masuk ke sistem.
+        dispatch({ type: 'UPDATE_ADMIN_USER', payload: { id: row.id, password: pwd, mustChangePassword: true } })
         addActivityLog(dispatch, state, 'Reset Password', `Akun • ${row.name}`, `Reset kata sandi akun ${row.role} atas NIY ${row.niy}`, null, null, row.unitId)
         setSuccessMessage(`Password akun "${row.name}" telah direset. Kredensial baru: ${pwd}`)
         setTimeout(() => setSuccessMessage(''), 6000)

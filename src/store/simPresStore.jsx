@@ -2,6 +2,7 @@ import { createContext, useContext, useReducer, useMemo } from 'react'
 import {
   UNITS, STAFF, LEAVES, ADMIN_USERS, INITIAL_LOGS,
   INITIAL_SETTINGS, WEEKLY_TREND, TREND_30, HOLIDAYS, buildFullStaff, buildAttendance, initialsOf,
+  initialStaffPassword,
 } from '../data/seed.js'
 
 // ARSITEKTUR SATU SUMBER DATA:
@@ -94,21 +95,32 @@ export const ROLE_HOME_CANDIDATES = {
   [ROLE_PETUGAS_PRESENSI]: ['/presensi', '/', '/data-guru-dan-pegawai', '/rekap-dan-laporan', '/ranking-kehadiran', '/pengajuan-izin-dan-cuti', '/log-aktivitas'],
 }
 
-// Kata sandi awal seluruh akun seed. Pada aplikasi nyata nilai ini berasal dari
-// server; di sini satu konstanta agar alur login tetap bisa dicoba tanpa backend,
-// dan tetap bisa ditimpa per akun lewat field `password` (hasil reset/kirim kredensial).
+// Kata sandi awal seluruh akun seed yang tidak punya kata sandi sendiri
+// (mis. akun yang dibuat lewat portal). Pada aplikasi nyata nilai ini berasal
+// dari server; di sini satu konstanta agar alur login tetap bisa dicoba tanpa
+// backend, dan tetap bisa ditimpa per akun lewat field `password` (hasil
+// reset/kirim kredensial). Akun Guru/Pegawai memakai initialStaffPassword()
+// dari data/seed.js (format "<NIY>@2026"), bukan konstanta ini.
 export const INITIAL_ACCOUNT_PASSWORD = 'SimPresSecure2026!'
 
 const AUTH_SESSION_KEY = 'simpres.auth.session'
 
 export const AUTH_ERRORS = {
-  EMPTY_IDENTIFIER: 'NIY atau email dinas wajib diisi.',
+  EMPTY_IDENTIFIER: 'NIY, username, atau email dinas wajib diisi.',
   EMPTY_PASSWORD: 'Kata sandi wajib diisi.',
-  NOT_FOUND: 'Akun tidak ditemukan. Periksa kembali NIY atau email dinas Anda.',
-  WRONG_PASSWORD: 'Kata sandi salah. Silakan coba lagi atau hubungi Biro Kepegawaian.',
+  NOT_FOUND: 'Akun tidak ditemukan. Periksa kembali username, NIY, atau email dinas Anda.',
+  WRONG_PASSWORD: 'Login gagal. Username atau kata sandi salah.',
   INACTIVE: 'Akun Anda sedang nonaktif. Hubungi administrator unit untuk mengaktifkannya kembali.',
   NO_PERMISSION: 'Akun Anda belum memiliki hak akses pada modul SimPres.',
+  PASSWORD_TOO_SHORT: 'Kata sandi baru belum memenuhi minimal panjang yang diwajibkan.',
+  PASSWORD_MISMATCH: 'Konfirmasi kata sandi tidak sama dengan kata sandi baru.',
+  PASSWORD_SAME: 'Kata sandi baru harus berbeda dari kata sandi lama.',
 }
+
+// Pesan khusus saat role mencoba mengganti kata sandi lewat jalur yang tidak
+// diberikan haknya (mis. Superadmin, atau aksi yang dikirim langsung ke store).
+export const PASSWORD_CHANGE_FORBIDDEN =
+  'Peran Anda tidak diizinkan mengganti kata sandi dari menu pengguna. Hubungi pengelola sistem SimPres.'
 
 // Nilai khusus "melihat seluruh unit" (hanya Superadmin).
 export const ALL_UNITS = 'all'
@@ -215,12 +227,21 @@ const initialState = {
   authStatus: 'idle',
   authError: null,
   attendanceHistory: initialAttendanceHistory,
+  // Kata sandi hasil penggantian untuk akun yang TIDAK punya baris di
+  // adminUsers (akun Guru/Pegawai diturunkan dari data pegawai, jadi tidak
+  // ada objek akun yang bisa menyimpan field `password`). Key = id pegawai.
+  // Berlaku selama sesi aplikasi; pada aplikasi nyata ini disimpan di server.
+  staffCredentials: {},
+  // Permintaan buka form ganti kata sandi (dipakai tombol di sidebar dan oleh
+  // akun ber-mustChangePassword). False = pengguna bebas memakai sistem.
+  passwordChangeRequested: false,
   // Unit yang sedang dilihat. Hanya Superadmin yang boleh mengubahnya
   // (termasuk ke "Semua Unit"); role lain selalu mengikuti unit akunnya.
   selectedUnitId: ALL_UNITS,
 }
 
-function simPresReducer(state, action) {
+// Reducer diekspor agar aturan reduksi bisa diuji tanpa merender provider.
+export function simPresReducer(state, action) {
   switch (action.type) {
     case 'UPDATE_LEAVE_STATUS':
       return {
@@ -440,6 +461,7 @@ logs: [
         ...state,
         currentUser: action.payload,
         selectedUnitId: initialUnitScope(action.payload),
+        passwordChangeRequested: false,
       }
     }
     case 'LOGIN_START':
@@ -452,6 +474,7 @@ logs: [
         selectedUnitId: initialUnitScope(action.payload.user),
         authStatus: 'idle',
         authError: null,
+        passwordChangeRequested: false,
       }
     case 'LOGIN_FAILURE':
       return { ...state, isAuthenticated: false, currentUser: null, authStatus: 'error', authError: action.payload }
@@ -463,7 +486,45 @@ logs: [
         selectedUnitId: ALL_UNITS,
         authStatus: 'idle',
         authError: null,
+        passwordChangeRequested: false,
       }
+    case 'REQUEST_PASSWORD_CHANGE':
+      // Lapis reducer: role yang tidak berwenang tidak bisa memaksa form
+      // ganti kata sandi dibuka, apa pun yang dikirim komponen.
+      if (!selectCanChangeOwnPassword(state)) return state
+      return { ...state, passwordChangeRequested: true }
+    case 'CHANGE_PASSWORD': {
+      // Lapis reducer kedua: percobaan mengganti kata sandi oleh role yang
+      // dilarang (Superadmin) diabaikan, bukan sekadar ditolak formnya.
+      if (!selectCanChangeOwnPassword(state)) return state
+      // Akun portal (baris di adminUsers) menyimpan kata sandi barunya sendiri;
+      // akun pegawai menyimpan ke staffCredentials karena tidak punya baris akun.
+      const { account, password } = action.payload
+      if (!account || !password) return state
+      if (account.isStaffAccount) {
+        return {
+          ...state,
+          staffCredentials: {
+            ...state.staffCredentials,
+            [account.staffId]: { password, mustChangePassword: false },
+          },
+          currentUser: account.staffId === state.currentUser?.staffId
+            ? { ...state.currentUser, password, mustChangePassword: false }
+            : state.currentUser,
+          passwordChangeRequested: false,
+        }
+      }
+      return {
+        ...state,
+        adminUsers: state.adminUsers.map((u) =>
+          u.id === account.id ? { ...u, password, mustChangePassword: false } : u,
+        ),
+        currentUser: account.id === state.currentUser?.id
+          ? { ...state.currentUser, password, mustChangePassword: false }
+          : state.currentUser,
+        passwordChangeRequested: false,
+      }
+    }
     case 'SET_SELECTED_UNIT': {
       // Guard lapis reducer: role non-Superadmin tidak pernah bisa mengunci
       // dirinya ke unit lain, apa pun yang dikirim komponen.
@@ -519,9 +580,38 @@ function normalizeIdentifier(value) {
 }
 
 function identifierMatches(account, key) {
-  const niy = String(account.niy || '').trim().toLowerCase()
-  const email = String(account.email || '').trim().toLowerCase()
-  return (niy !== '' && niy === key) || (email !== '' && email === key)
+  const username = normalizeIdentifier(account.username)
+  const niy = normalizeIdentifier(account.niy)
+  const email = normalizeIdentifier(account.email)
+  return (username !== '' && username === key) || (niy !== '' && niy === key) || (email !== '' && email === key)
+}
+
+// Kunci yang dipakai untuk menulis ulang sesi browser. Urutannya mengikuti
+// prioritas form login: username, lalu NIY, lalu email dinas.
+export function accountLoginKey(account) {
+  if (!account) return ''
+  return normalizeIdentifier(account.username || account.niy || account.email)
+}
+
+// Akun Guru/Pegawai tidak punya baris di adminUsers, jadi kata sandi awalnya
+// dihitung dari NIY: "<NIY>@2026" dan selalu wajib diganti saat login pertama
+// (lihat INITIAL_SETTINGS.keamanan.wajibGantiPasswordPertama).
+function buildStaffAccount(state, staff) {
+  const override = state.staffCredentials?.[staff.id]
+  return {
+    id: `staff-${staff.id}`,
+    staffId: staff.id,
+    name: staff.name,
+    niy: staff.niy,
+    username: staff.niy,
+    email: staff.email,
+    role: ROLE_GURU,
+    unitId: staff.unitId,
+    status: staff.status,
+    isStaffAccount: true,
+    password: override?.password || initialStaffPassword(staff.niy),
+    mustChangePassword: override ? Boolean(override.mustChangePassword) : true,
+  }
 }
 
 // Akun portal = baris di adminUsers (Superadmin, Admin Unit, Petugas Presensi).
@@ -535,19 +625,7 @@ export function findAccountByIdentifier(state, identifier) {
   if (adminUser) return { ...adminUser, isStaffAccount: false }
 
   const staff = state.staff.find((s) => identifierMatches(s, key))
-  if (staff) {
-    return {
-      id: `staff-${staff.id}`,
-      staffId: staff.id,
-      name: staff.name,
-      niy: staff.niy,
-      email: staff.email,
-      role: ROLE_GURU,
-      unitId: staff.unitId,
-      status: staff.status,
-      isStaffAccount: true,
-    }
-  }
+  if (staff) return buildStaffAccount(state, staff)
 
   return null
 }
@@ -586,6 +664,33 @@ export function authenticateCredentials(state, identifier, password) {
   return { ok: true, user: account }
 }
 
+// Panjang minimum mengikuti kebijakan keamanan di Pengaturan Global, dengan
+// batas bawah 8 karakter supaya form tidak bisa diturunkan lebih longgar.
+export function selectMinPasswordLength(state) {
+  const configured = Number(state.settings?.keamanan?.minimalPassword)
+  return Number.isFinite(configured) && configured > 0 ? Math.max(8, configured) : 8
+}
+
+// Validasi form ganti kata sandi. Sama seperti login, hasilnya Result type
+// ({ ok, error }) supaya komponen cukup merender satu pesan galat.
+export function validatePasswordChange(state, { currentPassword, newPassword, confirmPassword }) {
+  const account = state.currentUser
+  if (!account) return { ok: false, error: AUTH_ERRORS.NOT_FOUND }
+  if (!selectCanChangeOwnPassword(state)) return { ok: false, error: PASSWORD_CHANGE_FORBIDDEN }
+  if (!currentPassword) return { ok: false, error: 'Kata sandi lama wajib diisi.' }
+  if (!newPassword) return { ok: false, error: 'Kata sandi baru wajib diisi.' }
+  if (!confirmPassword) return { ok: false, error: 'Konfirmasi kata sandi wajib diisi.' }
+  if (newPassword !== confirmPassword) return { ok: false, error: AUTH_ERRORS.PASSWORD_MISMATCH }
+  if (newPassword.length < selectMinPasswordLength(state)) {
+    return { ok: false, error: `Kata sandi baru minimal ${selectMinPasswordLength(state)} karakter.` }
+  }
+  if (newPassword === currentPassword) return { ok: false, error: AUTH_ERRORS.PASSWORD_SAME }
+  if (currentPassword !== (account.password || INITIAL_ACCOUNT_PASSWORD)) {
+    return { ok: false, error: AUTH_ERRORS.WRONG_PASSWORD }
+  }
+  return { ok: true }
+}
+
 function describeDevice() {
   if (typeof navigator === 'undefined') return 'Perangkat Tidak Diketahui'
   const ua = navigator.userAgent
@@ -607,6 +712,16 @@ function describeDevice() {
 // proses verifikasi di server sebelum sesi diterbitkan.
 const LOGIN_LATENCY_MS = 600
 
+// Sesi hanya menyimpan identitas: kata sandi dan status wajib-ganti-password
+// tidak pernah ditulis ke storage browser. Status wajib-ganti selalu dibaca
+// ulang dari data aplikasi, jadi logout lalu login ulang tidak bisa
+// memaksa pengguna melewati penggantian kata sandi.
+export function sanitizeSessionUser(user) {
+  if (!user) return null
+  const { password, mustChangePassword, ...identity } = user
+  return identity
+}
+
 export async function performLogin({ state, dispatch, identifier, password, remember, requestedPath }) {
   dispatch({ type: 'LOGIN_START' })
   await new Promise((resolve) => setTimeout(resolve, LOGIN_LATENCY_MS))
@@ -623,13 +738,13 @@ export async function performLogin({ state, dispatch, identifier, password, reme
   const path = resolvePostLoginPath(loggedInState, user, requestedPath)
 
   dispatch({ type: 'LOGIN_SUCCESS', payload: { user, remember } })
-  writeStoredSession({ user, remember, at: Date.now() }, remember)
+  writeStoredSession({ user: sanitizeSessionUser(user), remember, at: Date.now() }, remember)
   addActivityLog(
     dispatch,
     loggedInState,
     'Login',
     'Sesi • Web',
-    `Login ${user.niy || user.email} (${describeDevice()})`,
+    `Login ${accountLoginKey(user)} (${describeDevice()})`,
     user.name,
     user.role,
     user.unitId,
@@ -647,7 +762,7 @@ function initWithStoredSession(state) {
   const stored = readStoredSession()
   if (!stored?.user) return state
 
-  const account = findAccountByIdentifier(state, stored.user.niy || stored.user.email)
+  const account = findAccountByIdentifier(state, accountLoginKey(stored.user))
   if (!account || account.status !== 'Aktif' || !state.permissionMatrix?.[account.role]) {
     clearStoredSession()
     return { ...state, currentUser: null, isAuthenticated: false }
@@ -679,11 +794,20 @@ export function selectIsAuthenticating(state) {
 
 const SimPresContext = createContext(null)
 
+// Baris presensi yang jadi sumber state.attendance. Guru/Pegawai hanya getting
+// barisnya sendiri; role lain tetap dari seluruh data pegawai supaya filter
+// unit di halaman tetap bekerja seperti sebelumnya.
+function attendanceSource(state) {
+  if (!selectIsSelfScope(state)) return state.staff
+  const staffId = selectSelfStaffId(state)
+  return state.staff.filter((s) => s.id === staffId)
+}
+
 export function SimPresProvider({ children }) {
   const [state, dispatch] = useReducer(simPresReducer, initialState, initWithStoredSession)
-  // attendance selalu turunan state.staff (satu sumber data presensi).
+  // attendance selalu turunan data pegawai (satu sumber data presensi).
   const value = useMemo(
-    () => ({ state: { ...state, attendance: buildAttendance(state.staff) }, dispatch }),
+    () => ({ state: { ...state, attendance: buildAttendance(attendanceSource(state)) }, dispatch }),
     [state],
   )
   return (
@@ -1738,6 +1862,45 @@ export function selectCurrentUserRole(state) {
   return state.currentUser?.role || ROLE_GURU
 }
 
+// Role yang boleh mengganti kata sandinya sendiri dari menu pengguna.
+// Superadmin sengaja tidak ada di sini: akun pusat dikelola lewat prosedur
+// operasional, sehingga UI pengguna tidak menawarkan aksi tersebut sama sekali.
+const ROLES_CAN_CHANGE_PASSWORD = [ROLE_ADMIN_UNIT, ROLE_GURU, ROLE_PETUGAS_PRESENSI]
+
+export function selectCanChangeOwnPassword(state) {
+  return ROLES_CAN_CHANGE_PASSWORD.includes(selectCurrentUserRole(state))
+}
+
+// Guru/Pegawai wajib mengganti kata sandi sebelum boleh memakai sistem: bisa
+// karena akunnya ditandai (akun bawaan/reset admin) atau karena ia sendiri
+// yang meminta lewat menu "Ganti Password". Akun Superadmin dikecualikan
+// (lihat selectCanChangeOwnPassword) sehingga tidak pernah ikut terkunci.
+export function selectMustChangePassword(state) {
+  if (!selectIsAuthenticated(state)) return false
+  if (!selectCanChangeOwnPassword(state)) return false
+  return Boolean(state.currentUser?.mustChangePassword) || Boolean(state.passwordChangeRequested)
+}
+
+// Id pegawai yang melekat pada akun ini. Akun portal bisa terikat lewat NIY
+// yang sama dengan data pegawai, jadi portofolio pribadi tetap bisa ditemukan.
+export function selectSelfStaffId(state) {
+  const user = state.currentUser
+  if (!user) return null
+  if (user.staffId != null) return user.staffId
+  const niy = normalizeIdentifier(user.niy)
+  if (!niy) return null
+  const match = state.staff.find((s) => normalizeIdentifier(s.niy) === niy)
+  return match ? match.id : null
+}
+
+// Cakupan data pribadi: Guru/Pegawai hanya boleh melihat data dan presensi
+// miliknya sendiri. Akun Guru yang tidak punya baris pegawai tidak di-scope
+// ke diri sendiri supaya tidak berakhir dengan halaman kosong.
+export function selectIsSelfScope(state) {
+  if (selectCurrentUserRole(state) !== ROLE_GURU) return false
+  return selectSelfStaffId(state) != null
+}
+
 // Hanya Superadmin yang punya selector unit.
 export function selectCanSwitchUnit(state) {
   return selectCurrentUserRole(state) === ROLE_SUPERADMIN
@@ -1788,6 +1951,10 @@ export function selectVisibleUnits(state) {
 
 // Staff setelah pembatasan unit terpilih — dipakai semua halaman.
 export function selectScopedStaff(state) {
+  if (selectIsSelfScope(state)) {
+    const staffId = selectSelfStaffId(state)
+    return state.staff.filter((s) => s.id === staffId)
+  }
   if (selectIsAllUnits(state)) return state.staff
   const activeId = selectActiveUnitId(state)
   return state.staff.filter((s) => s.unitId === activeId)
@@ -1800,6 +1967,11 @@ export function selectScopedLeaves(state) {
 }
 
 export function selectScopedLogs(state) {
+  if (selectIsSelfScope(state)) {
+    // Cakupan pribadi: hanya log aktivitas milik pengguna sendiri.
+    const name = state.currentUser?.name
+    return state.logs.filter((l) => l.actor === name)
+  }
   if (selectIsAllUnits(state)) return state.logs
   const activeId = selectActiveUnitId(state)
   const unitName = selectUnitName(state, activeId)
@@ -1810,9 +1982,40 @@ export function selectScopedLogs(state) {
 }
 
 export function selectScopedAdminUsers(state) {
+  // Guru/Pegawai tidak mengelola akun sama sekali, jadi daftar akun dikosongkan
+  // walau role-nya punya izin "view" pada modul Manajemen Admin & User.
+  if (selectIsSelfScope(state)) return []
   if (selectIsAllUnits(state)) return state.adminUsers
   const activeId = selectActiveUnitId(state)
   return state.adminUsers.filter((u) => u.unitId === activeId)
+}
+
+// Daftar kredensial demo siap pakai untuk halaman login. Disusun dari data
+// aplikasi (akun portal bertanda `demo` + satu contoh pegawai), jadi tetap
+// akurat kalau Superadmin menambah/menonaktifkan akun lewat portal.
+export function selectDemoLoginAccounts(state) {
+  const portals = state.adminUsers
+    .filter((u) => u.demo && u.status === 'Aktif')
+    .map((u) => ({
+      username: accountLoginKey(u),
+      password: u.password || INITIAL_ACCOUNT_PASSWORD,
+      role: u.role,
+      unit: u.unitId ? selectUnitName(state, u.unitId) : 'Semua Unit',
+      mustChangePassword: Boolean(u.mustChangePassword),
+    }))
+
+  const sample = state.staff.find((s) => s.status === 'Aktif')
+  const staff = sample
+    ? [{
+        username: sample.niy,
+        password: state.staffCredentials?.[sample.id]?.password || initialStaffPassword(sample.niy),
+        role: ROLE_GURU,
+        unit: selectUnitName(state, sample.unitId),
+        mustChangePassword: !state.staffCredentials?.[sample.id],
+      }]
+    : []
+
+  return [...portals, ...staff]
 }
 
 export function generateLogTime() {

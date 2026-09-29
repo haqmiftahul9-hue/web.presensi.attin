@@ -5,7 +5,8 @@ import {
   performLogin,
   selectIsAuthenticating,
   selectAuthError,
-  INITIAL_ACCOUNT_PASSWORD,
+  selectDemoLoginAccounts,
+  AUTH_ERRORS,
 } from '../store/simPresStore.jsx'
 
 // Warna border/ring tiap field disimpan sebagai CSS variable pada wrapper-nya.
@@ -294,20 +295,31 @@ function LoginPage() {
 
   const isAuthenticating = selectIsAuthenticating(state)
   const authError = selectAuthError(state)
+  // Kredensial demo disusun dari auth store (akun seed bertanda demo + satu
+  // contoh pegawai), jadi yang tampil selalu sama dengan yang benar-benar
+  // diterima oleh authenticateCredentials().
+  const demoAccounts = selectDemoLoginAccounts(state)
 
-  const [identifier, setIdentifier] = useState('049005069')
-  const [password, setPassword] = useState(INITIAL_ACCOUNT_PASSWORD)
+  const [identifier, setIdentifier] = useState('superadmin')
+  const [password, setPassword] = useState('superadmin1234!')
   const [showPassword, setShowPassword] = useState(false)
   const [remember, setRemember] = useState(true)
   const [fieldErrors, setFieldErrors] = useState({})
+  const [showDemo, setShowDemo] = useState(false)
+
+  const useDemoAccount = (account) => {
+    setIdentifier(account.username)
+    setPassword(account.password)
+    setFieldErrors({})
+  }
 
   const handleSubmit = async (event) => {
     event.preventDefault()
     if (isAuthenticating) return
 
     const errors = {}
-    if (!identifier.trim()) errors.identifier = 'NIY atau email dinas wajib diisi.'
-    if (!password) errors.password = 'Kata sandi wajib diisi.'
+    if (!identifier.trim()) errors.identifier = AUTH_ERRORS.EMPTY_IDENTIFIER
+    if (!password) errors.password = AUTH_ERRORS.EMPTY_PASSWORD
     setFieldErrors(errors)
     if (Object.keys(errors).length > 0) return
 
@@ -348,7 +360,7 @@ function LoginPage() {
                 <div className="group animate-sp-slide" style={{ animationDelay: '210ms' }}>
                   <div className="flex items-center justify-between gap-3">
                     <label htmlFor="identifier" className={LABEL_CLASS}>
-                      NIY / Email Dinas
+                      Username / NIY / Email
                     </label>
                     {fieldErrors.identifier && <span className={FIELD_ERROR_CLASS}>{fieldErrors.identifier}</span>}
                   </div>
@@ -365,7 +377,7 @@ function LoginPage() {
                       type="text"
                       autoComplete="username"
                       autoFocus
-                      placeholder="Contoh: 049005069 atau nama@sekolah.sch.id"
+                      placeholder="Contoh: superadmin, adminsd1, atau 049005069"
                       value={identifier}
                       onChange={(e) => {
                         setIdentifier(e.target.value)
@@ -519,6 +531,45 @@ function LoginPage() {
                   </a>
                 </p>
               )}
+
+              <div className="mt-3 animate-sp-fade" style={{ animationDelay: '440ms' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowDemo((v) => !v)}
+                  aria-expanded={showDemo}
+                  className="flex w-full items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-left text-[12px] font-semibold text-[#5A6675] transition-colors duration-200 hover:bg-[#F2F4F7] hover:text-[#0B1B33]"
+                >
+                  <span className="flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-[15px]">key</span>
+                    Akun demo testing ({demoAccounts.length})
+                  </span>
+                  <span className="material-symbols-outlined text-[16px]">{showDemo ? 'expand_less' : 'expand_more'}</span>
+                </button>
+                {showDemo && (
+                  <ul className="mt-1.5 max-h-[158px] space-y-0.5 overflow-y-auto rounded-xl border border-[#E2E8F1] bg-[#F8FAFC] p-1.5 animate-sp-rise">
+                    {demoAccounts.map((account) => (
+                      <li key={`${account.role}-${account.username}`}>
+                        <button
+                          type="button"
+                          onClick={() => useDemoAccount(account)}
+                          className="flex w-full items-center justify-between gap-3 rounded-lg px-2.5 py-1.5 text-left transition-colors duration-200 hover:bg-white"
+                        >
+                          <span className="min-w-0">
+                            <span className="block truncate font-mono text-[12.5px] font-semibold text-[#0B1B33]">
+                              {account.username}
+                            </span>
+                            <span className="block truncate text-[11px] text-[#5A6675]">
+                              {account.role} &middot; {account.unit}
+                              {account.mustChangePassword ? ' &middot; wajib ganti sandi' : ''}
+                            </span>
+                          </span>
+                          <span className="shrink-0 font-mono text-[11.5px] text-[#2563EB]">{account.password}</span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             </section>
 
             <BrandingPanel />

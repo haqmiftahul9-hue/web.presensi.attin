@@ -5,8 +5,10 @@ import {
   resolvePostLoginPath,
   selectCurrentUser,
   selectIsAuthenticated,
+  selectMustChangePassword,
   ROUTE_MENU_KEYS,
 } from '../store/simPresStore.jsx'
+import ChangePasswordGate from './ChangePasswordGate.jsx'
 
 function ProtectedRoute({ children }) {
   const { state } = useSimPres()
@@ -16,6 +18,14 @@ function ProtectedRoute({ children }) {
     // Simpan tujuan awal supaya setelah loginGuard membalas ke halaman itu,
     // selama role-nya memang berwenang.
     return <Navigate to="/login" state={{ from: location }} replace />
+  }
+
+  // Gate kata sandi: akun yang wajib menggantinya (atau yang memintanya lewat
+  // sidebar) tidak bisa melewati halaman mana pun sebelum selesai. Ditempatkan
+  // di sini — bukan sebagai rute baru — supaya Layout/Sidebar/Header tetap
+  // jadi latar, persis seperti pola redirect yang sudah dipakai guard ini.
+  if (selectMustChangePassword(state)) {
+    return <ChangePasswordGate />
   }
 
   const menuKey = ROUTE_MENU_KEYS[location.pathname]

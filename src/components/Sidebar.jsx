@@ -3,8 +3,10 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import {
   useSimPres, selectCurrentUser, selectCurrentUserRole, hasMenuPermission, MENU_OPTIONS,
   selectCanSwitchUnit, selectActiveUnitId, selectActiveUnitLabel, selectUnitOptionsById, ALL_UNITS,
-  performLogout,
+  selectCanChangeOwnPassword, performLogout, ROLE_SUPERADMIN,
 } from '../store/simPresStore.jsx'
+import ConfirmDialog from './ConfirmDialog.jsx'
+import { buildUserMenuItems } from './userMenuItems.js'
 
 const navItems = [
   { path: '/', label: 'Dashboard', icon: 'dashboard', activePath: '/', menuKey: 'dashboard' },
@@ -104,9 +106,166 @@ function UnitScopeSelector() {
   )
 }
 
-function SidebarNav() {
+// Menu titik tiga pada kartu pengguna. Isinya ditentukan per role di bawah,
+// jadi menambah role cukup menambah aturan filter, bukan mengubah markup.
+// - Superadmin   : Aktivitas Saya, Keluar. Tanpa "Profil Saya" maupun ikon
+//                  profilnya, dan tanpa "Ganti Password" karena akun pusat
+//                  tidak boleh mengganti sandinya dari menu pengguna
+//                  (lihat selectCanChangeOwnPassword di auth store).
+// - Role lain    : Profil Saya, Ganti Password, Keluar.
+function UserMenu() {
   const { state, dispatch } = useSimPres()
   const navigate = useNavigate()
+  const currentUser = selectCurrentUser(state)
+  const currentRole = selectCurrentUserRole(state)
+  const canChangePassword = selectCanChangeOwnPassword(state)
+  const isSuperadmin = currentRole === ROLE_SUPERADMIN
+
+  const [open, setOpen] = useState(false)
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
+  const ref = useRef(null)
+
+  useEffect(() => {
+    if (!open) return
+    function onClickOutside(e) {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false)
+    }
+    function onKeyDown(e) {
+      if (e.key === 'Escape') setOpen(false)
+    }
+    document.addEventListener('mousedown', onClickOutside)
+    document.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.removeEventListener('mousedown', onClickOutside)
+      document.removeEventListener('keydown', onKeyDown)
+    }
+  }, [open])
+
+  const closeMenu = () => setOpen(false)
+
+  const goToProfile = () => {
+    closeMenu()
+    // Untuk Guru/Pegawai halaman ini sudah ter-scope ke data pribadi mereka
+    // sendiri, jadi "Profil Saya" memang membuka profil yang sama.
+    navigate('/data-guru-dan-pegawai')
+  }
+
+  const goToMyActivity = () => {
+    closeMenu()
+    // Parameter pengguna dipakai LogAktivitasPage untuk langsung menyaring
+    // baris milik akun ini saja.
+    const name = encodeURIComponent(currentUser?.name || '')
+    navigate(`/log-aktivitas?pengguna=${name}`)
+  }
+
+  const openChangePassword = () => {
+    closeMenu()
+    // ProtectedRoute yang menampilkan formnya, sehingga tidak ada rute baru.
+    dispatch({ type: 'REQUEST_PASSWORD_CHANGE' })
+  }
+
+  // Konfirmasi dulu: hapus sesi baru setelah pengguna menekan "Keluar".
+  const requestLogout = () => {
+    closeMenu()
+    setShowLogoutConfirm(true)
+  }
+
+  const confirmLogout = () => {
+    performLogout(dispatch)
+    navigate('/login', { replace: true })
+  }
+
+  const menuButtonClass =
+    'w-full flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-left font-body-md text-body-md text-on-primary-container transition-colors duration-200 hover:bg-white/10 hover:text-on-primary'
+
+  // Daftar item diambil dari katalog+aturan role di userMenuItems.js, lalu
+  // dipasangkan dengan penangan aksi di sini. Satu sumber kebenaran, sehingga
+  // urutan, ikon, dan divider selalu ikut daftar final tiap role.
+  const itemHandlers = {
+    profile: goToProfile,
+    activity: goToMyActivity,
+    password: openChangePassword,
+    logout: requestLogout,
+  }
+  const menuItems = buildUserMenuItems({ isSuperadmin, canChangePassword }).map((item) => ({
+    ...item,
+    onSelect: itemHandlers[item.key],
+  }))
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        title="Menu pengguna"
+        aria-label="Menu pengguna"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        className="p-1 rounded-md text-on-primary-container transition-colors duration-200 hover:bg-white/10 hover:text-on-primary cursor-pointer"
+      >
+        <span className="material-symbols-outlined text-[20px]">more_vert</span>
+      </button>
+
+      {open && (
+        <div
+          role="menu"
+          aria-label="Menu pengguna"
+          className="absolute bottom-full right-0 mb-1 z-50 w-[210px] overflow-hidden rounded-xl border border-white/10 bg-primary-container shadow-[0_24px_48px_-20px_rgba(0,0,0,0.75)] animate-sp-rise"
+        >
+          <div className="border-b border-white/10 px-space-sm py-2">
+            <p className="truncate font-body-sm-medium text-body-sm-medium text-on-primary">
+              {currentUser?.name || 'Pengguna'}
+            </p>
+            <p className="truncate font-label-sm text-label-sm text-on-primary-container">
+              {currentUser?.username || currentUser?.niy || currentUser?.email || '-'}
+            </p>
+          </div>
+
+          <div className="py-1">
+            {menuItems.map((item, index) => (
+              <div key={item.key}>
+                {/* Divider dihitung dari posisi item, bukan flag hardcode:
+                    jadi selalu memisahkan "Keluar" dari item di atasnya, dan
+                    tidak pernah muncul sendirian saat daftar tinggal satu item. */}
+                {item.destructive && index > 0 ? <div className="my-1 border-t border-white/10" /> : null}
+                <button type="button" role="menuitem" onClick={item.onSelect} className={menuButtonClass}>
+                  <span className="material-symbols-outlined text-[18px]">{item.icon}</span>
+                  <span>{item.label}</span>
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <ConfirmDialog
+        show={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        onConfirm={confirmLogout}
+        title="Konfirmasi Keluar"
+        message={
+          <>
+            Apakah Anda yakin ingin keluar dari akun ini?
+            <span className="mt-1.5 block font-body-md-medium text-body-md-medium text-on-surface">
+              {currentUser?.name || 'Pengguna'}
+              <span className="font-body-sm text-body-sm text-on-surface-variant">
+                {' '}
+                &middot; {currentUser?.email || currentUser?.username || '-'}
+              </span>
+            </span>
+          </>
+        }
+        confirmLabel="Keluar"
+        cancelLabel="Batal"
+        confirmIcon="logout"
+        variant="danger"
+      />
+    </div>
+  )
+}
+
+function SidebarNav() {
+  const { state } = useSimPres()
   const currentUser = selectCurrentUser(state)
   const currentRole = selectCurrentUserRole(state)
   const visibleItems = navItems.filter((item) => hasMenuPermission(state, item.menuKey))
@@ -117,11 +276,6 @@ function SidebarNav() {
     'Petugas Presensi': { roleBg: 'bg-teal-50', roleText: 'text-teal-700', roleDot: 'bg-teal-600', unitIcon: 'school' },
   }
   const r = roleMap[currentRole] || roleMap.Guru
-
-  const handleLogout = () => {
-    performLogout(dispatch)
-    navigate('/login', { replace: true })
-  }
 
   return (
     <aside className="fixed left-0 top-0 h-full w-[260px] bg-primary-container z-50 flex flex-col justify-between overflow-y-auto">
@@ -166,18 +320,20 @@ function SidebarNav() {
             <span className="material-symbols-outlined text-on-secondary text-[20px]">shield_person</span>
           </div>
           <div className="flex flex-col min-w-0 flex-1">
-            <span className="font-body-sm-medium text-body-sm-medium text-on-primary truncate">{currentUser?.name || 'Superadmin'}</span>
-            <span className="font-label-sm text-label-sm text-on-primary-container truncate">{currentUser?.email || 'superadmin@simpres.sch.id'}</span>
+            <span className="font-body-sm-medium text-body-sm-medium text-on-primary truncate" title={currentUser?.name || ''}>
+              {currentUser?.name || 'Superadmin'}
+            </span>
+            <span
+              className="font-label-sm text-label-sm text-on-primary-container truncate"
+              title={currentUser?.email || ''}
+            >
+              {currentUser?.username || currentUser?.niy || currentUser?.email || 'superadmin@simpres.sch.id'}
+            </span>
+            <span className={`mt-1 self-start rounded-full px-2 py-0.5 font-label-sm text-label-sm ${r.roleBg} ${r.roleText}`}>
+              {currentRole}
+            </span>
           </div>
-          <button
-            type="button"
-            onClick={handleLogout}
-            title="Keluar"
-            aria-label="Keluar dari akun"
-            className="text-on-primary-container hover:text-on-primary transition-colors p-1 cursor-pointer"
-          >
-            <span className="material-symbols-outlined text-[18px]">logout</span>
-          </button>
+          <UserMenu />
         </div>
       </div>
     </aside>
