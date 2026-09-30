@@ -46,3 +46,103 @@ main > :last-child {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ===== Kartu ID Pegawai (PVC CR80 85.60 x 53.98 mm) =====
+
+   .sp-card-frame menjadi container queries, lalu .sp-idcard memakai 1cqw
+   sebagai satu satuan "em" kartu. Efeknya: satu komponen wajah kartu bisa
+   dipakai di dua konteks tanpa prop berbeda — di layar mengikuti lebar kolom
+   grid, di cetak mengikuti ukuran kertas 85.6mm (skala 1:1).
+
+   Nilai --sp-* adalah kelipatan em yang berasal dari CARD_GEOMETRY
+   (src/data/employeeCard.js). Utils PDF memakai angka yang sama, sehingga
+   hasil "Cetak Terpilih" dan hasil "Unduh PDF" dijamin identik. */
+.sp-card-frame {
+  container-type: inline-size;
+}
+
+.sp-idcard {
+  /* 100 / EM_PER_WIDTH (39.3). Angka ini membuat 1 em tepat sama dengan
+     85.6 / 39.3 = 2.1781 mm saat kartu dicetak pada skala CR80 asli, sehingga
+     --sp-qr (10.2 em) benar-benar 22.2 mm, bukan 21.9 mm. */
+  --sp-em: 2.5445cqw;
+  --sp-header: calc(var(--sp-em) * 4.1);
+  --sp-footer: calc(var(--sp-em) * 6.9);
+  --sp-pad-x: calc(var(--sp-em) * 0.7);
+  --sp-body-pad-y: calc(var(--sp-em) * 0.45);
+  --sp-gap: calc(var(--sp-em) * 0.65);
+  --sp-logo: calc(var(--sp-em) * 2);
+  --sp-header-label: calc(var(--sp-em) * 0.55);
+  --sp-header-title: calc(var(--sp-em) * 0.82);
+  --sp-header-unit: calc(var(--sp-em) * 0.75);
+  --sp-photo-w: calc(var(--sp-em) * 9.2);
+  --sp-photo-h: calc(var(--sp-em) * 11.2);
+  --sp-badge: calc(var(--sp-em) * 0.58);
+  --sp-badge-gap: calc(var(--sp-em) * 0.28);
+  --sp-qr: calc(var(--sp-em) * 10.2);
+  --sp-qr-label: calc(var(--sp-em) * 0.48);
+  --sp-qr-label-gap: calc(var(--sp-em) * 0.12);
+  --sp-barcode-w: calc(var(--sp-em) * 20);
+  --sp-barcode-h: calc(var(--sp-em) * 3.3);
+  --sp-barcode-text: calc(var(--sp-em) * 0.66);
+  --sp-name: calc(var(--sp-em) * 1.5);
+  --sp-role: calc(var(--sp-em) * 0.95);
+  --sp-niy: calc(var(--sp-em) * 0.9);
+  --sp-nip: calc(var(--sp-em) * 0.8);
+  --sp-meta: calc(var(--sp-em) * 0.78);
+  font-size: var(--sp-em);
+  line-height: 1.2;
+}
+
+/* Browser lama tanpa container queries: satu satuan em kartu dipatok ke
+   lebar CR80 aslinya agar kartu tetap terbaca (bukan proporsional layar). */
+@supports not (container-type: inline-size) {
+  .sp-idcard {
+    --sp-em: 2.176mm;
+  }
+}
+
+/* Area cetak disembunyikan di layar; hanya ikut ke printer. */
+.sp-print-root {
+  display: none;
+}
+
+@media print {
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    background: #ffffff;
+  }
+
+  /* Area cetak di-portal ke <body>, jadi menyembunyikan anak body lainnya
+     cukup untuk membuang seluruh UI aplikasi — sidebar, navbar, breadcrumb,
+     filter, tombol, dan grid pratinjau. Kalau hanya "visibility: hidden",
+     konten itu tetap memakan ruang dan menambah halaman kosong. */
+  body > *:not(.sp-print-root) {
+    display: none !important;
+  }
+
+  .sp-print-root {
+    display: block;
+  }
+
+  /* Chrome/Edge/Safari menghapus warna latar saat mencetak secara default,
+     yang membuat header navy dan badge status hilang. Kartu ID wajib dicetak
+     utuh, jadi warna dipaksa dipertahankan. */
+  .sp-print-root,
+  .sp-print-root * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .sp-print-page {
+    display: block;
+    overflow: hidden;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* @page size disuntikkan runtime oleh halaman (lihat CetakKartuIdPage)
+     supaya mengikuti layout CR80 atau A4 yang dipilih pengguna. */
+}

@@ -42,7 +42,7 @@ function EditUnitModal({ unit, onClose, onSave }) {
             <input
               className="h-10 px-3.5 py-2 rounded-lg bg-surface-container-low border border-outline focus:outline-none focus:bg-surface-container-lowest focus:border-secondary/50 focus:ring-2 focus:ring-secondary/20 font-body-md text-body-md text-on-surface transition-all"
               id="inputUnitName"
-              placeholder="Contoh: SD Islam Raudhatul Jannah"
+              placeholder="Contoh: SD Islam Attin Indonesia"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}

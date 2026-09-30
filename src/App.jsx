@@ -3,6 +3,7 @@ import Layout from './Layout.jsx'
 import DashboardPage from './pages/DashboardPage.jsx'
 import UnitAdminSDPage from './pages/UnitAdminSDPage.jsx'
 import DataGuruPegawaiPage from './pages/DataGuruPegawaiPage.jsx'
+import CetakKartuIdPage from './pages/CetakKartuIdPage.jsx'
 import AdminUserPage from './pages/AdminUserPage.jsx'
 import RekapLaporanPage from './pages/RekapLaporanPage.jsx'
 import RankingKehadiranPage from './pages/RankingKehadiranPage.jsx'
@@ -24,6 +25,7 @@ function App() {
           <Route path="/unit-sd-islam-rj" element={<ProtectedRoute><UnitAdminSDPage /></ProtectedRoute>} />
           <Route path="/manajemen-admin-user" element={<ProtectedRoute><AdminUserPage /></ProtectedRoute>} />
           <Route path="/data-guru-dan-pegawai" element={<ProtectedRoute><DataGuruPegawaiPage /></ProtectedRoute>} />
+          <Route path="/cetak-kartu-id" element={<ProtectedRoute><CetakKartuIdPage /></ProtectedRoute>} />
           <Route path="/rekap-dan-laporan" element={<ProtectedRoute><RekapLaporanPage /></ProtectedRoute>} />
           <Route path="/ranking-kehadiran" element={<ProtectedRoute><RankingKehadiranPage /></ProtectedRoute>} />
           <Route path="/log-aktivitas" element={<ProtectedRoute><LogAktivitasPage /></ProtectedRoute>} />

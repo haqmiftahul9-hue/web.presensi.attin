@@ -59,7 +59,7 @@ function exportPresensiToExcel(data, unitLabel, periodLabel, yayasanInfo = null,
   try {
     const wb = XLSX.utils.book_new()
     
-    const y = yayasanInfo || { nama: 'Yayasan Pendidikan Islam Raudhatul Jannah', alamat: 'Jl. Raya Cendekia No. 45, Jakarta Selatan', kontak: '+62 811-9876-5432' }
+    const y = yayasanInfo || { nama: 'Yayasan Islam Attin Indonesia', alamat: 'Jl. Raya Cendekia No. 45, Jakarta Selatan', kontak: '+62 811-9876-5432' }
     const s = signatory || {}
     
     // Header info rows
@@ -136,7 +136,7 @@ function exportCutiToExcel(data, unitLabel, periodLabel, yayasanInfo = null, sig
   try {
     const wb = XLSX.utils.book_new()
     
-    const y = yayasanInfo || { nama: 'Yayasan Pendidikan Islam Raudhatul Jannah', alamat: 'Jl. Raya Cendekia No. 45, Jakarta Selatan', kontak: '+62 811-9876-5432' }
+    const y = yayasanInfo || { nama: 'Yayasan Islam Attin Indonesia', alamat: 'Jl. Raya Cendekia No. 45, Jakarta Selatan', kontak: '+62 811-9876-5432' }
     const s = signatory || {}
     
     // Header info rows
@@ -205,7 +205,7 @@ function exportCutiToExcel(data, unitLabel, periodLabel, yayasanInfo = null, sig
 
 function getUnitInfo(unitLabel, yayasanInfo = null) {
   const defaultYayasan = {
-    nama: 'Yayasan Pendidikan Islam Raudhatul Jannah',
+    nama: 'Yayasan Islam Attin Indonesia',
     alamat: 'Jl. Raya Cendekia No. 45, Jakarta Selatan',
     kontak: '+62 811-9876-5432',
     email: 'sekretariat@attinsumbar.sch.id',
@@ -978,7 +978,7 @@ function RekapLaporanPage() {
   const getYayasanInfo = () => {
     const settings = state.settings
     return {
-      nama: settings.namaYayasan || 'Yayasan Pendidikan Islam Raudhatul Jannah',
+      nama: settings.namaYayasan || 'Yayasan Islam Attin Indonesia',
       alamat: settings.alamatYayasan || 'Jl. Raya Cendekia No. 45, Jakarta Selatan',
       kontak: settings.noWhatsapp || '+62 811-9876-5432',
       email: settings.emailSekretariat || 'sekretariat@attinsumbar.sch.id',

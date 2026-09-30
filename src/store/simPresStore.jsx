@@ -4,6 +4,10 @@ import {
   INITIAL_SETTINGS, WEEKLY_TREND, TREND_30, HOLIDAYS, buildFullStaff, buildAttendance, initialsOf,
   initialStaffPassword,
 } from '../data/seed.js'
+import {
+  buildEmployeeCard, buildEmployeeCards, cardQrValue, cardBarcodeValue,
+  todayISO, addYears, DEFAULT_VALIDITY_YEARS, statusKepegawaianGroup,
+} from '../data/employeeCard.js'
 
 // ARSITEKTUR SATU SUMBER DATA:
 // - Entitas kanonis hanya disimpan sekali (staff/units/leaves/adminUsers/logs/settings).
@@ -18,6 +22,7 @@ export const PERMISSION_MATRIX = {
     manajemenUnit: ['view', 'add', 'edit', 'delete'],
     manajemenAdminUser: ['view', 'add', 'edit', 'delete'],
     dataGuruPegawai: ['view', 'add', 'edit', 'delete'],
+    cetakKartuId: ['view', 'add'],
     presensi: ['view', 'add', 'edit', 'delete'],
     rekapLaporan: ['view', 'add', 'edit', 'delete'],
     rankingKehadiran: ['view', 'add', 'edit', 'delete'],
@@ -30,6 +35,9 @@ export const PERMISSION_MATRIX = {
     manajemenUnit: [],
     manajemenAdminUser: [],
     dataGuruPegawai: ['view', 'add', 'edit'],
+    // Admin Unit boleh mencetak, tapi hanya pegawai unitnya sendiri: pembatasan
+    // datanya ditegakkan oleh selectScopedStaff(), bukan oleh menu.
+    cetakKartuId: ['view', 'add'],
     presensi: ['view', 'add', 'edit'],
     rekapLaporan: ['view'],
     rankingKehadiran: ['view'],
@@ -42,6 +50,7 @@ export const PERMISSION_MATRIX = {
     manajemenUnit: [],
     manajemenAdminUser: [],
     dataGuruPegawai: ['view'],
+    cetakKartuId: [],
     presensi: ['view'],
     rekapLaporan: ['view'],
     rankingKehadiran: ['view'],
@@ -54,6 +63,7 @@ export const PERMISSION_MATRIX = {
     manajemenUnit: [],
     manajemenAdminUser: [],
     dataGuruPegawai: ['view'],
+    cetakKartuId: [],
     presensi: ['view', 'add', 'edit'],
     rekapLaporan: ['view'],
     rankingKehadiran: ['view'],
@@ -76,6 +86,7 @@ export const ROUTE_MENU_KEYS = {
   '/unit-sd-islam-rj': 'manajemenUnit',
   '/manajemen-admin-user': 'manajemenAdminUser',
   '/data-guru-dan-pegawai': 'dataGuruPegawai',
+  '/cetak-kartu-id': 'cetakKartuId',
   '/presensi': 'presensi',
   '/rekap-dan-laporan': 'rekapLaporan',
   '/ranking-kehadiran': 'rankingKehadiran',
@@ -89,8 +100,8 @@ export const ROUTE_MENU_KEYS = {
 // (lihat PERMISSION_MATRIX), jadi role tanpa akses dashboard tidak pernah
 // terjebak redirect berulang ke "/".
 export const ROLE_HOME_CANDIDATES = {
-  [ROLE_SUPERADMIN]: ['/', '/manajemen-admin-user', '/unit-sd-islam-rj', '/data-guru-dan-pegawai', '/presensi', '/rekap-dan-laporan', '/pengaturan-global', '/log-aktivitas'],
-  [ROLE_ADMIN_UNIT]: ['/', '/data-guru-dan-pegawai', '/presensi', '/pengajuan-izin-dan-cuti', '/rekap-dan-laporan', '/ranking-kehadiran', '/log-aktivitas'],
+  [ROLE_SUPERADMIN]: ['/', '/manajemen-admin-user', '/unit-sd-islam-rj', '/data-guru-dan-pegawai', '/cetak-kartu-id', '/presensi', '/rekap-dan-laporan', '/pengaturan-global', '/log-aktivitas'],
+  [ROLE_ADMIN_UNIT]: ['/', '/data-guru-dan-pegawai', '/cetak-kartu-id', '/presensi', '/pengajuan-izin-dan-cuti', '/rekap-dan-laporan', '/ranking-kehadiran', '/log-aktivitas'],
   [ROLE_GURU]: ['/presensi', '/pengajuan-izin-dan-cuti', '/', '/data-guru-dan-pegawai', '/rekap-dan-laporan', '/ranking-kehadiran'],
   [ROLE_PETUGAS_PRESENSI]: ['/presensi', '/', '/data-guru-dan-pegawai', '/rekap-dan-laporan', '/ranking-kehadiran', '/pengajuan-izin-dan-cuti', '/log-aktivitas'],
 }
@@ -214,6 +225,12 @@ const initialState = {
   units: UNITS,
   leaves: LEAVES,
   adminUsers: ADMIN_USERS,
+  // Tabel employee_card. Satu baris per pegawai; isinya hanya metadata
+  // penerbitan kartu (QR, barcode, masa berlaku, riwayat cetak). Identitas,
+  // jabatan, unit, dan foto TIDAK disalin di sini — kartu membacanya langsung
+  // dari `staff`, jadi perubahan data pegawai langsung tercermin di halaman
+  // Cetak Kartu ID.
+  employeeCards: buildEmployeeCards(initialStaff),
   logs: INITIAL_LOGS,
   settings: INITIAL_SETTINGS,
   weeklyTrend: WEEKLY_TREND,
@@ -259,6 +276,7 @@ export function simPresReducer(state, action) {
           s.id === action.payload.id ? { ...s, ...action.payload } : s,
         ),
         adminUsers: syncAdminUserFromStaff(state.adminUsers, action.payload),
+        employeeCards: syncEmployeeCardsFromStaff(state.employeeCards, action.payload, 'update'),
       }
     case 'ADD_STAFF': {
       // Id yang bentrok (mis. impor massal) selalu digenerate ulang dari data
@@ -270,6 +288,7 @@ export function simPresReducer(state, action) {
         ...state,
         staff: [...state.staff, staffToAdd],
         adminUsers: syncAdminUserFromStaff(state.adminUsers, staffToAdd, 'add'),
+        employeeCards: syncEmployeeCardsFromStaff(state.employeeCards, staffToAdd, 'add'),
       };
     }
     case 'DELETE_STAFF':
@@ -282,6 +301,9 @@ export function simPresReducer(state, action) {
         adminUsers: niyToDelete 
           ? state.adminUsers.filter((u) => u.niy !== niyToDelete)
           : state.adminUsers,
+        // Kartu ikut dibuang agar tabel employee_card tidak menyimpan baris
+        // untuk pegawai yang sudah tidak ada di source data.
+        employeeCards: state.employeeCards.filter((c) => c.employee_id !== staffId),
       };
     case 'UPDATE_UNIT':
       return {
@@ -453,6 +475,34 @@ logs: [
       }
     case 'UPDATE_SETTINGS':
       return { ...state, settings: { ...state.settings, ...action.payload } }
+    // Riwayat cetak kartu: printed_count naik satu kali per proses cetak,
+    // last_printed_at diisi waktu yang benar-benar dicetak.
+    case 'MARK_CARDS_PRINTED': {
+      const ids = new Set(action.payload.employeeIds || [])
+      if (ids.size === 0) return state
+      const at = action.payload.at || new Date().toISOString()
+      return {
+        ...state,
+        employeeCards: state.employeeCards.map((c) =>
+          ids.has(c.employee_id)
+            ? { ...c, printed_count: (c.printed_count || 0) + 1, last_printed_at: at }
+            : c,
+        ),
+      }
+    }
+    // Masa berlaku kartu untuk sekumpulan pegawai terpilih.
+    case 'SET_CARD_VALIDITY': {
+      const ids = new Set(action.payload.employeeIds || [])
+      if (ids.size === 0) return state
+      const issued = action.payload.issuedDate || todayISO()
+      const expired = action.payload.expiredDate || addYears(issued, action.payload.validityYears || DEFAULT_VALIDITY_YEARS)
+      return {
+        ...state,
+        employeeCards: state.employeeCards.map((c) =>
+          ids.has(c.employee_id) ? { ...c, issued_date: issued, expired_date: expired } : c,
+        ),
+      }
+    }
     case 'UPDATE_PERMISSIONS':
       return { ...state, permissionMatrix: action.payload }
     case 'SET_CURRENT_USER': {
@@ -1023,6 +1073,7 @@ export const MENU_OPTIONS = [
   { key: 'manajemenUnit', label: 'Manajemen Unit' },
   { key: 'manajemenAdminUser', label: 'Manajemen Admin & User' },
   { key: 'dataGuruPegawai', label: 'Data Guru/Pegawai' },
+  { key: 'cetakKartuId', label: 'Cetak Kartu ID' },
   { key: 'presensi', label: 'Presensi' },
   { key: 'rekapLaporan', label: 'Rekap & Laporan' },
   { key: 'rankingKehadiran', label: 'Ranking Kehadiran' },
@@ -1152,6 +1203,147 @@ export function selectLeavesEnriched(state) {
       unitId: staff ? staff.unitId : null,
       unitName: staff ? selectUnitName(state, staff.unitId) : '-',
     }
+  })
+}
+
+// ===== Kartu ID Pegawai =====
+// Tabel employee_card hanya boleh berisi baris untuk pegawai yang ada di
+// source data. Fungsi ini menjaga kedua sisi tetap sinkron pada setiap
+// tambah/ubah/hapus pegawai, tanpa menyalin field identitas ke tabel kartu.
+
+function syncEmployeeCardsFromStaff(cards, staff, mode) {
+  const list = cards || []
+  if (!staff) return list
+  if (mode === 'delete') return list.filter((c) => c.employee_id !== staff.id)
+
+  const existing = list.find((c) => c.employee_id === staff.id)
+  if (!existing) return [...list, buildEmployeeCard(staff)]
+
+  // Hanya QR + barcode yang ikut berubah dari sisi pegawai (keduanya memuat
+  // NIY). Masa berlaku dan riwayat cetak milik kartu, jadi tidak disentuh.
+  const qr = cardQrValue(staff)
+  const barcode = cardBarcodeValue(staff)
+  if (existing.qr_code === qr && existing.barcode === barcode) return list
+  return list.map((c) => (c.employee_id === staff.id ? { ...c, qr_code: qr, barcode } : c))
+}
+
+export function selectEmployeeCard(state, employeeId) {
+  return (state.employeeCards || []).find((c) => c.employee_id === employeeId) || null
+}
+
+export function selectEmployeeCards(state) {
+  return state.employeeCards || []
+}
+
+/**
+ * Data siap cetak: satu baris per pegawai, digabung dengan baris employee_card
+ * milik-nya. Identitas/jabatan/unit/foto diambil dari data pegawai terkini,
+ * sedangkan masa berlaku & riwayat cetak diambil dari tabel kartu.
+ */
+export function selectCardRows(state, staffList) {
+  const cards = new Map((state.employeeCards || []).map((c) => [c.employee_id, c]))
+  return (staffList || []).map((staff) => {
+    const card = cards.get(staff.id) || buildEmployeeCard(staff)
+    return {
+      staff,
+      card,
+      // QR & barcode dihitung ulang dari NIY terkini supaya kartu lama tetap
+      // konsisten dengan data pegawai yang baru saja diedit.
+      qr: cardQrValue(staff),
+      barcode: cardBarcodeValue(staff),
+      unit: selectUnitName(state, staff.unitId),
+      unitKode: selectUnitById(state, staff.unitId)?.kode || '-',
+      initials: initialsOf(staff.name),
+      statusGroup: statusKepegawaianGroup(staff.statusPegawai),
+    }
+  })
+}
+
+/** Nilai status kepegawaian yang benar-benar ada pada data saat ini. */
+export function selectStatusKepegawaianOptions(state) {
+  const values = new Set(
+    selectScopedStaff(state)
+      .map((s) => String(s.statusPegawai || '').trim())
+      .filter(Boolean),
+  )
+  return Array.from(values).sort((a, b) => a.localeCompare(b, 'id'))
+}
+
+/**
+ * Satu-satunya sumber filtering halaman Cetak Kartu ID: pembatasan unit
+ * (Superadmin = semua unit, role lain = unitnya sendiri) lalu pencarian
+ * nama/NIY/NIP/jabatan dan filter status kepegawaian + status aktif.
+ */
+export function selectFilteredCardStaff(state, {
+  unitId = ALL_UNITS,
+  searchTerm = '',
+  statusPegawai = 'all',
+  status = 'all',
+} = {}) {
+  const q = String(searchTerm || '').trim().toLowerCase()
+  const effUnit = resolveUnitFilter(state, unitId)
+  return selectScopedStaff(state).filter((s) => {
+    if (effUnit && s.unitId !== effUnit) return false
+    if (status && status !== 'all' && s.status !== status) return false
+    if (statusPegawai && statusPegawai !== 'all') {
+      if (statusKepegawaianGroup(s.statusPegawai) !== statusPegawai) return false
+    }
+    if (!q) return true
+    const unit = selectUnitById(state, s.unitId)
+    return (
+      String(s.name || '').toLowerCase().includes(q) ||
+      String(s.gelar || '').toLowerCase().includes(q) ||
+      String(s.niy || '').toLowerCase().includes(q) ||
+      String(s.nip || '').toLowerCase().includes(q) ||
+      String(s.role || '').toLowerCase().includes(q) ||
+      String(unit ? unit.nama : '').toLowerCase().includes(q)
+    )
+  })
+}
+
+export function selectCardSummary(state, staffList) {
+  const list = staffList || []
+  const cards = new Map((state.employeeCards || []).map((c) => [c.employee_id, c]))
+  let belumPernahDicetak = 0
+  let kadaluwarsa = 0
+  const today = todayISO()
+  for (const staff of list) {
+    const card = cards.get(staff.id)
+    if (!card || !card.last_printed_at) belumPernahDicetak++
+    if (card?.expired_date && card.expired_date < today) kadaluwarsa++
+  }
+  return {
+    total: list.length,
+    aktif: list.filter((s) => s.status === 'Aktif').length,
+    nonaktif: list.filter((s) => s.status !== 'Aktif').length,
+    belumPernahDicetak,
+    kadaluwarsa,
+  }
+}
+
+/**
+ * Tandai kartu sebagai tercetak. Sengaja memakai satu helper supaya halaman
+ * cukup memanggil markCardsPrinted() tanpa harus tahu bentuk payload-nya.
+ */
+export function markCardsPrinted(dispatch, employeeIds) {
+  if (!employeeIds || employeeIds.length === 0) return
+  dispatch({
+    type: 'MARK_CARDS_PRINTED',
+    payload: { employeeIds, at: new Date().toISOString() },
+  })
+}
+
+/** Perbarui masa berlaku kartu terpilih (tanggal terbit + masa berlaku). */
+export function setCardsValidity(dispatch, employeeIds, { validityYears, issuedDate } = {}) {
+  if (!employeeIds || employeeIds.length === 0) return
+  const issued = issuedDate || todayISO()
+  dispatch({
+    type: 'SET_CARD_VALIDITY',
+    payload: {
+      employeeIds,
+      issuedDate: issued,
+      expiredDate: addYears(issued, validityYears || DEFAULT_VALIDITY_YEARS),
+    },
   })
 }
 

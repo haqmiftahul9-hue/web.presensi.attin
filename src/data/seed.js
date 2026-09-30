@@ -79,7 +79,7 @@ export const INITIAL_SETTINGS = {
   namaAplikasi: 'SimPres',
   tagline: 'Sistem Presensi Kepegawaian Terpadu',
   logo: null,
-  namaYayasan: 'Yayasan Pendidikan Islam Raudhatul Jannah',
+  namaYayasan: 'Yayasan Islam Attin Indonesia',
   emailSekretariat: 'sekretariat@attinsumbar.sch.id',
   alamatYayasan: 'Jl. Raya Cendekia No. 45, Jakarta Selatan',
   noWhatsapp: '+62 811-9876-5432',
