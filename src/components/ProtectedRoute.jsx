@@ -1,21 +1,32 @@
 import { Navigate, useLocation } from 'react-router-dom'
 import {
   useSimPres,
-  hasMenuPermission,
+  canAccessPath,
   resolvePostLoginPath,
   selectCurrentUser,
+  selectCurrentUserRole,
   selectIsAuthenticated,
   selectMustChangePassword,
-  ROUTE_MENU_KEYS,
 } from '../store/simPresStore.jsx'
 import ChangePasswordGate from './ChangePasswordGate.jsx'
 
+/**
+ * Gerbang rute. Mengurutkan tiga hal sekaligus:
+ *  1. harus sudah masuk (kalau belum, kembali ke login sambil menyimpan tujuan);
+ *  2. akun yang wajib mengganti kata sandi tidak boleh melewati halaman lain;
+ *  3. role harus berwenang pada path tersebut — dicek lewat canAccessPath(),
+ *     satu fungsi yang sama dipakai Layout dan sidebar.
+ *
+ * Saat tidak berwenang, pengguna dilempar ke beranda mode-nya sendiri, bukan ke
+ * login: role Guru/Pegawai tidak pernah diarahkan ke dashboard desktop, dan
+ * sebaliknya.
+ */
 function ProtectedRoute({ children }) {
   const { state } = useSimPres()
   const location = useLocation()
 
   if (!selectIsAuthenticated(state)) {
-    // Simpan tujuan awal supaya setelah loginGuard membalas ke halaman itu,
+    // Simpan tujuan awal supaya setelah login guard membalas ke halaman itu,
     // selama role-nya memang berwenang.
     return <Navigate to="/login" state={{ from: location }} replace />
   }
@@ -28,8 +39,7 @@ function ProtectedRoute({ children }) {
     return <ChangePasswordGate />
   }
 
-  const menuKey = ROUTE_MENU_KEYS[location.pathname]
-  if (!menuKey || hasMenuPermission(state, menuKey)) {
+  if (canAccessPath(state, selectCurrentUserRole(state), location.pathname)) {
     return children
   }
 

@@ -1,15 +1,18 @@
-import { useEffect, useRef, useState } from 'react'
+﻿import { useEffect, useRef, useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import {
   useSimPres, selectCurrentUser, selectCurrentUserRole, hasMenuPermission, MENU_OPTIONS,
   selectCanSwitchUnit, selectActiveUnitId, selectActiveUnitLabel, selectUnitOptionsById, ALL_UNITS,
-  selectCanChangeOwnPassword, performLogout, ROLE_SUPERADMIN,
+  selectCanChangeOwnPassword, performLogout, selectAppHomePath, ROLE_SUPERADMIN,
 } from '../store/simPresStore.jsx'
 import ConfirmDialog from './ConfirmDialog.jsx'
 import { buildUserMenuItems } from './userMenuItems.js'
 
+// Sidebar hanya milik aplikasi desktop. Role Guru/Pegawai tidak pernah
+// merendernya: Layout mengarahkan role mobile ke /mobile/* sebelum sidebar
+// tampil, dan tiap item tetap disaring lewat hasMenuPermission.
 const navItems = [
-  { path: '/', label: 'Dashboard', icon: 'dashboard', activePath: '/', menuKey: 'dashboard' },
+  { path: 'BERANDA', label: 'Dashboard', icon: 'dashboard', menuKey: 'dashboard' },
   { path: '/unit-sd-islam-rj', label: 'Manajemen Unit', icon: 'apartment', activePath: '/unit-sd-islam-rj', menuKey: 'manajemenUnit' },
   { path: '/manajemen-admin-user', label: 'Manajemen Admin & User', icon: 'manage_accounts', activePath: '/manajemen-admin-user', menuKey: 'manajemenAdminUser' },
   { path: '/data-guru-dan-pegawai', label: 'Data Guru/Pegawai', icon: 'badge', activePath: '/data-guru-dan-pegawai', menuKey: 'dataGuruPegawai' },
@@ -269,7 +272,12 @@ function SidebarNav() {
   const { state } = useSimPres()
   const currentUser = selectCurrentUser(state)
   const currentRole = selectCurrentUserRole(state)
-  const visibleItems = navItems.filter((item) => hasMenuPermission(state, item.menuKey))
+  // Item beranda memakai path mode milik role: Superadmin -> /superadmin,
+  // Admin Unit & Petugas -> /dashboard._roleMap di bawah tetap untuk tampilan.
+  const berandaPath = selectAppHomePath(state)
+  const visibleItems = navItems
+    .filter((item) => hasMenuPermission(state, item.menuKey) && (!item.onlyRole || item.onlyRole === currentRole))
+    .map((item) => (item.path === 'BERANDA' ? { ...item, path: berandaPath, activePath: berandaPath } : item))
   const roleMap = {
     Superadmin: { roleBg: 'bg-purple-50', roleText: 'text-purple-700', roleDot: 'bg-purple-600', unitIcon: 'account_balance' },
     'Admin Unit': { roleBg: 'bg-blue-50', roleText: 'text-secondary', roleDot: 'bg-secondary', unitIcon: 'school' },

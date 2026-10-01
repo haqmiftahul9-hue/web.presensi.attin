@@ -15,6 +15,17 @@ body {
   overscroll-behavior: none;
 }
 
+/* Halaman mobile (mis. Presensi Saya) menyisakan ruang untuk notch dan
+   gesture bar iOS, yang tidak ada di browser desktop. env() yang tidak
+   didukung browser lama tetap aman karena di fallback ke 0px. */
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
 main > :first-child {
   margin-top: 0 !important;
 }
@@ -44,6 +55,177 @@ main > :last-child {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+/* ===== Modul Mobile (role Guru/Pegawai) =====
+
+   Kolom konten dikunci 390px — ukuran layar iPhone 12/13/14 — supaya Android
+   dan iOS merender sama. Di desktop kolom ini tetap di tengah dengan latar
+   netral di sekitarnya, jadi halaman mobile tidak pernah melar jadi layout
+   portal. */
+.sp-mobile-root {
+  background:
+    radial-gradient(1200px 600px at 50% -10%, #eef2f8 0%, #e6e9ef 55%, #dfe3ea 100%);
+  /* Tidak ada scroll horizontal: satu-satunya gesekan mendatar yang diizinkan
+     adalah deretan chip filter, yang memakai overflow-x sendiri. */
+  overflow-x: hidden;
+  max-width: 100vw;
+  /* Pesan scroll "swipe to refresh" di iOS dimatikan; halaman ini memakai
+     tarikan-refresh milik aplikasi, bukan milik browser. */
+  overscroll-behavior-y: contain;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+.sp-mobile-column {
+  isolation: isolate;
+}
+
+/* Target sentuh: Android+iOS merekomendasikan minimal 44x44px. Aturan ini
+   menjadi jaring pengaman — komponen tetap boleh menumpuk ukuran eksplisit
+   44px, tapi tidak ada tombol mobile yang bisa jatuh di bawah ambang itu.
+   Tautan teks di dalam paragraf diberi kelas .sp-inline agar dikecualikan. */
+.sp-mobile-root button,
+.sp-mobile-root [role='button'],
+.sp-mobile-root input,
+.sp-mobile-root select,
+.sp-mobile-root textarea,
+.sp-mobile-root a:not(.sp-inline) {
+  min-height: 44px;
+}
+
+.sp-mobile-root a:not(.sp-inline) {
+  min-width: 44px;
+}
+
+/* Tekan: umpan balik seperti tombol native tanpa highlight biru bawaan. */
+.sp-press {
+  transition: transform 0.12s ease-out, opacity 0.12s ease-out;
+}
+
+.sp-press:active {
+  transform: scale(0.97);
+  opacity: 0.92;
+}
+
+/* Deretan chip filter boleh digeser mendatar di dalam wadahnya saja. */
+.sp-x-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.sp-x-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* Placeholder selagi data arrives: denyut lembut, bukan spinner berputar, supaya
+   bentuk kartu tidak melompat saat isinya berubah. */
+@keyframes sp-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+.sp-pulse {
+  animation: sp-pulse 1.4s ease-in-out infinite;
+}
+
+/* Transisi antar halaman: konten masuk dari bawah dengan durasi pendek,
+   mengikuti pola animasi microenvironment yang sudah dipakai halaman login. */
+.sp-page {
+  animation: sp-page-in 0.34s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes sp-page-in {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* Efek tekan item navigasi bawah, seperti tombol native. */
+.sp-nav-item:active {
+  transform: scale(0.94);
+}
+
+/* Bar progres saat validasi presensi berjalan: mengisi dari kiri ke kanan
+   selama satu siklus, lalu mengulang sampai langkah selesai. */
+@keyframes sp-fill {
+  0% {
+    width: 0;
+  }
+  100% {
+    width: 100%;
+  }
+}
+
+.sp-fill {
+  animation: sp-fill 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+/* Kartu putih seragam: radius besar + shadow lembut, sesuai tema SimPres. */
+.sp-card {
+  background: #ffffff;
+  border-radius: 1rem;
+  box-shadow: 0 10px 30px -22px rgba(11, 31, 61, 0.45);
+  border: 1px solid rgba(197, 198, 206, 0.35);
+}
+
+/* Pengguna yang meminta mengurangi animasi di sistem tidak boleh dipaksa
+   throbbing: seluruh animasi modul mobile dimatikan sekaligus. */
+@media (prefers-reduced-motion: reduce) {
+  .sp-page,
+  .sp-fill,
+  .sp-nav-item:active,
+  .sp-press:active {
+    animation: none;
+    transition: none;
+  }
+
+  .sp-mobile-root * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Slip Kehadiran mobile harus tercetak apa adanya: chrome modul (header
+   lengket, bottom navigation, tombol aksi) disembunyikan, blok slip tetap
+   berwarna. Selector :has() dipakai supaya halaman lain tetap normal saat
+   sedang tidak ada slip di layar. */
+@media print {
+  body:has(.sp-print-slip) > *:not(:has(.sp-print-slip)) {
+    display: none !important;
+  }
+
+  body:has(.sp-print-slip) .sp-hide-print {
+    display: none !important;
+  }
+
+  .sp-print-slip {
+    box-shadow: none !important;
+    border: 0 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Padding mobile dihapus supaya slip naik ke atas kertas. */
+  body:has(.sp-print-slip) .sp-mobile-column main,
+  body:has(.sp-print-slip) .sp-page > div {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: none !important;
   }
 }
 

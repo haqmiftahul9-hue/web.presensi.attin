@@ -79,10 +79,49 @@ export const ROLE_ADMIN_UNIT = 'Admin Unit'
 export const ROLE_GURU = 'Guru'
 export const ROLE_PETUGAS_PRESENSI = 'Petugas Presensi'
 
+// ===== MODE APLIKASI =====
+//
+// SimPres punya dua aplikasi dengan bentuk berbeda, dipisah berdasarkan role:
+//
+// - 'desktop' : sidebar + halaman tabel lengkap. Superadmin (seluruh unit +
+//   administrasi), Admin Unit (unit sendiri), Petugas Presensi.
+// - 'mobile'  : header lengket + bottom navigation, kolom 390px. Guru/Pegawai.
+//
+// Mode ini satu sumber kebenaran: guard rute, Layout, dan sidebar membacanya dari
+// sini, sehingga tidak ada lagi peran yang bisa membuka dua bentuk aplikasi.
+export const MODE_DESKTOP = 'desktop'
+export const MODE_MOBILE = 'mobile'
+
+export const ROLE_APP_MODE = {
+  [ROLE_SUPERADMIN]: MODE_DESKTOP,
+  [ROLE_ADMIN_UNIT]: MODE_DESKTOP,
+  [ROLE_PETUGAS_PRESENSI]: MODE_DESKTOP,
+  [ROLE_GURU]: MODE_MOBILE,
+}
+
+// Halaman tujuan setelah login untuk tiap role (lihat ROLE_HOME_CANDIDATES
+// untuk daftar cadangan ketika menu utama tidak berwenang).
+export const ROLE_HOME_PATH = {
+  [ROLE_SUPERADMIN]: '/superadmin',
+  [ROLE_ADMIN_UNIT]: '/dashboard',
+  [ROLE_PETUGAS_PRESENSI]: '/dashboard',
+  [ROLE_GURU]: '/mobile/home',
+}
+
 // Peta path -> menu key. Dipakai bersama oleh guard rute dan penentuan
 // halaman tujuan setelah login, supaya keduanya memakai satu daftar yang sama.
 export const ROUTE_MENU_KEYS = {
-  '/': 'dashboard',
+  // Modul mobile Guru/Pegawai (prefix /mobile).
+  '/mobile/home': 'dashboard',
+  '/mobile/presensi': 'presensi',
+  '/mobile/riwayat': 'rekapLaporan',
+  '/mobile/slip': 'rekapLaporan',
+  '/mobile/izin-cuti': 'pengajuanIzinCuti',
+  '/mobile/profil': 'dataGuruPegawai',
+  // Dashboard desktop, dipisah per mode peran.
+  '/superadmin': 'dashboard',
+  '/dashboard': 'dashboard',
+  // Modul portal desktop.
   '/unit-sd-islam-rj': 'manajemenUnit',
   '/manajemen-admin-user': 'manajemenAdminUser',
   '/data-guru-dan-pegawai': 'dataGuruPegawai',
@@ -95,15 +134,51 @@ export const ROUTE_MENU_KEYS = {
   '/pengaturan-global': 'pengaturanGlobal',
 }
 
+// Pembatasan role per path (pertahanan kedua). PERMISSION_MENU_KEYS sudah
+// menyembunyikan menu, daftar ini menutup jalur kedua: membuka URL langsung.
+// Role yang tidak terdaftar di sini bebas, tetapi tetap harus lolos permission
+// menu lewat ROUTE_MENU_KEYS.
+const ROLE_BEARING_ROLES = [ROLE_SUPERADMIN, ROLE_ADMIN_UNIT, ROLE_PETUGAS_PRESENSI]
+
+export const ROUTE_ROLES = {
+  '/superadmin': [ROLE_SUPERADMIN],
+  '/unit-sd-islam-rj': [ROLE_SUPERADMIN],
+  '/manajemen-admin-user': [ROLE_SUPERADMIN],
+  '/pengaturan-global': [ROLE_SUPERADMIN],
+  '/cetak-kartu-id': [ROLE_SUPERADMIN, ROLE_ADMIN_UNIT],
+  // Seluruh prefix /mobile hanya untuk Guru/Pegawai.
+  '/mobile': [ROLE_GURU],
+}
+
+/** Role yang boleh membuka sebuah path, atau null bila path tidak membatasi role. */
+export function roleBolehPath(path, role) {
+  if (String(path || '').startsWith('/mobile')) return role === ROLE_GURU
+  const daftar = ROUTE_ROLES[path]
+  return daftar ? daftar.includes(role) : true
+}
+
+/** Mode aplikasi untuk role tertentu. */
+export function appModeOfRole(role) {
+  return ROLE_APP_MODE[role] || MODE_DESKTOP
+}
+
 // Kandidat beranda per role, diurut dari yang paling relevan. Alur login
 // mengambil path pertama yang benar-benar boleh dibuka role tersebut
 // (lihat PERMISSION_MATRIX), jadi role tanpa akses dashboard tidak pernah
-// terjebak redirect berulang ke "/".
+// terjebak redirect berulang.
 export const ROLE_HOME_CANDIDATES = {
-  [ROLE_SUPERADMIN]: ['/', '/manajemen-admin-user', '/unit-sd-islam-rj', '/data-guru-dan-pegawai', '/cetak-kartu-id', '/presensi', '/rekap-dan-laporan', '/pengaturan-global', '/log-aktivitas'],
-  [ROLE_ADMIN_UNIT]: ['/', '/data-guru-dan-pegawai', '/cetak-kartu-id', '/presensi', '/pengajuan-izin-dan-cuti', '/rekap-dan-laporan', '/ranking-kehadiran', '/log-aktivitas'],
-  [ROLE_GURU]: ['/presensi', '/pengajuan-izin-dan-cuti', '/', '/data-guru-dan-pegawai', '/rekap-dan-laporan', '/ranking-kehadiran'],
-  [ROLE_PETUGAS_PRESENSI]: ['/presensi', '/', '/data-guru-dan-pegawai', '/rekap-dan-laporan', '/ranking-kehadiran', '/pengajuan-izin-dan-cuti', '/log-aktivitas'],
+  [ROLE_SUPERADMIN]: ['/superadmin', '/manajemen-admin-user', '/unit-sd-islam-rj', '/data-guru-dan-pegawai', '/cetak-kartu-id', '/presensi', '/rekap-dan-laporan', '/pengaturan-global', '/log-aktivitas'],
+  [ROLE_ADMIN_UNIT]: ['/dashboard', '/data-guru-dan-pegawai', '/cetak-kartu-id', '/presensi', '/pengajuan-izin-dan-cuti', '/rekap-dan-laporan', '/ranking-kehadiran', '/log-aktivitas'],
+  // Guru/Pegawai hanya membuka aplikasi mobile; kandidat portal yang tersisa
+  // dipakai hanya bila someday modul mobile ditutup untuk sebagian akun.
+  [ROLE_GURU]: ['/mobile/home', '/mobile/presensi', '/mobile/riwayat', '/mobile/profil', '/mobile/slip', '/mobile/izin-cuti'],
+  [ROLE_PETUGAS_PRESENSI]: ['/dashboard', '/presensi', '/data-guru-dan-pegawai', '/rekap-dan-laporan', '/ranking-kehadiran', '/pengajuan-izin-dan-cuti', '/log-aktivitas'],
+}
+
+// Dibprocalkan agar ROLE_HOME_CANDIDATES tidak perlu diubah dua kali.
+export const MODE_APP_ROLES = {
+  [MODE_DESKTOP]: ROLE_BEARING_ROLES,
+  [MODE_MOBILE]: [ROLE_GURU],
 }
 
 // Kata sandi awal seluruh akun seed yang tidak punya kata sandi sendiri
@@ -451,6 +526,40 @@ logs: [
           ],
         attendanceHistory: historyEntryCheckIn ? [historyEntryCheckIn, ...state.attendanceHistory] : state.attendanceHistory,
       }
+    case 'CHECK_OUT': {
+      // Absen pulang hanya sah kalau presensi masuk hari ini sudah tercatat.
+      // Guard ini di reducer, bukan hanya di tombol, supaya aksi yang dikirim
+      // langsung ke store juga tidak bisa membuat pulang tanpa masuk.
+      const staffOut = state.staff.find(s => s.id === action.payload.id)
+      if (!staffOut || !staffOut.masuk) return state
+      const hariIni = new Date().toISOString().split('T')[0]
+      return {
+        ...state,
+        staff: state.staff.map((s) =>
+          s.id === action.payload.id
+            ? { ...s, pulang: action.payload.pulang, pulangMethod: action.payload.method || s.pulangMethod || null }
+            : s,
+        ),
+        logs: [
+          {
+            id: Date.now(),
+            time: new Date().toLocaleString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+            actor: staffOut.name,
+            role: staffOut.role,
+            unit: state.units.find(u => u.id === staffOut.unitId)?.nama || 'Unit',
+            action: 'Presensi',
+            target: `Pegawai • ${staffOut.name}`,
+            desc: `Presensi pulang pukul ${action.payload.pulang} WIB`,
+          },
+          ...state.logs,
+        ],
+        // Riwayat harian sudah punya baris untuk hari ini (dibuat saat presensi
+        // masuk), jadi pulang cukup ditambahkan ke baris itu, bukan baris baru.
+        attendanceHistory: state.attendanceHistory.map((h) =>
+          h.staffId === staffOut.id && h.date === hariIni ? { ...h, pulang: action.payload.pulang } : h,
+        ),
+      }
+    }
     case 'ADD_LOG':
       return { ...state, logs: [action.payload, ...state.logs] }
     case 'ADD_ADMIN_USER':
@@ -686,17 +795,47 @@ export function roleCanViewMenu(state, role, menuKey) {
   return permissions[menuKey]?.includes('view') ?? false
 }
 
+/**
+ * Satu gerbang kebenaran untuk "apakah role ini boleh membuka path ini".
+ * Tiga lapis dicek berurutan:
+ *  1. pembatasan role per path (ROUTE_ROLES) — menutup jalur URL langsung;
+ *  2. mode aplikasi (role mobile tidak boleh menyentuh path desktop);
+ *  3. permission menu (ROUTE_MENU_KEYS + PERMISSION_MATRIX).
+ *
+ * Guard rute, Layout, dan sidebar memakai fungsi yang sama, sehingga tidak
+ * mungkin ada tempat yang menilai hak akses dengan aturan berbeda.
+ */
+export function canAccessPath(state, role, path) {
+  if (!roleBolehPath(path, role)) return false
+  if (appModeOfRole(role) === MODE_MOBILE && !String(path || '').startsWith('/mobile')) return false
+  const menuKey = ROUTE_MENU_KEYS[path]
+  if (!menuKey) return false
+  return roleCanViewMenu(state, role, menuKey)
+}
+
+/** Mode aplikasi milik pengguna yang sedang masuk. */
+export function selectAppMode(state) {
+  return appModeOfRole(selectCurrentUserRole(state))
+}
+
+/** Halaman beranda sesuai mode: mobile untuk Guru, desktop untuk role portal. */
+export function selectAppHomePath(state) {
+  const role = selectCurrentUserRole(state)
+  return ROLE_HOME_PATH[role] || ROLE_HOME_PATH[ROLE_ADMIN_UNIT]
+}
+
 // Halaman tujuan setelah login: kembali ke URL yang tadi dicoba kalau role
 // memang berwenang, kalau tidak ke beranda role tersebut.
 export function resolvePostLoginPath(state, user, requestedPath) {
   const role = user?.role
-  const allowed = (path) => {
-    const menuKey = ROUTE_MENU_KEYS[path]
-    return menuKey ? roleCanViewMenu(state, role, menuKey) : false
-  }
+  const allowed = (path) => canAccessPath(state, role, path)
   if (requestedPath && allowed(requestedPath)) return requestedPath
-  const candidates = ROLE_HOME_CANDIDATES[role] || ROLE_HOME_CANDIDATES[ROLE_GURU]
-  return candidates.find(allowed) || '/'
+  const candidates = ROLE_HOME_CANDIDATES[role] || []
+  const lolos = candidates.find(allowed)
+  if (lolos) return lolos
+  // Tanpa kandidat yang lolos (mis. permission berubah), tetap kirim ke beranda
+  // role — pagarnya tetap menolak, jadi bukan celah akses.
+  return ROLE_HOME_PATH[role] || '/login'
 }
 
 export function authenticateCredentials(state, identifier, password) {
@@ -2091,6 +2230,113 @@ export function selectSelfStaffId(state) {
 export function selectIsSelfScope(state) {
   if (selectCurrentUserRole(state) !== ROLE_GURU) return false
   return selectSelfStaffId(state) != null
+}
+
+// Baris pegawai milik akun yang sedang masuk. Akun portal yang tidak terikat
+// ke data pegawai (mis. Superadmin Pusat) menghasilkan null, dan halaman
+// "Presensi Saya" menampilkannya sebagai empty state, bukan halaman kosong.
+export function selectSelfStaff(state) {
+  const staffId = selectSelfStaffId(state)
+  if (staffId == null) return null
+  return state.staff.find((s) => s.id === staffId) || null
+}
+
+// "07:15" -> 435. Format tak lazim menghasilkan null (bukan 0) supaya pemanggil
+// bisa memakai nilai default-nya sendiri, bukan diam-diam mengarang tengah malam.
+export function jamToMenit(jam) {
+  const parts = /^(\d{1,2}):(\d{2})$/.exec(String(jam || '').trim())
+  if (!parts) return null
+  const hours = Number(parts[1])
+  const minutes = Number(parts[2])
+  if (hours > 23 || minutes > 59) return null
+  return hours * 60 + minutes
+}
+
+// Kebalikan dari jamToMenit: 435 -> "07:15".
+export function menitKeJam(menit) {
+  const total = Number(menit)
+  if (!Number.isFinite(total) || total < 0) return null
+  const jam = Math.floor(total / 60) % 24
+  const sisa = total % 60
+  return `${String(jam).padStart(2, '0')}:${String(sisa).padStart(2, '0')}`
+}
+
+// Geser jam sebesar sejumlah menit, mis. jamTambahMenit("07:00", 15) -> "07:15".
+export function jamTambahMenit(jam, tambahan) {
+  const dasar = jamToMenit(jam)
+  if (dasar == null) return null
+  return menitKeJam(dasar + (Number(tambahan) || 0))
+}
+
+// Aturan presensi yang berlaku untuk satu unit: jam operasional, toleransi
+// keterlambatan, dan radius geofence. Satu-satunya tempat override per unit
+// dari Pengaturan Global dibaca, supaya penyimpangan antar halaman (toleransi
+// kartu mobile vs. halaman monitoring) tidak mungkin terjadi.
+export function selectPresensiRules(state, unitId) {
+  const presensi = state.settings?.presensi || {}
+  const unit = selectUnitById(state, unitId)
+  const toleransi = presensi.toleransiKeterlambatanPerUnit?.[unitId]
+    ?? presensi.toleransiKeterlambatanDefault
+    ?? 15
+  const radius = presensi.radiusGeofencePerUnit?.[unitId]
+    ?? presensi.radiusGeofenceDefault
+    ?? unit?.radius
+    ?? 50
+  return {
+    jamMasuk: unit?.masuk || presensi.jamMasukDefault || '07:00',
+    jamPulang: unit?.pulang || presensi.jamPulangDefault || '15:00',
+    toleransi,
+    radius,
+    zonaWaktu: state.settings?.zonaWaktu || 'WIB',
+    lokasiAktif: presensi.lokasiAktif !== false,
+  }
+}
+
+// Ringkasan "Presensi Hari Ini" untuk halaman milik sendiri. Diturunkan dari
+// baris pegawai (sumber tunggal presensi) plus aturan unit, sehingga kartu
+// ringkasan dan tombol presensi tidak pernah menyimpan salinan terpisah.
+export function selectSelfPresensi(state) {
+  const staff = selectSelfStaff(state)
+  if (!staff) return null
+  const unit = selectUnitById(state, staff.unitId)
+  const rules = selectPresensiRules(state, staff.unitId)
+  const jamMasukMenit = jamToMenit(rules.jamMasuk) ?? 7 * 60
+  return {
+    staff,
+    unit,
+    rules,
+    masuk: staff.masuk || null,
+    pulang: staff.pulang || null,
+    late: staff.late || 0,
+    method: staff.method || null,
+    sudahMasuk: Boolean(staff.masuk),
+    sudahPulang: Boolean(staff.pulang),
+    statusMasuk: !staff.masuk
+      ? 'Belum presensi'
+      : staff.late > 0 ? `Terlambat ${staff.late} mnt` : 'Tepat Waktu',
+    // Batas toleransi dihitung dari jam masuk unit, mis. 07:00 + 15 = 07:15.
+    batasMasuk: jamTambahMenit(rules.jamMasuk, rules.toleransi),
+    jamMasukMenit,
+  }
+}
+
+// Riwayat presensi milik sendiri, terbaru dulu.
+export function selectRiwayatPresensiSaya(state, limit = 7) {
+  const staffId = selectSelfStaffId(state)
+  if (staffId == null) return []
+  return (state.attendanceHistory || [])
+    .filter((h) => h.staffId === staffId)
+    .slice()
+    .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0))
+    .slice(0, limit)
+}
+
+// Pengajuan izin/cuti milik sendiri. Berguna untuk ringkasan di Beranda dan
+// catatan pada halaman Riwayat mobile.
+export function selectSelfLeaves(state) {
+  const staffId = selectSelfStaffId(state)
+  if (staffId == null) return []
+  return (state.leaves || []).filter((l) => l.staffId === staffId)
 }
 
 // Hanya Superadmin yang punya selector unit.

@@ -6,6 +6,8 @@ import {
   selectIsAuthenticating,
   selectAuthError,
   selectDemoLoginAccounts,
+  appModeOfRole,
+  MODE_MOBILE,
   AUTH_ERRORS,
 } from '../store/simPresStore.jsx'
 
@@ -559,7 +561,8 @@ function LoginPage() {
                               {account.username}
                             </span>
                             <span className="block truncate text-[11px] text-[#5A6675]">
-                              {account.role} &middot; {account.unit}
+                              {account.role} &middot; {account.unit} &middot;{' '}
+                              {appModeOfRole(account.role) === MODE_MOBILE ? 'Mobile' : 'Desktop'}
                               {account.mustChangePassword ? ' &middot; wajib ganti sandi' : ''}
                             </span>
                           </span>
