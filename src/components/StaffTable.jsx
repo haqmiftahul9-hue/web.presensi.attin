@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from 'react'
 import {
   useSimPres, selectUnitName, addActivityLog, selectFilteredStaff, initialsOf,
+  selectUserAccountByStaffId,
 } from '../store/simPresStore.jsx'
 import DetailEmployeeModal from './DetailEmployeeModal.jsx'
 import EditEmployeeModal from './EditEmployeeModal.jsx'
@@ -77,6 +78,15 @@ function StaffTable({ unitFilter, searchTerm, statusFilter, currentPage, setCurr
       assignment: s.role,
       status: s.status,
       statusActive: s.status === 'Aktif',
+      // Info akun login: username (NIY), role kanonik, dan status akun. Dibaca
+      // dari tabel userAccounts, jadi kolom ini selalu sama dengan yang dipakai
+      // saat login — sumber diagnostik ketika ada pegawai yang gagal masuk.
+      akun: (() => {
+        const a = selectUserAccountByStaffId(state, s.id)
+        return a
+          ? { username: a.username, role: a.role, status: a.status, wajibGanti: Boolean(a.mustChangePassword) }
+          : null
+      })(),
       rowBg: idx % 2 === 0 ? 'bg-surface-container-lowest' : 'bg-surface-container-low',
       avatar: avatarClasses[idx % avatarClasses.length],
       isInactive: s.status !== 'Aktif',
@@ -235,6 +245,22 @@ function StaffTable({ unitFilter, searchTerm, statusFilter, currentPage, setCurr
                     <span className="material-symbols-outlined text-secondary text-[16px] flex-shrink-0 leading-none">{row.unitIcon}</span>
                     <span className="block truncate text-[13px] leading-snug text-on-surface" title={row.unit}>{row.unit}</span>
                   </div>
+                  {/* Info akun login: dibuat otomatis dari data pegawai ini. */}
+                  {row.akun ? (
+                    <span
+                      className="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-surface-container text-[10.5px] leading-tight text-on-surface-variant"
+                      title={`Akun ${row.akun.username} • role ${row.akun.role}${row.akun.wajibGanti ? ' • wajib ganti sandi' : ''}`}
+                    >
+                      <span className="material-symbols-outlined text-[12px] leading-none">account_circle</span>
+                      {row.akun.username}
+                      {row.akun.wajibGanti && <span className="text-amber-700">• ganti sandi</span>}
+                    </span>
+                  ) : (
+                    <span className="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-error-container text-[10.5px] text-on-error-container">
+                      <span className="material-symbols-outlined text-[12px] leading-none">person_off</span>
+                      Belum ada akun
+                    </span>
+                  )}
                 </td>
                 <td className="h-14 px-3 align-middle">
                   <span className="block text-body-md text-body-md text-on-surface leading-snug line-clamp-2 break-words" title={row.assignment}>

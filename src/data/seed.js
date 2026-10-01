@@ -31,15 +31,24 @@ export const LEAVES = [
   { id: 6, staffId: 2, jenis: 'Izin Pribadi', periode: '02 Sep 2026', durasi: '1 Hari', lampiran: 'Dispensasi.pdf', status: 'Ditolak' },
 ]
 
-// Kata sandi awal untuk seluruh akun yang berasal dari data pegawai
-// (role Guru/Pegawai). Format "<NIY>@2026" supaya tiap akun punya kredensial
-// awal yang unik dan bisa ditebak tanpa melihatBasis data.
-// Akun-akun ini SELALU berstatus mustChangePassword: true.
+// Kata sandi awal untuk seluruh akun pegawai (role Guru/Pegawai).
+// Satu nilai bersama supaya mudah dihafal saat pelatihan, dan TIDAK ikut
+// mencurigakan NIY orang (versi lama "<NIY>@2026" bisa dibaca sebagai data
+// pribadi). Semua akun ini berstatus mustChangePassword: true, jadi password
+// hanya berlaku sekali — setelah第一次 login pengguna wajib menggantinya.
+export const DEFAULT_STAFF_PASSWORD = 'Attin123!'
+
+// Dipertahankan untuk kompatibilitas pemanggil lama; kredensial pegawai kini
+// memakai satu password awal bersama, bukan per-NIY.
 export const STAFF_PASSWORD_SUFFIX = '@2026'
 
-export function initialStaffPassword(niy) {
-  return `${String(niy || '').trim()}${STAFF_PASSWORD_SUFFIX}`
+export function initialStaffPassword() {
+  return DEFAULT_STAFF_PASSWORD
 }
+
+// Status akun mengikuti status pegawai: pegawai Nonaktif tidak bisa login.
+export const ACCOUNT_STATUS_AKTIF = 'Aktif'
+export const ACCOUNT_STATUS_NONAKTIF = 'Nonaktif'
 
 // Superadmin TIDAK punya unit: ia oversee seluruh unit (unitId null = pusat).
 // Role selain Superadmin selalu terikat ke satu unit sesuai akunnya.

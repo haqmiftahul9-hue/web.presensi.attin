@@ -6,6 +6,8 @@ import {
   selectIsAuthenticating,
   selectAuthError,
   selectDemoLoginAccounts,
+  selectAuthErrorCode,
+  AUTH_ERROR_CODES,
   appModeOfRole,
   MODE_MOBILE,
   AUTH_ERRORS,
@@ -297,6 +299,9 @@ function LoginPage() {
 
   const isAuthenticating = selectIsAuthenticating(state)
   const authError = selectAuthError(state)
+  // Kode penyebab kegagalan (lihat authenticateCredentials) ditampilkan di bawah
+  // pesan, supaya pengguna tahu apakah masalahnya akun, sandi, role, atau unit.
+  const authErrorCode = selectAuthErrorCode(state)
   // Kredensial demo disusun dari auth store (akun seed bertanda demo + satu
   // contoh pegawai), jadi yang tampil selalu sama dengan yang benar-benar
   // diterima oleh authenticateCredentials().
@@ -520,7 +525,14 @@ function LoginPage() {
                     <circle cx="12" cy="12" r="10" />
                     <path d="M12 8v4M12 16h.01" />
                   </Icon>
-                  <span>{authError}</span>
+                  <span className="flex flex-col gap-1">
+                    <span>{authError}</span>
+                    {authErrorCode && AUTH_ERROR_CODES[authErrorCode] && (
+                      <span className="text-[11px] text-rose-500/90">
+                        Penyebab: {AUTH_ERROR_CODES[authErrorCode]}
+                      </span>
+                    )}
+                  </span>
                 </div>
               ) : (
                 <p className="mt-5 text-center text-[12px] text-[#5A6675] animate-sp-rise" style={{ animationDelay: '410ms' }}>

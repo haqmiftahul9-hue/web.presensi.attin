@@ -1,8 +1,8 @@
-import { createContext, useContext, useReducer, useMemo } from 'react'
+﻿import { createContext, useContext, useReducer, useMemo } from 'react'
 import {
   UNITS, STAFF, LEAVES, ADMIN_USERS, INITIAL_LOGS,
   INITIAL_SETTINGS, WEEKLY_TREND, TREND_30, HOLIDAYS, buildFullStaff, buildAttendance, initialsOf,
-  initialStaffPassword,
+  initialStaffPassword, DEFAULT_STAFF_PASSWORD,
 } from '../data/seed.js'
 import {
   buildEmployeeCard, buildEmployeeCards, cardQrValue, cardBarcodeValue,
@@ -15,6 +15,18 @@ import {
 //   yang dibangun ulang setiap perubahan, sehingga tidak pernah bisa stale/sinkron.
 
 export const PERMISSION_ACTIONS = ['view', 'add', 'edit', 'delete']
+
+// Menu khusus aplikasi mobile. Dipisahkan dari menu portal supaya hak akses
+// role Guru/Pegawai berdiri sendiri: lima halaman miliknya, tanpa satu pun menu
+// administrasi.
+export const MOBILE_MENU_OPTIONS = [
+  { key: 'berandaMobile', label: 'Beranda Mobile' },
+  { key: 'presensiMobile', label: 'Presensi Mobile' },
+  { key: 'riwayatMobile', label: 'Riwayat Mobile' },
+  { key: 'slipMobile', label: 'Slip Mobile' },
+  { key: 'izinCutiMobile', label: 'Izin & Cuti Mobile' },
+  { key: 'profilMobile', label: 'Profil Mobile' },
+]
 
 export const PERMISSION_MATRIX = {
   Superadmin: {
@@ -46,14 +58,23 @@ export const PERMISSION_MATRIX = {
     pengaturanGlobal: [],
   },
   Guru: {
+    // Hanya lima halaman mobile. Menu portal sengaja kosong: meski secara
+    // teknis masih 'view', role mobile tidak pernah bisa mencapainya karena
+    // canAccessPath() menolak path di luar /mobile/*.
+    berandaMobile: ['view'],
+    presensiMobile: ['view'],
+    riwayatMobile: ['view'],
+    slipMobile: ['view'],
+    izinCutiMobile: ['view', 'add'],
+    profilMobile: ['view'],
     dashboard: ['view'],
     manajemenUnit: [],
     manajemenAdminUser: [],
-    dataGuruPegawai: ['view'],
+    dataGuruPegawai: [],
     cetakKartuId: [],
     presensi: ['view'],
     rekapLaporan: ['view'],
-    rankingKehadiran: ['view'],
+    rankingKehadiran: [],
     pengajuanIzinCuti: ['view', 'add'],
     logAktivitas: [],
     pengaturanGlobal: [],
@@ -74,10 +95,140 @@ export const PERMISSION_MATRIX = {
 }
 
 // Hanya Superadmin yang boleh berpindah unit. Role lain terkunci ke unit akunnya.
+//
+// Tiga role utama sistem, dipakai sebagai kode kanonik di seluruh aplikasi:
+//
+//   SUPERADMIN    -> seluruh unit + administrasi (desktop)
+//   ADMIN_UNIT    -> satu unit (desktop)
+//   GURU_PEGAWAI  -> data pribadi & presensi (mobile)
+//
+// Nilai stringnya tetap sama dengan data yang sudah ada ("Superadmin",
+// "Admin Unit", "Guru") supaya permissionMatrix dan data lama tidak berubah
+// arti; penamaan kode dipakai saat menulis relasi akun.
 export const ROLE_SUPERADMIN = 'Superadmin'
 export const ROLE_ADMIN_UNIT = 'Admin Unit'
-export const ROLE_GURU = 'Guru'
+export const ROLE_GURU_PEGAWAI = 'Guru'
 export const ROLE_PETUGAS_PRESENSI = 'Petugas Presensi'
+
+// Alias lama; LOGIN memakai kode kanon di atas.
+export const ROLE_GURU = ROLE_GURU_PEGAWAI
+
+export const ROLE_CODES = {
+  SUPERADMIN: ROLE_SUPERADMIN,
+  ADMIN_UNIT: ROLE_ADMIN_UNIT,
+  GURU_PEGAWAI: ROLE_GURU_PEGAWAI,
+  PETUGAS_PRESENSI: ROLE_PETUGAS_PRESENSI,
+}
+
+// Variance penulisan role yang bisa muncul dari data impor atau form lama.
+// Semua dipetakan ke kode kanonik, sehingga "Guru/Pegawai", "Staff", atau
+// "Pegawai" tidak pernah membuat akun yang gagal dikenali.
+const ROLE_ALIASES = {
+  superadmin: ROLE_SUPERADMIN,
+  'super admin': ROLE_SUPERADMIN,
+  administrator: ROLE_SUPERADMIN,
+  'admin unit': ROLE_ADMIN_UNIT,
+  adminunit: ROLE_ADMIN_UNIT,
+  'admin_unit': ROLE_ADMIN_UNIT,
+  'unit admin': ROLE_ADMIN_UNIT,
+  guru: ROLE_GURU_PEGAWAI,
+  guru_pegawai: ROLE_GURU_PEGAWAI,
+  'guru/pegawai': ROLE_GURU_PEGAWAI,
+  'guru pegawai': ROLE_GURU_PEGAWAI,
+  gurupegawai: ROLE_GURU_PEGAWAI,
+  staff: ROLE_GURU_PEGAWAI,
+  pegawai: ROLE_GURU_PEGAWAI,
+  employee: ROLE_GURU_PEGAWAI,
+  teacher: ROLE_GURU_PEGAWAI,
+  petugas: ROLE_PETUGAS_PRESENSI,
+  petugas_presensi: ROLE_PETUGAS_PRESENSI,
+  'petugas presensi': ROLE_PETUGAS_PRESENSI,
+}
+
+/**
+ * Kode role kanonik dari berbagai kemungkinan penulisan. Nilai tak dikenal
+ * dikembalikan apa adanya supaya pemanggil bisa menolak dengan alasan yang
+ * jelas, bukan diam-diam menganggap role tertentu.
+ */
+export function normalisasiRole(value) {
+  const mentah = String(value ?? '').trim()
+  if (!mentah) return ''
+  return ROLE_ALIASES[mentah.toLowerCase()] || ROLE_ALIASES[mentah.toLowerCase().replace(/\s+/g, ' ')] || mentah
+}
+
+/** Kode role ada di daftar role aplikasi? Dipakai authenticateCredentials. */
+export function roleDikenal(role) {
+  return Object.values(ROLE_CODES).includes(normalisasiRole(role))
+}
+
+// ===== AKUN PEGAWAI (USER ACCOUNTS) =====
+//
+// Satu baris akun untuk setiap pegawai, dibuat otomatis dari data pegawai.
+// Inilah relasi yang diminta modul autentikasi:
+//
+//   Pegawai (staff.id)  ->  Akun (userAccounts.pegawai_id)
+//   Akun.username       ->  NIY pegawai
+//   Akun.role           ->  GURU_PEGAWAI
+//   Akun.unitId         ->  unit pegawai
+//
+// Akun inilah satu-satunya sumber kredensial pegawai: login, ganti kata sandi,
+// dan status akun semuanya membaca/menulis tabel ini.
+
+/** Bangun satu akun user dari baris pegawai. */
+export function buildUserAccount(staff, { credentials = null, role, password } = {}) {
+  const roleKanon = normalisasiRole(role || ROLE_GURU_PEGAWAI)
+  return {
+    id: `USR-${staff.id}`,
+    username: staff.niy,
+    niy: staff.niy,
+    email: staff.email || '',
+    password: credentials?.password || password || initialStaffPassword(),
+    role: roleKanon,
+    unitId: staff.unitId ?? null,
+    pegawaiId: staff.id,
+    // Status akun mengikuti keaktifan pegawai: pegawai Nonaktif tidak login.
+    status: staff.status === 'Aktif' ? 'Aktif' : 'Nonaktif',
+    isStaffAccount: true,
+    // Akun baru (atau yang belum pernah mengganti sandi) wajib ganti password.
+    mustChangePassword: credentials ? Boolean(credentials.mustChangePassword) : true,
+  }
+}
+
+export function buildUserAccounts(staffList, credentialsByStaffId = {}) {
+  return (staffList || [])
+    .filter((s) => s.niy)
+    .map((s) => buildUserAccount(s, { credentials: credentialsByStaffId[s.id] || null }))
+}
+
+/** Tambah/perbarui akun milik seorang pegawai (dipakai reducer). */
+function upsertUserAccount(accounts, staff, { action, role } = {}) {
+  if (!staff?.niy) return accounts
+  const tanpaIni = accounts.filter((a) => a.pegawaiId !== staff.id && a.niy !== staff.niy)
+  const lama = accounts.find((a) => a.pegawaiId === staff.id || a.niy === staff.niy)
+  if (action === 'delete') return tanpaIni
+  const akun = buildUserAccount(staff, {
+    // Kata sandi yang sudah diganti pengguna tidak ditimpa saat data pegawai
+    // diperbarui (mis. ganti jabatan/unit).
+    credentials: lama
+      ? { password: lama.password, mustChangePassword: lama.mustChangePassword }
+      : null,
+    role: role || lama?.role || ROLE_GURU_PEGAWAI,
+  })
+  return [...tanpaIni, akun]
+}
+
+/** Akun user milik seorang pegawai, atau null. */
+export function selectUserAccountByStaffId(state, staffId) {
+  if (staffId == null) return null
+  return (state.userAccounts || []).find((a) => a.pegawaiId === staffId) || null
+}
+
+/** Daftar akun pegawai yang belum pernah punya akun user (diagnostik). */
+export function selectPegawaiTanpaAkun(state) {
+  return (state.staff || []).filter(
+    (s) => s.niy && !selectUserAccountByStaffId(state, s.id),
+  )
+}
 
 // ===== MODE APLIKASI =====
 //
@@ -111,13 +262,13 @@ export const ROLE_HOME_PATH = {
 // Peta path -> menu key. Dipakai bersama oleh guard rute dan penentuan
 // halaman tujuan setelah login, supaya keduanya memakai satu daftar yang sama.
 export const ROUTE_MENU_KEYS = {
-  // Modul mobile Guru/Pegawai (prefix /mobile).
-  '/mobile/home': 'dashboard',
-  '/mobile/presensi': 'presensi',
-  '/mobile/riwayat': 'rekapLaporan',
-  '/mobile/slip': 'rekapLaporan',
-  '/mobile/izin-cuti': 'pengajuanIzinCuti',
-  '/mobile/profil': 'dataGuruPegawai',
+  // Modul mobile Guru/Pegawai (prefix /mobile), memakai menu key sendiri.
+  '/mobile/home': 'berandaMobile',
+  '/mobile/presensi': 'presensiMobile',
+  '/mobile/riwayat': 'riwayatMobile',
+  '/mobile/slip': 'slipMobile',
+  '/mobile/izin-cuti': 'izinCutiMobile',
+  '/mobile/profil': 'profilMobile',
   // Dashboard desktop, dipisah per mode peran.
   '/superadmin': 'dashboard',
   '/dashboard': 'dashboard',
@@ -185,9 +336,10 @@ export const MODE_APP_ROLES = {
 // (mis. akun yang dibuat lewat portal). Pada aplikasi nyata nilai ini berasal
 // dari server; di sini satu konstanta agar alur login tetap bisa dicoba tanpa
 // backend, dan tetap bisa ditimpa per akun lewat field `password` (hasil
-// reset/kirim kredensial). Akun Guru/Pegawai memakai initialStaffPassword()
-// dari data/seed.js (format "<NIY>@2026"), bukan konstanta ini.
+// reset/kirim kredensial). Akun Guru/Pegawai memakai DEFAULT_STAFF_PASSWORD
+// dari data/seed.js ("Attin123!"), bukan konstanta ini.
 export const INITIAL_ACCOUNT_PASSWORD = 'SimPresSecure2026!'
+export { DEFAULT_STAFF_PASSWORD }
 
 const AUTH_SESSION_KEY = 'simpres.auth.session'
 
@@ -195,12 +347,32 @@ export const AUTH_ERRORS = {
   EMPTY_IDENTIFIER: 'NIY, username, atau email dinas wajib diisi.',
   EMPTY_PASSWORD: 'Kata sandi wajib diisi.',
   NOT_FOUND: 'Akun tidak ditemukan. Periksa kembali username, NIY, atau email dinas Anda.',
-  WRONG_PASSWORD: 'Login gagal. Username atau kata sandi salah.',
+  WRONG_PASSWORD: 'Kata sandi salah. Silakan ulangi atau hubungi administrator unit.',
   INACTIVE: 'Akun Anda sedang nonaktif. Hubungi administrator unit untuk mengaktifkannya kembali.',
   NO_PERMISSION: 'Akun Anda belum memiliki hak akses pada modul SimPres.',
+  // Penyebab tambahan yang perlu dibedakan agarPegawai tidak bingung.
+  ACCOUNT_NOT_LINKED:
+    'Data pegawai Anda ditemukan, tetapi akun login belum dibuat. Hubungi administrator unit untuk membuatkannya.',
+  ROLE_UNAVAILABLE:
+    'Peran akun ini belum dikenali sistem. Hubungi administrator SimPres untuk memeriksa konfigurasi peran.',
+  UNIT_NOT_FOUND:
+    'Unit kerja akun ini tidak ditemukan. Hubungi administrator unit agar penugasan dapat diperbaiki.',
   PASSWORD_TOO_SHORT: 'Kata sandi baru belum memenuhi minimal panjang yang diwajibkan.',
   PASSWORD_MISMATCH: 'Konfirmasi kata sandi tidak sama dengan kata sandi baru.',
   PASSWORD_SAME: 'Kata sandi baru harus berbeda dari kata sandi lama.',
+}
+
+// Label singkat untuk tiap penyebab, dipakai halaman login agar pesan teknis
+// tetap terbaca jelas tanpa menebak.
+export const AUTH_ERROR_CODES = {
+  IDENTIFIER_KOSONG: 'identifier kosong',
+  PASSWORD_KOSONG: 'password kosong',
+  AKUN_TIDAK_DITEMUKAN: 'akun tidak ditemukan',
+  PEGAWAI_BELUM_TERHUBUNG: 'pegawai belum punya akun',
+  ROLE_TIDAK_TERSEDIA: 'role tidak tersedia',
+  AKUN_NONAKTIF: 'akun/pegawai nonaktif',
+  UNIT_TIDAK_DITEMUKAN: 'unit tidak ditemukan',
+  PASSWORD_SALAH: 'password salah',
 }
 
 // Pesan khusus saat role mencoba mengganti kata sandi lewat jalur yang tidak
@@ -306,6 +478,14 @@ const initialState = {
   // dari `staff`, jadi perubahan data pegawai langsung tercermin di halaman
   // Cetak Kartu ID.
   employeeCards: buildEmployeeCards(initialStaff),
+  // Akun user untuk seluruh pegawai. Dibuat otomatis dari data pegawai, dengan
+  // username = NIY, role GURU_PEGAWAI, unit mengikuti pegawai, dan kata sandi
+  // awal bersama. Tambah pegawai baru akan menambah baris di sini.
+  //
+  // Kredensial hasil penggantian disimpan di tabel yang sama (lihat
+  // buildUserAccount), jadi hanya ada satu sumber kebenaran untuk kredensial
+  // pegawai.
+  userAccounts: buildUserAccounts(initialStaff),
   logs: INITIAL_LOGS,
   settings: INITIAL_SETTINGS,
   weeklyTrend: WEEKLY_TREND,
@@ -318,12 +498,13 @@ const initialState = {
   isAuthenticated: false,
   authStatus: 'idle',
   authError: null,
+  // Kode penyebab kegagalan login (AKUN_TIDAK_DITEMUKAN, PASSWORD_SALAH, ...).
+  authErrorCode: null,
   attendanceHistory: initialAttendanceHistory,
-  // Kata sandi hasil penggantian untuk akun yang TIDAK punya baris di
-  // adminUsers (akun Guru/Pegawai diturunkan dari data pegawai, jadi tidak
-  // ada objek akun yang bisa menyimpan field `password`). Key = id pegawai.
-  // Berlaku selama sesi aplikasi; pada aplikasi nyata ini disimpan di server.
-  staffCredentials: {},
+  // Kredensial yang sudah diganti pengguna disimpan di tabel userAccounts
+  // (lihat buildUserAccount). Tidak ada lagi tabel terpisah per pegawai, jadi
+  // hanya ada satu sumber kebenaran untuk kredensial pegawai.
+  userAccounts: buildUserAccounts(initialStaff),
   // Permintaan buka form ganti kata sandi (dipakai tombol di sidebar dan oleh
   // akun ber-mustChangePassword). False = pengguna bebas memakai sistem.
   passwordChangeRequested: false,
@@ -352,6 +533,8 @@ export function simPresReducer(state, action) {
         ),
         adminUsers: syncAdminUserFromStaff(state.adminUsers, action.payload),
         employeeCards: syncEmployeeCardsFromStaff(state.employeeCards, action.payload, 'update'),
+        // Status/unit/NIY akun ikut mengikuti data pegawai yang baru.
+        userAccounts: upsertUserAccount(state.userAccounts, { ...action.payload }, { action: 'update' }),
       }
     case 'ADD_STAFF': {
       // Id yang bentrok (mis. impor massal) selalu digenerate ulang dari data
@@ -364,6 +547,11 @@ export function simPresReducer(state, action) {
         staff: [...state.staff, staffToAdd],
         adminUsers: syncAdminUserFromStaff(state.adminUsers, staffToAdd, 'add'),
         employeeCards: syncEmployeeCardsFromStaff(state.employeeCards, staffToAdd, 'add'),
+        // AUTO CREATE ACCOUNT: begitu pegawai disimpan, akun login-nya langsung
+        // ada (username = NIY, role GURU_PEGAWAI, unit mengikuti pegawai,
+        // status mengikuti keaktifan pegawai). Ini yang membuat data pegawai
+        // baru langsung bisa login ke aplikasi mobile.
+        userAccounts: upsertUserAccount(state.userAccounts, staffToAdd, { action: 'add' }),
       };
     }
     case 'DELETE_STAFF':
@@ -379,6 +567,11 @@ export function simPresReducer(state, action) {
         // Kartu ikut dibuang agar tabel employee_card tidak menyimpan baris
         // untuk pegawai yang sudah tidak ada di source data.
         employeeCards: state.employeeCards.filter((c) => c.employee_id !== staffId),
+        // Akun login ikut dibuang: tidak boleh ada akun yang menunjuk pegawai
+        // yang sudah dihapus.
+        userAccounts: (state.userAccounts || []).filter(
+          (a) => a.pegawaiId !== staffId && a.niy !== niyToDelete,
+        ),
       };
     case 'UPDATE_UNIT':
       return {
@@ -562,20 +755,43 @@ logs: [
     }
     case 'ADD_LOG':
       return { ...state, logs: [action.payload, ...state.logs] }
-    case 'ADD_ADMIN_USER':
+    case 'ADD_ADMIN_USER': {
+      // Role dinormalkan di lapis reducer: "Staff", "Pegawai", atau
+      // "Guru/Pegawai" semuanya berarti GURU_PEGAWAI, sehingga akun yang baru
+      // dibuat dari Manajemen Admin & User langsung punya relasi pegawai + akun
+      // mobile yang benar.
+      const payload = { ...action.payload, role: normalisasiRole(action.payload.role) }
+      const staffBaru = syncStaffFromAdminUser(state.staff, payload, 'add').find(
+        (s) => s.niy === payload.niy && !state.staff.some((x) => x.niy === payload.niy),
+      )
       return {
         ...state,
-        adminUsers: [...state.adminUsers, action.payload],
-        staff: syncStaffFromAdminUser(state.staff, action.payload, 'add'),
+        adminUsers: [...state.adminUsers, payload],
+        staff: syncStaffFromAdminUser(state.staff, payload, 'add'),
+        userAccounts: staffBaru
+          ? upsertUserAccount(state.userAccounts, staffBaru, { action: 'add', role: payload.role })
+          : state.userAccounts,
       }
-    case 'UPDATE_ADMIN_USER':
+    }
+    case 'UPDATE_ADMIN_USER': {
+      const payload = { ...action.payload, role: normalisasiRole(action.payload.role) }
+      const staffSetelah = syncStaffFromAdminUser(state.staff, payload, 'update')
       return {
         ...state,
         adminUsers: state.adminUsers.map((u) =>
-          u.id === action.payload.id ? { ...u, ...action.payload } : u,
+          u.id === payload.id ? { ...u, ...payload } : u,
         ),
-        staff: syncStaffFromAdminUser(state.staff, action.payload, 'update'),
+        staff: staffSetelah,
+        // Akun mobile ikut diperbarui bila baris ini Manage sebuah pegawai.
+        userAccounts: (state.userAccounts || []).some((a) => a.niy === payload.niy)
+          ? upsertUserAccount(
+              state.userAccounts,
+              staffSetelah.find((s) => s.niy === payload.niy) || { ...payload, id: payload.staffId ?? 0 },
+              { action: 'update', role: payload.role },
+            )
+          : state.userAccounts,
       }
+    }
     case 'DELETE_ADMIN_USER':
       return {
         ...state,
@@ -624,7 +840,7 @@ logs: [
       }
     }
     case 'LOGIN_START':
-      return { ...state, authStatus: 'loading', authError: null }
+      return { ...state, authStatus: 'loading', authError: null, authErrorCode: null }
     case 'LOGIN_SUCCESS':
       return {
         ...state,
@@ -633,10 +849,20 @@ logs: [
         selectedUnitId: initialUnitScope(action.payload.user),
         authStatus: 'idle',
         authError: null,
+        authErrorCode: null,
         passwordChangeRequested: false,
       }
     case 'LOGIN_FAILURE':
-      return { ...state, isAuthenticated: false, currentUser: null, authStatus: 'error', authError: action.payload }
+      // Kode penyebab disimpan terpisah dari pesan supaya halaman login bisa
+      // menampilkan keduanya tanpa parsesi teks.
+      return {
+        ...state,
+        isAuthenticated: false,
+        currentUser: null,
+        authStatus: 'error',
+        authError: action.payload,
+        authErrorCode: action.code || null,
+      }
     case 'LOGOUT':
       return {
         ...state,
@@ -645,6 +871,7 @@ logs: [
         selectedUnitId: ALL_UNITS,
         authStatus: 'idle',
         authError: null,
+        authErrorCode: null,
         passwordChangeRequested: false,
       }
     case 'REQUEST_PASSWORD_CHANGE':
@@ -657,17 +884,19 @@ logs: [
       // dilarang (Superadmin) diabaikan, bukan sekadar ditolak formnya.
       if (!selectCanChangeOwnPassword(state)) return state
       // Akun portal (baris di adminUsers) menyimpan kata sandi barunya sendiri;
-      // akun pegawai menyimpan ke staffCredentials karena tidak punya baris akun.
+      // akun pegawai menyimpan ke userAccounts (relasi pegawai_id).
       const { account, password } = action.payload
       if (!account || !password) return state
       if (account.isStaffAccount) {
+        const pegawaiId = account.pegawaiId ?? account.staffId
         return {
           ...state,
-          staffCredentials: {
-            ...state.staffCredentials,
-            [account.staffId]: { password, mustChangePassword: false },
-          },
-          currentUser: account.staffId === state.currentUser?.staffId
+          userAccounts: (state.userAccounts || []).map((a) =>
+            a.pegawaiId === pegawaiId || a.niy === account.niy
+              ? { ...a, password, mustChangePassword: false }
+              : a,
+          ),
+          currentUser: pegawaiId === state.currentUser?.pegawaiId
             ? { ...state.currentUser, password, mustChangePassword: false }
             : state.currentUser,
           passwordChangeRequested: false,
@@ -739,10 +968,35 @@ function normalizeIdentifier(value) {
 }
 
 function identifierMatches(account, key) {
-  const username = normalizeIdentifier(account.username)
-  const niy = normalizeIdentifier(account.niy)
-  const email = normalizeIdentifier(account.email)
-  return (username !== '' && username === key) || (niy !== '' && niy === key) || (email !== '' && email === key)
+  if (!account) return false
+  return [account.username, account.niy, account.email]
+    .some((nilai) => normalizeIdentifier(nilai) === key && normalizeIdentifier(nilai) !== '')
+}
+
+// Pencarian akun berdasarkan NIY, username, atau email dinas.
+//
+// Urutan penting: akun pegawai (userAccounts) dicek lebih dulu, karena tabel
+// itu yang otoritatif untuk role Guru/Pegawai. Sebagian pegawai pernah punya
+// baris di adminUsers dari versi data lama; bila baris lama itu yang dipakai,
+// kata sandinya bisa berbeda dan login gagal walau data pegawai-nya benar.
+export function findAccountByIdentifier(state, identifier) {
+  const key = normalizeIdentifier(identifier)
+  if (!key) return null
+
+  const userAccount = (state.userAccounts || []).find((a) => identifierMatches(a, key))
+  if (userAccount) {
+    return { ...userAccount, role: normalisasiRole(userAccount.role), staffId: userAccount.pegawaiId, isStaffAccount: true }
+  }
+
+  const adminUser = state.adminUsers.find((u) => identifierMatches(u, key))
+  if (adminUser) return { ...adminUser, role: normalisasiRole(adminUser.role), isStaffAccount: false }
+
+  // Pegawai ada, tapi belum punya baris akun: kembalikan akun dengan penanda
+  // supaya authenticateCredentials bisa memberi tahu masalah yang sebenarnya.
+  const staff = state.staff.find((s) => identifierMatches(s, key))
+  if (staff) return buildStaffAccount(state, staff)
+
+  return null
 }
 
 // Kunci yang dipakai untuk menulis ulang sesi browser. Urutannya mengikuti
@@ -752,41 +1006,31 @@ export function accountLoginKey(account) {
   return normalizeIdentifier(account.username || account.niy || account.email)
 }
 
-// Akun Guru/Pegawai tidak punya baris di adminUsers, jadi kata sandi awalnya
-// dihitung dari NIY: "<NIY>@2026" dan selalu wajib diganti saat login pertama
-// (lihat INITIAL_SETTINGS.keamanan.wajibGantiPasswordPertama).
+// Akun Guru/Pegawai dibuat otomatis oleh buildUserAccount(): username = NIY,
+// role GURU_PEGAWAI, unit mengikuti pegawai, kata sandi awal sama untuk semua
+// (lihat DEFAULT_STAFF_PASSWORD) dan wajib diganti saat login pertama.
 function buildStaffAccount(state, staff) {
-  const override = state.staffCredentials?.[staff.id]
-  return {
-    id: `staff-${staff.id}`,
+  // Akun pegawai dibaca dari tabel userAccounts. Bila barisnya somehow hilang,
+  // akun tetap dibangun dari data pegawai (agar tidak ada pegawai yang benar
+  //-benar terkunci), tapi ditandai accountMissing supaya pesan login menyebut
+  // masalahnya dengan tepat.
+  const userAccount = selectUserAccountByStaffId(state, staff.id)
+  const dasar = {
+    id: userAccount?.id || `USR-${staff.id}`,
     staffId: staff.id,
+    pegawaiId: staff.id,
     name: staff.name,
     niy: staff.niy,
-    username: staff.niy,
-    email: staff.email,
-    role: ROLE_GURU,
+    username: userAccount?.username || staff.niy,
+    email: staff.email || '',
+    role: normalisasiRole(userAccount?.role || ROLE_GURU_PEGAWAI),
     unitId: staff.unitId,
     status: staff.status,
     isStaffAccount: true,
-    password: override?.password || initialStaffPassword(staff.niy),
-    mustChangePassword: override ? Boolean(override.mustChangePassword) : true,
+    password: userAccount?.password || initialStaffPassword(),
+    mustChangePassword: userAccount ? Boolean(userAccount.mustChangePassword) : true,
   }
-}
-
-// Akun portal = baris di adminUsers (Superadmin, Admin Unit, Petugas Presensi).
-// Guru/Pegawai tidak punya baris di sana, jadi akunnya diturunkan dari data
-// pegawai: role Guru, unit mengikuti penugasan, status mengikuti keaktifan pegawai.
-export function findAccountByIdentifier(state, identifier) {
-  const key = normalizeIdentifier(identifier)
-  if (!key) return null
-
-  const adminUser = state.adminUsers.find((u) => identifierMatches(u, key))
-  if (adminUser) return { ...adminUser, isStaffAccount: false }
-
-  const staff = state.staff.find((s) => identifierMatches(s, key))
-  if (staff) return buildStaffAccount(state, staff)
-
-  return null
+  return userAccount ? dasar : { ...dasar, accountMissing: true }
 }
 
 export function roleCanViewMenu(state, role, menuKey) {
@@ -838,19 +1082,56 @@ export function resolvePostLoginPath(state, user, requestedPath) {
   return ROLE_HOME_PATH[role] || '/login'
 }
 
+/**
+ * Verifikasi kredensial. Setiap kegagalan membawa `code` dan pesan yang spesifik
+ * supaya halaman login bisa memberi tahu penyebab sebenarnya, bukan satu pesan
+ * generik "username atau kata sandi salah":
+ *
+ *   AKUN_TIDAK_DITEMUKAN  -> NIY/username/email tidak ada di data
+ *   PEGAWAI_BELUM_TERHUBUNG -> pegawai ada, tapi baris akunnya belum dibuat
+ *   ROLE_TIDAK_TERSEDIA   -> role tidak dikenal/tidak punya matrix permission
+ *   AKUN_NONAKTIF         -> pegawai atau akunnya berstatus Nonaktif
+ *   UNIT_TIDAK_DITEMUKAN  -> role terikat unit, tapi unit-nya hilang
+ *   PASSWORD_SALAH        -> kredensial ada, kata sandinya tidak cocok
+ */
 export function authenticateCredentials(state, identifier, password) {
-  if (!normalizeIdentifier(identifier)) return { ok: false, error: AUTH_ERRORS.EMPTY_IDENTIFIER }
-  if (!password) return { ok: false, error: AUTH_ERRORS.EMPTY_PASSWORD }
+  if (!normalizeIdentifier(identifier)) return { ok: false, error: AUTH_ERRORS.EMPTY_IDENTIFIER, code: 'IDENTIFIER_KOSONG' }
+  if (!password) return { ok: false, error: AUTH_ERRORS.EMPTY_PASSWORD, code: 'PASSWORD_KOSONG' }
 
   const account = findAccountByIdentifier(state, identifier)
-  if (!account) return { ok: false, error: AUTH_ERRORS.NOT_FOUND }
-  if (account.status !== 'Aktif') return { ok: false, error: AUTH_ERRORS.INACTIVE }
+  if (!account) return { ok: false, error: AUTH_ERRORS.NOT_FOUND, code: 'AKUN_TIDAK_DITEMUKAN' }
+  if (account.accountMissing) return { ok: false, error: AUTH_ERRORS.ACCOUNT_NOT_LINKED, code: 'PEGAWAI_BELUM_TERHUBUNG' }
+
+  const role = normalisasiRole(account.role)
+  if (!roleDikenal(role) || !state.permissionMatrix?.[role]) {
+    return { ok: false, error: AUTH_ERRORS.ROLE_UNAVAILABLE, code: 'ROLE_TIDAK_TERSEDIA' }
+  }
+
+  const status = statusAkunUntuk(state, account)
+  if (status !== 'Aktif') return { ok: false, error: AUTH_ERRORS.INACTIVE, code: 'AKUN_NONAKTIF' }
+
+  // Role terikat unit wajib punya unit yang benar-benar ada: tanpa ini akun
+  // akan masuk ke aplikasi lalu berhenti di halaman yang salah.
+  if (role !== ROLE_SUPERADMIN && (!account.unitId || !state.units.some((u) => u.id === account.unitId))) {
+    return { ok: false, error: AUTH_ERRORS.UNIT_NOT_FOUND, code: 'UNIT_TIDAK_DITEMUKAN' }
+  }
 
   const expectedPassword = account.password || INITIAL_ACCOUNT_PASSWORD
-  if (password !== expectedPassword) return { ok: false, error: AUTH_ERRORS.WRONG_PASSWORD }
-  if (!state.permissionMatrix?.[account.role]) return { ok: false, error: AUTH_ERRORS.NO_PERMISSION }
+  if (password !== expectedPassword) return { ok: false, error: AUTH_ERRORS.WRONG_PASSWORD, code: 'PASSWORD_SALAH' }
 
-  return { ok: true, user: account }
+  return { ok: true, user: { ...account, role, status } }
+}
+
+/**
+ * Status efektif akun: mengikuti status pegawai bila datanya masih ada, supaya
+ * menonaktifkan pegawai langsung menonaktifkan akses loginnyya.
+ */
+function statusAkunUntuk(state, account) {
+  if (account.isStaffAccount && account.pegawaiId != null) {
+    const staff = state.staff.find((s) => s.id === account.pegawaiId)
+    if (staff) return staff.status === 'Aktif' ? 'Aktif' : 'Nonaktif'
+  }
+  return account.status || 'Aktif'
 }
 
 // Panjang minimum mengikuti kebijakan keamanan di Pengaturan Global, dengan
@@ -917,8 +1198,8 @@ export async function performLogin({ state, dispatch, identifier, password, reme
 
   const result = authenticateCredentials(state, identifier, password)
   if (!result.ok) {
-    dispatch({ type: 'LOGIN_FAILURE', payload: result.error })
-    return { ok: false, error: result.error }
+    dispatch({ type: 'LOGIN_FAILURE', payload: result.error, code: result.code })
+    return { ok: false, error: result.error, code: result.code }
   }
 
   const user = result.user
@@ -975,6 +1256,11 @@ export function selectAuthStatus(state) {
 
 export function selectAuthError(state) {
   return state.authError || null
+}
+
+/** Kode penyebab kegagalan login terakhir (lihat AUTH_ERROR_CODES). */
+export function selectAuthErrorCode(state) {
+  return state.authErrorCode || null
 }
 
 export function selectIsAuthenticating(state) {
@@ -1239,8 +1525,11 @@ function syncStaffFromAdminUser(staff, adminUser, action) {
   const niy = adminUser.niy
   if (!niy) return staff
 
+  const role = normalisasiRole(adminUser.role)
   const existingStaffIndex = staff.findIndex((s) => s.niy === niy)
-  const isGuruOrStaff = adminUser.role === 'Guru' || adminUser.role === 'Admin Unit'
+  // Akun dengan role GURU_PEGAWAI (apa pun penulisan aslinya: Guru, Guru/Pegawai,
+  // Staff, Pegawai) selalu punya baris pegawai.
+  const isGuruOrStaff = role === ROLE_GURU_PEGAWAI
 
   if (action === 'delete') {
     if (existingStaffIndex >= 0 && isGuruOrStaff) {
@@ -1253,7 +1542,7 @@ function syncStaffFromAdminUser(staff, adminUser, action) {
     if (existingStaffIndex >= 0) {
       return staff.map((s, i) =>
         i === existingStaffIndex
-          ? { ...s, unitId: adminUser.unitId, status: adminUser.status, role: adminUser.role === 'Admin Unit' ? 'Guru' : adminUser.role }
+          ? { ...s, unitId: adminUser.unitId, status: adminUser.status, role }
           : s,
       )
     }
@@ -1262,7 +1551,7 @@ function syncStaffFromAdminUser(staff, adminUser, action) {
         id: staff.length > 0 ? Math.max(...staff.map((s) => s.id)) + 1 : 1,
         niy: adminUser.niy,
         name: adminUser.name,
-        role: adminUser.role === 'Admin Unit' ? 'Guru' : adminUser.role,
+        role,
         unitId: adminUser.unitId,
         status: adminUser.status,
         masuk: null,
@@ -1278,7 +1567,7 @@ function syncStaffFromAdminUser(staff, adminUser, action) {
     if (existingStaffIndex >= 0 && isGuruOrStaff) {
       return staff.map((s, i) =>
         i === existingStaffIndex
-          ? { ...s, unitId: adminUser.unitId, status: adminUser.status, role: adminUser.role === 'Admin Unit' ? 'Guru' : adminUser.role }
+          ? { ...s, unitId: adminUser.unitId, status: adminUser.status, role }
           : s,
       )
     }
@@ -1287,7 +1576,7 @@ function syncStaffFromAdminUser(staff, adminUser, action) {
         id: staff.length > 0 ? Math.max(...staff.map((s) => s.id)) + 1 : 1,
         niy: adminUser.niy,
         name: adminUser.name,
-        role: adminUser.role === 'Admin Unit' ? 'Guru' : adminUser.role,
+        role,
         unitId: adminUser.unitId,
         status: adminUser.status,
         masuk: null,
@@ -1307,7 +1596,7 @@ function syncAdminUserFromStaff(adminUsers, staffUser, action) {
   if (!niy) return adminUsers
 
   const existingAdminIndex = adminUsers.findIndex((u) => u.niy === niy)
-  const isGuruOrStaff = staffUser.role === 'Guru' || staffUser.role === 'Admin Unit'
+  const isGuruOrStaff = normalisasiRole(staffUser.role) === ROLE_GURU_PEGAWAI
 
   if (action === 'add') {
     if (existingAdminIndex >= 0) {
@@ -2429,7 +2718,7 @@ export function selectScopedAdminUsers(state) {
 }
 
 // Daftar kredensial demo siap pakai untuk halaman login. Disusun dari data
-// aplikasi (akun portal bertanda `demo` + satu contoh pegawai), jadi tetap
+// aplikasi (akun portal bertanda `demo` + contoh akun pegawai), jadi tetap
 // akurat kalau Superadmin menambah/menonaktifkan akun lewat portal.
 export function selectDemoLoginAccounts(state) {
   const portals = state.adminUsers
@@ -2437,19 +2726,23 @@ export function selectDemoLoginAccounts(state) {
     .map((u) => ({
       username: accountLoginKey(u),
       password: u.password || INITIAL_ACCOUNT_PASSWORD,
-      role: u.role,
+      role: normalisasiRole(u.role),
       unit: u.unitId ? selectUnitName(state, u.unitId) : 'Semua Unit',
       mustChangePassword: Boolean(u.mustChangePassword),
     }))
 
-  const sample = state.staff.find((s) => s.status === 'Aktif')
-  const staff = sample
+  // Contoh akun pegawai diambil dari tabel userAccounts, jadi username dan
+  // kata sandinya benar-benar yang dipakai authenticateCredentials().
+  const staffAccount = (state.userAccounts || []).find(
+    (a) => a.status === 'Aktif' && a.unitId && state.units.some((u) => u.id === a.unitId),
+  )
+  const staff = staffAccount
     ? [{
-        username: sample.niy,
-        password: state.staffCredentials?.[sample.id]?.password || initialStaffPassword(sample.niy),
-        role: ROLE_GURU,
-        unit: selectUnitName(state, sample.unitId),
-        mustChangePassword: !state.staffCredentials?.[sample.id],
+        username: staffAccount.username,
+        password: staffAccount.password || initialStaffPassword(),
+        role: staffAccount.role,
+        unit: selectUnitName(state, staffAccount.unitId),
+        mustChangePassword: Boolean(staffAccount.mustChangePassword),
       }]
     : []
 
