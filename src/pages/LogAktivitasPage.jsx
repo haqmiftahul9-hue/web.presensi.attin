@@ -618,7 +618,7 @@ function LogAktivitasPage() {
           </div>
 
           <div className="bg-surface-container-lowest rounded-lg shadow-sm overflow-hidden flex flex-col">
-            <div className="overflow-x-auto w-full">
+            <div className="sp-table-wrap w-full">
               <table className="w-full text-left font-body-md text-body-md border-collapse min-w-[1000px]">
                 <thead>
                   <tr className="bg-surface-container-low text-on-surface-variant font-label-md text-label-md uppercase tracking-wider h-11 border-b border-outline/20">

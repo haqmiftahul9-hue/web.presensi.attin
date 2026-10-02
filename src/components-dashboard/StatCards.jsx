@@ -10,7 +10,10 @@ function StatCards() {
   const rataRataTerlambat = selectRataRataTerlambat(state)
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-lg">
+    // 1 kolom di HP (360-430px), 2 kolom di tablet (>=768px), 4 kolom di desktop.
+// Ukuran teks card tidak diubah — kartu tetap nyaman dibaca, halaman hanya
+// jadi lebih panjang dan di-scroll normal.
+<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-space-lg">
       <div className="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col justify-between relative overflow-hidden">
         <div className="flex flex-col gap-space-xs">
           <div className="w-11 h-11 rounded-xl bg-secondary-fixed/50 flex items-center justify-center text-secondary mb-1">

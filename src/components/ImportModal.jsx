@@ -149,7 +149,7 @@ function ImportModal({ show, onClose, onImported }) {
                 {preview.mapped.length} kolom dikenali.
               </p>
               {preview.rows.length > 0 && (
-                <div className="overflow-x-auto">
+                <div className="sp-table-wrap">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="text-left border-b">

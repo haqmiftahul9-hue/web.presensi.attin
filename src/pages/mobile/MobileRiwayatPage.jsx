@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import Icon from '../../components/Icon.jsx'
 import {
   useSimPres, selectSelfStaff, selectSelfPresensi, selectUnitById,
   selectRiwayatPresensiSaya, selectSelfLeaves,
@@ -58,7 +59,7 @@ function KartuHari({ tanggal, masuk, pulang, late, status, metode, titikLokasi, 
             </div>
           </div>
           <span className={`px-2.5 py-1 rounded-full font-label-sm text-label-sm flex items-center gap-1 shrink-0 ${status.kelas}`}>
-            <span className="material-symbols-outlined text-[13px]">{status.ikon}</span>
+            <Icon name={status.ikon} className="text-[13px]" />
             {status.label}
           </span>
         </div>
@@ -80,7 +81,7 @@ function KartuHari({ tanggal, masuk, pulang, late, status, metode, titikLokasi, 
 
         <div className="flex items-center justify-between gap-2">
           <span className="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1">
-            <span className="material-symbols-outlined text-[14px]">{detail.ikon}</span>
+            <Icon name={detail.ikon} className="text-[14px]" />
             Metode: {detail.label}
           </span>
           <button
@@ -90,7 +91,7 @@ function KartuHari({ tanggal, masuk, pulang, late, status, metode, titikLokasi, 
             className="font-label-sm text-label-sm text-secondary flex items-center gap-0.5"
           >
             Detail presensi
-            <span className="material-symbols-outlined text-[14px]">{terbuka ? 'expand_less' : 'expand_more'}</span>
+            <Icon name={terbuka ? 'expand_less' : 'expand_more'} className="text-[14px]" />
           </button>
         </div>
       </div>
@@ -224,7 +225,7 @@ function MobileRiwayatPage() {
         {/* Filter bulan & tahun terpisah. */}
         <section className="sp-card p-4 flex flex-col gap-3">
           <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-secondary text-[18px]">calendar_month</span>
+            <Icon name="calendar_month" className="text-secondary text-[18px]" />
             <span className="font-headline-sm text-headline-sm text-on-surface">Filter Periode</span>
           </div>
 

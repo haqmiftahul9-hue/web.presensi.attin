@@ -34,8 +34,9 @@ export const LEAVES = [
 // Kata sandi awal untuk seluruh akun pegawai (role Guru/Pegawai).
 // Satu nilai bersama supaya mudah dihafal saat pelatihan, dan TIDAK ikut
 // mencurigakan NIY orang (versi lama "<NIY>@2026" bisa dibaca sebagai data
-// pribadi). Semua akun ini berstatus mustChangePassword: true, jadi password
-// hanya berlaku sekali — setelah第一次 login pengguna wajib menggantinya.
+// pribadi). Akun pegawai TIDAK ber-wajibGantiSandi: setelah login guru langsung
+// masuk ke aplikasi mobile. Pengguna tetap bisa mengganti sendiri lewat menu
+// "Ubah password" di Profil.
 export const DEFAULT_STAFF_PASSWORD = 'Attin123!'
 
 // Dipertahankan untuk kompatibilitas pemanggil lama; kredensial pegawai kini

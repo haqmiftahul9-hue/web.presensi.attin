@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import Icon from '../../components/Icon.jsx'
 import {
   useSimPres, selectSelfStaff, selectSelfLeaves, selectUnitById, addActivityLog,
 } from '../../store/simPresStore.jsx'
@@ -140,13 +141,13 @@ function MobileIzinCutiPage() {
           onClick={() => setFormTerbuka((v) => !v)}
           className="w-full py-3.5 rounded-2xl bg-primary-container text-on-primary font-headline-sm text-headline-sm flex items-center justify-center gap-2 shadow-md active:scale-[0.99] transition-transform"
         >
-          <span className="material-symbols-outlined text-[20px]">{formTerbuka ? 'close' : 'add'}</span>
+          <Icon name={formTerbuka ? 'close' : 'add'} className="text-[20px]" />
           {formTerbuka ? 'Batalkan' : 'Buat Pengajuan'}
         </button>
 
         {pesan && (
           <p className="rounded-2xl bg-surface-container-low text-on-surface px-3.5 py-2.5 font-body-sm text-body-sm flex items-start gap-2">
-            <span className="material-symbols-outlined text-[16px] mt-0.5 text-secondary">info</span>
+            <Icon name="info" className="text-[16px] mt-0.5 text-secondary" />
             <span>{pesan}</span>
           </p>
         )}
@@ -216,7 +217,7 @@ function MobileIzinCutiPage() {
                     </span>
                   </div>
                   <div className="flex items-center gap-2 text-on-surface-variant">
-                    <span className="material-symbols-outlined text-[15px]">event</span>
+                    <Icon name="event" className="text-[15px]" />
                     <span className="font-body-sm text-body-sm text-on-surface">{item.periode}</span>
                     <span className="font-label-sm text-label-sm">• {item.durasi}</span>
                   </div>

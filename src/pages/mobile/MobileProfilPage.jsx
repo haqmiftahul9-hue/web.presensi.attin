@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import Icon from '../../components/Icon.jsx'
 import { useNavigate } from 'react-router-dom'
 import {
   useSimPres, selectSelfStaff, selectSelfPresensi, selectUnitById, selectEmployeeCard,
@@ -35,14 +36,12 @@ function Bagian({ judul, ikon, terbuka, onToggle, children }) {
         className="w-full flex items-center gap-2.5 p-4 text-left"
       >
         <span className="w-8 h-8 rounded-xl bg-surface-container flex items-center justify-center shrink-0">
-          <span className="material-symbols-outlined text-on-surface-variant text-[18px]">{ikon}</span>
+          <Icon name={ikon} className="text-on-surface-variant text-[18px]" />
         </span>
         <span className="flex flex-col min-w-0 flex-1">
           <span className="font-headline-sm text-headline-sm text-on-surface">{judul}</span>
         </span>
-        <span className="material-symbols-outlined text-outline text-[20px]">
-          {terbuka ? 'expand_less' : 'expand_more'}
-        </span>
+        <Icon name={terbuka ? 'expand_less' : 'expand_more'} className="text-outline text-[20px]" />
       </button>
       {terbuka && <div className="px-4 pb-4 animate-sp-rise">{children}</div>}
     </section>
@@ -57,13 +56,13 @@ function BarisMenu({ ikon, judul, sub, tone = 'text-on-surface', onClick }) {
       className="w-full flex items-center gap-3 px-4 py-3.5 text-left border-b border-surface-container last:border-0 active:bg-surface-container-low transition-colors"
     >
       <span className="w-8 h-8 rounded-xl bg-surface-container flex items-center justify-center shrink-0">
-        <span className={`material-symbols-outlined text-[18px] ${tone}`}>{ikon}</span>
+        <Icon name={ikon} className={`text-[18px] ${tone}`} />
       </span>
       <span className="flex flex-col min-w-0 flex-1">
         <span className="font-body-md-medium text-body-md-medium text-on-surface">{judul}</span>
         {sub && <span className="font-label-sm text-label-sm text-on-surface-variant truncate">{sub}</span>}
       </span>
-      <span className="material-symbols-outlined text-outline text-[20px]">chevron_right</span>
+      <Icon name="chevron_right" className="text-outline text-[20px]" />
     </button>
   )
 }
@@ -149,7 +148,7 @@ function MobileProfilPage() {
         <section className="sp-card p-4">
           <div className="flex items-center gap-2 pb-1">
             <span className="w-8 h-8 rounded-xl bg-primary-container flex items-center justify-center">
-              <span className="material-symbols-outlined text-on-primary text-[18px]">badge</span>
+              <Icon name="badge" className="text-on-primary text-[18px]" />
             </span>
             <span className="font-headline-sm text-headline-sm text-on-surface">Informasi Kepegawaian</span>
           </div>
@@ -246,7 +245,7 @@ function MobileProfilPage() {
         {konfirmasiKeluar && (
           <section className="sp-card p-4 flex flex-col gap-3 animate-sp-rise">
             <div className="flex items-start gap-2">
-              <span className="material-symbols-outlined text-error text-[20px]">logout</span>
+              <Icon name="logout" className="text-error text-[20px]" />
               <div className="flex flex-col">
                 <span className="font-body-md-medium text-body-md-medium text-on-surface">Keluar dari akun?</span>
                 <span className="font-body-sm text-body-sm text-on-surface-variant">

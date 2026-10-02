@@ -7,8 +7,11 @@ import {
   selectCurrentUserRole,
   selectIsAuthenticated,
   selectMustChangePassword,
+  ACCESS_DENIED_PATH,
+  ROUTE_MENU_KEYS,
 } from '../store/simPresStore.jsx'
 import ChangePasswordGate from './ChangePasswordGate.jsx'
+import AccessDeniedPage from '../pages/AccessDeniedPage.jsx'
 
 /**
  * Gerbang rute. Mengurutkan tiga hal sekaligus:
@@ -44,7 +47,22 @@ function ProtectedRoute({ children }) {
   }
 
   // Sudah masuk tapi tidak berwenang: lempar ke beranda role, bukan ke login.
-  return <Navigate to={resolvePostLoginPath(state, selectCurrentUser(state), location.pathname)} replace />
+  // Bila tujuannya ternyata halaman yang sama (mis. role kehilangan semua
+  // permission-nya), jangan mengarahkan ke diri sendiri — render terminal
+  // akses-tolak agar tidak terjadi redirect berulang.
+  const target = resolvePostLoginPath(state, selectCurrentUser(state), location.pathname)
+  if (target === location.pathname) {
+    return <AccessDeniedPage />
+  }
+
+  // Terminal /403 tidak boleh memantulkan orang yang memang tidak punya akses
+  // (dan tidak boleh jadi rantai di antara dua path yang sama-sama ditolak):
+  // di sana pun kita langsung merender halaman akses-tolak.
+  if (target === ACCESS_DENIED_PATH) {
+    return <AccessDeniedPage />
+  }
+
+  return <Navigate to={target} replace />
 }
 
 // Halaman yang hanya boleh dilihat saat belum masuk (mis. /login).

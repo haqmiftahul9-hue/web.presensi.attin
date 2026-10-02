@@ -1,3 +1,4 @@
+import Icon from '../../components/Icon.jsx'
 ﻿import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
@@ -46,7 +47,7 @@ function Tile({ ikon, label, children, className = '' }) {
   return (
     <div className={`rounded-2xl bg-surface-container-low p-3 flex flex-col gap-1 ${className}`}>
       <span className="flex items-center gap-1 font-label-sm text-label-sm text-on-surface-variant">
-        <span className="material-symbols-outlined text-[14px]">{ikon}</span>
+        <Icon name={ikon} className="text-[14px]" />
         {label}
       </span>
       <span className="font-body-md-medium text-body-md-medium text-on-surface leading-tight">{children}</span>
@@ -143,18 +144,18 @@ function MobileBerandaPage() {
           </div>
 
           <span className="shrink-0 px-2.5 py-1 rounded-full bg-white/10 border border-white/15 font-label-sm text-label-sm text-white/90 flex items-center gap-1">
-            <span className="material-symbols-outlined text-[14px]">badge</span>
+            <Icon name="badge" className="text-[14px]" />
             {staff.niy}
           </span>
         </div>
 
         <div className="relative z-10 mt-4 flex flex-wrap items-center gap-1.5">
           <span className="px-2.5 py-1 rounded-full bg-white/10 border border-white/10 font-label-sm text-label-sm text-white/90 flex items-center gap-1 max-w-full">
-            <span className="material-symbols-outlined text-[14px]">domain</span>
+            <Icon name="domain" className="text-[14px]" />
             <span className="truncate">{unit?.nama || '-'}</span>
           </span>
           <span className="px-2.5 py-1 rounded-full bg-white/10 border border-white/10 font-label-sm text-label-sm text-white/90 flex items-center gap-1">
-            <span className="material-symbols-outlined text-[14px]">work</span>
+            <Icon name="work" className="text-[14px]" />
             {staff.role}
           </span>
           <span
@@ -162,7 +163,7 @@ function MobileBerandaPage() {
               online ? 'bg-emerald-400/15 border-emerald-300/30 text-emerald-200' : 'bg-white/10 border-white/10 text-white/80'
             }`}
           >
-            <span className="material-symbols-outlined text-[14px]">{online ? 'wifi_tethering' : 'wifi_off'}</span>
+            <Icon name={online ? 'wifi_tethering' : 'wifi_off'} className="text-[14px]" />
             {online ? 'Online' : 'Offline'}
           </span>
         </div>
@@ -178,8 +179,8 @@ function MobileBerandaPage() {
             </span>
           </div>
           <span className="px-3 py-1.5 rounded-full bg-white/10 border border-white/10 font-label-sm text-label-sm text-white/90 flex items-center gap-1.5">
-            <span className="material-symbols-outlined text-[15px] text-blue-300">schedule</span>
-            {namaShift(rules.jamMasuk)} Â· {rules.jamMasuk} - {rules.jamPulang}
+            <Icon name="schedule" className="text-[15px] text-blue-300" />
+            {namaShift(rules.jamMasuk)} · {rules.jamMasuk} - {rules.jamPulang}
           </span>
         </div>
       </section>
@@ -190,17 +191,17 @@ function MobileBerandaPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="w-8 h-8 rounded-xl bg-secondary-container/15 flex items-center justify-center">
-                <span className="material-symbols-outlined text-secondary text-[18px]">today</span>
+                <Icon name="today" className="text-secondary text-[18px]" />
               </span>
               <div className="flex flex-col">
                 <span className="font-headline-sm text-headline-sm text-on-surface">Informasi Hari Ini</span>
                 <span className="font-label-sm text-label-sm text-on-surface-variant">
-                  {hariPendekISO(isoHariIni(jam))} Â· {tanggalPendek(jam)}
+                  {hariPendekISO(isoHariIni(jam))} · {tanggalPendek(jam)}
                 </span>
               </div>
             </div>
             <span className={`px-3 py-1 rounded-full font-label-md text-label-md flex items-center gap-1 ${badgeMasuk.kelas}`}>
-              <span className="material-symbols-outlined text-[14px]">{badgeMasuk.ikon}</span>
+              <Icon name={badgeMasuk.ikon} className="text-[14px]" />
               {badgeMasuk.label}
             </span>
           </div>
@@ -239,13 +240,13 @@ function MobileBerandaPage() {
           <div className="flex items-center justify-between pb-3 border-b border-surface-container">
             <div className="flex items-center gap-2">
               <span className="w-8 h-8 rounded-xl bg-primary-container flex items-center justify-center">
-                <span className="material-symbols-outlined text-on-primary text-[18px]">summarize</span>
+                <Icon name="summarize" className="text-on-primary text-[18px]" />
               </span>
               <span className="font-headline-sm text-headline-sm text-on-surface">Ringkasan Presensi</span>
             </div>
             <Link to="/mobile/riwayat" className="font-label-sm text-label-sm text-secondary flex items-center gap-0.5">
               Riwayat
-              <span className="material-symbols-outlined text-[14px]">chevron_right</span>
+              <Icon name="chevron_right" className="text-[14px]" />
             </Link>
           </div>
 
@@ -257,9 +258,7 @@ function MobileBerandaPage() {
               </span>
             </div>
             <span className={`px-3 py-1 rounded-full font-label-md text-label-md flex items-center gap-1 ${badgeMasuk.kelas}`}>
-              <span className="material-symbols-outlined text-[14px]">
-                {presensi.sudahMasuk ? (presensi.late > 0 ? 'schedule' : 'task_alt') : 'hourglass_empty'}
-              </span>
+              <Icon name={presensi.sudahMasuk ? (presensi.late > 0 ? 'schedule' : 'task_alt') : 'hourglass_empty'} className="text-[14px]" />
               {presensi.sudahMasuk ? (presensi.late > 0 ? 'Terlambat' : 'Tepat Waktu') : badgeMasuk.label}
             </span>
           </div>
@@ -267,7 +266,7 @@ function MobileBerandaPage() {
           <div className="grid grid-cols-2 gap-2">
             <div className="rounded-2xl bg-surface-container-low p-3 flex flex-col gap-1">
               <span className="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1">
-                <span className="material-symbols-outlined text-[14px]">login</span>
+                <Icon name="login" className="text-[14px]" />
                 Jam Masuk
               </span>
               <span className="font-display-lg-mobile text-[22px] leading-none font-bold text-on-surface tabular-nums">
@@ -279,7 +278,7 @@ function MobileBerandaPage() {
             </div>
             <div className="rounded-2xl bg-surface-container-low p-3 flex flex-col gap-1">
               <span className="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1">
-                <span className="material-symbols-outlined text-[14px]">logout</span>
+                <Icon name="logout" className="text-[14px]" />
                 Jam Pulang
               </span>
               <span className="font-display-lg-mobile text-[22px] leading-none font-bold text-on-surface tabular-nums">
@@ -293,7 +292,7 @@ function MobileBerandaPage() {
 
           <div className="mt-2 flex items-center justify-between gap-2 px-3 py-2 rounded-2xl bg-surface-container-low">
             <span className="flex items-center gap-1.5 font-label-sm text-label-sm text-on-surface-variant">
-              <span className="material-symbols-outlined text-[14px]">{badgePulang.ikon}</span>
+              <Icon name={badgePulang.ikon} className="text-[14px]" />
               {presensi.sudahPulang ? 'Absen pulang tercatat' : `Pulang dibuka ${rules.jamPulang} ${zonaWaktu}`}
             </span>
             <span className={`px-2.5 py-0.5 rounded-full font-label-sm text-label-sm ${badgePulang.kelas}`}>
@@ -319,15 +318,9 @@ function MobileBerandaPage() {
               >
                 <div className="flex items-center justify-between">
                   <span className={`w-9 h-9 rounded-xl flex items-center justify-center ${item.kartu}`}>
-                    <span className="material-symbols-outlined text-[20px]">{item.ikon}</span>
+                    <Icon name={item.ikon} className="text-[20px]" />
                   </span>
-                  <span
-                    className={`material-symbols-outlined text-[18px] ${
-                      item.utama ? 'text-white/60' : 'text-outline'
-                    }`}
-                  >
-                    chevron_right
-                  </span>
+                  <Icon name="chevron_right" className={`text-[18px]`} />
                 </div>
                 <span
                   className={`font-body-md-medium text-body-md-medium leading-tight ${

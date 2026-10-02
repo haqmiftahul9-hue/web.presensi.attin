@@ -1,3 +1,4 @@
+import Icon from '../../components/Icon.jsx'
 ﻿import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
@@ -109,7 +110,7 @@ function MobileSlipPage() {
           <div className="flex items-center justify-between gap-2 pb-3 border-b border-surface-container">
             <div className="flex items-center gap-2">
               <span className="w-9 h-9 rounded-xl bg-primary-container flex items-center justify-center">
-                <span className="material-symbols-outlined text-on-primary text-[20px]">fingerprint</span>
+                <Icon name="fingerprint" className="text-on-primary text-[20px]" />
               </span>
               <div className="flex flex-col">
                 <span className="font-headline-sm text-headline-sm text-on-surface">SimPres Kepegawaian</span>
@@ -219,7 +220,7 @@ function MobileSlipPage() {
             onClick={() => window.print()}
             className="flex-1 py-3 rounded-2xl bg-primary-container text-on-primary font-label-md text-label-md flex items-center justify-center gap-2 active:scale-[0.99] transition-transform"
           >
-            <span className="material-symbols-outlined text-[18px]">print</span>
+            <Icon name="print" className="text-[18px]" />
             Cetak Slip
           </button>
           <button
@@ -227,7 +228,7 @@ function MobileSlipPage() {
             onClick={() => navigate('/mobile/riwayat')}
             className="flex-1 py-3 rounded-2xl bg-surface-container-low text-on-surface font-label-md text-label-md flex items-center justify-center gap-2 active:scale-[0.99] transition-transform"
           >
-            <span className="material-symbols-outlined text-[18px]">calendar_month</span>
+            <Icon name="calendar_month" className="text-[18px]" />
             Riwayat
           </button>
         </div>

@@ -1,3 +1,4 @@
+import Icon from '../../components/Icon.jsx'
 ﻿import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useSimPres, selectSelfPresensi, selectUnitById, initialsOf } from '../../store/simPresStore.jsx'
@@ -43,7 +44,7 @@ function PresensiHariIniCard({ presensi, zonaWaktu, tanggal }) {
         )}
       </div>
       <span className={`px-3 py-1 rounded-full font-label-md text-label-md flex items-center gap-1 ${badgeClass}`}>
-        <span className="material-symbols-outlined text-[14px]">{badgeIcon}</span>
+        <Icon name={badgeIcon} className="text-[14px]" />
         <span>{badgeLabel}</span>
       </span>
     </div>
@@ -53,7 +54,7 @@ function PresensiHariIniCard({ presensi, zonaWaktu, tanggal }) {
     <section className="sp-card p-4 flex flex-col gap-3">
       <div className="flex items-center justify-between pb-2 border-b border-surface-container">
         <div className="flex items-center gap-2">
-          <span className="material-symbols-outlined text-secondary text-[20px]">history_toggle_off</span>
+          <Icon name="history_toggle_off" className="text-secondary text-[20px]" />
           <span className="font-headline-sm text-headline-sm text-on-surface">Presensi Hari Ini</span>
         </div>
         <span className="font-label-sm text-label-sm text-on-surface-variant">{tanggalPendek(tanggal)}</span>
@@ -78,7 +79,7 @@ function PresensiHariIniCard({ presensi, zonaWaktu, tanggal }) {
       )}
 
       <div className="p-2.5 rounded-xl bg-surface-container-low flex items-start gap-2 text-on-surface-variant">
-        <span className="material-symbols-outlined text-[17px] text-amber-600 shrink-0 mt-0.5">info</span>
+        <Icon name="info" className="text-[17px] text-amber-600 shrink-0 mt-0.5" />
         <div className="flex flex-col">
           <span className="font-body-sm-medium text-body-sm-medium text-on-surface">
             Batas toleransi masuk: {batasMasuk} {zonaWaktu}
@@ -416,22 +417,22 @@ function MobilePresensiPage() {
             </span>
           </div>
           <span className="px-2.5 py-1 rounded-full bg-white/10 text-white/90 border border-white/10 font-label-sm text-label-sm flex items-center gap-1 shrink-0">
-            <span className="material-symbols-outlined text-[14px]">badge</span>
+            <Icon name="badge" className="text-[14px]" />
             ID {staff.niy}
           </span>
         </div>
 
         <div className="relative z-10 mt-3 flex flex-wrap items-center gap-1.5">
           <span className="px-2.5 py-1 rounded-full bg-white/10 border border-white/10 font-label-sm text-label-sm text-white/90 flex items-center gap-1 max-w-full">
-            <span className="material-symbols-outlined text-[14px]">domain</span>
+            <Icon name="domain" className="text-[14px]" />
             <span className="truncate">{unit?.nama || '-'}</span>
           </span>
           <span className="px-2.5 py-1 rounded-full bg-white/10 border border-white/10 font-label-sm text-label-sm text-white/90 flex items-center gap-1">
-            <span className="material-symbols-outlined text-[14px]">work</span>
+            <Icon name="work" className="text-[14px]" />
             {staff.role}
           </span>
           <span className="px-2.5 py-1 rounded-full bg-white/10 border border-white/10 font-label-sm text-label-sm text-white/90 flex items-center gap-1">
-            <span className="material-symbols-outlined text-[14px] text-blue-300">schedule</span>
+            <Icon name="schedule" className="text-[14px] text-blue-300" />
             {namaShift(rules.jamMasuk)} ({rules.jamMasuk} - {rules.jamPulang})
           </span>
         </div>
@@ -452,9 +453,7 @@ function MobilePresensiPage() {
                 : 'bg-white/10 border-white/10 text-white/90'
             }`}
           >
-            <span className="material-symbols-outlined text-[15px]">
-              {presensi.sudahMasuk ? (presensi.late > 0 ? 'schedule' : 'task_alt') : 'hourglass_empty'}
-            </span>
+            <Icon name={presensi.sudahMasuk ? (presensi.late > 0 ? 'schedule' : 'task_alt') : 'hourglass_empty'} className="text-[15px]" />
             {presensi.sudahMasuk ? presensi.statusMasuk : `Batas ${presensi.batasMasuk}`}
           </span>
         </div>
@@ -486,7 +485,7 @@ function MobilePresensiPage() {
                   : 'bg-transparent text-on-surface-variant'
               }`}
             >
-              <span className="material-symbols-outlined text-[18px]">{tab.icon}</span>
+              <Icon name={tab.icon} className="text-[18px]" />
               <span>{tab.label}</span>
             </button>
           ))}
@@ -555,7 +554,7 @@ function MobilePresensiPage() {
 
         {mode === 'barcode' && qrMilikOrangLain && (
           <p className="rounded-2xl bg-error-container text-on-error-container px-3 py-2 font-body-sm text-body-sm flex items-start gap-2">
-            <span className="material-symbols-outlined text-[16px] mt-0.5">error</span>
+            <Icon name="error" className="text-[16px] mt-0.5" />
             <span>
               QR yang terbaca ({qrTerbaca}) bukan kartu ID Anda ({CARD_QR_PREFIX}
               {staff.niy}).
@@ -577,9 +576,7 @@ function MobilePresensiPage() {
                   : 'bg-emerald-700 text-white'
             }`}
           >
-            <span className={`material-symbols-outlined text-[20px] ${busy ? 'animate-spin' : ''}`}>
-              {busy ? 'progress_activity' : belumMasuk ? 'check_circle' : belumPulang ? 'logout' : 'task_alt'}
-            </span>
+            <Icon name={busy ? 'progress_activity' : belumMasuk ? 'check_circle' : belumPulang ? 'logout' : 'task_alt'} className={`text-[20px] ${busy ? 'animate-spin' : ''}`} />
             <span>{labelTombol}</span>
           </button>
 

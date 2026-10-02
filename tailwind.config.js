@@ -60,16 +60,19 @@ export default {
       },
       spacing: {
         gutter: "1.5rem",
-        "space-lg": "1.5rem",
+        "space-lg": "var(--sp-space-lg, 1.5rem)",
         margin: "2rem",
         "space-xs": "0.5rem",
         "space-2xs": "0.25rem",
         "margin-mobile": "1rem",
-        "space-xl": "2rem",
+        // Spasi responsif: nilainya pakai CSS variable supaya bisa dikecilkan
+        // otomatis di layar kecil (lihat :root di src/index.css). Nilai
+        // cadangan di dalam var() menjaga tampilan bila variabel tak ada.
+        "space-xl": "var(--sp-space-xl, 2rem)",
         "space-sm": "0.75rem",
         "space-2xl": "3rem",
         "gutter-mobile": "1rem",
-        "space-md": "1rem",
+        "space-md": "var(--sp-space-md, 1rem)",
       },
       fontFamily: {
         "headline-lg-mobile": ["Plus Jakarta Sans"],

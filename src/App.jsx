@@ -1,5 +1,8 @@
+import { useEffect } from 'react'
 import { BrowserRouter, Navigate, Routes, Route } from 'react-router-dom'
-import { useSimPres, selectAppHomePath, selectIsAuthenticated } from './store/simPresStore.jsx'
+import {
+  useSimPres, selectAppHomePath, selectIsAuthenticated, performLogout,
+} from './store/simPresStore.jsx'
 import Layout from './Layout.jsx'
 import DashboardPage from './pages/DashboardPage.jsx'
 import UnitAdminSDPage from './pages/UnitAdminSDPage.jsx'
@@ -20,6 +23,7 @@ import MobileSlipPage from './pages/mobile/MobileSlipPage.jsx'
 import MobileIzinCutiPage from './pages/mobile/MobileIzinCutiPage.jsx'
 import MobileLayout from './components/mobile/MobileLayout.jsx'
 import LoginPage from './pages/LoginPage.jsx'
+import AccessDeniedPage from './pages/AccessDeniedPage.jsx'
 import ProtectedRoute, { GuestOnlyRoute } from './components/ProtectedRoute.jsx'
 
 /**
@@ -31,6 +35,8 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<GuestOnlyRoute><LoginPage /></GuestOnlyRoute>} />
+        {/* Bersihkan sesi lama lalu ke halaman login (bantu untuk pengujian). */}
+        <Route path="/logout" element={<LogoutRoute />} />
 
         {/* ===== APLIKASI MOBILE (Guru/Pegawai) =====
             Berdiri sendiri di luar <Layout> portal: header lengket, bottom
@@ -53,8 +59,18 @@ function App() {
         <Route path="/izin-cuti-saya" element={<Navigate to="/mobile/izin-cuti" replace />} />
         <Route path="/profil-saya" element={<Navigate to="/mobile/profil" replace />} />
 
-        {/* "/" lama -> beranda sesuai role. */}
+        {/*="/" lama -> beranda sesuai role. */}
         <Route path="/" element={<PortalHome />} />
+
+        {/* Alias path lama/typo yang sering diketik. Hasilnya tetap ditentukan
+            role: Guru/Pegawai -> /mobile/home, role portal -> dashboard. */}
+        <Route path="/admin" element={<PortalHome />} />
+        <Route path="/data-guru" element={<PortalHome />} />
+
+        {/* Terminal "akses tidak tersedia". Hanya butuh sesi login, tanpa
+            permission menu — itulah yang membuat alur redirect selalu punya
+            tempat mendarat dan tidak pernah berputar. */}
+        <Route path="/403" element={<ProtectedRoute><AccessDeniedPage /></ProtectedRoute>} />
 
         {/* ===== APLIKASI DESKTOP (Superadmin / Admin Unit / Petugas) =====
             /superadmin hanya Superadmin (dicek ProtectedRoute lewat ROUTE_ROLES),
@@ -86,6 +102,22 @@ function App() {
       </Routes>
     </BrowserRouter>
   )
+}
+
+/**
+ * Membersihkan sesi yang tersimpan di peramban lalu kembali ke halaman login.
+ *
+ * Sesi lama memang sengaja dipakai lagi saat membuka aplikasi (pengguna tidak
+ * perlu login ulang di HP), tapi saat browser dipakai bergantian atau setelah
+ * pengujian, Cache/Storage bisa menahan sesi lama. Rute ini adalah cara resmi
+ * untuk membersihkannya tanpa membuka DevTools.
+ */
+function LogoutRoute() {
+  const { dispatch } = useSimPres()
+  useEffect(() => {
+    performLogout(dispatch)
+  }, [dispatch])
+  return <Navigate to="/login" replace />
 }
 
 /** Beranda portal: Superadmin ke /superadmin, role unit lain ke /dashboard. */

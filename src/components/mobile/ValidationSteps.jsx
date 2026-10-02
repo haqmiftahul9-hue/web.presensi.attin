@@ -1,3 +1,4 @@
+import Icon from '../Icon.jsx'
 const STATUS_STYLE = {
   menunggu: { icon: 'radio_button_unchecked', badge: 'bg-surface-container text-on-surface-variant', label: 'Menunggu' },
   berjalan: { icon: 'progress_activity', badge: 'bg-secondary-container/15 text-secondary', label: 'Memeriksa' },
@@ -36,11 +37,7 @@ function ValidationSteps({ langkah, statusPenutup, pesanPenutup }) {
               <span
                 className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${gaya.badge}`}
               >
-                <span
-                  className={`material-symbols-outlined text-[16px] ${item.status === 'berjalan' ? 'animate-spin' : ''}`}
-                >
-                  {gaya.icon}
-                </span>
+                <Icon name={gaya.icon} className={`text-[16px] ${item.status === 'berjalan' ? 'animate-spin' : ''}`} />
               </span>
               <div className="flex flex-col min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-2">
@@ -68,9 +65,7 @@ function ValidationSteps({ langkah, statusPenutup, pesanPenutup }) {
                 : 'bg-surface-container-low text-on-surface-variant'
           }`}
         >
-          <span className="material-symbols-outlined text-[16px] shrink-0 mt-0.5">
-            {statusPenutup === 'gagal' ? 'error' : statusPenutup === 'berhasil' ? 'task_alt' : 'info'}
-          </span>
+          <Icon name={statusPenutup === 'gagal' ? 'error' : statusPenutup === 'berhasil' ? 'task_alt' : 'info'} className="text-[16px] shrink-0 mt-0.5" />
           <span>{pesanPenutup}</span>
         </p>
       )}

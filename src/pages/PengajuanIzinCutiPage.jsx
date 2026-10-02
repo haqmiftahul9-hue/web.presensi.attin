@@ -526,7 +526,7 @@ function PengajuanIzinCutiPage() {
         </div>
 
         <div className="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
+          <div className="sp-table-wrap">
             <table className="w-full text-left table-fixed">
               <thead className="bg-surface-container-low">
                 <tr>

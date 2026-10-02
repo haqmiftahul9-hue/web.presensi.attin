@@ -1,3 +1,4 @@
+import Icon from '../Icon.jsx'
 // Sudut penempatan titik pengguna pada radar. 135° (kiri bawah) supaya titik
 // lokasi di tengah dan titik pengguna tidak pernah bertumpuk.
 const SUDUT_RADAR = (135 * Math.PI) / 180
@@ -45,9 +46,7 @@ function GeofenceCard({ geofence, namaTitik, koordinatTeks }) {
           </span>
         </div>
         <span className="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-0.5">
-          <span className={`material-symbols-outlined text-[14px] ${aktif ? 'text-emerald-600' : 'text-error'}`}>
-            {membaca ? 'gps_fixed' : 'my_location'}
-          </span>
+          <Icon name={membaca ? 'gps_fixed' : 'my_location'} className={`text-[14px] ${aktif ? 'text-emerald-600' : 'text-error'}`} />
           {sumber === 'gps' ? `GPS ±${akurasi ?? '-'} m` : 'GPS nonaktif'}
         </span>
       </div>
@@ -77,7 +76,7 @@ function GeofenceCard({ geofence, namaTitik, koordinatTeks }) {
             />
           </div>
           <div className="flex items-center gap-1.5 text-on-surface-variant">
-            <span className="material-symbols-outlined text-[16px] text-secondary">location_on</span>
+            <Icon name="location_on" className="text-[16px] text-secondary" />
             <span className="font-body-sm text-body-sm text-on-surface font-medium truncate">{namaTitik}</span>
           </div>
         </div>
@@ -95,7 +94,7 @@ function GeofenceCard({ geofence, namaTitik, koordinatTeks }) {
 
       {errorGps && sumber === 'simulasi' && (
         <p className="font-label-sm text-label-sm text-amber-700 flex items-start gap-1.5">
-          <span className="material-symbols-outlined text-[14px] shrink-0 mt-px">gps_off</span>
+          <Icon name="gps_off" className="text-[14px] shrink-0 mt-px" />
           <span>{errorGps} — jarak dihitung dari simulasi.</span>
         </p>
       )}

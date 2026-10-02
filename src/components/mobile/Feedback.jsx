@@ -1,3 +1,4 @@
+import Icon from '../Icon.jsx'
 // Status tampilan bersama untuk modul mobile: memuat, kosong, dan gagal.
 // Semuanya berupa kartu penuh dengan aksi pemulihan, supaya tidak pernah ada
 // halaman yang hanya menampilkan teks kecil atau layar putih kosong.
@@ -5,13 +6,12 @@
 /** Indikator kerja kecil untuk dipakai di dalam kartu atau tombol. */
 function Spinner({ className = 'w-4 h-4' }) {
   return (
-    <span
-      className={`material-symbols-outlined ${className} animate-spin`}
+    <Icon
+      name="progress_activity"
       role="progressbar"
       aria-label="Sedang memproses"
-    >
-      progress_activity
-    </span>
+      className={`${className} animate-spin`}
+    />
   )
 }
 
@@ -51,7 +51,7 @@ function EmptyState({ ikon = 'inbox', judul, detail, aksi }) {
   return (
     <div className="sp-card p-6 flex flex-col items-center text-center gap-1.5">
       <span className="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center">
-        <span className="material-symbols-outlined text-[24px] text-on-surface-variant">{ikon}</span>
+        <Icon name={ikon} className="text-[24px] text-on-surface-variant" />
       </span>
       <span className="font-body-md-medium text-body-md-medium text-on-surface">{judul}</span>
       {detail && <span className="font-body-sm text-body-sm text-on-surface-variant">{detail}</span>}
@@ -65,7 +65,7 @@ function ErrorState({ ikon = 'error_outline', judul = 'Terjadi kesalahan', detai
   return (
     <div className="sp-card p-5 flex flex-col items-center text-center gap-2 border-error/30">
       <span className="w-12 h-12 rounded-full bg-error-container flex items-center justify-center">
-        <span className="material-symbols-outlined text-[24px] text-on-error-container">{ikon}</span>
+        <Icon name={ikon} className="text-[24px] text-on-error-container" />
       </span>
       <span className="font-body-md-medium text-body-md-medium text-on-surface">{judul}</span>
       {detail && <span className="font-body-sm text-body-sm text-on-surface-variant">{detail}</span>}
@@ -75,7 +75,7 @@ function ErrorState({ ikon = 'error_outline', judul = 'Terjadi kesalahan', detai
           onClick={onCoba}
           className="sp-press mt-1 px-4 py-2.5 rounded-xl bg-primary-container text-on-primary font-label-md text-label-md flex items-center justify-center gap-1.5"
         >
-          <span className="material-symbols-outlined text-[16px]">refresh</span>
+          <Icon name="refresh" className="text-[16px]" />
           Coba lagi
         </button>
       )}

@@ -30,6 +30,7 @@ export const MOBILE_MENU_OPTIONS = [
 
 export const PERMISSION_MATRIX = {
   Superadmin: {
+    aksesDeny: ['view'],
     dashboard: ['view', 'add', 'edit', 'delete'],
     manajemenUnit: ['view', 'add', 'edit', 'delete'],
     manajemenAdminUser: ['view', 'add', 'edit', 'delete'],
@@ -43,6 +44,7 @@ export const PERMISSION_MATRIX = {
     pengaturanGlobal: ['view', 'add', 'edit', 'delete'],
   },
   'Admin Unit': {
+    aksesDeny: ['view'],
     dashboard: ['view'],
     manajemenUnit: [],
     manajemenAdminUser: [],
@@ -58,6 +60,7 @@ export const PERMISSION_MATRIX = {
     pengaturanGlobal: [],
   },
   Guru: {
+    aksesDeny: ['view'],
     // Hanya lima halaman mobile. Menu portal sengaja kosong: meski secara
     // teknis masih 'view', role mobile tidak pernah bisa mencapainya karena
     // canAccessPath() menolak path di luar /mobile/*.
@@ -80,6 +83,7 @@ export const PERMISSION_MATRIX = {
     pengaturanGlobal: [],
   },
   'Petugas Presensi': {
+    aksesDeny: ['view'],
     dashboard: ['view'],
     manajemenUnit: [],
     manajemenAdminUser: [],
@@ -189,8 +193,11 @@ export function buildUserAccount(staff, { credentials = null, role, password } =
     // Status akun mengikuti keaktifan pegawai: pegawai Nonaktif tidak login.
     status: staff.status === 'Aktif' ? 'Aktif' : 'Nonaktif',
     isStaffAccount: true,
-    // Akun baru (atau yang belum pernah mengganti sandi) wajib ganti password.
-    mustChangePassword: credentials ? Boolean(credentials.mustChangePassword) : true,
+    //Akun pegawai TIDAK dipaksa mengganti kata sandi saat login pertama: guru
+// dan pegawai harus bisa langsung masuk ke aplikasi mobile setelah
+// kata sandi awal dipakai. Aturan wajib-ganti tetap berlaku untuk akun portal
+// (Superadmin/Admin Unit/Petugas) yang dibuat lewat Manajemen Admin & User.
+mustChangePassword: credentials ? Boolean(credentials.mustChangePassword) : false,
   }
 }
 
@@ -251,12 +258,14 @@ export const ROLE_APP_MODE = {
 }
 
 // Halaman tujuan setelah login untuk tiap role (lihat ROLE_HOME_CANDIDATES
-// untuk daftar cadangan ketika menu utama tidak berwenang).
+// untuk daftar cadangan ketika menu utama tidak berwenang). Superadmin,
+// Admin Unit, dan Petugas semuanya masuk ke dashboard desktop; Guru/Pegawai
+// masuk ke aplikasi mobile.
 export const ROLE_HOME_PATH = {
-  [ROLE_SUPERADMIN]: '/superadmin',
+  [ROLE_SUPERADMIN]: '/dashboard',
   [ROLE_ADMIN_UNIT]: '/dashboard',
   [ROLE_PETUGAS_PRESENSI]: '/dashboard',
-  [ROLE_GURU]: '/mobile/home',
+  [ROLE_GURU_PEGAWAI]: '/mobile/home',
 }
 
 // Peta path -> menu key. Dipakai bersama oleh guard rute dan penentuan
@@ -269,6 +278,9 @@ export const ROUTE_MENU_KEYS = {
   '/mobile/slip': 'slipMobile',
   '/mobile/izin-cuti': 'izinCutiMobile',
   '/mobile/profil': 'profilMobile',
+  // Halaman terminal "akses tidak tersedia". Setiap role punya izin 'view',
+  // supaya tujuan redirect selalu punya tempat mendarat yang tidak ditolak.
+  '/403': 'aksesDeny',
   // Dashboard desktop, dipisah per mode peran.
   '/superadmin': 'dashboard',
   '/dashboard': 'dashboard',
@@ -318,7 +330,9 @@ export function appModeOfRole(role) {
 // (lihat PERMISSION_MATRIX), jadi role tanpa akses dashboard tidak pernah
 // terjebak redirect berulang.
 export const ROLE_HOME_CANDIDATES = {
-  [ROLE_SUPERADMIN]: ['/superadmin', '/manajemen-admin-user', '/unit-sd-islam-rj', '/data-guru-dan-pegawai', '/cetak-kartu-id', '/presensi', '/rekap-dan-laporan', '/pengaturan-global', '/log-aktivitas'],
+  // Superadmin tetap memakai dashboard desktop; '/superadmin' dipertahankan
+  // sebagai halaman khusus Superadmin (bookmark lama) dan kandidat cadangan.
+  [ROLE_SUPERADMIN]: ['/dashboard', '/superadmin', '/manajemen-admin-user', '/unit-sd-islam-rj', '/data-guru-dan-pegawai', '/cetak-kartu-id', '/presensi', '/rekap-dan-laporan', '/pengaturan-global', '/log-aktivitas'],
   [ROLE_ADMIN_UNIT]: ['/dashboard', '/data-guru-dan-pegawai', '/cetak-kartu-id', '/presensi', '/pengajuan-izin-dan-cuti', '/rekap-dan-laporan', '/ranking-kehadiran', '/log-aktivitas'],
   // Guru/Pegawai hanya membuka aplikasi mobile; kandidat portal yang tersisa
   // dipakai hanya bila someday modul mobile ditutup untuk sebagian akun.
@@ -879,6 +893,13 @@ logs: [
       // ganti kata sandi dibuka, apa pun yang dikirim komponen.
       if (!selectCanChangeOwnPassword(state)) return state
       return { ...state, passwordChangeRequested: true }
+    case 'CANCEL_PASSWORD_CHANGE':
+      // Menutup modal yang dibuka atas permintaan sendiri (tombol "Ubah
+      // password"). Akun yang WAJIB mengganti sandi tidak bisa keluar dari
+      // sini lewat jalur mana pun — itu sebabnya reducer ini menolak.
+      if (!selectCanChangeOwnPassword(state)) return state
+      if (Boolean(state.currentUser?.mustChangePassword)) return state
+      return { ...state, passwordChangeRequested: false }
     case 'CHANGE_PASSWORD': {
       // Lapis reducer kedua: percobaan mengganti kata sandi oleh role yang
       // dilarang (Superadmin) diabaikan, bukan sekadar ditolak formnya.
@@ -1028,7 +1049,10 @@ function buildStaffAccount(state, staff) {
     status: staff.status,
     isStaffAccount: true,
     password: userAccount?.password || initialStaffPassword(),
-    mustChangePassword: userAccount ? Boolean(userAccount.mustChangePassword) : true,
+    // Sama seperti buildUserAccount: akun pegawai tidak ber-wajibGantiSandi.
+// Fallback tanpa baris akun juga mengikuti aturan yang sama agar tidak ada
+// pegawai yang tiba-tiba terkunci di halaman ganti sandi.
+mustChangePassword: userAccount ? Boolean(userAccount.mustChangePassword) : false,
   }
   return userAccount ? dasar : { ...dasar, accountMissing: true }
 }
@@ -1051,7 +1075,11 @@ export function roleCanViewMenu(state, role, menuKey) {
  */
 export function canAccessPath(state, role, path) {
   if (!roleBolehPath(path, role)) return false
-  if (appModeOfRole(role) === MODE_MOBILE && !String(path || '').startsWith('/mobile')) return false
+  // Halaman terminal /403 bukan bagian dari aplikasi mobile maupun desktop,
+  // jadi dikecualikan dari aturan mode — itulah yang membuatnya bisa menjadi
+  // tempat mendarat untuk role dari kedua mode.
+  const terminal = path === ACCESS_DENIED_PATH
+  if (!terminal && appModeOfRole(role) === MODE_MOBILE && !String(path || '').startsWith('/mobile')) return false
   const menuKey = ROUTE_MENU_KEYS[path]
   if (!menuKey) return false
   return roleCanViewMenu(state, role, menuKey)
@@ -1068,6 +1096,11 @@ export function selectAppHomePath(state) {
   return ROLE_HOME_PATH[role] || ROLE_HOME_PATH[ROLE_ADMIN_UNIT]
 }
 
+// Halaman terminal saat tak ada halaman yang boleh dibuka role ini (mis.
+// permission-nya dikosongkan dari Pengaturan). Selalu boleh dibuka, sehingga
+// guard tidak pernah mengarahkan ke path yang juga ditolak (risiko loop).
+export const ACCESS_DENIED_PATH = '/403'
+
 // Halaman tujuan setelah login: kembali ke URL yang tadi dicoba kalau role
 // memang berwenang, kalau tidak ke beranda role tersebut.
 export function resolvePostLoginPath(state, user, requestedPath) {
@@ -1076,10 +1109,10 @@ export function resolvePostLoginPath(state, user, requestedPath) {
   if (requestedPath && allowed(requestedPath)) return requestedPath
   const candidates = ROLE_HOME_CANDIDATES[role] || []
   const lolos = candidates.find(allowed)
+  // Beranda role tetap dipakai kalau kebetulan boleh dibuka; kalau tidak, jatuh
+  // ke halaman akses-terbuka — bukan ke path yang akan ditolak lagi.
   if (lolos) return lolos
-  // Tanpa kandidat yang lolos (mis. permission berubah), tetap kirim ke beranda
-  // role — pagarnya tetap menolak, jadi bukan celah akses.
-  return ROLE_HOME_PATH[role] || '/login'
+  return allowed(ROLE_HOME_PATH[role]) ? ROLE_HOME_PATH[role] : ACCESS_DENIED_PATH
 }
 
 /**
@@ -2491,14 +2524,25 @@ export function selectCanChangeOwnPassword(state) {
   return ROLES_CAN_CHANGE_PASSWORD.includes(selectCurrentUserRole(state))
 }
 
-// Guru/Pegawai wajib mengganti kata sandi sebelum boleh memakai sistem: bisa
-// karena akunnya ditandai (akun bawaan/reset admin) atau karena ia sendiri
-// yang meminta lewat menu "Ganti Password". Akun Superadmin dikecualikan
-// (lihat selectCanChangeOwnPassword) sehingga tidak pernah ikut terkunci.
+/**
+ * Apakah gerbang ganti kata sandi harus dibuka.
+ *
+ * Dua sumber:
+ *  - `currentUser.mustChangePassword` (akun ditandai wajib ganti), dan
+ *  - `passwordChangeRequested` (pengguna sendiri menekan "Ganti Password").
+ *
+ * Role mobile (Guru/Pegawai) TIDAK lagi dipaksa: setelah login langsung masuk
+ * aplikasi mobile. Form tetap bisa dibuka secara sadar lewat menu
+ * "Ubah password" di Profil, sehingga tidak ada fitur yang hilang.
+ * Akun Superadmin dikecualikan (lihat selectCanChangeOwnPassword) sehingga tidak
+ * pernah ikut terkunci.
+ */
 export function selectMustChangePassword(state) {
   if (!selectIsAuthenticated(state)) return false
   if (!selectCanChangeOwnPassword(state)) return false
-  return Boolean(state.currentUser?.mustChangePassword) || Boolean(state.passwordChangeRequested)
+  const dipaksa = appModeOfRole(selectCurrentUserRole(state)) !== MODE_MOBILE
+    && Boolean(state.currentUser?.mustChangePassword)
+  return dipaksa || Boolean(state.passwordChangeRequested)
 }
 
 // Id pegawai yang melekat pada akun ini. Akun portal bisa terikat lewat NIY

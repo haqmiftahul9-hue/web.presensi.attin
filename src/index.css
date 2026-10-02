@@ -2,17 +2,131 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ============================================================================
+   MODEL SCROLL — satu-satu untuk seluruh aplikasi
+   ----------------------------------------------------------------------------
+   Aturan ini dulu يمنع halaman bergulir: `overscroll-behavior: none` pada body
+   plus `overflow-x: hidden` (yang otomatis menjadikan sumbu Y = auto) pada
+   akar modul mobile. Di HP hasilnya halaman terasa terkunci.
+
+   Sekarang:
+   - dokumen (html/body) yang menjadi tempat menggulir, tinggi mengikuti isi;
+   - sumbu Y selalu `visible`/`auto` — tidak ada kontainer dengan tinggi tetap;
+   - `overflow-x: clip` dipakai untuk menahan luapan horizontal TANPA membuat
+     kontainer scroll baru (beda dengan `overflow-x: hidden`).
+   ============================================================================ */
+html {
+  height: auto;
+  min-height: 100dvh;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  height: auto;
+  min-height: 100dvh;
+  overflow-y: auto;
+  overscroll-behavior-y: auto;
+  -webkit-tap-highlight-color: transparent;
+}
+
 ::-webkit-scrollbar {
   display: none;
 }
 
-html, body {
-  margin: 0;
-  padding: 0;
+/* ============================================================================
+   FONT — semuanya di-host sendiri
+   ----------------------------------------------------------------------------
+   Tidak ada lagi permintaan ke CDN font mana pun: bila HP sedang offline,
+   aplikasi tetap tampil dengan font yang sama.
+   ============================================================================ */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/Inter-400.woff2') format('woff2');
 }
 
-body {
-  overscroll-behavior: none;
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/fonts/Inter-500.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/Inter-600.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/Inter-700.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/PlusJakartaSans-600.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/PlusJakartaSans-700.woff2') format('woff2');
+}
+
+/* ============================================================================
+   MATERIAL SYMBOLS — hanya untuk halaman portal
+   ----------------------------------------------------------------------------
+   Modul mobile sudah memakai ikon SVG (src/components/Icon.jsx) sehingga tidak
+   bergantung pada font sama sekali. Font ini masih dipakai oleh halaman
+   portal, dan karena dilayani lokal, nama ikon tidak akan bocor jadi teks.
+
+   Jaring pengaman terakhir: bila font ini gagal dimuat, class .sp-no-symbols
+   disembunyikan oleh pemeriksa di src/main.jsx — ikon portal jadi kosong, bukan
+   menampilkan tulisan seperti "face_retouch_natural". */
+@font-face {
+  font-family: 'Material Symbols Outlined';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url('/fonts/material-symbols-outlined.woff2') format('woff2');
+}
+
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: 'liga';
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+/* Font ikon gagal dimuat -> jangan pernah tampilkan nama ligature sebagai teks. */
+.sp-no-symbols .material-symbols-outlined {
+  visibility: hidden;
 }
 
 /* Halaman mobile (mis. Presensi Saya) menyisakan ruang untuk notch dan
@@ -66,18 +180,24 @@ main > :last-child {
    portal. */
 .sp-mobile-root {
   background:
-    radial-gradient(1200px 600px at 50% -10%, #eef2f8 0%, #e6e9ef 55%, #dfe3ea 100%);
-  /* Tidak ada scroll horizontal: satu-satunya gesekan mendatar yang diizinkan
-     adalah deretan chip filter, yang memakai overflow-x sendiri. */
-  overflow-x: hidden;
+    radial-gradient(1200px 600px at 50% -10%, #eef2f8 0%, #e6e9ef 55%, #dfe4ee 100%);
+  /* Luapan horizontal dicegah dengan `clip`, bukan `hidden`: `clip` tidak
+     menjadikan elemen ini jadi kontainer scroll, sehingga halaman tetap digulir
+     oleh dokumen dan tidak pernah terasa terkunci di HP. */
+  overflow-x: clip;
+  overflow-y: visible;
   max-width: 100vw;
-  /* Pesan scroll "swipe to refresh" di iOS dimatikan; halaman ini memakai
-     tarikan-refresh milik aplikasi, bukan milik browser. */
-  overscroll-behavior-y: contain;
+  /* Tinggi mengikuti isi — tidak ada tinggi tetap yang menahan halaman. */
+  min-height: 100dvh;
+  height: auto;
+  overscroll-behavior-y: auto;
+  touch-action: auto;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
 }
 
+/* Kolom 390px hanya berlaku di layar yang cukup lebar. Di HP (360-430px) kolom
+   memakai 100% lebar layar supaya tidak ada ruang kosong di kiri/kanan. */
 .sp-mobile-column {
   isolation: isolate;
 }
@@ -227,6 +347,109 @@ main > :last-child {
     margin: 0 !important;
     max-width: none !important;
   }
+}
+
+/* ===== Login mobile (role Guru/Pegawai, perangkat mobile) =====
+
+   Satu kolom penuh setinggi layar, tanpa panel promosi dan tanpa scroll
+   horizontal. Padding aman dipakai agar tidak tertutup notch dan gesture bar. */
+.sp-login-mobile {
+  background:
+    radial-gradient(900px 460px at 50% -8%, #f2f6ff 0%, #e7ecf5 55%, #dfe4ee 100%);
+  /* `clip` menahan luapan horizontal tanpa membuat kontainer scroll baru. */
+  overflow-x: clip;
+  overscroll-behavior-y: auto;
+  min-height: 100dvh;
+  height: auto;
+  touch-action: auto;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.sp-login-mobile input,
+.sp-login-mobile button,
+.sp-login-mobile a {
+  min-height: 44px;
+}
+
+.sp-login-mobile input {
+  font-size: 16px;
+}
+
+/* ===== Mode standalone (aplikasi terpasang) =====
+
+   Tidak ada aturan khusus yang diperlukan di sini: mode standalone memakai
+   dokumen yang sama seperti browser, jadi halaman tetap bisa digulir. Padding aman
+   sudah ditangani oleh .pt-safe/.pb-safe pada header dan bottom navigation. */
+@media (display-mode: standalone) {
+  .sp-mobile-root,
+  .sp-login-mobile {
+    min-height: 100dvh;
+    height: auto;
+    overflow-y: visible;
+  }
+}
+
+.sp-standalone-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* ===== Kerangka portal responsif =====
+
+   Tinggi header portal = 64px + ruang aman Status Bar iOS. Dihitung sekali di
+   sini supaya header, jarak konten, dan kepala tabel lengket memakai angka yang
+   sama — tidak ada lagi perbedaan yang menyebabkan konten tertutup header. */
+:root {
+  --sp-header-h: calc(64px + env(safe-area-inset-top, 0px));
+  --sp-space-lg: 1.5rem;
+  --sp-space-xl: 2rem;
+  --sp-space-md: 1rem;
+}
+
+/* Layar kecil (HP 360-430px): jarak luar halaman dikecilkan supaya konten
+   memakai lebar layar yang tersedia, bukan tenggelam di ruang kosong. Isi dan
+   ukuran teks tidak dikecilkan — halaman hanya jadi lebih panjang dan
+   di-scroll normal. Tablet 768px ke atas tetap memakai nilai desktop. */
+@media (max-width: 767px) {
+  :root {
+    --sp-space-lg: 1rem;
+    --sp-space-xl: 1rem;
+    --sp-space-md: 0.75rem;
+  }
+}
+
+.sp-portal-header {
+  height: var(--sp-header-h);
+}
+
+.sp-portal-main {
+  padding-top: var(--sp-header-h);
+}
+
+/* ===== Tabel portal responsif =====
+
+   Tabel data di portal tidak pernah diperkecil(font-size kecil) supaya muat.
+   Wrapper-nya digeser mendatar di dalam wadahnya sendiri, dan kepala tabel
+   menempel tepat di bawah header portal saat halaman di-scroll. */
+.sp-table-wrap {
+  overflow-x: auto;
+  overflow-y: visible;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+.sp-table-wrap thead th {
+  position: sticky;
+  top: var(--sp-header-h);
+  z-index: 5;
+  background: #f2f4f7;
+}
+
+/* Wrapper tabel punya radius sendiri, jadi area lengketnya ikut dipotong. */
+.sp-table-wrap.is-sticky {
+  border-radius: 0.75rem;
 }
 
 /* ===== Kartu ID Pegawai (PVC CR80 85.60 x 53.98 mm) =====

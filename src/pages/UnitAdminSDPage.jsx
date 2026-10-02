@@ -489,7 +489,7 @@ function UnitAdminSDPage() {
         </div>
 
         <div className="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
+          <div className="sp-table-wrap">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-surface-container-low/70 border-b border-outline/50 text-on-surface-variant font-label-md text-label-md uppercase tracking-wider leading-tight">

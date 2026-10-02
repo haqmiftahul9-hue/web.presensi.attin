@@ -268,12 +268,12 @@ function UserMenu() {
   )
 }
 
-function SidebarNav() {
+function SidebarNav({ open = false, onTutup } = {}) {
   const { state } = useSimPres()
   const currentUser = selectCurrentUser(state)
   const currentRole = selectCurrentUserRole(state)
   // Item beranda memakai path mode milik role: Superadmin -> /superadmin,
-  // Admin Unit & Petugas -> /dashboard._roleMap di bawah tetap untuk tampilan.
+  // Admin Unit & Petugas -> /dashboard. _roleMap di bawah tetap untuk tampilan.
   const berandaPath = selectAppHomePath(state)
   const visibleItems = navItems
     .filter((item) => hasMenuPermission(state, item.menuKey) && (!item.onlyRole || item.onlyRole === currentRole))
@@ -287,19 +287,35 @@ function SidebarNav() {
   const r = roleMap[currentRole] || roleMap.Guru
 
   return (
-    <aside className="fixed left-0 top-0 h-full w-[260px] bg-primary-container z-50 flex flex-col justify-between overflow-y-auto">
-      <div className="flex flex-col">
-        <div className="h-16 px-space-md flex items-center justify-between bg-primary-container">
-          <div className="flex items-center gap-space-xs">
-            <div className="w-9 h-9 rounded-lg bg-secondary flex items-center justify-center">
-              <span className="material-symbols-outlined text-on-secondary text-[20px]">verified</span>
+    <>
+      {/* Layar kecil: drawer. Lebarnya tetap wajar (bukan diperkecil), muncul
+          dari kiri dan menutup lewat tombol X atau lapisan gelap di Layout. */}
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 flex w-[272px] max-w-[86vw] flex-col justify-between overflow-y-auto overscroll-contain bg-primary-container pb-safe shadow-2xl transition-transform duration-300 ease-out lg:w-[260px] lg:max-w-none lg:translate-x-0 lg:shadow-none ${
+          open ? 'translate-x-0' : '-translate-x-full'
+        }`}
+        aria-hidden={!open ? undefined : undefined}
+      >
+        <div className="flex flex-col">
+          <div className="h-16 px-space-md flex items-center justify-between bg-primary-container sticky top-0 z-10 bg-primary-container">
+            <div className="flex items-center gap-space-xs">
+              <div className="w-9 h-9 rounded-lg bg-secondary flex items-center justify-center">
+                <span className="material-symbols-outlined text-on-secondary text-[20px]">verified</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="font-headline-sm text-headline-sm text-on-primary tracking-tight leading-tight">SimPres</span>
+                <span className="font-label-sm text-label-sm text-on-primary-container leading-tight mt-1">Multi-Unit System</span>
+              </div>
             </div>
-            <div className="flex flex-col">
-              <span className="font-headline-sm text-headline-sm text-on-primary tracking-tight leading-tight">SimPres</span>
-              <span className="font-label-sm text-label-sm text-on-primary-container leading-tight mt-1">Multi-Unit System</span>
-            </div>
+            <button
+              type="button"
+              onClick={onTutup}
+              aria-label="Tutup menu"
+              className="lg:hidden w-11 h-11 -mr-2 flex items-center justify-center rounded-lg text-on-primary-container hover:bg-white/10 hover:text-on-primary transition-colors"
+            >
+              <span className="material-symbols-outlined text-[20px]">close</span>
+            </button>
           </div>
-        </div>
         <UnitScopeSelector />
         <div className="px-space-md pt-space-xs pb-space-2xs">
           <span className="font-label-sm text-label-sm text-on-primary-container uppercase tracking-wider">Navigasi Utama</span>
@@ -345,7 +361,8 @@ function SidebarNav() {
           <UserMenu />
         </div>
       </div>
-    </aside>
+      </aside>
+    </>
   )
 }
 

@@ -1,0 +1,71 @@
+{
+  "id": "/mobile/home",
+  "name": "SimPres Kepegawaian",
+  "short_name": "SimPres",
+  "description": "Presensi digital Guru dan Pegawai SimPres: ambil presensi wajah/barcode, riwayat kehadiran, dan pengajuan izin.",
+  "lang": "id",
+  "dir": "ltr",
+  "start_url": "/mobile/home",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui", "browser"],
+  "orientation": "portrait-primary",
+  "theme_color": "#0B1F3D",
+  "background_color": "#F7F9FC",
+  "categories": ["business", "productivity", "education"],
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Ambil Presensi",
+      "short_name": "Presensi",
+      "description": "Buka halaman presensi langsung",
+      "url": "/mobile/presensi",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Riwayat Presensi",
+      "short_name": "Riwayat",
+      "description": "Lihat rekap kehadiran bulanan",
+      "url": "/mobile/riwayat",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Profil Saya",
+      "short_name": "Profil",
+      "description": "Data pegawai dan kartu ID",
+      "url": "/mobile/profil",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ]
+}

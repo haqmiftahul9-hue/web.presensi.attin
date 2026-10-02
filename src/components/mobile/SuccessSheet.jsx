@@ -1,3 +1,4 @@
+import Icon from '../Icon.jsx'
 /**
  * Bottom sheet konfirmasi setelah presensi tersimpan. Muncul sebagai hasil akhir
  * alur tombol presensi: lokasi -> waktu -> biometrik -> simpan. Angka waktu dan
@@ -21,7 +22,7 @@ function SuccessSheet({ terbuka, judul, detail, baris = [], onTutup, onRiwayat }
 
         <div className="flex flex-col items-center text-center gap-2">
           <span className="w-16 h-16 rounded-full bg-emerald-50 border-2 border-emerald-500/30 flex items-center justify-center animate-sp-rise">
-            <span className="material-symbols-outlined text-emerald-600 text-[34px]">task_alt</span>
+            <Icon name="task_alt" className="text-emerald-600 text-[34px]" />
           </span>
           <span className="font-headline-sm text-headline-sm text-on-surface">{judul}</span>
           {detail && <span className="font-body-sm text-body-sm text-on-surface-variant">{detail}</span>}

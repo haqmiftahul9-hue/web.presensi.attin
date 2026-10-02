@@ -1,3 +1,4 @@
+import Icon from '../Icon.jsx'
 import QRCodeSvg from '../cards/QRCodeSvg.jsx'
 
 // Bingkai empat sudut + garis sapuan dipakai kedua mode supaya kesan
@@ -146,7 +147,7 @@ function ScanFrame({
           aria-pressed={facing !== 'user'}
           className="sp-press w-11 h-11 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors"
         >
-          <span className="material-symbols-outlined text-[20px]">cameraswitch</span>
+          <Icon name="cameraswitch" className="text-[20px]" />
         </button>
       </div>
 
@@ -173,7 +174,7 @@ function ScanFrame({
         <div className="mt-3 w-full flex flex-col gap-1.5">
           <div className="flex items-center justify-between">
             <span className="font-label-sm text-label-sm text-secondary flex items-center gap-1">
-              <span className="material-symbols-outlined text-[14px] animate-spin">progress_activity</span>
+              <Icon name="progress_activity" className="text-[14px] animate-spin" />
               {mode === 'barcode' ? 'Membaca QR kartu ID' : 'Mencocokkan biometrik'}
             </span>
             <span className="font-label-sm text-label-sm text-on-surface-variant"> jangan geser halaman</span>
@@ -185,9 +186,7 @@ function ScanFrame({
       )}
 
       <div className="flex items-center gap-1.5 mt-3 text-on-surface-variant font-body-sm text-body-sm">
-        <span className="material-symbols-outlined text-[16px] text-secondary">
-          {mode === 'barcode' ? 'qr_code_scanner' : 'visibility'}
-        </span>
+        <Icon name={mode === 'barcode' ? 'qr_code_scanner' : 'visibility'} className="text-[16px] text-secondary" />
         <span>{hint}</span>
       </div>
 
@@ -199,13 +198,13 @@ function ScanFrame({
         </span>
         {mode === 'barcode' && (
           <span className="px-2.5 py-0.5 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm flex items-center gap-1">
-            <span className="material-symbols-outlined text-[13px]">qr_code_scanner</span>
+            <Icon name="qr_code_scanner" className="text-[13px]" />
             {supportsDetector ? 'Pembaca QR aktif' : 'Pembaca QR simulasi'}
           </span>
         )}
         {mode === 'face' && (
           <span className="px-2.5 py-0.5 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm flex items-center gap-1">
-            <span className="material-symbols-outlined text-[13px]">face</span>
+            <Icon name="face" className="text-[13px]" />
             Face Recognition
           </span>
         )}

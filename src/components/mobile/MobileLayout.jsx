@@ -1,10 +1,12 @@
 import { useEffect } from 'react'
+import Icon from '../Icon.jsx'
 import { NavLink, Outlet, Navigate, useLocation } from 'react-router-dom'
 import {
   useSimPres, selectSelfStaff, selectAppMode, selectAppHomePath, MODE_MOBILE,
 } from '../../store/simPresStore.jsx'
 import StaffAvatar from './StaffAvatar.jsx'
 import MobileErrorBoundary from './MobileErrorBoundary.jsx'
+import InstallPrompt from './InstallPrompt.jsx'
 
 // Bottom navigation modul mobile. Empat menu ini adalah seluruh navigasi
 // role Guru/Pegawai; tidak ada sidebar dan tidak ada tautan ke portal desktop.
@@ -42,12 +44,15 @@ function MobileLayout() {
 
   return (
     <div className="sp-mobile-root min-h-[100dvh] bg-surface text-body-md text-body-md text-on-surface">
-      <div className="sp-mobile-column relative mx-auto min-h-[100dvh] w-full max-w-[390px] bg-surface shadow-[0_24px_60px_-30px_rgba(11,31,61,0.35)]">
-        <header className="sp-mobile-header sp-hide-print fixed top-0 z-50 mx-auto w-full max-w-[390px] bg-surface/85 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] pt-safe">
+      {/* Kolom 390px dipakai di layar yang cukup lebar (desktop/tablet). Di HP
+          kolom ini mengambil 100% lebar layar, jadi tidak ada ruang kosong di
+          kiri dan kanan; konten tetap mengalir dan digulir seperti biasa. */}
+      <div className="sp-mobile-column relative mx-auto min-h-[100dvh] h-auto w-full max-w-[430px] bg-surface shadow-[0_24px_60px_-30px_rgba(11,31,61,0.35)] sm:max-w-[390px]">
+        <header className="sp-mobile-header sp-hide-print fixed top-0 z-50 mx-auto w-full max-w-[430px] bg-surface/85 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] pt-safe sm:max-w-[390px]">
           <div className="h-16 px-2 flex items-center justify-between gap-1">
             <NavLink to="/mobile/home" className="flex items-center gap-2 min-w-0 h-11 px-2 -ml-2 rounded-xl">
               <span className="w-9 h-9 rounded-xl bg-primary-container flex items-center justify-center shrink-0">
-                <span className="material-symbols-outlined text-on-primary text-[20px]">fingerprint</span>
+                <Icon name="fingerprint" className="text-on-primary text-[20px]" />
               </span>
               <span className="flex flex-col min-w-0">
                 <span className="font-headline-sm text-headline-sm text-on-surface leading-tight truncate">SimPres</span>
@@ -61,7 +66,7 @@ function MobileLayout() {
                 aria-label="Notifikasi"
                 className="sp-press relative w-11 h-11 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors"
               >
-                <span className="material-symbols-outlined text-[22px]">notifications</span>
+                <Icon name="notifications" className="text-[22px]" />
                 <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-error ring-2 ring-surface" />
               </button>
               <NavLink
@@ -80,13 +85,19 @@ function MobileLayout() {
           </div>
         </header>
 
-        <main data-mobile-scroll className="w-full pt-16 pb-24 min-h-[100dvh]">
+        <main
+          data-mobile-scroll
+          className="w-full h-auto pt-16 pb-28 min-h-[100dvh]"
+        >
           <MobileErrorBoundary>
             <Outlet />
           </MobileErrorBoundary>
         </main>
 
-        <nav className="sp-mobile-nav sp-hide-print fixed bottom-0 z-50 mx-auto w-full max-w-[390px] bg-surface/95 backdrop-blur-xl shadow-[0_-2px_12px_rgba(11,31,61,0.08)] pb-safe">
+        {/* Bottom navigation tetap menempel di bawah, dan lebar kolomnya ikut
+            aturan layar yang sama dengan konten (100% di HP, 390px di layar
+            lebar) supaya tidak pernah menutupi isi. */}
+        <nav className="sp-mobile-nav sp-hide-print fixed bottom-0 z-50 mx-auto w-full max-w-[430px] bg-surface/95 backdrop-blur-xl shadow-[0_-2px_12px_rgba(11,31,61,0.08)] pb-safe sm:max-w-[390px]">
           <div className="flex items-stretch justify-around h-16 px-1">
             {NAV_ITEMS.map((item) => (
               <NavLink
@@ -107,13 +118,7 @@ function MobileLayout() {
                         isActive ? 'bg-primary-container shadow-sm' : 'bg-transparent'
                       }`}
                     >
-                      <span
-                        className={`material-symbols-outlined text-[20px] ${
-                          isActive ? 'text-on-primary' : 'text-on-surface-variant'
-                        }`}
-                      >
-                        {item.icon}
-                      </span>
+                      <Icon name={item.icon} className={`text-[20px] ${isActive ? 'text-on-primary' : 'text-on-surface-variant'}`} />
                     </span>
                     <span
                       className={`font-label-sm text-label-sm ${
@@ -128,6 +133,10 @@ function MobileLayout() {
             ))}
           </div>
         </nav>
+
+        {/* Ajakan pasang aplikasi. Hanya di modul mobile, jadi dashboard admin
+            tetap web murni. */}
+        <InstallPrompt />
       </div>
     </div>
   )

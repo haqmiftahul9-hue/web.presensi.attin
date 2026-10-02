@@ -12,6 +12,95 @@ import {
   MODE_MOBILE,
   AUTH_ERRORS,
 } from '../store/simPresStore.jsx'
+import { useDeviceProfile } from '../hooks/useDeviceProfile.js'
+// Tampilan mobile memakai ikon SVG bersama (src/components/Icon.jsx), sedangkan
+// tampilan desktop memakai helper Icon/Spinner lokal di bawah. Keduanya sengaja
+// dipisah agar markup desktop tidak berubah.
+import IconMobile from '../components/Icon.jsx'
+import { Spinner as SpinnerMobile } from '../components/mobile/Feedback.jsx'
+
+/**
+ * Logika form login, dipakai bersama oleh tampilan desktop dan mobile.
+ * Dipisah dari tampilan supaya kedua variant dijamin memakai alur autentikasi
+ * yang sama persis — hanya tampilannya yang berbeda.
+ */
+function useLoginController() {
+  const { state, dispatch } = useSimPres()
+  const navigate = useNavigate()
+  const location = useLocation()
+
+  const isAuthenticating = selectIsAuthenticating(state)
+  const authError = selectAuthError(state)
+  // Kode penyebab kegagalan (lihat authenticateCredentials) ditampilkan di bawah
+  // pesan, supaya pengguna tahu apakah masalahnya akun, sandi, role, atau unit.
+  const authErrorCode = selectAuthErrorCode(state)
+  // Kredensial demo disusun dari auth store (akun seed bertanda demo + satu
+  // contoh pegawai), jadi yang tampil selalu sama dengan yang benar-benar
+  // diterima oleh authenticateCredentials().
+  const demoAccounts = selectDemoLoginAccounts(state)
+
+  const [identifier, setIdentifier] = useState('superadmin')
+  const [password, setPassword] = useState('superadmin1234!')
+  const [showPassword, setShowPassword] = useState(false)
+  const [remember, setRemember] = useState(true)
+  const [fieldErrors, setFieldErrors] = useState({})
+  const [showDemo, setShowDemo] = useState(false)
+
+  const useDemoAccount = (account) => {
+    setIdentifier(account.username)
+    setPassword(account.password)
+    setFieldErrors({})
+  }
+
+  const handleSubmit = async (event) => {
+    event.preventDefault()
+    if (isAuthenticating) return
+
+    const errors = {}
+    if (!identifier.trim()) errors.identifier = AUTH_ERRORS.EMPTY_IDENTIFIER
+    if (!password) errors.password = AUTH_ERRORS.EMPTY_PASSWORD
+    setFieldErrors(errors)
+    if (Object.keys(errors).length > 0) return
+
+    const result = await performLogin({
+      state,
+      dispatch,
+      identifier,
+      password,
+      remember,
+      requestedPath: location.state?.from?.pathname,
+    })
+
+    // result.path sudah dihitung di store berdasarkan role (mobile untuk
+    // Guru/Pegawai, dashboard untuk Superadmin/Admin Unit).
+    if (result.ok) navigate(result.path, { replace: true })
+  }
+
+  const clearFieldError = (field) => {
+    if (fieldErrors[field]) setFieldErrors((prev) => ({ ...prev, [field]: '' }))
+  }
+
+  return {
+    isAuthenticating,
+    authError,
+    authErrorCode,
+    demoAccounts,
+    identifier,
+    setIdentifier,
+    password,
+    setPassword,
+    showPassword,
+    toggleShowPassword: () => setShowPassword((prev) => !prev),
+    remember,
+    setRemember,
+    fieldErrors,
+    showDemo,
+    setShowDemo,
+    useDemoAccount,
+    handleSubmit,
+    clearFieldError,
+  }
+}
 
 // Warna border/ring tiap field disimpan sebagai CSS variable pada wrapper-nya.
 // Karena itu blok focus hanya perlu satu aturan, dan varian error cukup
@@ -292,55 +381,13 @@ function BrandingPanel() {
   )
 }
 
-function LoginPage() {
-  const { state, dispatch } = useSimPres()
-  const navigate = useNavigate()
-  const location = useLocation()
-
-  const isAuthenticating = selectIsAuthenticating(state)
-  const authError = selectAuthError(state)
-  // Kode penyebab kegagalan (lihat authenticateCredentials) ditampilkan di bawah
-  // pesan, supaya pengguna tahu apakah masalahnya akun, sandi, role, atau unit.
-  const authErrorCode = selectAuthErrorCode(state)
-  // Kredensial demo disusun dari auth store (akun seed bertanda demo + satu
-  // contoh pegawai), jadi yang tampil selalu sama dengan yang benar-benar
-  // diterima oleh authenticateCredentials().
-  const demoAccounts = selectDemoLoginAccounts(state)
-
-  const [identifier, setIdentifier] = useState('superadmin')
-  const [password, setPassword] = useState('superadmin1234!')
-  const [showPassword, setShowPassword] = useState(false)
-  const [remember, setRemember] = useState(true)
-  const [fieldErrors, setFieldErrors] = useState({})
-  const [showDemo, setShowDemo] = useState(false)
-
-  const useDemoAccount = (account) => {
-    setIdentifier(account.username)
-    setPassword(account.password)
-    setFieldErrors({})
-  }
-
-  const handleSubmit = async (event) => {
-    event.preventDefault()
-    if (isAuthenticating) return
-
-    const errors = {}
-    if (!identifier.trim()) errors.identifier = AUTH_ERRORS.EMPTY_IDENTIFIER
-    if (!password) errors.password = AUTH_ERRORS.EMPTY_PASSWORD
-    setFieldErrors(errors)
-    if (Object.keys(errors).length > 0) return
-
-    const result = await performLogin({
-      state,
-      dispatch,
-      identifier,
-      password,
-      remember,
-      requestedPath: location.state?.from?.pathname,
-    })
-
-    if (result.ok) navigate(result.path, { replace: true })
-  }
+function DesktopLoginView(props) {
+  const {
+    isAuthenticating, authError, authErrorCode, demoAccounts,
+    identifier, setIdentifier, password, setPassword, showPassword, toggleShowPassword,
+    remember, setRemember, fieldErrors, showDemo, setShowDemo,
+    useDemoAccount, handleSubmit, clearFieldError,
+  } = props
 
   return (
     <div className="sp-motion sp-login-root relative flex min-h-screen flex-col overflow-hidden bg-[#EFF2F8] font-body antialiased selection:bg-[#2563EB] selection:text-white lg:h-screen">
@@ -388,7 +435,7 @@ function LoginPage() {
                       value={identifier}
                       onChange={(e) => {
                         setIdentifier(e.target.value)
-                        if (fieldErrors.identifier) setFieldErrors((prev) => ({ ...prev, identifier: '' }))
+                        clearFieldError('identifier')
                       }}
                       aria-invalid={Boolean(fieldErrors.identifier)}
                       className={`${FIELD_CONTROL} pr-4`}
@@ -421,7 +468,7 @@ function LoginPage() {
                       value={password}
                       onChange={(e) => {
                         setPassword(e.target.value)
-                        if (fieldErrors.password) setFieldErrors((prev) => ({ ...prev, password: '' }))
+                        clearFieldError('password')
                       }}
                       aria-invalid={Boolean(fieldErrors.password)}
                       className={`${FIELD_CONTROL} pr-12`}
@@ -430,7 +477,7 @@ function LoginPage() {
                     />
                     <button
                       type="button"
-                      onClick={() => setShowPassword((prev) => !prev)}
+                      onClick={toggleShowPassword}
                       className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-[#94A3B8] transition-colors duration-200 hover:text-[#0B1B33] focus:outline-none focus-visible:text-[#2563EB] disabled:cursor-not-allowed"
                       aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
                       aria-pressed={showPassword}
@@ -597,6 +644,210 @@ function LoginPage() {
       </main>
     </div>
   )
+}
+
+/**
+ * Tampilan login mobile.
+ *
+ * Dirancang khusus untuk perangkat kecil — bukan login desktop yang
+ * dikecilkan: satu kolom penuh, satu kartu di tengah, tanpa panel promosi,
+ * ilustrasi, daftar akun demo, atau teks panjang. Semua kontrol dibuat untuk
+ * jari (tinggi minimal 48px, font 16px agar iOS tidak memperbesar tampilan),
+ * dan seluruh isinya muat tanpa scroll pada layar 360-430px. Bila keyboard
+ * AndroidkeyboardTn缩小 viewport, `100dvh` ikut menyusut sehingga tombol
+ * Masukan tetap terlihat tanpa perlu menggulir.
+ *
+ * Identitas yang ditampilkan diambil dari data aplikasi
+ * (`settings.namaAplikasi`, `settings.namaYayasan`) — bukan teks yang ditulis
+ * manual di sini.
+ */
+function MobileLoginView(props) {
+  const {
+    isAuthenticating, authError, authErrorCode,
+    identifier, setIdentifier, password, setPassword, showPassword, toggleShowPassword,
+    fieldErrors, handleSubmit, clearFieldError,
+  } = props
+  const { state } = useSimPres()
+  const settings = state.settings
+
+  return (
+    <div className="sp-login-mobile relative min-h-[100dvh] w-full overflow-x-clip bg-primary font-body antialiased">
+      {/* Latar navy -> biru SimPres dengan dua glow beranimasi lembut. */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0B1F3D] via-[#12325F] to-[#1D4ED8]" />
+        <div className="absolute -top-20 -right-16 h-64 w-64 rounded-full bg-secondary/25 blur-3xl animate-sp-glow" />
+        <div className="absolute -bottom-24 -left-16 h-56 w-56 rounded-full bg-white/10 blur-2xl animate-sp-glow" style={{ animationDelay: '600ms' }} />
+      </div>
+
+      <main className="relative z-10 mx-auto flex min-h-[100dvh] w-full max-w-[430px] flex-col justify-center gap-5 px-5 py-6">
+        {/* Header: logo muncul perlahan, lalu sapaan. */}
+        <header className="flex flex-col items-center gap-2.5 text-center animate-sp-fade" style={{ animationDuration: '520ms' }}>
+          <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/10 ring-1 ring-white/20 backdrop-blur-md">
+            <IconMobile name="fingerprint" className="text-[30px] text-white" />
+          </span>
+          <div className="flex flex-col gap-1">
+            <span className="font-headline-sm text-headline-sm tracking-tight text-white/90">
+              {settings.namaAplikasi || 'SimPres'}
+            </span>
+            <h1 className="font-display-lg-mobile text-display-lg-mobile text-white leading-tight">
+              Selamat Datang
+            </h1>
+            <p className="font-body-md text-body-md text-white/80">
+              Masuk untuk melakukan presensi
+            </p>
+            <p className="font-label-sm text-label-sm text-white/60">
+              {settings.namaYayasan || 'Yayasan Islam Attin Indonesia'}
+            </p>
+          </div>
+        </header>
+
+        {/* Kartu form: slide naik dengan bayangan halus. */}
+        <form
+          onSubmit={handleSubmit}
+          noValidate
+          className="flex flex-col gap-3.5 rounded-3xl bg-white/95 p-5 shadow-[0_28px_60px_-28px_rgba(2,12,40,0.75)] ring-1 ring-white/60 backdrop-blur-xl animate-sp-rise"
+          style={{ animationDelay: '120ms' }}
+        >
+          <div>
+            <label htmlFor="identifier-mobile" className="mb-1.5 block font-label-sm text-label-sm text-on-surface-variant">
+              Username / NIY / Email
+            </label>
+            <div className={`${FIELD_WRAP} ${fieldErrors.identifier ? FIELD_WRAP_ERROR : ''}`}>
+              <div className={FIELD_ICON}>
+                <IconMobile name="person" className="h-5 w-5" />
+              </div>
+              <input
+                id="identifier-mobile"
+                name="identifier"
+                type="text"
+                inputMode="email"
+                autoComplete="username"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck="false"
+                placeholder="Contoh: 049005069"
+                value={identifier}
+                onChange={(e) => {
+                  setIdentifier(e.target.value)
+                  clearFieldError('identifier')
+                }}
+                aria-invalid={Boolean(fieldErrors.identifier)}
+                className={`${FIELD_CONTROL} min-h-[48px] pr-4 !py-3 !text-[16px]`}
+                required
+                disabled={isAuthenticating}
+              />
+            </div>
+            {fieldErrors.identifier && (
+              <p className="mt-1 font-label-sm text-label-sm text-rose-600">{fieldErrors.identifier}</p>
+            )}
+          </div>
+
+          <div>
+            <label htmlFor="password-mobile" className="mb-1.5 block font-label-sm text-label-sm text-on-surface-variant">
+              Password
+            </label>
+            <div className={`${FIELD_WRAP} ${fieldErrors.password ? FIELD_WRAP_ERROR : ''}`}>
+              <div className={FIELD_ICON}>
+                <IconMobile name="lock" className="h-5 w-5" />
+              </div>
+              <input
+                id="password-mobile"
+                name="password"
+                type={showPassword ? 'text' : 'password'}
+                autoComplete="current-password"
+                placeholder="Kata sandi akun"
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value)
+                  clearFieldError('password')
+                }}
+                aria-invalid={Boolean(fieldErrors.password)}
+                className={`${FIELD_CONTROL} min-h-[48px] pr-12 !py-3 !text-[16px]`}
+                required
+                disabled={isAuthenticating}
+              />
+              <button
+                type="button"
+                onClick={toggleShowPassword}
+                aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
+                aria-pressed={showPassword}
+                className="absolute inset-y-0 right-0 flex min-h-[48px] w-11 items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors"
+              >
+                {showPassword ? <IconMobile name="eye_off" className="h-5 w-5" /> : <IconMobile name="eye" className="h-5 w-5" />}
+              </button>
+            </div>
+            {fieldErrors.password && (
+              <p className="mt-1 font-label-sm text-label-sm text-rose-600">{fieldErrors.password}</p>
+            )}
+          </div>
+
+          {authError && (
+            <div
+              role="alert"
+              className="flex animate-sp-rise items-start gap-2 rounded-xl border border-rose-200 bg-rose-50/90 px-3 py-2.5 text-[12.5px] leading-relaxed text-rose-700"
+            >
+              <IconMobile name="error" className="mt-px h-4 w-4 shrink-0" />
+              <span className="flex flex-col gap-0.5">
+                <span>{authError}</span>
+                {authErrorCode && AUTH_ERROR_CODES[authErrorCode] && (
+                  <span className="text-[11px] text-rose-500/90">
+                    Penyebab: {AUTH_ERROR_CODES[authErrorCode]}
+                  </span>
+                )}
+              </span>
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={isAuthenticating}
+            className="sp-press flex min-h-[52px] w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#0B1F3D] to-[#1D4ED8] px-4 py-3.5 text-[15px] font-semibold text-white shadow-[0_14px_28px_-14px_rgba(11,31,61,0.9)] transition-all duration-200 hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-80"
+          >
+            {isAuthenticating ? (
+              <>
+                <SpinnerMobile className="h-4 w-4" />
+                <span>Memproses...</span>
+              </>
+            ) : (
+              <>
+                <span>Masuk</span>
+                <IconMobile name="login" className="h-[18px] w-[18px]" />
+              </>
+            )}
+          </button>
+        </form>
+
+        {/* Card kecil: alasan kenapa presensi SimPres terasa mudah. */}
+        <section
+          className="flex items-center gap-3 rounded-2xl bg-white/10 px-4 py-3.5 ring-1 ring-white/15 backdrop-blur-md animate-sp-rise"
+          style={{ animationDelay: '220ms' }}
+        >
+          <div className="flex flex-col items-center gap-1.5">
+            <IconMobile name="location_on" className="text-[18px] text-white/85" />
+            <IconMobile name="cameraswitch" className="text-[18px] text-white/85" />
+            <IconMobile name="qr_code_scanner" className="text-[18px] text-white/85" />
+          </div>
+          <div className="flex flex-col">
+            <span className="font-body-md-medium text-body-md-medium text-white">Presensi lebih mudah</span>
+            <span className="font-body-sm text-body-sm text-white/70">
+              Lokasi aman, presensi wajah, dan barcode kartu ID.
+            </span>
+          </div>
+        </section>
+      </main>
+    </div>
+  )
+}
+
+/**
+ * Halaman login memilih tampilan berdasarkan perangkat, bukan berdasarkan role:
+ * role baru diketahui setelah submit. Jadi perangkat tetap mobile memakai kartu
+ * mobile, dan role portalnya akan diarahkan ke dashboard masing-masing.
+ */
+function LoginPage() {
+  const profil = useDeviceProfile()
+  const controller = useLoginController()
+  return profil.isMobile ? <MobileLoginView {...controller} /> : <DesktopLoginView {...controller} />
 }
 
 export default LoginPage

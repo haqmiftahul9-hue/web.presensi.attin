@@ -535,7 +535,7 @@ function AdminUserPage() {
         )}
 
         <div className="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
+          <div className="sp-table-wrap">
             <table className="w-full min-w-[760px] text-left border-collapse">
               <thead>
                 <tr className="bg-surface-container-low border-b border-surface-container text-on-surface-variant font-label-sm text-label-sm uppercase tracking-wider leading-tight">
@@ -980,7 +980,7 @@ function AdminUserPage() {
             </div>
 
             <div className="p-space-lg overflow-auto">
-              <div className="overflow-x-auto">
+              <div className="sp-table-wrap">
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-surface-container-low border-b border-surface-container text-on-surface-variant font-label-sm text-label-sm uppercase tracking-wider">
@@ -1168,7 +1168,7 @@ function AdminUserPage() {
 
                 <div className="p-4 bg-surface-container-low rounded-xl">
                   <h5 className="font-body-md-medium text-body-md-medium text-on-surface mb-3">Hak Akses (Permission Matrix)</h5>
-                  <div className="overflow-x-auto">
+                  <div className="sp-table-wrap">
                     <table className="w-full text-left border-collapse">
                       <thead>
                         <tr className="bg-surface-container-low border-b border-surface-container text-on-surface-variant font-label-sm text-label-sm uppercase tracking-wider">

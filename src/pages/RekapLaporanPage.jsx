@@ -843,7 +843,7 @@ function DetailModal({ employee, isOpen, onClose, state }) {
           
           <div>
             <h4 className="font-body-md-medium text-body-md-medium text-on-surface mb-3">Riwayat Presensi Terbaru</h4>
-            <div className="overflow-x-auto">
+            <div className="sp-table-wrap">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="text-left text-on-surface-variant border-b border-surface-container">
@@ -2199,7 +2199,7 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
           </div>
 
           <div className="overflow-hidden">
-            <div className="overflow-x-auto">
+            <div className="sp-table-wrap">
               <table className="w-full text-left font-body-sm text-body-sm">
                 <thead>
                   <tr className="bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm uppercase tracking-wider leading-tight">
