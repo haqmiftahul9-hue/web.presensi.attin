@@ -7,6 +7,7 @@ import DetailEmployeeModal from './DetailEmployeeModal.jsx'
 import EditEmployeeModal from './EditEmployeeModal.jsx'
 import DeleteConfirmationModal from './DeleteConfirmationModal.jsx'
 import ConfirmDialog from './ConfirmDialog.jsx'
+import { getEmployeeGreeting } from '../data/sapaanPegawai.js'
 
 // Label jabatan ringkas untuk tampilan; data asli tetap di store.
 const roleDisplayMap = {
@@ -141,7 +142,7 @@ function StaffTable({ unitFilter, searchTerm, statusFilter, currentPage, setCurr
       null, null, updatedStaff.unitId,
     )
     closeAll()
-    setToast(`Data ${updatedStaff.name} berhasil diperbarui.`)
+    setToast(`Data ${getEmployeeGreeting(updatedStaff)} berhasil diperbarui.`)
   }
 
   const handleConfirmDelete = (staff) => {
@@ -152,7 +153,7 @@ function StaffTable({ unitFilter, searchTerm, statusFilter, currentPage, setCurr
       null, null, staff.unitId,
     )
     closeAll()
-    setToast(`Pegawai ${staff.name} dihapus.`)
+    setToast(`Pegawai ${getEmployeeGreeting(staff)} dihapus.`)
   }
 
   const handleToggleStatus = (staff) => {
@@ -165,13 +166,13 @@ function StaffTable({ unitFilter, searchTerm, statusFilter, currentPage, setCurr
       null, null, staff.unitId,
     )
     closeAll()
-    setToast(`Status ${staff.name} diubah menjadi ${nextStatus}.`)
+    setToast(`Status ${getEmployeeGreeting(staff)} diubah menjadi ${nextStatus}.`)
   }
 
   const handleResetPresensi = (staff) => {
     dispatch({
       type: 'UPDATE_STAFF',
-      payload: { ...staff, masuk: null, method: null, late: 0, alpha: false, outsideRadius: false },
+      payload: { ...staff, masuk: null, method: null, lateMinutes: 0, alpha: false, outsideRadius: false },
     })
     addActivityLog(
       dispatch, state, 'Reset', `Presensi • ${staff.name}`,
@@ -179,7 +180,7 @@ function StaffTable({ unitFilter, searchTerm, statusFilter, currentPage, setCurr
       null, null, staff.unitId,
     )
     closeAll()
-    setToast(`Presensi ${staff.name} berhasil direset.`)
+    setToast(`Presensi ${getEmployeeGreeting(staff)} berhasil direset.`)
   }
 
   const firstShown = filteredStaff.length === 0 ? 0 : (safePage - 1) * perPage + 1

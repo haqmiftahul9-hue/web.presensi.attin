@@ -1,20 +1,28 @@
 // ============================================================================
 // MODUL MOBILE GURU/PEGAWAI — helper murni (tanpa React).
 //
-// Semua perhitungan yang dipakai halaman mobile (jarak geofence, keterlambatan,
-// jendela presensi, langkah validasi, rekap bulanan) hidup di sini supaya bisa
-// diuji tanpa merender dan tidak tersebar di dalam komponen.
+// Semua perhitungan yang dipakai halaman mobile (jarak geofence, status
+// kehadiran, langkah validasi, rekap bulanan) hidup di sini supaya bisa diuji
+// tanpa merender dan tidak tersebar di dalam komponen.
+//
+// Aturan jam kerja dan penentuan status Tepat Waktu/Terlambat TIDAK di sini:
+// keduanya hidup di data/jamKerja.js supaya halaman mobile, monitoring, rekap,
+// dashboard, dan laporan PDF memakai fungsi yang sama.
 // ============================================================================
 
-const HARI_ID = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']
-const HARI_PENDEK = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab']
+import { calculateAttendanceStatus, jamKerjaRules, jendelaPresensi, STATUS_TERLAMBAT, HARI_ID, HARI_PENDEK } from './jamKerja.js'
+import { kelompokIzinCuti } from './jenisIzinCuti.js'
+
 const BULAN_ID = [
   'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
   'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
 ]
 const BULAN_PENDEK = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
 
-export { HARI_ID, HARI_PENDEK, BULAN_ID, BULAN_PENDEK }
+// Nama hari berasal dari modul jam kerja — satu sumber untuk seluruh aplikasi.
+export { HARI_ID, HARI_PENDEK }
+export { calculateAttendanceStatus, jamKerjaRules }
+export { BULAN_ID, BULAN_PENDEK }
 
 /** Jarak dua titik di permukaan bumi (meter), rumus Haversine. */
 export function jarakMeter(latitude, longitude, latitudeUnit, longitudeUnit) {
@@ -85,6 +93,49 @@ export function hariPendekISO(iso) {
   return HARI_PENDEK[new Date(tahun, bulan - 1, tanggal).getDay()]
 }
 
+/** "2026-10-01" -> "Senin, 01 Oktober 2026" — format tanggal pada kartu riwayat. */
+export function tanggalLengkapISO(iso) {
+  const [tahun, bulan, tanggal] = String(iso || '').split('-').map(Number)
+  if (!tahun || !bulan || !tanggal) return iso || '-'
+  const date = new Date(tahun, bulan - 1, tanggal)
+  return `${HARI_ID[date.getDay()]}, ${pad(tanggal)} ${BULAN_ID[bulan - 1]} ${tahun}`
+}
+
+/** "2026-10-01" -> "01/10/2026", format isian filter tanggal. */
+export function isoKeTanggalID(iso) {
+  const [tahun, bulan, tanggal] = String(iso || '').split('-').map(Number)
+  if (!tahun || !bulan || !tanggal) return ''
+  return `${pad(tanggal)}/${pad(bulan)}/${tahun}`
+}
+
+/**
+ * "01/10/2026" -> "2026-10-01". Mengembalikan null bila formatnya bukan
+ * dd/mm/yyyy atau tanggalnya tidak ada di kalender (mis. 31/02/2026), supaya
+ * filter tidak pernah diam-diam menampilkan periode yang salah.
+ */
+export function tanggalIDKeISO(teks) {
+  const cocok = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(String(teks || '').trim())
+  if (!cocok) return null
+  const tanggal = Number(cocok[1])
+  const bulan = Number(cocok[2])
+  const tahun = Number(cocok[3])
+  if (bulan < 1 || bulan > 12 || tanggal < 1) return null
+  const date = new Date(tahun, bulan - 1, tanggal)
+  // Tolak tanggal yang meluber ke bulan lain, mis. 31 Februari.
+  if (date.getFullYear() !== tahun || date.getMonth() !== bulan - 1 || date.getDate() !== tanggal) return null
+  return `${tahun}-${pad(bulan)}-${pad(tanggal)}`
+}
+
+/** Jumlah hari inklusif dari satu rentang ISO. 0 bila rentangnya tidak valid. */
+export function hitungRentangHari(mulai, selesai) {
+  if (!mulai || !selesai) return 0
+  const a = new Date(`${mulai}T00:00:00`)
+  const b = new Date(`${selesai}T00:00:00`)
+  if (Number.isNaN(a.getTime()) || Number.isNaN(b.getTime())) return 0
+  const selisih = Math.round((b - a) / 86400000)
+  return selisih < 0 ? 0 : selisih + 1
+}
+
 export function isoHariIni(date = new Date()) {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
 }
@@ -103,45 +154,25 @@ export function namaDepan(nama) {
   return String(nama || '').split(',')[0].trim() || 'Pengguna'
 }
 
-/** Sapaan mengikuti jenis kelamin pada data pegawai, tanpa menebak. */
-export function sapaan(staff) {
-  const gender = String(staff?.jenisKelamin || '').toLowerCase()
-  if (gender === 'laki-laki') return 'Bapak'
-  if (gender === 'perempuan') return 'Bu'
-  return ''
-}
+// Sapaan ("Umi", "Ustadz", "Ustadzah") TIDAK ada di modul ini. Satu-satunya
+// sumbernya adalah data/sapaanPegawai.js supaya dashboard, profil, kartu ID,
+// dan notifikasi tidak pernah berbeda.
 
-export function namaShift(jamMasuk) {
-  const [jam] = String(jamMasuk || '07:00').split(':').map(Number)
-  if (!Number.isFinite(jam)) return 'Shift Pagi'
-  if (jam < 11) return 'Shift Pagi'
-  if (jam < 15) return 'Shift Siang'
-  return 'Shift Sore'
-}
-
-/** Menit keterlambatan dihitung dari batas toleransi unit, bukan jam masuk mentah. */
-export function hitungKeterlambatan(menitSekarang, jamMasuk, toleransi) {
-  const [jam, menit] = String(jamMasuk || '07:00').split(':').map(Number)
-  const batas = jam * 60 + menit + (Number(toleransi) || 0)
-  return Math.max(0, menitSekarang - batas)
-}
+// Nama ini ikut dipakai desktop (kartu ID), jadi tetap diekspor ulang dari
+// modul sapaan terpusat.
+export {
+  getEmployeeGreeting,
+  getEmployeeSalutation,
+  getEmployeeFormalName,
+  namaTanpaGelar,
+} from './sapaanPegawai.js'
 
 /**
- * Jendela presensi sebuah hari: sebelum shift (terlalu awal), dalam shift,
- * atau sudah lewat jam pulang (terlalu akhir).
+ * Jendela presensi sebuah hari mengikuti jam kerja global: terlalu awal, dalam
+ * jendela, atau sudah lewat jam pulang. Konsep shift sudah dihapus.
  */
 export function cekJendelaPresensi(menitSekarang, rules) {
-  const [jamMasuk] = String(rules?.jamMasuk || '07:00').split(':').map(Number)
-  const [jamPulang] = String(rules?.jamPulang || '15:00').split(':').map(Number)
-  const mulai = jamMasuk * 60 - 60
-  const tutup = jamPulang * 60
-  return {
-    sebelumShift: menitSekarang < mulai,
-    dalamJendela: menitSekarang >= mulai && menitSekarang <= tutup,
-    lewatJamPulang: menitSekarang > tutup,
-    mulai,
-    tutup,
-  }
+  return jendelaPresensi(menitSekarang, rules)
 }
 
 /**
@@ -162,7 +193,7 @@ export function langkahValidasi({ lokasi, waktu, biometri }) {
       key: 'waktu',
       icon: 'schedule',
       judul: 'Validasi Waktu',
-      detail: waktu?.detail || 'Memeriksa jam masuk dan toleransi',
+      detail: waktu?.detail || 'Memeriksa jam masuk dan batas hari kerja',
       ok: Boolean(waktu?.ok),
     },
     {
@@ -179,7 +210,7 @@ export function langkahValidasi({ lokasi, waktu, biometri }) {
 export function rekapBulanan(riwayat, key) {
   const baris = (riwayat || []).filter((r) => String(r.date || '').startsWith(key))
   const hadir = baris.filter((r) => r.masuk)
-  const terlambat = hadir.filter((r) => (r.late || 0) > 0)
+  const terlambat = hadir.filter((r) => (r.lateMinutes || 0) > 0)
   const tepatWaktu = hadir.length - terlambat.length
   const totalHariKerja = 22
   return {
@@ -196,9 +227,9 @@ export function rekapBulanan(riwayat, key) {
 
 /** Rata-rata menit keterlambatan; null bila tidak pernah terlambat. */
 export function rataKeterlambatan(riwayat, key) {
-  const terlambat = (riwayat || []).filter((r) => String(r.date || '').startsWith(key) && (r.late || 0) > 0)
+  const terlambat = (riwayat || []).filter((r) => String(r.date || '').startsWith(key) && (r.lateMinutes || 0) > 0)
   if (!terlambat.length) return null
-  const total = terlambat.reduce((sum, r) => sum + r.late, 0)
+  const total = terlambat.reduce((sum, r) => sum + (r.lateMinutes || 0), 0)
   return Math.round(total / terlambat.length)
 }
 
@@ -229,9 +260,28 @@ export function parsePeriode(periode) {
   return mulai <= selesai ? { mulai, selesai } : { mulai: selesai, selesai: mulai }
 }
 
+/**
+ * Rentang ISO dari satu pengajuan izin/cuti.
+ *
+ * Pengajuan baru menyimpan `mulai` dan `selesai` sebagai ISO, jadi rentang
+ * dibaca dari sana — ini yang membuat cuti melahirkan (yang bisa 3 bulan dan
+ * melewati pergantian bulan) terhitung benar. Pengajuan lama yang hanya punya
+ * teks `periode` tetap dibaca lewat parsePeriode() sebagai cadangan.
+ */
+export function rentangPengajuan(item) {
+  if (!item) return null
+  const mulai = typeof item === 'string' ? null : String(item.mulai || '').slice(0, 10)
+  const selesai = typeof item === 'string' ? null : String(item.selesai || '').slice(0, 10)
+  if (mulai && selesai) {
+    return mulai <= selesai ? { mulai, selesai } : { mulai: selesai, selesai: mulai }
+  }
+  const teks = typeof item === 'string' ? item : item.periode
+  return parsePeriode(teks)
+}
+
 /** Daftar hari (ISO) yang tercakup satu pengajuan izin/cuti. */
-export function hariDariPeriode(periode) {
-  const rentang = parsePeriode(periode)
+export function hariDariPeriode(item) {
+  const rentang = rentangPengajuan(item)
   if (!rentang) return []
   const hasil = []
   const akhir = new Date(`${rentang.selesai}T00:00:00`)
@@ -260,23 +310,31 @@ export function izinPerTanggal(leaves, { hanyaDisetujui = true } = {}) {
   const peta = new Map()
   ;(leaves || []).forEach((item) => {
     if (hanyaDisetujui && item.status !== 'Disetujui') return
-    hariDariPeriode(item.periode).forEach((iso) => {
+    // Barikanya, bukan hanya `item.periode`: cuti melahirkan punya tanggal ISO
+    // yang mencakup beberapa bulan, sedangkan teks periode tidak bisa
+    // merepresentasikannya dengan utuh.
+    hariDariPeriode(item).forEach((iso) => {
       if (!peta.has(iso)) peta.set(iso, item)
     })
   })
   return peta
 }
 
-/** Label status sesuai jenis pengajuan: cuti untuk "Cuti ...", izin untuk sisanya. */
+/**
+ * Label status sesuai jenis pengajuan: cuti untuk kelompok "Cuti", izin untuk
+ * sisanya. Sumbernya daftar jenis terpusat (data/jenisIzinCuti.js) supaya
+ * "Cuti Sakit" dan "Sakit" sama-sama dihitung sebagai cuti.
+ */
 export function labelIzin(jenis) {
-  return String(jenis || '').startsWith('Cuti') ? 'Cuti' : 'Izin'
+  return kelompokIzinCuti(jenis) === 'Cuti' ? 'Cuti' : 'Izin'
 }
 
 /**
  * Status satu hari: izin/cuti yang disetujui menang atas ketiadaan baris presensi,
- * lalu presensi menentukan tepat waktu atau terlambat.
+ * lalu status kehadiran diambil dari calculateAttendanceStatus() — fungsi yang
+ * sama dengan yang dipakai halaman Presensi, Monitoring, dan Rekap.
  */
-export function statusHari({ masuk, late, izin } = {}) {
+export function statusHari({ tanggal, masuk, lateMinutes, izin } = {}) {
   if (izin) {
     const cuti = labelIzin(izin.jenis) === 'Cuti'
     return {
@@ -288,10 +346,12 @@ export function statusHari({ masuk, late, izin } = {}) {
   if (!masuk) {
     return { label: 'Tanpa Presensi', kelas: 'bg-surface-container text-on-surface-variant', ikon: 'do_not_disturb_on' }
   }
-  if (late > 0) {
-    return { label: `Terlambat ${late} mnt`, kelas: 'bg-amber-50 text-amber-800', ikon: 'schedule' }
+  const hasil = calculateAttendanceStatus(tanggal, masuk)
+  const menit = hasil.lateMinutes || lateMinutes || 0
+  if (menit > 0) {
+    return { label: `${STATUS_TERLAMBAT} ${menit} mnt`, kelas: 'bg-amber-50 text-amber-800', ikon: 'schedule' }
   }
-  return { label: 'Tepat Waktu', kelas: 'bg-emerald-50 text-emerald-700', ikon: 'check_circle' }
+  return { label: hasil.status, kelas: 'bg-emerald-50 text-emerald-700', ikon: 'check_circle' }
 }
 
 /** Metode presensi diterjemahkan ke istilah yang dipakai di seluruh modul. */
@@ -306,24 +366,26 @@ export function metodePresensi(method) {
 }
 
 /**
- * Rekap satu bulan: kehadiran, keterlambatan, izin/cuti, dan hari tanpa presensi.
- * `izinPerTanggal` dipakai agar angka izin/cuti sama persis dengan yang
- * ditampilkan di kartu daftar.
+ * Rekap satu rentang tanggal: kehadiran, keterlambatan, izin/cuti, dan hari
+ * tanpa presensi. Halaman riwayat memanggilnya dengan rentang hasil
+ * rentangDariPeriode() yang sama untuk daftar, sehingga angka di header dan isi
+ * daftar tidak mungkin berbeda.
  */
-export function rekapHarian({ riwayat, izinTanggal, key, totalHariKerja = 22 }) {
-  const baris = (riwayat || []).filter((r) => String(r.date || '').startsWith(key))
+export function rekapRentang({ riwayat, izinTanggal, dari, sampai, totalHariKerja = 22 }) {
+  const baris = (riwayat || []).filter((r) => dalamRentang(r.date, dari, sampai))
   const hadir = baris.filter((r) => r.masuk)
-  const terlambat = hadir.filter((r) => (r.late || 0) > 0)
+  const terlambat = hadir.filter((r) => (r.lateMinutes || 0) > 0)
   let izin = 0
   let cuti = 0
   izinTanggal?.forEach((value, iso) => {
-    if (!String(iso).startsWith(key)) return
+    if (!dalamRentang(iso, dari, sampai)) return
     if (labelIzin(value.jenis) === 'Cuti') cuti += 1
     else izin += 1
   })
   const hariKerja = hadir.length + izin + cuti
   return {
-    key,
+    dari,
+    sampai,
     hadir: hadir.length,
     tepatWaktu: hadir.length - terlambat.length,
     terlambat: terlambat.length,
@@ -334,3 +396,76 @@ export function rekapHarian({ riwayat, izinTanggal, key, totalHariKerja = 22 }) 
     totalHariKerja,
   }
 }
+
+/** ISO ("YYYY-MM-DD") berada di dalam rentang inklusif. String dibandingkan apa adanya. */
+function dalamRentang(iso, dari, sampai) {
+  const nilai = String(iso || '').slice(0, 10)
+  if (!nilai || !dari || !sampai) return false
+  return nilai >= dari && nilai <= sampai
+}
+
+export const MODE_BULANAN = 'bulanan'
+export const MODE_RENTANG = 'rentang'
+
+/**
+ * Ubah pilihan periode menjadi rentang tanggal konkret. Dipakai bersama oleh
+ * filter daftar dan rekap header, sehingga jumlah hari, angka rekap, dan isi
+ * daftar dijamin berasal dari rentang yang sama — tanpa ini, mode bulanan bisa
+ * diam-diam memakai sisa rentang tanggal dari pemakaian sebelumnya.
+ *
+ *   bulanan key "2026-10"        -> 2026-10-01 s.d. 2026-10-31
+ *   rentang 01/10 s.d. 15/10/2026 -> 2026-10-01 s.d. 2026-10-15
+ */
+export function rentangDariPeriode(periode) {
+  const { mode, key, dari, sampai } = periode || {}
+  if (mode === MODE_RENTANG) return { dari: dari || '', sampai: sampai || '' }
+  if (!key) return { dari: '', sampai: '' }
+  return { dari: `${key}-01`, sampai: `${key}-31` }
+}
+
+/**
+ * Daftar hari riwayat untuk satu periode, terbaru lebih dulu.
+ *
+ * mode 'bulanan'  -> `periode.key` = "2026-10" (seluruh Oktober 2026)
+ * mode 'rentang'  -> `periode.dari` / `periode.sampai` = "2026-10-01" / "2026-10-15"
+ *
+ * Sumber datanya sudah dibatasi ke pegawai yang login di halaman, jadi fungsi
+ * ini tidak pernah menyentuh presensi orang lain. Hari izin/cuti yang tidak
+ * punya baris presensi tetap ikut ditampilkan.
+ */
+export function filterRiwayatPeriode({ riwayat, izinTanggal, periode }) {
+  const { dari, sampai } = rentangDariPeriode(periode)
+  if (!dari || !sampai || dari > sampai) return []
+
+  const byTanggal = new Map()
+  for (const r of riwayat || []) {
+    const iso = String(r.date || '').slice(0, 10)
+    if (!dalamRentang(iso, dari, sampai)) continue
+    // Satu hari satu baris: kalau riwayat berisi lebih dari satu, yang terakhir
+    // (paling baru) yang dipakai.
+    byTanggal.set(iso, { ...r, date: iso })
+  }
+
+  if (izinTanggal) {
+    for (const [iso, value] of izinTanggal) {
+      const hari = String(iso).slice(0, 10)
+      if (!dalamRentang(hari, dari, sampai) || byTanggal.has(hari)) continue
+      byTanggal.set(hari, { date: hari, masuk: null, pulang: null, lateMinutes: 0, izin: value })
+    }
+  }
+
+  return [...byTanggal.values()].sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0))
+}
+
+/** Label periode untuk judul dan empty state, mis. "Oktober 2026" atau "01 Oktober 2026 - 15 Oktober 2026". */
+export function labelPeriode({ mode, key, dari, sampai }) {
+  if (mode === MODE_RENTANG) {
+    if (!dari || !sampai) return 'Rentang tanggal'
+    const awal = tanggalLengkapISO(dari).split(', ')[1]
+    const akhir = tanggalLengkapISO(sampai).split(', ')[1]
+    return `${awal} - ${akhir}`
+  }
+  if (!key) return 'Pilih bulan'
+  return `${namaBulanDariKey(key)} ${String(key).slice(0, 4)}`
+}
+

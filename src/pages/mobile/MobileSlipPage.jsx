@@ -9,6 +9,7 @@ import {
   bulanKey, namaBulanDariKey, rekapBulanan, rataKeterlambatan,
   tanggalPendekISO, hariPendekISO, jamPendek, BULAN_PENDEK,
 } from '../../data/presensiMobile.js'
+import { daftarJamKerja } from '../../data/jamKerja.js'
 import StaffAvatar from '../../components/mobile/StaffAvatar.jsx'
 import { EmptyState, ErrorState } from '../../components/mobile/Feedback.jsx'
 
@@ -24,7 +25,7 @@ function daftarBulan(jumlah = 6) {
 
 function statusBaris(baris) {
   if (!baris.masuk) return { label: 'Alpha', kelas: 'bg-error-container text-on-error-container' }
-  if (baris.late > 0) return { label: `Terlambat ${baris.late}′`, kelas: 'bg-amber-50 text-amber-800' }
+  if ((baris.lateMinutes || 0) > 0) return { label: `Terlambat ${baris.lateMinutes}′`, kelas: 'bg-amber-50 text-amber-800' }
   return { label: 'Tepat Waktu', kelas: 'bg-emerald-50 text-emerald-700' }
 }
 
@@ -65,7 +66,7 @@ function MobileSlipPage() {
 
   if (!staff || !presensi) {
     return (
-      <div className="px-4 py-6">
+      <div className="sp-page-container py-6">
         <ErrorState
           ikon="badge"
           judul="Data pegawai tidak ditemukan"
@@ -78,23 +79,31 @@ function MobileSlipPage() {
 
   const zonaWaktu = presensi.rules.zonaWaktu
   const namaBulan = namaBulanDariKey(bulan)
+  // Aturan jam kerja global ditampilkan apa adanya di slip, bukan jam milik unit.
+  const ringkasanJamKerja = daftarJamKerja()
+    .map((h) => `${h.hari} ${h.jamKerja}`)
+    .join(' • ')
 
   return (
     <div className="sp-page">
-      <section className="sp-hide-print bg-primary-container text-on-primary px-4 pt-4 pb-6 rounded-b-[28px] shadow-md">
+      <section className="sp-hero sp-page-container pt-4 pb-6">
+        <span className="sp-pattern-dots" aria-hidden="true" />
+        <span className="sp-blob sp-blob-a" aria-hidden="true" />
+        <div className="relative z-[1]">
         <span className="font-label-sm text-label-sm text-on-primary-container">Dokumen Kehadiran</span>
         <h1 className="font-headline-sm text-headline-sm text-white">Slip Kehadiran</h1>
+        </div>
       </section>
 
-      <div className="px-4 -mt-4 relative z-20 flex flex-col gap-4 pb-6">
-        <div className="sp-hide-print sp-x-scroll flex gap-2 pb-1 -mx-1 px-1">
+      <div className="px-4 relative z-[2] flex flex-col gap-4 pb-2">
+        <div className="sp-hide-print sp-x-scroll flex gap-2 pb-1">
           {bulanTersedia.map((key) => (
             <button
               key={key}
               type="button"
               onClick={() => setBulan(key)}
               aria-pressed={key === bulan}
-              className={`shrink-0 px-3.5 py-2 rounded-full font-label-md text-label-md transition-colors ${
+              className={`shrink-0 px-3.5 py-2.5 rounded-full font-label-md text-label-md transition-colors ${
                 key === bulan
                   ? 'bg-primary-container text-on-primary shadow-sm'
                   : 'bg-surface-container text-on-surface-variant'
@@ -106,20 +115,20 @@ function MobileSlipPage() {
         </div>
 
         {/* Dokumen slip: satu blok putih yang ikut tercetak apa adanya. */}
-        <section className="sp-card p-4 sp-print-slip flex flex-col gap-3">
-          <div className="flex items-center justify-between gap-2 pb-3 border-b border-surface-container">
-            <div className="flex items-center gap-2">
-              <span className="w-9 h-9 rounded-xl bg-primary-container flex items-center justify-center">
+        <section className="sp-card p-4 sp-print-slip flex flex-col gap-3.5">
+          <div className="sp-card-head">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="w-9 h-9 rounded-xl bg-primary-container flex items-center justify-center shrink-0">
                 <Icon name="fingerprint" className="text-on-primary text-[20px]" />
               </span>
-              <div className="flex flex-col">
-                <span className="font-headline-sm text-headline-sm text-on-surface">SimPres Kepegawaian</span>
-                <span className="font-label-sm text-label-sm text-on-surface-variant">
+              <div className="flex flex-col min-w-0">
+                <span className="font-headline-sm text-headline-sm text-on-surface truncate">SimPres Kepegawaian</span>
+                <span className="font-label-sm text-label-sm text-on-surface-variant truncate">
                   {unit?.nama || '-'}
                 </span>
               </div>
             </div>
-            <span className="font-label-sm text-label-sm text-on-surface-variant">
+            <span className="font-label-sm text-label-sm text-on-surface-variant shrink-0">
               Periode {namaBulan} {bulan.split('-')[0]}
             </span>
           </div>
@@ -142,7 +151,7 @@ function MobileSlipPage() {
               { label: 'Telat', nilai: rekap.terlambat, tone: 'text-amber-600' },
               { label: 'Izin', nilai: disetujui.length, tone: 'text-secondary' },
             ].map((item) => (
-              <div key={item.label} className="flex flex-col items-center gap-0.5 rounded-xl bg-surface-container-low py-2.5">
+              <div key={item.label} className="flex flex-col items-center gap-1 rounded-xl bg-surface-container-low px-1 py-3">
                 <span className={`font-display-lg-mobile text-[18px] font-bold leading-none ${item.tone}`}>
                   {item.nilai}
                 </span>
@@ -151,7 +160,7 @@ function MobileSlipPage() {
             ))}
           </div>
 
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2">
             <span className="font-label-sm text-label-sm text-on-surface-variant">Rincian kehadiran harian</span>
             <span className="font-label-sm text-label-sm text-on-surface-variant">
               {rataTelat ? `Rata-rata telat ${rataTelat}′` : 'Tanpa keterlambatan'}
@@ -159,11 +168,11 @@ function MobileSlipPage() {
           </div>
 
           {baris.length ? (
-              <ul className="divide-y divide-surface-container border-t border-surface-container">
+              <ul className="divide-y divide-surface-container border-t border-surface-container pt-1">
                 {baris.map((h) => {
                   const status = statusBaris(h)
                   return (
-                    <li key={`${h.date}-${h.id}`} className="flex items-center gap-2 py-2">
+                    <li key={`${h.date}-${h.id}`} className="flex items-center gap-2 py-2.5">
                       <span className="font-label-sm text-label-sm text-on-surface-variant w-8 shrink-0">
                         {hariPendekISO(h.date)}
                       </span>
@@ -191,13 +200,12 @@ function MobileSlipPage() {
               />
             )}
 
-          <p className="font-label-sm text-label-sm text-on-surface-variant">
-            Jam kerja {presensi.rules.jamMasuk} - {presensi.rules.jamPulang} {zonaWaktu}, toleransi{' '}
-            {presensi.rules.toleransi} menit. Slip ini dihasilkan langsung dari data presensi SimPres.
+          <p className="font-label-sm text-label-sm text-on-surface-variant leading-snug">
+            Jam kerja global {zonaWaktu}: {ringkasanJamKerja} Slip ini dihasilkan langsung dari data presensi SimPres.
           </p>
 
-          <div className="grid grid-cols-2 gap-4 pt-2 text-center">
-            <div className="flex flex-col items-center gap-1">
+          <div className="grid grid-cols-2 gap-4 text-center">
+            <div className="flex flex-col items-center gap-1.5">
               <span className="font-label-sm text-label-sm text-on-surface-variant">Mengetahui,</span>
               <span className="font-label-sm text-label-sm text-on-surface-variant">Kepala Unit</span>
               <span className="h-10" />
@@ -205,7 +213,7 @@ function MobileSlipPage() {
                 {state.adminUsers?.find((u) => u.unitId === staff.unitId)?.name || 'Kepala Unit'}
               </span>
             </div>
-            <div className="flex flex-col items-center gap-1">
+            <div className="flex flex-col items-center gap-1.5">
               <span className="font-label-sm text-label-sm text-on-surface-variant">{unit?.nama || 'Cilegon'},</span>
               <span className="font-label-sm text-label-sm text-on-surface-variant">Pegawai concerned</span>
               <span className="h-10" />
@@ -214,21 +222,21 @@ function MobileSlipPage() {
           </div>
         </section>
 
-        <div className="sp-hide-print flex gap-2">
+        <div className="sp-hide-print flex gap-2.5">
           <button
             type="button"
             onClick={() => window.print()}
-            className="flex-1 py-3 rounded-2xl bg-primary-container text-on-primary font-label-md text-label-md flex items-center justify-center gap-2 active:scale-[0.99] transition-transform"
+            className="sp-btn flex-1 py-3 bg-primary-container text-on-primary font-label-md text-label-md flex items-center justify-center gap-2 active:scale-[0.99] transition-transform"
           >
-            <Icon name="print" className="text-[18px]" />
+            <Icon name="print" className="text-[18px] shrink-0" />
             Cetak Slip
           </button>
           <button
             type="button"
             onClick={() => navigate('/mobile/riwayat')}
-            className="flex-1 py-3 rounded-2xl bg-surface-container-low text-on-surface font-label-md text-label-md flex items-center justify-center gap-2 active:scale-[0.99] transition-transform"
+            className="sp-btn flex-1 py-3 bg-surface-container-low text-on-surface font-label-md text-label-md flex items-center justify-center gap-2 active:scale-[0.99] transition-transform"
           >
-            <Icon name="calendar_month" className="text-[18px]" />
+            <Icon name="calendar_month" className="text-[18px] shrink-0" />
             Riwayat
           </button>
         </div>

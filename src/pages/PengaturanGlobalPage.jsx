@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react'
 import { useSimPres, addActivityLog } from '../store/simPresStore.jsx'
+import { daftarJamKerja } from '../data/jamKerja.js'
 
 const tabs = [
   { id: 'informasi', label: 'Informasi Aplikasi', icon: 'info' },
@@ -28,9 +29,8 @@ function PengaturanGlobalPage() {
     noWhatsapp: settings.noWhatsapp || '',
     zonaWaktu: settings.zonaWaktu || 'WIB',
     presensi: settings.presensi || {
-      jamMasukDefault: '07:00',
-      jamPulangDefault: '15:00',
-      toleransiTerlambat: 15,
+      jamMasukDefault: '07:10',
+      jamPulangDefault: '16:00',
       radiusGeofenceDefault: 50,
       lokasiAktif: true,
       radiusGeofencePerUnit: {
@@ -38,12 +38,6 @@ function PengaturanGlobalPage() {
         sd: 75,
         smp: 50,
         sma: 80,
-      },
-      toleransiKeterlambatanPerUnit: {
-        tk: 15,
-        sd: 15,
-        smp: 15,
-        sma: 15,
       },
     },
     rekap: settings.rekap || {
@@ -653,46 +647,63 @@ function PengaturanGlobalPage() {
               <div className="border-b border-outline-variant pb-4 mb-6">
                 <h2 className="font-headline-sm text-headline-sm text-on-surface">Parameter Operasional</h2>
                 <p className="font-body-sm text-body-sm text-on-surface-variant mt-0.5 leading-relaxed">
-                  Konfigurasi jam masuk &amp; jam pulang, aturan presensi, toleransi keterlambatan, dan radius geofence.
+                  Aturan jam kerja global SimPres, radius geofence, dan validasi lokasi presensi.
                 </p>
               </div>
 
-              {/* 1. Presensi */}
+              {/* 1. Jam kerja global — bersifat per hari, bukan per unit dan bukan shift. */}
               <div className="p-4 bg-surface-container-low rounded-xl border border-outline-variant">
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="material-symbols-outlined text-secondary">calendar_today</span>
+                  <h3 className="font-body-md-medium text-body-md-medium text-on-surface">Jam Kerja Global</h3>
+                </div>
+                <div className="sp-table-wrap">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="text-left text-on-surface-variant border-b border-outline-variant">
+                        <th className="pb-2 pr-4 font-medium">Hari</th>
+                        <th className="pb-2 pr-4 font-medium">Jam Masuk</th>
+                        <th className="pb-2 pr-4 font-medium">Jam Pulang</th>
+                        <th className="pb-2 font-medium">Keterangan</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {daftarJamKerja().map((h) => (
+                        <tr key={h.hari} className="border-b border-surface-container-low/60">
+                          <td className="py-2 pr-4 font-body-sm text-on-surface">{h.hari}</td>
+                          <td className="py-2 pr-4 font-body-sm text-on-surface tabular-nums">{h.jamMasuk}</td>
+                          <td className="py-2 pr-4 font-body-sm text-on-surface tabular-nums">
+                            {h.jamPulang ?? 'Bebas'}
+                          </td>
+                          <td className="py-2 font-body-sm text-on-surface-variant">
+                            {h.hari === 'Jumat'
+                              ? 'Tidak memiliki batas minimal jam pulang'
+                              : 'Masuk tepat pada batas = Tepat Waktu'}
+                          </td>
+                        </tr>
+                      ))}
+                      <tr>
+                        <td className="py-2 pr-4 font-body-sm text-on-surface">Minggu</td>
+                        <td className="py-2 pr-4 font-body-sm text-on-surface-variant">-</td>
+                        <td className="py-2 pr-4 font-body-sm text-on-surface-variant">-</td>
+                        <td className="py-2 font-body-sm text-on-surface-variant">Bukan hari kerja</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <p className="font-body-sm text-body-sm text-on-surface-variant mt-3 leading-relaxed">
+                  Aturan ini adalah satu-satunya acuan status presensi. Kel keterlambatan dihitung otomatis
+                  dari selisih menit antara jam masuk dan batas jam masuk hari tersebut.
+                </p>
+              </div>
+
+              {/* 2. Geofence & validasi lokasi. */}
+              <div className="p-4 mt-4 bg-surface-container-low rounded-xl border border-outline-variant">
                 <div className="flex items-center gap-2 mb-4">
                   <span className="material-symbols-outlined text-secondary">how_to_reg</span>
                   <h3 className="font-body-md-medium text-body-md-medium text-on-surface">Presensi</h3>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div>
-                    <label className="block font-label-sm text-label-sm text-on-surface mb-1.5">Jam Masuk Default</label>
-                    <input
-                      className="w-full h-10 font-body-md text-body-md text-on-surface rounded-lg border border-outline-variant px-3 py-2 focus:ring-2 focus:ring-secondary focus:border-secondary transition"
-                      type="time"
-                      value={formData.presensi?.jamMasukDefault || '07:00'}
-                      onChange={(e) => handleInputChange('presensi.jamMasukDefault', e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-label-sm text-label-sm text-on-surface mb-1.5">Jam Pulang Default</label>
-                    <input
-                      className="w-full h-10 font-body-md text-body-md text-on-surface rounded-lg border border-outline-variant px-3 py-2 focus:ring-2 focus:ring-secondary focus:border-secondary transition"
-                      type="time"
-                      value={formData.presensi?.jamPulangDefault || '15:00'}
-                      onChange={(e) => handleInputChange('presensi.jamPulangDefault', e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-label-sm text-label-sm text-on-surface mb-1.5">Batas Toleransi Terlambat (menit)</label>
-                    <input
-                      className="w-full h-10 font-body-md text-body-md text-on-surface rounded-lg border border-outline-variant px-3 py-2 focus:ring-2 focus:ring-secondary focus:border-secondary transition"
-                      type="number"
-                      min="0"
-                      max="120"
-                      value={formData.presensi?.toleransiTerlambat || 15}
-                      onChange={(e) => handleInputChange('presensi.toleransiTerlambat', parseInt(e.target.value) || 0)}
-                    />
-                  </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block font-label-sm text-label-sm text-on-surface mb-1.5">Radius Geofence Default (meter)</label>
                     <input
@@ -898,16 +909,17 @@ function PengaturanGlobalPage() {
                       <span className="font-label-sm text-label-sm text-on-surface-variant mt-1 block">Digunakan sebagai radius default presensi unit baru.</span>
                     </div>
                     <div>
-                      <label className="block font-label-sm text-label-sm text-on-surface mb-1.5">Toleransi Keterlambatan Default (menit)</label>
-                      <input
-                        className="w-full h-10 font-body-md text-body-md text-on-surface rounded-lg border border-outline-variant px-3 py-2 focus:ring-2 focus:ring-secondary focus:border-secondary transition"
-                        type="number"
-                        min="0"
-                        max="120"
-                        value={formData.presensi?.toleransiTerlambat || 15}
-                        onChange={(e) => handleInputChange('presensi.toleransiTerlambat', parseInt(e.target.value) || 0)}
-                      />
-                      <span className="font-label-sm text-label-sm text-on-surface-variant mt-1 block">Batas waktu sebelum status terlambat.</span>
+                      <label className="block font-label-sm text-label-sm text-on-surface mb-1.5">Jam Kerja Global (read-only)</label>
+                      <div className="w-full min-h-10 rounded-lg border border-outline-variant bg-surface-container px-3 py-2">
+                        {daftarJamKerja().map((h) => (
+                          <p key={h.hari} className="font-body-sm text-body-sm text-on-surface tabular-nums">
+                            {h.hari}: {h.jamMasuk} - {h.jamPulang ?? 'bebas'}
+                          </p>
+                        ))}
+                      </div>
+                      <span className="font-label-sm text-label-sm text-on-surface-variant mt-1 block">
+                        Diperbaiki di data/jamKerja.js — berlaku seragam untuk seluruh unit.
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -1146,24 +1158,24 @@ function PengaturanGlobalPage() {
       <div className="py-4 space-y-3">
         <div className="flex items-center justify-between">
           <div>
-            <p className="font-label-sm text-label-sm text-on-surface">Jam Masuk &amp; Jam Pulang</p>
+            <p className="font-label-sm text-label-sm text-on-surface">Jam Kerja Global</p>
             <p className="font-label-sm text-label-sm text-on-surface-variant mt-0.5">
-              {formData.presensi?.jamMasukDefault || '07:00'} - {formData.presensi?.jamPulangDefault || '15:00'}
+              {daftarJamKerja().map((h) => `${h.hari} ${h.jamKerja}`).join(' • ')}
             </p>
           </div>
           <span className="px-2 py-1 font-label-sm text-label-sm font-semibold rounded-full bg-blue-50 text-blue-700">
-            Terkonfigurasi
+            Fixed
           </span>
         </div>
         <div className="flex items-center justify-between">
           <div>
-            <p className="font-label-sm text-label-sm text-on-surface">Toleransi Keterlambatan</p>
+            <p className="font-label-sm text-label-sm text-on-surface">Jumat</p>
             <p className="font-label-sm text-label-sm text-on-surface-variant mt-0.5">
-              {formData.presensi?.toleransiTerlambat || 15} menit sebelum status terlambat
+              Tidak memiliki batas minimal jam pulang
             </p>
           </div>
-          <span className="px-2 py-1 font-label-sm text-label-sm font-semibold rounded-full bg-blue-50 text-blue-700">
-            {formData.presensi?.toleransiTerlambat || 15} Menit
+          <span className="px-2 py-1 font-label-sm text-label-sm font-semibold rounded-full bg-emerald-50 text-emerald-700">
+            Bebas
           </span>
         </div>
         <div className="flex items-center justify-between">
@@ -1213,9 +1225,11 @@ function PengaturanGlobalPage() {
             <span className="font-label-sm text-label-sm text-on-surface-variant/60">Default presensi unit baru</span>
           </div>
           <div className="p-3 bg-surface-container-low rounded-lg border border-outline-variant">
-            <span className="font-label-sm text-label-sm text-on-surface-variant uppercase font-semibold tracking-wider leading-tight block">Toleransi Waktu</span>
-            <span className="font-body-md-medium text-body-md-medium text-on-surface mt-0.5 block leading-snug">{formData.presensi?.toleransiTerlambat || 15} Menit</span>
-            <span className="font-label-sm text-label-sm text-on-surface-variant/60">Sebelum status terlambat</span>
+            <span className="font-label-sm text-label-sm text-on-surface-variant uppercase font-semibold tracking-wider leading-tight block">Batas Jam Masuk</span>
+            <span className="font-body-md-medium text-body-md-medium text-on-surface mt-0.5 block leading-snug">
+              Sen-Kam/Jum {daftarJamKerja()[0].jamMasuk} • Sab {daftarJamKerja()[4].jamMasuk}
+            </span>
+            <span className="font-label-sm text-label-sm text-on-surface-variant/60">Setelah batas = terlambat</span>
           </div>
         </div>
 

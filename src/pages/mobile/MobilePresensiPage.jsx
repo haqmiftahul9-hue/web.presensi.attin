@@ -1,15 +1,18 @@
 import Icon from '../../components/Icon.jsx'
 ﻿import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { useSimPres, selectSelfPresensi, selectUnitById, initialsOf } from '../../store/simPresStore.jsx'
+import { useSimPresOptional, selectSelfPresensi, selectUnitById, initialsOf } from '../../store/simPresStore.jsx'
 import { cardQrValue, CARD_QR_PREFIX } from '../../data/employeeCard.js'
 import {
-  tanggalPanjang, tanggalPendek, jamDetik, jamPendek, namaDepan, sapaan, namaShift,
-  jamMenitDariDate, hitungKeterlambatan, cekJendelaPresensi, langkahValidasi, formatMeter,
+  tanggalPanjang, tanggalPendek, jamDetik, jamPendek,
+  jamMenitDariDate, cekJendelaPresensi, langkahValidasi, formatMeter,
 } from '../../data/presensiMobile.js'
+import { getEmployeeGreeting } from '../../data/sapaanPegawai.js'
+import { calculateAttendanceStatus } from '../../data/jamKerja.js'
 import { useGeofence } from '../../hooks/useGeofence.js'
 import { useDeviceCamera } from '../../hooks/useDeviceCamera.js'
 import GeofenceCard from '../../components/mobile/GeofenceCard.jsx'
+import { SectionTitle, Sensor } from '../../components/mobile/AppShell.jsx'
 import ScanFrame from '../../components/mobile/ScanFrame.jsx'
 import StaffAvatar from '../../components/mobile/StaffAvatar.jsx'
 import SuccessSheet from '../../components/mobile/SuccessSheet.jsx'
@@ -29,11 +32,14 @@ function langkahSiaga() {
 }
 
 function PresensiHariIniCard({ presensi, zonaWaktu, tanggal }) {
-  const { masuk, pulang, statusMasuk, rules, batasMasuk, method, late } = presensi
+  const { masuk, pulang, statusMasuk, rules, batasMasuk, method, lateMinutes, hari } = presensi
 
+  // Baris label:nilai. `py-2.5` memberi napas vertikal, dan jarak ke sisi card
+  // datang dari padding horizontal kartu — jadi value boleh rata kanan tanpa
+  // pernah menyentuh border.
   const baris = (label, waktu, badgeClass, badgeIcon, badgeLabel) => (
-    <div className="flex items-center justify-between py-2">
-      <div className="flex flex-col">
+    <div className="flex items-center justify-between gap-3 py-2.5">
+      <div className="flex flex-col min-w-0">
         <span className="font-body-md-medium text-body-md-medium text-on-surface">{label}</span>
         {waktu ? (
           <span className="font-display-lg-mobile text-[18px] font-bold text-on-surface leading-tight tabular-nums">
@@ -43,55 +49,71 @@ function PresensiHariIniCard({ presensi, zonaWaktu, tanggal }) {
           <span className="font-body-md text-body-md text-on-surface-variant italic">Belum presensi</span>
         )}
       </div>
-      <span className={`px-3 py-1 rounded-full font-label-md text-label-md flex items-center gap-1 ${badgeClass}`}>
-        <Icon name={badgeIcon} className="text-[14px]" />
+      <span className={`px-3 py-1.5 rounded-full font-label-md text-label-md flex items-center gap-1 shrink-0 ${badgeClass}`}>
+        <Icon name={badgeIcon} className="text-[14px] shrink-0" />
         <span>{badgeLabel}</span>
       </span>
     </div>
   )
 
   return (
-    <section className="sp-card p-4 flex flex-col gap-3">
-      <div className="flex items-center justify-between pb-2 border-b border-surface-container">
-        <div className="flex items-center gap-2">
-          <Icon name="history_toggle_off" className="text-secondary text-[20px]" />
-          <span className="font-headline-sm text-headline-sm text-on-surface">Presensi Hari Ini</span>
+    <section className="sp-card p-4 flex flex-col gap-3.5">
+      <div className="sp-card-head">
+        <div className="flex items-center gap-2 min-w-0">
+          <Icon name="history_toggle_off" className="text-secondary text-[20px] shrink-0" />
+          <span className="font-headline-sm text-headline-sm text-on-surface truncate">Presensi Hari Ini</span>
         </div>
-        <span className="font-label-sm text-label-sm text-on-surface-variant">{tanggalPendek(tanggal)}</span>
+        <span className="font-label-sm text-label-sm text-on-surface-variant shrink-0">{tanggalPendek(tanggal)}</span>
       </div>
 
       {baris(
         'Jam Masuk',
         masuk,
-        masuk ? (late > 0 ? 'bg-amber-50 text-amber-800' : 'bg-emerald-50 text-emerald-700') : 'bg-surface-container text-on-surface-variant',
-        masuk ? (late > 0 ? 'schedule' : 'task_alt') : 'hourglass_empty',
+        masuk ? (lateMinutes > 0 ? 'bg-amber-50 text-amber-800' : 'bg-emerald-50 text-emerald-700') : 'bg-surface-container text-on-surface-variant',
+        masuk ? (lateMinutes > 0 ? 'schedule' : 'task_alt') : 'hourglass_empty',
         masuk ? statusMasuk : 'Belum Masuk',
       )}
 
-      <div className="h-px w-full bg-surface-container" />
+      {/* Divider mengikuti lebar area konten kartu: 14px di atas dan di bawah
+          (dari `gap-3.5` kartu), tidak pernah menyentuh sisi card. */}
+      <div className="sp-divider" />
 
       {baris(
         'Jam Pulang',
         pulang,
         pulang ? 'bg-emerald-50 text-emerald-700' : 'bg-surface-container text-on-surface-variant',
         pulang ? 'task_alt' : 'hourglass_empty',
-        pulang ? 'Sudah Absen' : 'Menunggu Jam Pulang',
+        pulang ? 'Sudah Absen' : (rules.pulangBebas ? 'Bebas' : `Menunggu ${rules.jamPulang}`),
       )}
 
-      <div className="p-2.5 rounded-xl bg-surface-container-low flex items-start gap-2 text-on-surface-variant">
-        <Icon name="info" className="text-[17px] text-amber-600 shrink-0 mt-0.5" />
-        <div className="flex flex-col">
-          <span className="font-body-sm-medium text-body-sm-medium text-on-surface">
-            Batas toleransi masuk: {batasMasuk} {zonaWaktu}
-          </span>
-          <span className="font-body-sm text-body-sm text-on-surface-variant">
-            Keterlambatan di atas toleransi memerlukan approval Kepala Unit.
+      {/* Informasi hari kerja — menggantikan informasi shift. */}
+      <div className="grid grid-cols-2 gap-2.5">
+        <div className="p-3 rounded-xl bg-surface-container-low flex flex-col gap-1 min-w-0">
+          <span className="font-label-sm text-label-sm text-on-surface-variant">Hari kerja</span>
+          <span className="font-body-md-medium text-body-md-medium text-on-surface truncate">{hari}</span>
+        </div>
+        <div className="p-3 rounded-xl bg-surface-container-low flex flex-col gap-1 min-w-0">
+          <span className="font-label-sm text-label-sm text-on-surface-variant">Jam kerja</span>
+          <span className="font-body-md-medium text-body-md-medium text-on-surface tabular-nums truncate">
+            {rules.jamKerja}
           </span>
         </div>
       </div>
 
-      <p className="font-label-sm text-label-sm text-on-surface-variant">
-        Jam operasional {rules.jamMasuk} - {rules.jamPulang} {zonaWaktu}
+      <div className="p-3.5 rounded-2xl bg-surface-container-low flex items-start gap-2.5 text-on-surface-variant">
+        <Icon name="info" className="text-[17px] text-amber-600 shrink-0 mt-0.5" />
+        <div className="flex flex-col gap-1 min-w-0">
+          <span className="font-body-sm-medium text-body-sm-medium text-on-surface">
+            Batas presensi: {batasMasuk} {zonaWaktu}
+          </span>
+          <span className="font-body-sm text-body-sm text-on-surface-variant leading-snug">
+            Masuk tepat pada batas atau sebelumnya berstatus Tepat Waktu; setelahnya Terlambat.
+          </span>
+        </div>
+      </div>
+
+      <p className="font-label-sm text-label-sm text-on-surface-variant leading-snug">
+        Jam kerja {rules.hari} {rules.jamKerja} {zonaWaktu}
         {method ? ` • metode ${method}` : ''}
       </p>
     </section>
@@ -100,18 +122,23 @@ function PresensiHariIniCard({ presensi, zonaWaktu, tanggal }) {
 
 /**
  * Halaman presensi mobile. Tombol "Ambil Presensi Sekarang" menjalankan
- * rangkaian validasi berurutan — lokasi (geofence), waktu (shift + toleransi),
- * lalu biometrik (wajah atau QR kartu ID) — dan baru menulis ke store bila
- * semuanya lolos, sehingga angka di Monitoring Presensi dan Rekap tetap
+ * rangkaian validasi berurutan — lokasi (geofence), waktu (jam kerja global hari
+ * ini), lalu biometrik (wajah atau QR kartu ID) — dan baru menulis ke store
+ * bila semuanya lolos, sehingga angka di Monitoring Presensi dan Rekap tetap
  * berasal dari satu sumber data yang sama.
  */
 function MobilePresensiPage() {
-  const { state, dispatch } = useSimPres()
+  // Varian opsional: store yang belum siap berarti "sedang memuat", bukan
+  // render gagal. useSimPres() melempar error dan itu akan mengunci seluruh
+  // modul mobile lewat pagar kesalahan.
+  const ctx = useSimPresOptional()
+  const state = ctx?.state ?? null
+  const dispatch = ctx?.dispatch ?? null
   const navigate = useNavigate()
   // Mode bisa dibuka lewat tautan (?mode=barcode) supaya quick menu atau
   // pemindaian di pintu gerbang bisa langsung masuk ke mode yang benar.
   const [searchParams, setSearchParams] = useSearchParams()
-  const presensi = selectSelfPresensi(state)
+  const presensi = state ? selectSelfPresensi(state) : null
   const staff = presensi?.staff
   const unit = staff ? selectUnitById(state, staff.unitId) : null
   const rules = presensi?.rules
@@ -156,9 +183,17 @@ function MobilePresensiPage() {
   // Inisial untuk placeholder bingkai kamera ketika kamera tidak menyala.
   const initialsFor = useMemo(() => initialsOf(staff?.name), [staff])
 
+  if (!state) {
+    return (
+      <div className="sp-page sp-page-container py-6">
+        <LoadingState judul="Loading Presensi" detail="Mengambil aturan jam kerja hari ini…" />
+      </div>
+    )
+  }
+
   if (!presensi || !staff || !rules) {
     return (
-      <div className="px-4 py-6">
+      <div className="sp-page-container py-6">
         <ErrorState
           ikon="badge"
           judul="Data pegawai tidak ditemukan"
@@ -192,17 +227,20 @@ function MobilePresensiPage() {
   function validasiWaktu(saatPresensi) {
     const menit = jamMenitDariDate(saatPresensi)
     const jendela = cekJendelaPresensi(menit, rules)
-    const late = hitungKeterlambatan(menit, rules.jamMasuk, rules.toleransi)
+    // Status & keterlambatan menit dihitung satu-satunya fungsi penentuan status,
+    // yang sama dipakai monitoring, rekap, dan laporan PDF.
+    const hasil = calculateAttendanceStatus(saatPresensi, `${String(saatPresensi.getHours()).padStart(2, '0')}:${String(saatPresensi.getMinutes()).padStart(2, '0')}`)
+    const lateMinutes = hasil.lateMinutes
     return {
-      ok: !jendela.sebelumShift && !jendela.lewatJamPulang,
-      late,
-      detail: jendela.sebelumShift
-        ? `Terlalu awal — shift ${namaShift(rules.jamMasuk)} mulai ${rules.jamMasuk}`
+      ok: !jendela.terlaluAwal && !jendela.lewatJamPulang,
+      lateMinutes,
+      detail: jendela.terlaluAwal
+        ? `Terlalu awal — presensi ${rules.hari} dibuka pukul ${rules.jamMasuk}`
         : jendela.lewatJamPulang
-          ? `Shift sudah berakhir ${rules.jamPulang}`
-          : late > 0
-            ? `Terlambat ${late} menit dari batas ${presensi.batasMasuk} ${zonaWaktu}`
-            : `Tepat waktu — batas toleransi ${presensi.batasMasuk} ${zonaWaktu}`,
+          ? `Jam kerja hari ini sudah selesai ${rules.jamPulang}`
+          : lateMinutes > 0
+            ? `${hasil.label} dari batas ${rules.jamMasuk} ${zonaWaktu}`
+            : `Tepat waktu — batas ${rules.jamMasuk} ${zonaWaktu}`,
     }
   }
 
@@ -280,24 +318,22 @@ function MobilePresensiPage() {
               id: staff.id,
               masuk: jamDetik(saatPresensi),
               method: mode === 'face' ? 'Face Recognition' : 'QR Code',
-              late: hasilWaktu.late,
             },
           })
           setHasilSimpan({
             judul: 'Presensi Berhasil',
-            detail:
-              hasilWaktu.late > 0
-                ? `Tercatat terlambat ${hasilWaktu.late} menit, perlu approval Kepala Unit.`
-                : 'Kehadiran Anda sudah tercatat pada data presensi.',
+            detail: hasilWaktu.lateMinutes > 0
+              ? `Tercatat ${hasilWaktu.detail}. Keterlambatan tetap tercatat pada rekap.`
+              : 'Kehadiran Anda sudah tercatat pada data presensi.',
             jam: jamDetik(saatPresensi),
             method: mode === 'face' ? 'Face Recognition' : 'QR Code',
-            late: hasilWaktu.late,
+            lateMinutes: hasilWaktu.lateMinutes,
           })
           setSheetTerbuka(true)
           setStatusPenutup('berhasil')
           setPesanPenutup(
-            hasilWaktu.late > 0
-              ? `Presensi tersimpan pukul ${jamDetik(saatPresensi)} ${zonaWaktu}, tercatat terlambat ${hasilWaktu.late} menit.`
+            hasilWaktu.lateMinutes > 0
+              ? `Presensi tersimpan pukul ${jamDetik(saatPresensi)} ${zonaWaktu}, tercatat terlambat ${hasilWaktu.lateMinutes} menit.`
               : `Presensi tersimpan pukul ${jamDetik(saatPresensi)} ${zonaWaktu}.`,
           )
         }, 700)
@@ -332,10 +368,10 @@ function MobilePresensiPage() {
     })
     setHasilSimpan({
       judul: 'Absen Pulang Tercatat',
-      detail: 'Kehadiran hari ini sudah lengkap.',
+      detail: presensi.statusPulang?.keterangan || 'Kehadiran hari ini sudah lengkap.',
       jam: jamDetik(saatPresensi),
       method: mode === 'face' ? 'Face Recognition' : 'QR Code',
-      late: 0,
+      lateMinutes: 0,
     })
     setSheetTerbuka(true)
   }
@@ -360,8 +396,10 @@ function MobilePresensiPage() {
 
   const belumMasuk = !presensi.sudahMasuk
   const belumPulang = !presensi.sudahPulang
-  const jamPulangMenit = (String(rules.jamPulang).split(':').map(Number)[0] || 15) * 60
-  const jendelaPulangTerbuka = jamMenitDariDate(now) >= jamPulangMenit - 60
+  // Jumat tidak punya batas minimal jam pulang, jadi tombol pulang terbuka begitu
+  // presensi masuk tercatat. Hari lain baru terbuka 1 jam sebelum jam pulang.
+  const jendelaPulangTerbuka = rules.pulangBebas
+    || jamMenitDariDate(now) >= (rules.jamPulangMenit ?? 15 * 60) - 60
   const geofenceOk = rules.lokasiAktif && geofence.dalamRadius
 
   const labelTombol = belumMasuk
@@ -379,173 +417,214 @@ function MobilePresensiPage() {
       {/* Loading state: selama kamera belum selesai meminta izin, halaman
           menampilkan skeleton supaya tidak ada kedipan layout. */}
       {kamera.status === 'meminta' && (
-        <div className="px-4 pt-6 pb-2">
+        <div className="sp-page-container pt-6 pb-2">
           <LoadingState judul="Menyiapkan kamera…" detail="Izinkan akses kamera agar presensi wajah dapat dipakai." lines={3} />
         </div>
       )}
 
-      <section className="relative overflow-hidden bg-gradient-to-br from-primary-container via-[#12325f] to-[#08182f] text-on-primary px-4 pt-5 pb-16 rounded-b-[32px] shadow-lg">
-        <div className="absolute -top-20 -right-16 w-56 h-56 rounded-full bg-secondary-container/20 blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-24 -left-16 w-52 h-52 rounded-full bg-tertiary-container/60 blur-2xl pointer-events-none" />
+      {/* 1. HERO: identitas + jam real-time. Gelap, dengan bentuk dekoratif. */}
+      <section className="sp-hero sp-page-container pt-4 pb-20">
+        <span className="sp-pattern-dots" aria-hidden="true" />
+        <span className="sp-blob sp-blob-a" aria-hidden="true" />
+        <span className="sp-blob sp-blob-b" aria-hidden="true" />
 
-        <div className="relative z-10 flex items-center gap-3.5">
-          <div className="relative">
-            <span className="absolute -inset-1 rounded-full bg-white/10" />
-            <StaffAvatar
-              staff={staff}
-              size="w-[60px] h-[60px]"
-              textClass="font-headline-sm text-headline-sm"
-              ring="ring-2 ring-white/15"
-              className="shadow-lg"
-            />
+        <div className="relative z-[1]">
+          <div className="flex items-center gap-3">
+            <div className="relative shrink-0">
+              <StaffAvatar
+                staff={staff}
+                size="w-14 h-14"
+                textClass="font-headline-sm text-headline-sm"
+                ring="ring-[3px] ring-white/20"
+              />
+              <span
+                className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full ring-[3px] ring-[#12325f] ${
+                  state.currentUser?.status === 'Aktif' ? 'bg-emerald-400' : 'bg-outline'
+                }`}
+                title={state.currentUser?.status === 'Aktif' ? 'Online' : 'Offline'}
+              />
+            </div>
+            <div className="flex flex-col min-w-0 flex-1">
+              <span className="font-label-sm text-label-sm text-white/70">Halo,</span>
+              {/* Sapaan dari gender + unit pegawai, lewat fungsi terpusat. */}
+              <span className="font-headline-sm text-headline-sm text-white truncate">
+                {getEmployeeGreeting(staff, { unit })}
+              </span>
+              <span className="font-label-sm text-label-sm text-white/70 truncate">
+                {staff.name}
+              </span>
+            </div>
+            <span className="px-2.5 py-1 rounded-full bg-white/12 text-white/95 border border-white/20 font-label-sm text-label-sm flex items-center gap-1 shrink-0">
+              <Icon name="badge" className="text-[14px]" />
+              ID {staff.niy}
+            </span>
+          </div>
+
+          <div className="mt-3 flex flex-wrap items-center gap-1.5">
+            <span className="px-2.5 py-1 rounded-full bg-white/10 border border-white/12 font-label-sm text-label-sm text-white/90 flex items-center gap-1 max-w-full">
+              <Icon name="domain" className="text-[14px]" />
+              <span className="truncate">{unit?.nama || '-'}</span>
+            </span>
+            <span className="px-2.5 py-1 rounded-full bg-white/10 border border-white/12 font-label-sm text-label-sm text-white/90 flex items-center gap-1">
+              <Icon name="work" className="text-[14px]" />
+              {staff.role}
+            </span>
+            <span className="px-2.5 py-1 rounded-full bg-white/10 border border-white/12 font-label-sm text-label-sm text-white/90 flex items-center gap-1">
+              <Icon name="schedule" className="text-[14px]" />
+              Jam Kerja {rules.hari} ({rules.jamKerja})
+            </span>
+          </div>
+
+          {/* Jam WIB real-time + tanggal hari ini. */}
+          <div className="mt-4 flex items-end justify-between gap-3">
+            <div className="flex flex-col">
+              <span className="font-display-lg text-[40px] leading-none text-white font-bold tabular-nums">
+                {jamDetik(now)}
+              </span>
+              <span className="font-label-sm text-label-sm text-white/70 mt-1.5">
+                {tanggalPanjang(now)} · {zonaWaktu}
+              </span>
+            </div>
             <span
-              className={`absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full ring-[3px] ring-[#0d2342] ${
-                state.currentUser?.status === 'Aktif' ? 'bg-emerald-400' : 'bg-outline'
+              className={`px-3 py-1.5 rounded-full border font-label-sm text-label-sm flex items-center gap-1.5 shrink-0 ${
+                presensi.sudahMasuk
+                  ? 'bg-emerald-400/15 border-emerald-300/30 text-emerald-200'
+                  : 'bg-white/10 border-white/12 text-white/90'
               }`}
-              title={state.currentUser?.status === 'Aktif' ? 'Online' : 'Offline'}
-            />
-          </div>
-          <div className="flex flex-col min-w-0 flex-1">
-            <span className="font-label-sm text-label-sm text-blue-200/90">
-              {['Halo,', sapaan(staff)].filter(Boolean).join(' ')}
-            </span>
-            <span className="font-headline-sm text-headline-sm text-white truncate">
-              {namaDepan(staff.name)}
-            </span>
-            <span className="font-label-sm text-label-sm text-on-primary-container truncate">
-              {staff.name}
+            >
+              <Icon name={presensi.sudahMasuk ? (presensi.lateMinutes > 0 ? 'schedule' : 'task_alt') : 'hourglass_empty'} className="text-[15px]" />
+              {presensi.sudahMasuk ? presensi.statusMasuk : `Batas ${presensi.batasMasuk}`}
             </span>
           </div>
-          <span className="px-2.5 py-1 rounded-full bg-white/10 text-white/90 border border-white/10 font-label-sm text-label-sm flex items-center gap-1 shrink-0">
-            <Icon name="badge" className="text-[14px]" />
-            ID {staff.niy}
-          </span>
-        </div>
-
-        <div className="relative z-10 mt-3 flex flex-wrap items-center gap-1.5">
-          <span className="px-2.5 py-1 rounded-full bg-white/10 border border-white/10 font-label-sm text-label-sm text-white/90 flex items-center gap-1 max-w-full">
-            <Icon name="domain" className="text-[14px]" />
-            <span className="truncate">{unit?.nama || '-'}</span>
-          </span>
-          <span className="px-2.5 py-1 rounded-full bg-white/10 border border-white/10 font-label-sm text-label-sm text-white/90 flex items-center gap-1">
-            <Icon name="work" className="text-[14px]" />
-            {staff.role}
-          </span>
-          <span className="px-2.5 py-1 rounded-full bg-white/10 border border-white/10 font-label-sm text-label-sm text-white/90 flex items-center gap-1">
-            <Icon name="schedule" className="text-[14px] text-blue-300" />
-            {namaShift(rules.jamMasuk)} ({rules.jamMasuk} - {rules.jamPulang})
-          </span>
-        </div>
-
-        <div className="relative z-10 mt-5 flex items-end justify-between gap-3">
-          {/* 2. Jam WIB real-time + tanggal hari ini. */}
-          <div className="flex flex-col">
-            <span className="font-display-lg text-[38px] leading-none text-white font-bold tabular-nums">
-              {jamDetik(now)}
-              <span className="font-headline-sm text-headline-sm font-medium text-blue-200 ml-1">{zonaWaktu}</span>
-            </span>
-            <span className="font-label-sm text-label-sm text-on-primary-container mt-1.5">{tanggalPanjang(now)}</span>
-          </div>
-          <span
-            className={`px-3 py-1.5 rounded-full border font-label-sm text-label-sm flex items-center gap-1.5 ${
-              presensi.sudahMasuk
-                ? 'bg-emerald-400/15 border-emerald-300/30 text-emerald-200'
-                : 'bg-white/10 border-white/10 text-white/90'
-            }`}
-          >
-            <Icon name={presensi.sudahMasuk ? (presensi.late > 0 ? 'schedule' : 'task_alt') : 'hourglass_empty'} className="text-[15px]" />
-            {presensi.sudahMasuk ? presensi.statusMasuk : `Batas ${presensi.batasMasuk}`}
-          </span>
         </div>
       </section>
 
-      <div className="px-4 -mt-10 relative z-20 flex flex-col gap-4 pb-6">
-        {/* 3. Geofencing: jarak dari koordinat unit vs radius Pengaturan Global. */}
-        <GeofenceCard
-          geofence={geofence}
-          namaTitik={`${unit?.nama || 'Unit'} - Gerbang Utama`}
-          koordinatTeks={koordinatTeks}
-        />
+      <div className="px-4 relative z-[2] flex flex-col gap-4 pb-2">
+        {/* 2. STATUS SENSOR di atas: lokasi, waktu, dan kamera. Tiga kotak
+            sensor memakai padding 12px + radius 16px, dipisah gap 10px, dan
+            semuanya berada di dalam padding kartu. */}
+        <section className="sp-card p-4 flex flex-col gap-3.5 sp-rise">
+          <SectionTitle ikon="sensors" judul="Status Sensor" />
+          <div className="grid grid-cols-3 gap-2.5">
+            <Sensor
+              ikon="gps_fixed"
+              label="Lokasi"
+              nilai={geofence.dalamRadius ? 'Dalam radius' : 'Di luar radius'}
+              tone={geofence.dalamRadius ? 'baik' : 'lambat'}
+            />
+            <Sensor
+              ikon="schedule"
+              label="Waktu"
+              nilai={presensi.sudahMasuk ? presensi.statusMasuk : `Batas ${presensi.batasMasuk}`}
+              tone={presensi.sudahMasuk ? (presensi.lateMinutes > 0 ? 'lambat' : 'baik') : 'netral'}
+            />
+            <Sensor
+              ikon={kamera.aktif ? 'videocam' : 'videocam_off'}
+              label="Kamera"
+              nilai={kamera.aktif ? 'Aktif' : kamera.status === 'meminta' ? 'Meminta izin' : 'Nonaktif'}
+              tone={kamera.aktif ? 'baik' : 'netral'}
+            />
+          </div>
+        </section>
 
-        {/* 4. Mode presensi: wajah atau barcode. */}
-        <div className="grid grid-cols-2 p-1 bg-surface-container rounded-2xl gap-1 shadow-inner">
-          {TABS.map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => {
-                const next = tab.id
-                setMode(next)
-                setSearchParams(next === 'barcode' ? { mode: 'barcode' } : {}, { replace: true })
-              }}
-              aria-pressed={mode === tab.id}
-              className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl font-label-md text-label-md transition-all ${
-                mode === tab.id
-                  ? 'bg-primary-container text-on-primary shadow-sm'
-                  : 'bg-transparent text-on-surface-variant'
-              }`}
-            >
-              <Icon name={tab.icon} className="text-[18px]" />
-              <span>{tab.label}</span>
-            </button>
-          ))}
+        {/* 3. Geofencing: jarak dari koordinat unit vs radius Pengaturan Global. */}
+        <div className="sp-rise sp-rise-1">
+          <GeofenceCard
+            geofence={geofence}
+            namaTitik={`${unit?.nama || 'Unit'} - Gerbang Utama`}
+            koordinatTeks={koordinatTeks}
+          />
         </div>
 
-        {/* Error state kamera: izin ditolak atau perangkat tidak punya kamera. */}
-        {kamera.status === 'ditolak' && (
-          <ErrorState
-            ikon="no_photography"
-            judul="Kamera tidak dapat diakses"
-            detail={`${kamera.error || 'Izin kamera ditolak.'} Presensi barcode memakai input kode manual.`}
-            onCoba={kamera.restart}
-          />
-        )}
+        {/* 4. PILIHAN MODE + AREA KAMERA.
+            Tab mode berdiri sendiri sebagai segmented control (bukan kartu di
+            dalam kartu), lalu bingkai kamera jadi satu kartu tersendiri. Jadi
+            setiap kartu punya tepat satu lapis padding — tidak ada ruang yang
+            terhitung dua kali. */}
+        <div className="flex flex-col gap-2.5 sp-rise sp-rise-2">
+          {/* Error state kamera: izin ditolak atau perangkat tidak punya kamera. */}
+          {kamera.status === 'ditolak' && (
+            <ErrorState
+              ikon="no_photography"
+              judul="Kamera tidak dapat diakses"
+              detail={`${kamera.error || 'Izin kamera ditolak.'} Presensi barcode memakai input kode manual.`}
+              onCoba={kamera.restart}
+            />
+          )}
 
-        {/* 5 & 7. Area kamera: bingkai wajah atau scanner QR kartu ID. */}
-        <ScanFrame
-          mode={mode}
-          facing={facing}
-          onGantiKamera={() => setFacing((v) => (v === 'user' ? 'environment' : 'user'))}
-          videoRef={kamera.videoRef}
-          cameraAktif={kamera.aktif}
-          cameraStatus={kamera.status}
-          cameraError={kamera.error}
-          supportsDetector={kamera.supportsDetector}
-          initials={initialsFor}
-          qrValue={qrMilikSaya}
-          qrTerbaca={qrValid}
-          captured={statusPenutup === 'berhasil'}
-          verifying={busy}
-        />
+          <div className="grid grid-cols-2 p-1.5 gap-1.5 bg-surface-container rounded-2xl">
+            {TABS.map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => {
+                  const next = tab.id
+                  setMode(next)
+                  setSearchParams(next === 'barcode' ? { mode: 'barcode' } : {}, { replace: true })
+                }}
+                aria-pressed={mode === tab.id}
+                className={`flex items-center justify-center gap-1.5 min-h-[44px] px-3 py-2.5 rounded-xl font-label-md text-label-md transition-all ${
+                  mode === tab.id
+                    ? 'bg-primary text-on-primary shadow-sm'
+                    : 'bg-transparent text-on-surface-variant'
+                }`}
+              >
+                <Icon name={tab.icon} className="text-[18px] shrink-0" />
+                <span className="truncate">{tab.label}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* Area kamera: bingkai wajah atau scanner QR kartu ID. */}
+          <div className="flex justify-center">
+            <div className="w-full max-w-[320px]">
+              <ScanFrame
+                mode={mode}
+                facing={facing}
+                onGantiKamera={() => setFacing((v) => (v === 'user' ? 'environment' : 'user'))}
+                videoRef={kamera.videoRef}
+                cameraAktif={kamera.aktif}
+                cameraStatus={kamera.status}
+                cameraError={kamera.error}
+                supportsDetector={kamera.supportsDetector}
+                initials={initialsFor}
+                qrValue={qrMilikSaya}
+                qrTerbaca={qrValid}
+                captured={statusPenutup === 'berhasil'}
+                verifying={busy}
+              />
+            </div>
+          </div>
+        </div>
 
         {/* Fallback ketika kamera atau pembacaan QR tidak tersedia: kode kartu
             ID diketik manual dan dicocokkan dengan QR pada kartu. */}
         {mode === 'barcode' && !qrValid && (
-          <form onSubmit={verifikasiKodeManual} className="sp-card p-4 flex flex-col gap-2">
-            <div className="flex items-center justify-between">
+          <form onSubmit={verifikasiKodeManual} className="sp-card p-4 flex flex-col gap-3">
+            <div className="flex items-center justify-between gap-2">
               <span className="font-headline-sm text-headline-sm text-on-surface">Kode Kartu ID</span>
-              <span className="font-label-sm text-label-sm text-on-surface-variant">{CARD_QR_PREFIX}</span>
+              <span className="font-label-sm text-label-sm text-on-surface-variant shrink-0">{CARD_QR_PREFIX}</span>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2.5">
               <input
                 value={kodeManual}
                 onChange={(e) => setKodeManual(e.target.value)}
                 placeholder="NIY"
                 inputMode="numeric"
                 aria-label="Kode kartu ID"
-                className="flex-1 px-3 py-2.5 rounded-xl bg-surface-container-low border border-outline-variant/40 font-body-md text-body-md text-on-surface outline-none focus:border-secondary"
+                className="sp-field flex-1 py-2.5 bg-surface-container-low border border-outline-variant/40 font-body-md text-body-md text-on-surface outline-none focus:border-secondary"
               />
               <button
                 type="submit"
-                className="px-4 py-2.5 rounded-xl bg-secondary text-on-secondary font-label-md text-label-md active:scale-[0.98] transition-transform"
+                className="sp-btn shrink-0 px-4 py-2.5 bg-secondary text-on-secondary font-label-md text-label-md active:scale-[0.98] transition-transform"
               >
                 Verifikasi
               </button>
             </div>
             {pesanKode ? (
-              <p className="font-label-sm text-label-sm text-on-error-container">{pesanKode}</p>
+              <p className="font-label-sm text-label-sm text-on-error-container leading-snug">{pesanKode}</p>
             ) : (
-              <p className="font-label-sm text-label-sm text-on-surface-variant">
+              <p className="font-label-sm text-label-sm text-on-surface-variant leading-snug">
                 Dipakai saat kamera tidak dapat membaca QR. Kode di atas bisa disalin dari kartu ID fisik.
               </p>
             )}
@@ -553,8 +632,8 @@ function MobilePresensiPage() {
         )}
 
         {mode === 'barcode' && qrMilikOrangLain && (
-          <p className="rounded-2xl bg-error-container text-on-error-container px-3 py-2 font-body-sm text-body-sm flex items-start gap-2">
-            <Icon name="error" className="text-[16px] mt-0.5" />
+          <p className="rounded-2xl bg-error-container text-on-error-container px-3.5 py-3 font-body-sm text-body-sm flex items-start gap-2 leading-snug">
+            <Icon name="error" className="text-[16px] mt-0.5 shrink-0" />
             <span>
               QR yang terbaca ({qrTerbaca}) bukan kartu ID Anda ({CARD_QR_PREFIX}
               {staff.niy}).
@@ -563,12 +642,12 @@ function MobilePresensiPage() {
         )}
 
         {/* 6. Tombol presensi: validasi lokasi -> waktu -> biometrik -> simpan. */}
-        <div className="flex flex-col gap-1.5">
+        <div className="flex flex-col gap-2">
           <button
             type="button"
             onClick={onTombol}
             disabled={tombolDisabled}
-            className={`w-full py-4 rounded-2xl font-headline-sm text-headline-sm flex items-center justify-center gap-2 shadow-lg transition-all active:scale-[0.99] disabled:opacity-60 disabled:active:scale-100 ${
+            className={`sp-btn w-full py-4 font-headline-sm text-headline-sm flex items-center justify-center gap-2 shadow-lg transition-all active:scale-[0.99] disabled:opacity-60 disabled:active:scale-100 ${
               belumMasuk
                 ? 'bg-gradient-to-br from-primary-container to-[#12325f] text-on-primary'
                 : belumPulang
@@ -576,20 +655,20 @@ function MobilePresensiPage() {
                   : 'bg-emerald-700 text-white'
             }`}
           >
-            <Icon name={busy ? 'progress_activity' : belumMasuk ? 'check_circle' : belumPulang ? 'logout' : 'task_alt'} className={`text-[20px] ${busy ? 'animate-spin' : ''}`} />
+            <Icon name={busy ? 'progress_activity' : belumMasuk ? 'check_circle' : belumPulang ? 'logout' : 'task_alt'} className={`text-[20px] shrink-0 ${busy ? 'animate-spin' : ''}`} />
             <span>{labelTombol}</span>
           </button>
 
           {!geofenceOk && (
-            <p className="text-center font-body-sm text-body-sm text-on-error-container">
+            <p className="text-center font-body-sm text-body-sm text-on-error-container leading-snug px-1">
               {rules.lokasiAktif
                 ? 'Presensi hanya bisa diambil di dalam radius titik lokasi sekolah.'
                 : 'Presensi sedang dinonaktifkan oleh administrator unit.'}
             </p>
           )}
           {belumMasuk && geofenceOk && !busy && (
-            <p className="text-center font-body-sm text-body-sm text-on-surface-variant">
-              Toleransi {rules.toleransi} menit dari jam {rules.jamMasuk} ({presensi.batasMasuk} {zonaWaktu}).
+            <p className="text-center font-body-sm text-body-sm text-on-surface-variant leading-snug px-1">
+              Hari kerja {rules.hari}: batas presensi masuk {rules.jamMasuk} {zonaWaktu}, jam pulang {rules.jamKerja.split(' - ')[1]} {zonaWaktu}.
             </p>
           )}
         </div>
@@ -608,7 +687,7 @@ function MobilePresensiPage() {
           { label: 'Metode', nilai: hasilSimpan?.method || '-' },
           {
             label: 'Status',
-            nilai: hasilSimpan?.late > 0 ? `Terlambat ${hasilSimpan.late} menit` : 'Tepat waktu',
+            nilai: hasilSimpan?.lateMinutes > 0 ? `Terlambat ${hasilSimpan.lateMinutes} menit` : 'Tepat waktu',
           },
           { label: 'Lokasi', nilai: unit?.nama || '-' },
         ]}

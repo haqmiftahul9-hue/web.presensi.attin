@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useSimPres, selectTrendByRange, selectActiveStaff } from '../store/simPresStore.jsx'
+import { calculateAttendanceStatus, jamKerjaRules } from '../data/jamKerja.js'
 
 function WeeklyTrend() {
   const { state } = useSimPres()
@@ -15,10 +16,12 @@ function WeeklyTrend() {
   const rataRataKehadiran = trend.length > 0
     ? ((trend.reduce((sum, d) => sum + d.hadir / Math.max(d.hadir + d.terlambat, 1), 0) / trend.length) * 100).toFixed(1)
     : '0.0'
-  // Kepatuhan dihitung dari pegawai pada unit terpilih saja.
+  // Kepatuhan dihitung dari pegawai pada unit terpilih saja, memakai batas jam
+  // masuk hari ini (07:10, atau 07:30 untuk Sabtu).
+  const rulesHariIni = jamKerjaRules(new Date())
   const hadirStaff = selectActiveStaff(state).filter((s) => s.status === 'Aktif' && s.masuk)
-  const sebelumTujuh = hadirStaff.filter((s) => (s.masuk || '') < '07:00').length
-  const kepatuhan = hadirStaff.length > 0 ? ((sebelumTujuh / hadirStaff.length) * 100).toFixed(1) : '0.0'
+  const tepatWaktu = hadirStaff.filter((s) => calculateAttendanceStatus(new Date(), s.masuk).lateMinutes === 0).length
+  const kepatuhan = hadirStaff.length > 0 ? ((tepatWaktu / hadirStaff.length) * 100).toFixed(1) : '0.0'
 
   const btnClass = (active) =>
     active
@@ -78,7 +81,9 @@ function WeeklyTrend() {
       </div>
 
       <div className="flex items-center justify-between pt-space-xs bg-surface-container-low px-space-md py-space-xs rounded-lg mt-2">
-        <span className="font-body-sm text-body-sm text-on-surface-variant">Tingkat kepatuhan waktu masuk sebelum pukul 07.00:</span>
+        <span className="font-body-sm text-body-sm text-on-surface-variant">
+          Tingkat kepatuhan masuk tepat pada batas {rulesHariIni.jamMasuk} ({rulesHariIni.hari}):
+        </span>
         <span className="font-body-sm-medium text-body-sm-medium text-secondary">{kepatuhan}% (Tinggi)</span>
       </div>
     </div>

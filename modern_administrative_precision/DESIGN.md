@@ -151,7 +151,7 @@ The aesthetic adheres to **Corporate Modern** with functional Scandinavian restr
 - **Clean Structure**: Information density is managed via clear grouping, generous functional whitespace, and high legibility rather than decorative flourishes.
 - **Reliable Authority**: The visual weight relies on structural deep navy elements anchoring primary interfaces (navigation sidebars, persistent headers), balanced against airy, low-fatigue slate backgrounds.
 - **Micro-Precision**: Sharp hairline strokes, deliberate 8px–10px radii, and minimal atmospheric elevation communicate technical dependability without feeling clinical or punishing.
-- **Restraint Over Novelty**: Avoid glassmorphism, aggressive gradient meshes, heavy neon glows, or skeumorphic skews. The interface acts as a silent, high-efficiency utility where operational accuracy (clock-ins, shift adjustments, approval workflows) takes precedence.
+- **Restraint Over Novelty**: Avoid glassmorphism, aggressive gradient meshes, heavy neon glows, or skeumorphic skews. The interface acts as a silent, high-efficiency utility where operational accuracy (clock-ins, jam kerja per hari, approval workflows) takes precedence.
 
 ## Colors
 
@@ -180,7 +180,7 @@ Interactive elements must never rely on color alone; paired icons or explicit te
 The typographic hierarchy pairs **Plus Jakarta Sans** for structural wayfinding and headings with **Inter** for dense transactional UI, tabular statistics, and data collection forms.
 
 - **Headlines (Plus Jakarta Sans)**: Used in Semibold (600) and Bold (700). Its subtle geometric curves infuse warm modernism into managerial screens without degrading institutional stature.
-- **Body & Tabular Layers (Inter)**: Employs Regular (400) and Medium (500). Optimized for maximum legibility in complex data rosters, attendance timestamps, shift calendars, and nested multi-unit school rosters. Numeric tabular figures (`font-variant-numeric: tabular-nums`) must be enabled on all data grids and timestamps.
+- **Body & Tabular Layers (Inter)**: Employs Regular (400) and Medium (500). Optimized for maximum legibility in complex data rosters, attendance timestamps, jam kerja schedules, and nested multi-unit school rosters. Numeric tabular figures (`font-variant-numeric: tabular-nums`) must be enabled on all data grids and timestamps.
 - **Labels & Captions**: Capitalized structural headers and table headers must use `label-sm` with slight positive tracking to ensure fast vertical scanning across wide administrative monitors.
 
 ## Layout & Spacing

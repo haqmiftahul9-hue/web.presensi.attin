@@ -5,6 +5,11 @@ import { initialsOf } from '../store/simPresStore.jsx'
 import { selectLeavesByStatus, selectPendingLeaves, selectApprovedLeaves, selectRejectedLeaves } from '../store/simPresStore.jsx'
 import LeaveRequestModal from '../components/LeaveRequestModal.jsx'
 import LeaveDetailModal from '../components/LeaveDetailModal.jsx'
+import {
+  JENIS_UTAMA, SEMUA_JENIS, kelompokIzinCuti,
+  WARNA_STATUS_PORTAL, WARNA_TITIK_STATUS,
+} from '../data/jenisIzinCuti.js'
+import { rentangPengajuan } from '../data/presensiMobile.js'
 
 const statusTabs = [
   { id: 'semua', label: 'Semua', count: 0, color: 'bg-surface-container-high text-on-surface-variant' },
@@ -13,11 +18,18 @@ const statusTabs = [
   { id: 'ditolak', label: 'Ditolak', count: 0, color: 'bg-red-100 text-red-800' },
 ]
 
+// Pilihan jenis, warna badge, dan kelas avatar SEMUA membaca daftar jenis
+// terpusat (data/jenisIzinCuti.js), bukan daftar lokal yang bisa berbeda dari
+// form mobile. Karena itu pengajuan "Cuti Melahirkan" yang dibuat guru langsung
+// tampil dengan warna dan filter yang benar di halaman ini.
 const jenisOptions = [
   'Semua Jenis Izin/Cuti',
-  'Sakit',
-  'Izin Pribadi',
-  'Cuti',
+  'Semua Cuti',
+  'Semua Izin',
+  ...JENIS_UTAMA.map((j) => j.nama),
+  'Cuti Penting',
+  'Cuti Menikah',
+  'Tugas Luar',
 ]
 
 const periodeOptions = [
@@ -26,33 +38,12 @@ const periodeOptions = [
   'Tahun Ini',
 ]
 
-const statusClassMap = {
-  'Menunggu': 'bg-amber-50 text-amber-700',
-  'Disetujui': 'bg-emerald-50 text-emerald-700',
-  'Ditolak': 'bg-red-50 text-red-700',
-}
-
-const statusDotMap = {
-  'Menunggu': 'bg-amber-500',
-  'Disetujui': 'bg-emerald-500',
-  'Ditolak': 'bg-red-500',
-}
-
-const jenisClassMap = {
-  'Sakit': 'bg-blue-50 text-blue-700',
-  'Izin Pribadi': 'bg-orange-50 text-orange-700',
-  'Cuti Penting': 'bg-indigo-50 text-indigo-700',
-  'Cuti Bersalin': 'bg-purple-50 text-purple-700',
-  'Cuti Besar': 'bg-teal-50 text-teal-700',
-}
-
-const avatarClassMap = {
-  'Sakit': 'bg-emerald-100 text-emerald-900',
-  'Izin Pribadi': 'bg-amber-100 text-amber-900',
-  'Cuti Penting': 'bg-indigo-100 text-indigo-900',
-  'Cuti Bersalin': 'bg-purple-100 text-purple-900',
-  'Cuti Besar': 'bg-teal-100 text-teal-900',
-}
+// Peta warna status dipakai bersama dengan modul jenis izin/cuti supaya
+// badge "Menunggu / Disetujui / Ditolak" sama di portal dan mobile.
+const statusClassMap = WARNA_STATUS_PORTAL
+const statusDotMap = WARNA_TITIK_STATUS
+const jenisClassMap = Object.fromEntries(SEMUA_JENIS.map((j) => [j.nama, j.warna]))
+const avatarClassMap = Object.fromEntries(SEMUA_JENIS.map((j) => [j.nama, j.warnaAvatar]))
 
 function PengajuanIzinCutiPage() {
   const { state, dispatch } = useSimPres()
@@ -124,28 +115,27 @@ function PengajuanIzinCutiPage() {
       const statusMap = { 'Menunggu Persetujuan': 'Menunggu', 'Disetujui': 'Disetujui', 'Ditolak': 'Ditolak' }
       if (l.status !== statusMap[filterStatus]) return false
     }
-    // Filter Jenis dropdown
-    if (filterJenis !== 'Semua Jenis Izin/Cuti') {
-      const jenisMap = { 'Sakit': 'Sakit', 'Izin Pribadi': 'Izin Pribadi', 'Cuti': 'Cuti' }
-      // Match by checking if leave.jenis contains the filter value
-      const filterKey = jenisMap[filterJenis]
-      if (filterKey) {
-        const matched = l.jenis === filterKey || l.jenis.includes(filterKey)
-        if (!matched) return false
-      }
+    // Filter Jenis dropdown: "Semua Cuti"/"Semua Izin" mencocokkan kelompoknya,
+    // selain itu cocok nama persis.
+    if (filterJenis === 'Semua Cuti' || filterJenis === 'Semua Izin') {
+      if (kelompokIzinCuti(l.jenis) !== filterJenis.replace('Semua ', '')) return false
+    } else if (filterJenis !== 'Semua Jenis Izin/Cuti') {
+      if (l.jenis !== filterJenis) return false
     }
-    // Filter Periode dropdown
+    // Filter Periode dropdown. Pengajuan baru menyimpan tanggal ISO (l.mulai),
+    // jadi bulan/tahun dibaca dari sana; pengajuan lama jatuh ke teks periode.
     if (filterBulan !== 'Semua Periode') {
       const now = new Date()
       const currentMonth = now.getMonth()
       const currentYear = now.getFullYear()
-      // Parse period from leave.periode (format: "DD Mon YYYY - DD Mon YYYY" or "DD Mon YYYY")
-      const periodStartStr = l.periode.split(' - ')[0]
-      const periodDate = new Date(periodStartStr.replace(/(\d+) (\w+) (\d+)/, '$2 $1, $3'))
+      const rentang = rentangPengajuan(l)
+      if (!rentang) return false
+      const mulai = new Date(`${rentang.mulai}T00:00:00`)
+      if (Number.isNaN(mulai.getTime())) return false
       if (filterBulan === 'Bulan Ini') {
-        if (periodDate.getMonth() !== currentMonth || periodDate.getFullYear() !== currentYear) return false
+        if (mulai.getMonth() !== currentMonth || mulai.getFullYear() !== currentYear) return false
       } else if (filterBulan === 'Tahun Ini') {
-        if (periodDate.getFullYear() !== currentYear) return false
+        if (mulai.getFullYear() !== currentYear) return false
       }
     }
     return true

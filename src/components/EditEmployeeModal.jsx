@@ -32,7 +32,7 @@ function EditEmployeeModal({ staff, onClose, onSave }) {
       // Field presensi bukan milik form ini dan harus tetap terjaga.
       masuk: staff.masuk,
       method: staff.method,
-      late: staff.late,
+      lateMinutes: staff.lateMinutes,
       alpha: staff.alpha,
       outsideRadius: staff.outsideRadius,
     })

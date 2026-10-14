@@ -136,6 +136,28 @@ function truncateText(text, maxLength = 80) {
   return text.substring(0, maxLength).trim() + '...'
 }
 
+/**
+ * Ambil nilai sebelum/sesudah dari satu baris log.
+ *
+ * Log baru (mis. ubah profil dari mobile) menyimpan `perubahan` sebagai data
+ * terstruktur, jadi nilainya dibaca langsung — akurat, tanpa tebakan. Log lama
+ * hanya punya kalimat `desc`, untuk itu pola regex lama tetap dipakai sebagai
+ * cadangan.
+ */
+function parseLogDetailsFromRow(log) {
+  if (Array.isArray(log?.perubahan) && log.perubahan.length > 0) {
+    const before = {}
+    const after = {}
+    for (const p of log.perubahan) {
+      if (!p || !p.field) continue
+      before[p.label || p.field] = p.sebelum ?? '(kosong)'
+      after[p.label || p.field] = p.sesudah ?? '(kosong)'
+    }
+    return { before, after }
+  }
+  return parseLogDetails(log?.desc || '')
+}
+
 function parseLogDetails(desc) {
   const before = {}
   const after = {}
@@ -262,7 +284,7 @@ function LogAktivitasPage() {
     if (!selectedLog) return null
     const { date, time } = formatLogDateTime(selectedLog.time)
     const unitName = selectedLog.unit || '-'
-    const { before, after } = parseLogDetails(selectedLog.desc)
+    const { before, after } = parseLogDetailsFromRow(selectedLog)
     const roleBadgeClass = selectedLog.role === 'Superadmin' ? 'bg-purple-50 text-purple-700' : 
                            selectedLog.role === 'Admin Unit' ? 'bg-blue-50 text-blue-700' : 
                            selectedLog.role === 'Sistem' ? 'bg-surface-container text-on-surface' : 'bg-slate-50 text-slate-700'
@@ -316,7 +338,7 @@ function LogAktivitasPage() {
     target: log.target.includes('Unit') ? 'Pengaturan Unit' : 
             log.target.includes('Pegawai') ? 'Data Pegawai' : 
             log.target.includes('Cuti') ? 'Pengajuan Cuti' : 
-            log.target.includes('Akun') || log.target.includes('Sesi') ? 'Akun Pengguna' : 'Jadwal Shift',
+            log.target.includes('Akun') || log.target.includes('Sesi') ? 'Akun Pengguna' : 'Jam Kerja',
     targetSub: log.target.includes('•') ? log.target.split('•')[1].trim() : log.target,
     desc: log.desc,
   })), [state.logs])

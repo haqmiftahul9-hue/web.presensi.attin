@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react'
+import { JENIS_FORM, buildPengajuan, aturanLampiran } from '../data/jenisIzinCuti.js'
 
-const JENIS_OPTIONS = [
-  'Sakit (Surat Dokter)',
-  'Cuti Alasan Penting',
-  'Cuti Bersalin/Melahirkan',
-  'Cuti Besar',
-  'Izin Keperluan Pribadi',
-]
+// Pilihan jenis reading from the centralized list — the same list as the
+// mobile teacher form. Previously the options here were different names again
+// ("Cuti Bersalin/Melahirkan"), and that inconsistency split the filter on
+// the admin page.
+const JENIS_OPTIONS = JENIS_FORM
 
 function LeaveRequestModal({ isOpen, onClose, onSave, staffList, units }) {
   const [selectedStaffId, setSelectedStaffId] = useState('')
@@ -70,7 +69,10 @@ function LeaveRequestModal({ isOpen, onClose, onSave, staffList, units }) {
         if (value.trim().length < 5) return 'Keterangan minimal 5 karakter'
         return ''
       case 'lampiran':
-        if (!value) return 'Lampiran wajib diunggah'
+        // Aturan sama dengan form mobile: wajib hanya untuk jenis yang
+        // memang butuh bukti (mis. Cuti Melahirkan). Untuk yang lain lampiran
+        // tetap opsional, supaya form tidak terlalu Berat untuk izin pribadi.
+        if (!value && aturanLampiran(jenis) === 'wajib') return 'Lampiran wajib diunggah untuk jenis ini'
         return ''
       default:
         return ''
@@ -131,23 +133,23 @@ function LeaveRequestModal({ isOpen, onClose, onSave, staffList, units }) {
 
   const handleSubmit = () => {
     if (validateAll()) {
-      const newLeave = {
-        staffId: Number(selectedStaffId),
-        jenis: jenis.split(' ')[0],
-        periode: `${formatDate(tanggalMulai)} - ${formatDate(tanggalSelesai)}`,
-        durasi,
-        lampiran: lampiran?.name || 'Dokumen.pdf',
-        status: 'Menunggu',
-      }
-      onSave(newLeave)
+      // Bentuk baris pengajuan memakai pembentuk yang sama dengan form mobile,
+      // supaya jenis, tanggal ISO, durasi, dan keterangan tidak pernah hilang.
+      // (Versi lama memakai jenis.split(' ')[0] — "Cuti Bersalin/Melahirkan"
+      // tersimpan jadi "Cuti", dan keterangan ikut hilang.)
+      onSave(
+        buildPengajuan({
+          staffId: Number(selectedStaffId),
+          jenis,
+          mulai: tanggalMulai,
+          selesai: tanggalSelesai,
+          alasan: keterangan,
+          lampiran: lampiran?.name || '',
+          lampiranUkuran: lampiran?.size ?? null,
+        }),
+      )
       onClose()
     }
-  }
-
-  const formatDate = (dateStr) => {
-    const date = new Date(dateStr)
-    const options = { day: '2-digit', month: 'short', year: 'numeric' }
-    return date.toLocaleDateString('id-ID', options).replace('.', '')
   }
 
   const handleFileChange = (e) => {

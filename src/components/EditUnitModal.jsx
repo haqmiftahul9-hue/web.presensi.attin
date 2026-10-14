@@ -1,11 +1,10 @@
 import { useState } from 'react'
+import { daftarJamKerja } from '../data/jamKerja.js'
 
 function EditUnitModal({ unit, onClose, onSave }) {
   const [name, setName] = useState(unit?.nama || '')
   const [address, setAddress] = useState(unit?.alamat || '')
   const [radius, setRadius] = useState(unit?.radius || 50)
-  const [jamMasuk, setJamMasuk] = useState(unit?.masuk || '07:00')
-  const [jamPulang, setJamPulang] = useState(unit?.pulang || '15:00')
   const [latitude, setLatitude] = useState(unit?.latitude || -6.28945)
   const [longitude, setLongitude] = useState(unit?.longitude || 106.79234)
   const [geofenceActive, setGeofenceActive] = useState(unit?.geofenceActive ?? true)
@@ -28,14 +27,6 @@ function EditUnitModal({ unit, onClose, onSave }) {
         const r = parseInt(value)
         if (isNaN(r)) return 'Radius wajib diisi'
         if (r < 10 || r > 500) return 'Radius harus antara 10 - 500 meter'
-        return ''
-      case 'jamMasuk':
-        if (!value.trim()) return 'Jam masuk wajib diisi'
-        if (!/^([01]\d|2[0-3]):([0-5]\d)$/.test(value)) return 'Format jam tidak valid (HH:MM)'
-        return ''
-      case 'jamPulang':
-        if (!value.trim()) return 'Jam pulang wajib diisi'
-        if (!/^([01]\d|2[0-3]):([0-5]\d)$/.test(value)) return 'Format jam tidak valid (HH:MM)'
         return ''
       case 'latitude':
         const lat = parseFloat(value)
@@ -71,12 +62,6 @@ function EditUnitModal({ unit, onClose, onSave }) {
       case 'radius':
         setRadius(value === '' ? '' : parseInt(value) || 50)
         break
-      case 'jamMasuk':
-        setJamMasuk(value)
-        break
-      case 'jamPulang':
-        setJamPulang(value)
-        break
       case 'latitude':
         setLatitude(value === '' ? '' : parseFloat(value))
         break
@@ -91,19 +76,17 @@ function EditUnitModal({ unit, onClose, onSave }) {
       name: validateField('name', name),
       address: validateField('address', address),
       radius: validateField('radius', radius),
-      jamMasuk: validateField('jamMasuk', jamMasuk),
-      jamPulang: validateField('jamPulang', jamPulang),
       latitude: validateField('latitude', latitude),
       longitude: validateField('longitude', longitude),
     }
     setErrors(newErrors)
-    setTouched({ name: true, address: true, radius: true, jamMasuk: true, jamPulang: true, latitude: true, longitude: true })
+    setTouched({ name: true, address: true, radius: true, latitude: true, longitude: true })
     return !Object.values(newErrors).some((e) => e)
   }
 
   const handleSubmit = () => {
     if (validateAll()) {
-      onSave({ name, address, radius, jamMasuk, jamPulang, latitude, longitude, geofenceActive })
+      onSave({ name, address, radius, latitude, longitude, geofenceActive })
     }
   }
 
@@ -319,39 +302,22 @@ function EditUnitModal({ unit, onClose, onSave }) {
               <span className="font-body-sm text-body-sm text-on-surface-variant">Rekomendasi area sekolah: 50 – 100 meter.</span>
             </div>
 
-            <div className="grid grid-cols-2 gap-2.5">
-              <div className="flex flex-col gap-1.5">
-                <label className="font-body-sm-medium text-body-sm-medium text-on-surface" htmlFor="inputJamMasuk">Jam Masuk</label>
-                <div className="relative flex items-center">
-                  <span className="material-symbols-outlined absolute left-2.5 text-outline text-[16px]">schedule</span>
-                  <input
-                    className="w-full h-10 pl-8 pr-12 rounded-lg bg-surface-container-low border focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-secondary/20 font-body-md text-body-md text-on-surface font-medium text-center transition-all"
-                    id="inputJamMasuk"
-                    type="text"
-                    value={jamMasuk}
-                    onChange={(e) => handleChange('jamMasuk', e.target.value)}
-                    onBlur={(e) => handleBlur('jamMasuk', e.target.value)}
-                  />
-                  <span className="absolute right-2 font-label-sm text-label-sm font-label-sm text-on-surface-variant">WIB</span>
-                </div>
-                {errors.jamMasuk && touched.jamMasuk && <span className="font-body-sm text-body-sm text-rose-500">{errors.jamMasuk}</span>}
+            {/* Jam kerja bersifat global per hari (lihat data/jamKerja.js) dan
+                tidak bisa diubah per unit — karena itu form ini tidak lagi
+                memuat kolom jam masuk/pulang. */}
+            <div className="flex flex-col gap-1.5">
+              <label className="font-body-sm-medium text-body-sm-medium text-on-surface">Jam Kerja Global</label>
+              <div className="rounded-lg bg-surface-container-low border border-outline px-3.5 py-2.5">
+                {daftarJamKerja().map((h) => (
+                  <p key={h.hari} className="font-body-sm text-body-sm text-on-surface tabular-nums">
+                    {h.hari}: {h.jamMasuk} - {h.jamPulang ?? 'bebas'}
+                  </p>
+                ))}
+                <p className="font-body-sm text-body-sm text-on-surface-variant">Minggu: bukan hari kerja</p>
               </div>
-              <div className="flex flex-col gap-1.5">
-                <label className="font-body-sm-medium text-body-sm-medium text-on-surface" htmlFor="inputJamPulang">Jam Pulang</label>
-                <div className="relative flex items-center">
-                  <span className="material-symbols-outlined absolute left-2.5 text-outline text-[16px]">schedule</span>
-                  <input
-                    className="w-full h-10 pl-8 pr-12 rounded-lg bg-surface-container-low border focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-secondary/20 font-body-md text-body-md text-on-surface font-medium text-center transition-all"
-                    id="inputJamPulang"
-                    type="text"
-                    value={jamPulang}
-                    onChange={(e) => handleChange('jamPulang', e.target.value)}
-                    onBlur={(e) => handleBlur('jamPulang', e.target.value)}
-                  />
-                  <span className="absolute right-2 font-label-sm text-label-sm font-label-sm text-on-surface-variant">WIB</span>
-                </div>
-                {errors.jamPulang && touched.jamPulang && <span className="font-body-sm text-body-sm text-rose-500">{errors.jamPulang}</span>}
-              </div>
+              <span className="font-body-sm text-body-sm text-on-surface-variant">
+                Berlaku seragam untuk seluruh unit. Jumat tidak memiliki batas minimal jam pulang.
+              </span>
             </div>
           </div>
         </div>

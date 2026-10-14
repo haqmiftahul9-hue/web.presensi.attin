@@ -1,34 +1,19 @@
 import { useState } from 'react'
+import {
+  SEMUA_JENIS, WARNA_STATUS_PORTAL, WARNA_TITIK_STATUS, LABEL_STATUS_PANJANG,
+} from '../data/jenisIzinCuti.js'
 
 function LeaveDetailModal({ isOpen, onClose, leave }) {
   const [activeTab, setActiveTab] = useState('detail')
 
   if (!isOpen || !leave) return null
 
-  const statusClassMap = {
-    'Menunggu': 'bg-amber-50 text-amber-700',
-    'Disetujui': 'bg-emerald-50 text-emerald-700',
-    'Ditolak': 'bg-red-50 text-red-700',
-  }
-  const statusDotMap = {
-    'Menunggu': 'bg-amber-500',
-    'Disetujui': 'bg-emerald-500',
-    'Ditolak': 'bg-red-500',
-  }
-  const avatarClassMap = {
-    'Sakit': 'bg-emerald-100 text-emerald-900',
-    'Izin Pribadi': 'bg-amber-100 text-amber-900',
-    'Cuti Penting': 'bg-indigo-100 text-indigo-900',
-    'Cuti Bersalin': 'bg-purple-100 text-purple-900',
-    'Cuti Besar': 'bg-teal-100 text-teal-900',
-  }
-  const jenisClassMap = {
-    'Sakit': 'bg-blue-50 text-blue-700',
-    'Izin Pribadi': 'bg-orange-50 text-orange-700',
-    'Cuti Penting': 'bg-indigo-50 text-indigo-700',
-    'Cuti Bersalin': 'bg-purple-50 text-purple-700',
-    'Cuti Besar': 'bg-teal-50 text-teal-700',
-  }
+  // Warna status & jenis dibaca dari daftar terpusat, supaya jenis baru dari
+  // form mobile (mis. "Cuti Melahirkan") tampil dengan warna yang benar.
+  const statusClassMap = WARNA_STATUS_PORTAL
+  const statusDotMap = WARNA_TITIK_STATUS
+  const avatarClassMap = Object.fromEntries(SEMUA_JENIS.map((j) => [j.nama, j.warnaAvatar]))
+  const jenisClassMap = Object.fromEntries(SEMUA_JENIS.map((j) => [j.nama, j.warna]))
 
   const initials = leave.name ? leave.name.split(/[\s,]+/).filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase() : '?'
 
@@ -71,7 +56,7 @@ function LeaveDetailModal({ isOpen, onClose, leave }) {
             </div>
             <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full font-body-sm-medium text-body-sm-medium ${statusClassMap[leave.status] || 'bg-surface-container text-on-surface'}`}>
               <span className={`w-2 h-2 rounded-full ${statusDotMap[leave.status] || 'bg-outline'}`}></span>
-              {leave.status}
+              {LABEL_STATUS_PANJANG[leave.status] || leave.status}
             </span>
           </div>
 

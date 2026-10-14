@@ -1,6 +1,8 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useSimPres } from '../store/simPresStore.jsx'
 import { selectRekapTableData, selectRekapSummary, selectRekapChartData, selectRekapKepatuhanChart, selectRekapReportData, buildAttendance, initialsOf, selectActiveUnitId, selectCanSwitchUnit, selectUnitOptionsById, ALL_UNITS } from '../store/simPresStore.jsx'
+import { calculateAttendanceStatus, jamKerjaRules, daftarJamKerja } from '../data/jamKerja.js'
+import { jamPendek } from '../data/presensiMobile.js'
 import * as XLSX from 'xlsx'
 import { jsPDF } from 'jspdf'
 import autoTable from 'jspdf-autotable'
@@ -29,6 +31,12 @@ const periods = ['Harian', 'Mingguan', 'Bulanan', 'Tahunan']
 const periodLabels = { Harian: 'Hari Ini', Mingguan: 'Minggu Ini', Bulanan: 'Bulan Ini', Tahunan: 'Tahun Ini' }
 const unitOptions = ['all', 'tk', 'sd', 'smp', 'sma']
 const unitLabels = { all: 'Semua Unit', tk: 'TKIT Attin Sumbar', sd: 'SDIT Attin Sumbar', smp: 'SMPIT Attin Sumbar', sma: 'SMAIT Attin Sumbar' }
+
+// Ringkasan aturan jam kerja global untuk dicetak pada laporan PDF/Excel.
+// Ini menggantikan informasi shift yang pernah muncul di laporan.
+const ringkasanJamKerja = daftarJamKerja()
+  .map((h) => `${h.hari} ${h.jamKerja}`)
+  .join('; ')
 
 function getMonthYearLabel(period, customMonth = null, customYear = null) {
   const now = new Date()
@@ -71,10 +79,12 @@ function exportPresensiToExcel(data, unitLabel, periodLabel, yayasanInfo = null,
       ['REKAP LAPORAN PRESENSI PEGAWAI'],
       [unitLabel.replace(/_/g, ' ')],
       [periodLabel.replace(/_/g, ' ')],
+      [`Jam kerja global: ${ringkasanJamKerja}`],
       [],
     ]
     
-    const header = ['No', 'Nama Pegawai', 'NIY/NIP', 'Unit', 'Periode Rekap', 'Total Hari Kerja', 'Hadir', 'Terlambat', 'Izin/Sakit', 'Alpha', 'Persentase Kehadiran']
+    // Kolom "Jam Kerja" menggantikan kolom shift/jam operasional.
+    const header = ['No', 'Nama Pegawai', 'NIY/NIP', 'Unit', 'Periode Rekap', 'Jam Kerja', 'Total Hari Kerja', 'Hadir', 'Tepat Waktu', 'Terlambat', 'Keterlambatan (menit)', 'Izin/Sakit', 'Alpha', 'Persentase Kehadiran']
     
     const rows = data.map((row, i) => [
       i + 1,
@@ -82,20 +92,24 @@ function exportPresensiToExcel(data, unitLabel, periodLabel, yayasanInfo = null,
       row.niy,
       row.unit,
       row.periode,
+      row.jamKerja || '-',
       row.totalHariKerja,
       row.hadir,
+      row.tepatWaktu,
       row.terlambat,
+      row.totalLateMinutes ?? 0,
       row.izinSakit,
       row.alpha,
       row.persentaseKehadiran + '%'
     ])
     
     // Signatory rows
+    const kosong = Array(14).fill('')
     const signRows = [
       [],
-      ['Mengetahui,', '', '', '', '', '', '', '', '', '', 'Diperiksa oleh,'],
-      [s.kepalaSekolah?.jabatan || 'Kepala Sekolah', '', '', '', '', '', '', '', '', '', s.petugasPresensi?.jabatan || 'Petugas Presensi'],
-      [s.kepalaSekolah?.nama ? `(${s.kepalaSekolah.nama})` : '(________________________)', '', '', '', '', '', '', '', '', '', s.petugasPresensi?.nama ? `(${s.petugasPresensi.nama})` : '(________________________)'],
+      ['Mengetahui,', ...kosong, 'Diperiksa oleh,'],
+      [s.kepalaSekolah?.jabatan || 'Kepala Sekolah', ...kosong, s.petugasPresensi?.jabatan || 'Petugas Presensi'],
+      [s.kepalaSekolah?.nama ? `(${s.kepalaSekolah.nama})` : '(________________________)', ...kosong, s.petugasPresensi?.nama ? `(${s.petugasPresensi.nama})` : '(________________________)'],
     ]
     
     const wsData = [...infoRows, header, ...rows, ...signRows]
@@ -107,9 +121,12 @@ function exportPresensiToExcel(data, unitLabel, periodLabel, yayasanInfo = null,
       { wch: 15 },  // NIY/NIP
       { wch: 20 },  // Unit
       { wch: 15 },  // Periode Rekap
+      { wch: 22 },  // Jam Kerja
       { wch: 15 },  // Total Hari Kerja
       { wch: 8 },   // Hadir
+      { wch: 12 },  // Tepat Waktu
       { wch: 10 },  // Terlambat
+      { wch: 18 },  // Keterlambatan (menit)
       { wch: 10 },  // Izin/Sakit
       { wch: 8 },   // Alpha
       { wch: 18 },  // Persentase Kehadiran
@@ -427,9 +444,10 @@ function exportPresensiToPDF(data, unitLabel, periodLabel, yayasanInfo = null, s
   doc.line(centerX - 60, y, centerX + 60, y)
   y += 10
   
-  // Info Laporan - dalam kotak
+  // Info Laporan - dalam kotak. Baris "Jam Kerja Global" menggantikan
+  // informasi shift yang dulu dicetak di sini.
   const infoBoxY = y
-  const infoBoxHeight = 22
+  const infoBoxHeight = 30
   doc.setDrawColor(0, 51, 102)
   doc.setLineWidth(0.3)
   doc.rect(15, infoBoxY, pageWidth - 30, infoBoxHeight)
@@ -451,12 +469,18 @@ function exportPresensiToPDF(data, unitLabel, periodLabel, yayasanInfo = null, s
   doc.setTextColor(0)
   doc.text('Unit Laporan:', 20, infoBoxY + 7)
   doc.text('Jenis Laporan:', 20, infoBoxY + 14)
+  doc.setFontSize(7.5)
+  doc.text('Jam Kerja Global:', 20, infoBoxY + 22)
   
+  doc.setFontSize(9)
   doc.setFont('helvetica', 'normal')
   doc.text(unitDisplay, 55, infoBoxY + 7)
   doc.text('Rekap Presensi', 55, infoBoxY + 14)
+  doc.setFontSize(7.5)
+  doc.text(doc.splitTextToSize(ringkasanJamKerja, pageWidth - 85), 55, infoBoxY + 21)
   
   // Kolom kanan
+  doc.setFontSize(9)
   doc.setFont('helvetica', 'bold')
   doc.text('Periode Laporan:', pageWidth - 95, infoBoxY + 7)
   doc.text('Tanggal Cetak:', pageWidth - 95, infoBoxY + 14)
@@ -467,14 +491,17 @@ function exportPresensiToPDF(data, unitLabel, periodLabel, yayasanInfo = null, s
   
   y = infoBoxY + infoBoxHeight + 10
   
-  // Tabel
+  // Tabel. Kolom "Jam Kerja" menggantikan kolom shift.
   const columns = [
     { header: 'No', dataKey: 'no' },
     { header: 'Nama Pegawai', dataKey: 'name' },
     { header: 'NIY/NIP', dataKey: 'niy' },
     { header: 'Unit', dataKey: 'unit' },
+    { header: 'Jam Kerja', dataKey: 'jamKerja' },
     { header: 'Hadir', dataKey: 'hadir' },
+    { header: 'Tepat Waktu', dataKey: 'tepatWaktu' },
     { header: 'Terlambat', dataKey: 'terlambat' },
+    { header: 'Telat (mnt)', dataKey: 'totalLateMinutes' },
     { header: 'Izin', dataKey: 'izinSakit' },
     { header: 'Alpha', dataKey: 'alpha' },
     { header: '% Kehadiran', dataKey: 'persentaseKehadiran' },
@@ -485,8 +512,11 @@ function exportPresensiToPDF(data, unitLabel, periodLabel, yayasanInfo = null, s
     name: row.name,
     niy: row.niy,
     unit: row.unit,
+    jamKerja: row.jamKerja || '-',
     hadir: row.hadir,
+    tepatWaktu: row.tepatWaktu,
     terlambat: row.terlambat,
+    totalLateMinutes: row.totalLateMinutes ?? 0,
     izinSakit: row.izinSakit,
     alpha: row.alpha,
     persentaseKehadiran: row.persentaseKehadiran + '%'
@@ -496,19 +526,22 @@ function exportPresensiToPDF(data, unitLabel, periodLabel, yayasanInfo = null, s
     columns,
     body: rows,
     startY: y,
-    styles: { fontSize: 8, cellPadding: 3, font: 'helvetica', lineColor: [200, 200, 200], lineWidth: 0.1 },
-    headStyles: { fillColor: [0, 51, 102], textColor: 255, fontStyle: 'bold', halign: 'center', fontSize: 8, cellPadding: 4 },
+    styles: { fontSize: 7, cellPadding: 2.5, font: 'helvetica', lineColor: [200, 200, 200], lineWidth: 0.1 },
+    headStyles: { fillColor: [0, 51, 102], textColor: 255, fontStyle: 'bold', halign: 'center', fontSize: 7, cellPadding: 3 },
     alternateRowStyles: { fillColor: [245, 248, 252] },
     columnStyles: {
-      no: { cellWidth: 12, halign: 'center' },
-      name: { cellWidth: 42 },
-      niy: { cellWidth: 25 },
-      unit: { cellWidth: 25 },
-      hadir: { cellWidth: 15, halign: 'center' },
-      terlambat: { cellWidth: 18, halign: 'center' },
-      izinSakit: { cellWidth: 15, halign: 'center' },
-      alpha: { cellWidth: 15, halign: 'center' },
-      persentaseKehadiran: { cellWidth: 22, halign: 'center' },
+      no: { cellWidth: 10, halign: 'center' },
+      name: { cellWidth: 38 },
+      niy: { cellWidth: 22 },
+      unit: { cellWidth: 22 },
+      jamKerja: { cellWidth: 24, halign: 'center' },
+      hadir: { cellWidth: 12, halign: 'center' },
+      tepatWaktu: { cellWidth: 16, halign: 'center' },
+      terlambat: { cellWidth: 15, halign: 'center' },
+      totalLateMinutes: { cellWidth: 15, halign: 'center' },
+      izinSakit: { cellWidth: 12, halign: 'center' },
+      alpha: { cellWidth: 12, halign: 'center' },
+      persentaseKehadiran: { cellWidth: 20, halign: 'center' },
     },
     margin: { left: 15, right: 15 },
     didDrawPage: (data) => {
@@ -848,29 +881,40 @@ function DetailModal({ employee, isOpen, onClose, state }) {
                 <thead>
                   <tr className="text-left text-on-surface-variant border-b border-surface-container">
                     <th className="pb-2 pr-4 font-medium">Tanggal</th>
+                    <th className="pb-2 pr-4 font-medium">Hari</th>
+                    <th className="pb-2 pr-4 font-medium">Jam Kerja</th>
                     <th className="pb-2 pr-4 font-medium">Masuk</th>
                     <th className="pb-2 pr-4 font-medium">Pulang</th>
+                    <th className="pb-2 pr-4 font-medium">Keterlambatan</th>
                     <th className="pb-2 pr-4 font-medium">Status</th>
                     <th className="pb-2 pr-4 font-medium">Metode</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {staffAttendance.slice().reverse().slice(0, 10).map((a, i) => (
-                    <tr key={a.id} className="border-b border-surface-container-low/50">
-                      <td className="py-2 pr-4 font-body-sm text-on-surface-variant">{a.masuk ? a.masuk.split(' ')[0] : '-'}</td>
-                      <td className="py-2 pr-4 font-body-sm text-on-surface">{a.masuk ? a.masuk.split(' ')[1] : '-'}</td>
-                      <td className="py-2 pr-4 font-body-sm text-on-surface">{a.pulang || '-'}</td>
-                      <td className="py-2 pr-4">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full font-label-xs text-label-xs ${statusStyles[a.status === 'Tepat Waktu' ? 'good' : a.status === 'Terlambat' ? 'late' : 'alpha']}`}>
-                          {a.status}
-                        </span>
-                      </td>
-                      <td className="py-2 pr-4 font-body-sm text-on-surface-variant">{a.method || '-'}</td>
-                    </tr>
-                  ))}
+                  {staffAttendance.slice().reverse().slice(0, 10).map((a) => {
+                    const presensi = calculateAttendanceStatus(a.tanggal, a.masuk)
+                    return (
+                      <tr key={a.id} className="border-b border-surface-container-low/50">
+                        <td className="py-2 pr-4 font-body-sm text-on-surface-variant">{a.tanggal || presensi.tanggal || '-'}</td>
+                        <td className="py-2 pr-4 font-body-sm text-on-surface-variant">{presensi.hari}</td>
+                        <td className="py-2 pr-4 font-body-sm text-on-surface-variant">{presensi.jamKerja}</td>
+                        <td className="py-2 pr-4 font-body-sm text-on-surface">{a.masuk ? jamPendek(a.masuk) : '-'}</td>
+                        <td className="py-2 pr-4 font-body-sm text-on-surface">{a.pulang ? jamPendek(a.pulang) : '-'}</td>
+                        <td className="py-2 pr-4 font-body-sm text-on-surface-variant tabular-nums">
+                          {presensi.lateMinutes > 0 ? `${presensi.lateMinutes} mnt` : '-'}
+                        </td>
+                        <td className="py-2 pr-4">
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full font-label-xs text-label-xs ${statusStyles[a.status === 'Tepat Waktu' ? 'good' : a.status === 'Terlambat' ? 'late' : 'alpha']}`}>
+                            {a.status}
+                          </span>
+                        </td>
+                        <td className="py-2 pr-4 font-body-sm text-on-surface-variant">{a.method || '-'}</td>
+                      </tr>
+                    )
+                  })}
                   {staffAttendance.length === 0 && (
                     <tr>
-                      <td colSpan={5} className="py-4 text-center text-on-surface-variant">Belum ada data presensi</td>
+                      <td colSpan={8} className="py-4 text-center text-on-surface-variant">Belum ada data presensi</td>
                     </tr>
                   )}
                 </tbody>
@@ -1256,7 +1300,7 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
     }
     
     if (period === 'custom' && customStartDate && customEndDate) {
-      attendance = attendance.filter(a => filterByDateRange(a.masuk?.split(' ')[0], customStartDate, customEndDate))
+      attendance = attendance.filter(a => filterByDateRange(a.masuk, customStartDate, customEndDate))
     }
     
     let daysInPeriod = 15
@@ -1279,9 +1323,10 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
     return staff.map((s, idx) => {
       const unitObj = state.units.find((u) => u.id === s.unitId)
       const staffAttendance = attendance.filter((a) => a.staffId === s.id)
-      const hadir = staffAttendance.filter((a) => a.masuk !== null).length
-      const tepatWaktu = staffAttendance.filter((a) => a.masuk !== null && a.late === 0).length
-      const terlambat = staffAttendance.filter((a) => a.masuk !== null && a.late > 0).length
+      const hadir = staffAttendance.filter((a) => a.masuk).length
+      const tepatWaktu = staffAttendance.filter((a) => a.masuk && a.lateMinutes === 0).length
+      const terlambat = staffAttendance.filter((a) => a.masuk && a.lateMinutes > 0).length
+      const totalLateMinutes = staffAttendance.reduce((sum, a) => sum + (a.lateMinutes || 0), 0)
       const staffLeaves = leaves.filter((l) => 
         l.staffId === s.id && (l.status === 'Disetujui' || l.status === 'Menunggu')
       )
@@ -1306,9 +1351,13 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
         unit: unitObj?.nama || '-',
         periode: periodLabel,
         totalHariKerja: daysInPeriod,
+        // Jam Kerja menggantikan kolom shift pada laporan.
+        hari: jamKerjaRules().hari,
+        jamKerja: jamKerjaRules().jamKerja,
         hadir,
         tepatWaktu,
         terlambat,
+        totalLateMinutes,
         izinSakit,
         alpha,
         persentaseKehadiran: parseFloat(persentaseKehadiran),
@@ -1406,17 +1455,20 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
             <table>
               <thead>
                 <tr>
-                  <th style="width: 30px;">No</th>
-                  <th style="width: 160px;">Nama Pegawai</th>
-                  <th style="width: 90px;">NIY/NIP</th>
-                  <th style="width: 120px;">Unit</th>
-                  <th style="width: 90px;">Periode Rekap</th>
-                  <th style="width: 70px;">Hari Kerja</th>
-                  <th style="width: 50px;">Hadir</th>
-                  <th style="width: 60px;">Terlambat</th>
-                  <th style="width: 60px;">Izin/Sakit</th>
-                  <th style="width: 50px;">Alpha</th>
-                  <th style="width: 100px;">% Kehadiran</th>
+                  <th style="width: 24px;">No</th>
+                  <th style="width: 150px;">Nama Pegawai</th>
+                  <th style="width: 84px;">NIY/NIP</th>
+                  <th style="width: 110px;">Unit</th>
+                  <th style="width: 84px;">Periode Rekap</th>
+                  <th style="width: 110px;">Jam Kerja</th>
+                  <th style="width: 44px;">Hari Kerja</th>
+                  <th style="width: 40px;">Hadir</th>
+                  <th style="width: 48px;">Tepat</th>
+                  <th style="width: 52px;">Terlambat</th>
+                  <th style="width: 44px;">Telat (mnt)</th>
+                  <th style="width: 52px;">Izin/Sakit</th>
+                  <th style="width: 40px;">Alpha</th>
+                  <th style="width: 88px;">% Kehadiran</th>
                 </tr>
               </thead>
               <tbody>
@@ -1427,9 +1479,12 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
                     <td>${row.niy}</td>
                     <td>${row.unit}</td>
                     <td>${row.periode}</td>
+                    <td>${row.jamKerja || '-'}</td>
                     <td>${row.totalHariKerja}</td>
                     <td>${row.hadir}</td>
+                    <td>${row.tepatWaktu}</td>
                     <td>${row.terlambat}</td>
+                    <td>${row.totalLateMinutes ?? 0}</td>
                     <td>${row.izinSakit}</td>
                     <td>${row.alpha}</td>
                     <td>${row.persentaseKehadiran}%</td>
@@ -1554,6 +1609,7 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
             <div class="info-row"><span class="info-label">Unit Laporan:</span> <span>${unitDisplay}</span></div>
             <div class="info-row"><span class="info-label">Periode Laporan:</span> <span>${periodDisplay}</span></div>
             <div class="info-row"><span class="info-label">Tanggal Cetak:</span> <span>${dateStr}</span></div>
+            <div class="info-row"><span class="info-label">Jam Kerja Global:</span> <span>${ringkasanJamKerja}</span></div>
             ${tableHtml}
             ${footerHtml}
             <script>
@@ -1674,17 +1730,20 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
         <table>
           <thead>
             <tr>
-              <th style="width: 30px;">No</th>
-              <th style="width: 160px;">Nama Pegawai</th>
-              <th style="width: 90px;">NIY/NIP</th>
-              <th style="width: 120px;">Unit</th>
-              <th style="width: 90px;">Periode Rekap</th>
-              <th style="width: 70px;">Hari Kerja</th>
-              <th style="width: 50px;">Hadir</th>
-              <th style="width: 60px;">Terlambat</th>
-              <th style="width: 60px;">Izin/Sakit</th>
-              <th style="width: 50px;">Alpha</th>
-              <th style="width: 100px;">% Kehadiran</th>
+              <th style="width: 24px;">No</th>
+              <th style="width: 150px;">Nama Pegawai</th>
+              <th style="width: 84px;">NIY/NIP</th>
+              <th style="width: 110px;">Unit</th>
+              <th style="width: 84px;">Periode Rekap</th>
+              <th style="width: 110px;">Jam Kerja</th>
+              <th style="width: 44px;">Hari Kerja</th>
+              <th style="width: 40px;">Hadir</th>
+              <th style="width: 48px;">Tepat</th>
+              <th style="width: 52px;">Terlambat</th>
+              <th style="width: 44px;">Telat (mnt)</th>
+              <th style="width: 52px;">Izin/Sakit</th>
+              <th style="width: 40px;">Alpha</th>
+              <th style="width: 88px;">% Kehadiran</th>
             </tr>
           </thead>
           <tbody>
@@ -1695,9 +1754,12 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
                 <td>${row.niy}</td>
                 <td>${row.unit}</td>
                 <td>${row.periode}</td>
+                <td>${row.jamKerja || '-'}</td>
                 <td>${row.totalHariKerja}</td>
                 <td>${row.hadir}</td>
+                <td>${row.tepatWaktu}</td>
                 <td>${row.terlambat}</td>
+                <td>${row.totalLateMinutes ?? 0}</td>
                 <td>${row.izinSakit}</td>
                 <td>${row.alpha}</td>
                 <td>${row.persentaseKehadiran}%</td>
@@ -1822,6 +1884,7 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
         <div class="info-row"><span class="info-label">Unit Laporan:</span> <span>${unitDisplay}</span></div>
         <div class="info-row"><span class="info-label">Periode Laporan:</span> <span>${periodDisplay}</span></div>
         <div class="info-row"><span class="info-label">Tanggal Cetak:</span> <span>${dateStr}</span></div>
+        <div class="info-row"><span class="info-label">Jam Kerja Global:</span> <span>${ringkasanJamKerja}</span></div>
         ${tableHtml}
         ${footerHtml}
         <script>

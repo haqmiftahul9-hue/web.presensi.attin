@@ -1,25 +1,35 @@
-// Single source of truth SimPres — angka kanonis hasil audit.
-// Total: 209 pegawai (22+65+48+54+20), hadir 187, terlambat 14, belum 22, alpha 8.
+// Single source of truth SimPres.
+// Empat unit terdaftar: TK 22 + SD 65 + SMP 48 + SMA 54 = 189 pegawai.
+// (Angka "209" yang pernah tertulis di sini menghitung unit kelima yang sudah
+// tidak ada — UNITS di bawah ini yang jadi acuan.)
+//
+// Unit TIDAK lagi menyimpan jam masuk/pulang sendiri: jam kerja bersifat global
+// per hari (Senin-Kamis 07:10-16:00, Jumat 07:10 tanpa batas pulang, Sabtu
+// 07:30-13:00) dan dibaca dari data/jamKerja.js.
+
+import {
+  calculateAttendanceStatus, jamKerjaRules, jamKeMenit, JAM_MASUK_SENIN_KAMIS,
+} from './jamKerja.js'
 
 export const UNITS = [
-  { id: 'tk', kode: 'UNT-TK-01', nama: 'TKIT Attin Sumbar', alamat: 'Jl. Cendekia No. 41', radius: 50, masuk: '07:00', pulang: '14:30', total: 22, hadir: 21, icon: 'child_care', latitude: -6.28945, longitude: 106.79234, geofenceActive: true },
-  { id: 'sd', kode: 'UNT-SD-02', nama: 'SDIT Attin Sumbar', alamat: 'Jl. Cendekia No. 43, Cilandak', radius: 75, masuk: '07:00', pulang: '15:00', total: 65, hadir: 61, icon: 'school', latitude: -6.28955, longitude: 106.79244, geofenceActive: true },
-  { id: 'smp', kode: 'UNT-SMP-03', nama: 'SMPIT Attin Sumbar', alamat: 'Jl. Cendekia No. 45', radius: 50, masuk: '07:00', pulang: '15:30', total: 48, hadir: 44, icon: 'school', latitude: -6.28965, longitude: 106.79254, geofenceActive: true },
-  { id: 'sma', kode: 'UNT-SMA-04', nama: 'SMAIT Attin Sumbar', alamat: 'Jl. Cendekia No. 47', radius: 80, masuk: '06:45', pulang: '15:30', total: 54, hadir: 48, icon: 'school', latitude: -6.28975, longitude: 106.79264, geofenceActive: true },
+  { id: 'tk', kode: 'UNT-TK-01', nama: 'TKIT Attin Sumbar', alamat: 'Jl. Cendekia No. 41', radius: 50, total: 22, hadir: 21, icon: 'child_care', latitude: -6.28945, longitude: 106.79234, geofenceActive: true },
+  { id: 'sd', kode: 'UNT-SD-02', nama: 'SDIT Attin Sumbar', alamat: 'Jl. Cendekia No. 43, Cilandak', radius: 75, total: 65, hadir: 61, icon: 'school', latitude: -6.28955, longitude: 106.79244, geofenceActive: true },
+  { id: 'smp', kode: 'UNT-SMP-03', nama: 'SMPIT Attin Sumbar', alamat: 'Jl. Cendekia No. 45', radius: 50, total: 48, hadir: 44, icon: 'school', latitude: -6.28965, longitude: 106.79254, geofenceActive: true },
+  { id: 'sma', kode: 'UNT-SMA-04', nama: 'SMAIT Attin Sumbar', alamat: 'Jl. Cendekia No. 47', radius: 80, total: 54, hadir: 48, icon: 'school', latitude: -6.28975, longitude: 106.79264, geofenceActive: true },
 ]
 
 // Field `foto` dibaca lewat cardPhotoOf() (dipakai Cetak Kartu ID dan modul
 // mobile). Pegawai yang fotonya belum lengkap tetap bisa login dan presensi —
 // komponen hanya jatuh ke inisial bila foto kosong.
 export const STAFF = [
-  { id: 1, niy: '049005069', nip: '198501012005011001', name: 'Erianto, S.Ag, M.Pd.I', role: 'Guru PAI', unitId: 'smp', status: 'Aktif', masuk: '06:45:12', method: 'Face Recognition', late: 0, foto: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC-MXuXRJ1EkWzJfim-TRUn9IhLY4FXRcPPOKetAaBGaR0u1mXy0qUOI_BpbYA1kMEDTU0QXAELQtN9SS9yUyIprZfrmP-2ylcZFGaU4J6mevGOdNZpcD7Os20qPRgstQAMVYBmXD_SWIFMuTUF_-cxXaQMSJDc8cLOvemGLZ4fZ4tpqXETOfHJ9V3Ha1gTOXyP54p21_TqTb6iYUYVOt2GhPChIN_619NWaWfGc3GV1xmeFg-b_XvH', nomorIdentitas: '3174012345678901', kontak: '081234567890', email: 'erianto@simpres.sch.id', gelar: 'S.Ag, M.Pd.I', tempatLahir: 'Jakarta', tanggalLahir: '1985-01-01', jenisKelamin: 'Laki-laki', agama: 'Islam', alamat: 'Jl. Cendekia No. 45, Jakarta Selatan', statusPegawai: 'PNS', tanggalMasuk: '2005-01-01', skPengangkatan: 'SK-001/2005', pendTerakhir: 'S2 Pendidikan Islam', jurusan: 'Pendidikan Agama Islam', npwp: '12.345.678.9-012.000', bpjsKesehatan: '1234567890', bpjsKetenagakerjaan: '0987654321', rekeningBank: 'BCA - 1234567890', namaRekening: 'Erianto, S.Ag, M.Pd.I' },
-  { id: 2, niy: '049097021', nip: '199002152010012002', name: 'Bustanul Abidin, S.Pd', role: 'Guru Kelas 6 & Kurikulum', unitId: 'sd', status: 'Aktif', masuk: '06:52:04', method: 'QR Code', late: 0, foto: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDtv1OUHPws-AWx9iskicD-xyXNkEABatzXm5eBcRXgF_GL-KejDndjKlShEZegx4yHypBWwH5r8_tSWvanY5aAyoybZh-QZ1sLP4ptY-fcoER3Nt5UbvSgMt5bceBMklPxH5QSsfvgFtPAcI2Yad6juSoCIbUPxvdAPeThKUGVaM1GT6Bgo6BCkU4aAP09p8iYdEPbzOQxc2sGJKbNk1TGXh9V1gvi1C09-MS7rM1p2Q67GRsZRlLP', nomorIdentitas: '3174012345678902', kontak: '081234567891', email: 'bustanul@simpres.sch.id', gelar: 'S.Pd', tempatLahir: 'Jakarta', tanggalLahir: '1990-02-15', jenisKelamin: 'Laki-laki', agama: 'Islam', alamat: 'Jl. Cendekia No. 43, Cilandak', statusPegawai: 'PNS', tanggalMasuk: '2010-01-01', skPengangkatan: 'SK-002/2010', pendTerakhir: 'S1 Pendidikan Dasar', jurusan: 'Pendidikan Guru Sekolah Dasar', npwp: '12.345.678.9-012.001', bpjsKesehatan: '1234567891', bpjsKetenagakerjaan: '0987654322', rekeningBank: 'BRI - 1234567891', namaRekening: 'Bustanul Abidin, S.Pd' },
-  { id: 3, niy: '049098034', nip: '198803202012022003', name: 'Sulasmi, S.Pd', role: 'Guru Kelas 3 • Tahfidz', unitId: 'sd', status: 'Aktif', masuk: '06:50:33', method: 'Face Recognition', late: 0, foto: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBR0Nf780V4TW5EdW3x62VrF1mPeNfTijQcDdxc59B9ubyV8RGmdaTXCkZPzhlvhnP7LBqmtcJHvsAxz9r01ezF_bFWHmuLMl-0-LAIdJlO79vFwk8Qyvg0H1iwvSnBkLxUEo_7MAd-p8WrlB-jcPZ9iLJsffhkB4WNrTl46s6mFCA8flFDz_gnEl9y7yRHpS-8Lz-h4ooLmcve2qDW0o9lK-Ek-tTO0j81279bi9yAKLokoYLuvlYl', nomorIdentitas: '3174012345678903', kontak: '081234567892', email: 'sulasmi@simpres.sch.id', gelar: 'S.Pd', tempatLahir: 'Jakarta', tanggalLahir: '1988-03-20', jenisKelamin: 'Perempuan', agama: 'Islam', alamat: 'Jl. Cendekia No. 43, Cilandak', statusPegawai: 'PNS', tanggalMasuk: '2012-02-01', skPengangkatan: 'SK-003/2012', pendTerakhir: 'S1 Pendidikan Dasar', jurusan: 'Pendidikan Guru Sekolah Dasar', npwp: '12.345.678.9-012.002', bpjsKesehatan: '1234567892', bpjsKetenagakerjaan: '0987654323', rekeningBank: 'BNI - 1234567892', namaRekening: 'Sulasmi, S.Pd' },
-  { id: 4, niy: '049001054', nip: '199204102015022004', name: 'Wisna Yunita, S.Pd', role: 'Guru Kelas 1 • Tematik', unitId: 'sd', status: 'Aktif', masuk: '06:58:33', method: 'Face Recognition', late: 0, foto: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCgynuekB8Gk1EhgzxCAEejK5QCTq--dxn-zhjUUG3wR0PBRIGnNMlQIs7NO9Pql4clk3HulUrOaOMyjxLs03dNJWmhD0yJjKT_S6C-rrbJCVqEoKMSiVHbYqM9GjtcXDlmSsGn8sWeC2NgHwvKBa2LFc9hLA-HF9a5q2eQP3TnGynFxmAyU8kyttA6EOaQCMgzJm5dTjI6_2IvOq4XVWw-ar0Lex26qXNl6LYX--f8Xg2lnZa6G36M', nomorIdentitas: '3174012345678904', kontak: '081234567893', email: 'wisna@simpres.sch.id', gelar: 'S.Pd', tempatLahir: 'Jakarta', tanggalLahir: '1992-04-10', jenisKelamin: 'Perempuan', agama: 'Islam', alamat: 'Jl. Cendekia No. 43, Cilandak', statusPegawai: 'PNS', tanggalMasuk: '2015-02-01', skPengangkatan: 'SK-004/2015', pendTerakhir: 'S1 Pendidikan Dasar', jurusan: 'Pendidikan Guru Sekolah Dasar', npwp: '12.345.678.9-012.003', bpjsKesehatan: '1234567893', bpjsKetenagakerjaan: '0987654324', rekeningBank: 'Mandiri - 1234567893', namaRekening: 'Wisna Yunita, S.Pd' },
-  { id: 5, niy: '029011052', nip: '199505252018022005', name: 'Irmawati, S.Pd', role: 'Guru Sentra', unitId: 'tk', status: 'Aktif', masuk: '07:20:10', method: 'QR Code', late: 20, foto: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAErGf59KRZdYfRNLNdlmpkXGa5j9VodsvW9IRQifB4TyvBErE96-O2fTll8QeORfSkrgDLyPkcihNMjYS_IL9StJ5CvC00HjvGar8zzdcML9dpnx7Ft2Bgq-D7lHmiNgnpfC82SZnpRh2R3bfWtaVGD9h5-Po7Hv8UaCWaRqjnPJCYF66Rtoj1Ahmp8uuJ7IFyUljXKmHGpz45QoRdfwL745jycsBIuVyPh7yQ1t__vwUZQRwXIJO2', nomorIdentitas: '3174012345678905', kontak: '081234567894', email: 'irmawati@simpres.sch.id', gelar: 'S.Pd', tempatLahir: 'Jakarta', tanggalLahir: '1995-05-25', jenisKelamin: 'Perempuan', agama: 'Islam', alamat: 'Jl. Cendekia No. 41', statusPegawai: 'GTT', tanggalMasuk: '2018-05-01', skPengangkatan: 'SK-005/2018', pendTerakhir: 'S1 Pendidikan Anak Usia Dini', jurusan: 'PAUD', npwp: '12.345.678.9-012.004', bpjsKesehatan: '1234567894', bpjsKetenagakerjaan: '0987654325', rekeningBank: 'BCA - 1234567894', namaRekening: 'Irmawati, S.Pd' },
-  { id: 6, niy: '029012056', nip: '198206152008011006', name: 'Risa Fadillah, S.Pd', role: 'Guru Biologi & Laboran', unitId: 'sma', status: 'Nonaktif', masuk: null, method: null, late: 0, foto: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAbu7OLsBLkoyJ8OZpawNAqI7xd451RkNs9K0c_yDYsZnHJbbwwxMZAW-C1LJNc3Z0Q9sIGpEf77y0K6jOxaQyIjfR-PCKwr9Q45Y4lRqtPsIRPtUOBSp001rUNcpuo_fAxRf0zOckiHZqHBnoQRi-wrohmT-PbS_RcSHEDza_AHB445QyPvtomv5dzBtxuTuQy1IOQwv3syqjpre3Zl0SCanOmnRGl2o2NMV5JQ44Vc5CuQ6f6bVRv', nomorIdentitas: '3174012345678906', kontak: '081234567895', email: 'risa@simpres.sch.id', gelar: 'S.Pd', tempatLahir: 'Jakarta', tanggalLahir: '1982-06-15', jenisKelamin: 'Perempuan', agama: 'Islam', alamat: 'Jl. Cendekia No. 47', statusPegawai: 'PNS', tanggalMasuk: '2008-01-01', skPengangkatan: 'SK-006/2008', pendTerakhir: 'S1 Biologi', jurusan: 'Biologi', npwp: '12.345.678.9-012.005', bpjsKesehatan: '1234567895', bpjsKetenagakerjaan: '0987654326', rekeningBank: 'BRI - 1234567895', namaRekening: 'Risa Fadillah, S.Pd' },
-  { id: 7, niy: '049033108', nip: '198707202013011007', name: 'Hendra Kurniawan, S.Pd.I', role: 'Guru Agama', unitId: 'sd', status: 'Aktif', masuk: null, method: null, late: 0, alpha: true, foto: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAjdgkgO9xnqglSqom5PGQPOnWpKDM4PuWSeTuRTW865YOYa64INb-nuOfD2D3VSRbRKOfI6rWrxHBOTbvDf39XGdupMMKKJbVTBVe0sK7FjPqw6lZ0dwGxEfv-s82nKGMMIIrNl-HbHiIvqTpwd0Y8ee1T43iJnyKO2mKjSmQceTIIC-4tcr8UZHwdzhaEpPIbJOepESXnyCXGtlQJvtPkN-5TwXom1lzKUazjmykrK9JSIBB3M0RO', nomorIdentitas: '3174012345678907', kontak: '081234567896', email: 'hendra@simpres.sch.id', gelar: 'S.Pd.I', tempatLahir: 'Jakarta', tanggalLahir: '1987-07-20', jenisKelamin: 'Laki-laki', agama: 'Islam', alamat: 'Jl. Cendekia No. 43, Cilandak', statusPegawai: 'PNS', tanggalMasuk: '2013-07-01', skPengangkatan: 'SK-007/2013', pendTerakhir: 'S1 Pendidikan Agama Islam', jurusan: 'Pendidikan Agama Islam', npwp: '12.345.678.9-012.006', bpjsKesehatan: '1234567896', bpjsKetenagakerjaan: '0987654327', rekeningBank: 'BNI - 1234567896', namaRekening: 'Hendra Kurniawan, S.Pd.I' },
-  { id: 8, niy: '049023183', nip: '198908302014022008', name: 'Silvana Monica, S.Ak', role: 'Staf Administrasi', unitId: 'sma', status: 'Aktif', masuk: '07:08:45', method: 'QR Code', late: 0, outsideRadius: true, nomorIdentitas: '3174012345678908', kontak: '081234567897', email: 'silvana@simpres.sch.id', gelar: 'S.Ak', tempatLahir: 'Jakarta', tanggalLahir: '1989-08-30', jenisKelamin: 'Perempuan', agama: 'Islam', alamat: 'Jl. Cendekia No. 47', statusPegawai: 'PNS', tanggalMasuk: '2014-08-01', skPengangkatan: 'SK-008/2014', pendTerakhir: 'S1 Akuntansi', jurusan: 'Akuntansi', npwp: '12.345.678.9-012.007', bpjsKesehatan: '1234567897', bpjsKetenagakerjaan: '0987654328', rekeningBank: 'Mandiri - 1234567897', namaRekening: 'Silvana Monica, S.Ak' },
+  { id: 1, niy: '049005069', nip: '198501012005011001', name: 'Erianto, S.Ag, M.Pd.I', role: 'Guru PAI', unitId: 'smp', status: 'Aktif', masuk: '06:45:12', method: 'Face Recognition', lateMinutes: 0, foto: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC-MXuXRJ1EkWzJfim-TRUn9IhLY4FXRcPPOKetAaBGaR0u1mXy0qUOI_BpbYA1kMEDTU0QXAELQtN9SS9yUyIprZfrmP-2ylcZFGaU4J6mevGOdNZpcD7Os20qPRgstQAMVYBmXD_SWIFMuTUF_-cxXaQMSJDc8cLOvemGLZ4fZ4tpqXETOfHJ9V3Ha1gTOXyP54p21_TqTb6iYUYVOt2GhPChIN_619NWaWfGc3GV1xmeFg-b_XvH', nomorIdentitas: '3174012345678901', kontak: '081234567890', email: 'erianto@simpres.sch.id', gelar: 'S.Ag, M.Pd.I', tempatLahir: 'Jakarta', tanggalLahir: '1985-01-01', jenisKelamin: 'Laki-laki', agama: 'Islam', alamat: 'Jl. Cendekia No. 45, Jakarta Selatan', statusPegawai: 'PNS', tanggalMasuk: '2005-01-01', skPengangkatan: 'SK-001/2005', pendTerakhir: 'S2 Pendidikan Islam', jurusan: 'Pendidikan Agama Islam', npwp: '12.345.678.9-012.000', bpjsKesehatan: '1234567890', bpjsKetenagakerjaan: '0987654321', rekeningBank: 'BCA - 1234567890', namaRekening: 'Erianto, S.Ag, M.Pd.I' },
+  { id: 2, niy: '049097021', nip: '199002152010012002', name: 'Bustanul Abidin, S.Pd', role: 'Guru Kelas 6 & Kurikulum', unitId: 'sd', status: 'Aktif', masuk: '06:52:04', method: 'QR Code', lateMinutes: 0, foto: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDtv1OUHPws-AWx9iskicD-xyXNkEABatzXm5eBcRXgF_GL-KejDndjKlShEZegx4yHypBWwH5r8_tSWvanY5aAyoybZh-QZ1sLP4ptY-fcoER3Nt5UbvSgMt5bceBMklPxH5QSsfvgFtPAcI2Yad6juSoCIbUPxvdAPeThKUGVaM1GT6Bgo6BCkU4aAP09p8iYdEPbzOQxc2sGJKbNk1TGXh9V1gvi1C09-MS7rM1p2Q67GRsZRlLP', nomorIdentitas: '3174012345678902', kontak: '081234567891', email: 'bustanul@simpres.sch.id', gelar: 'S.Pd', tempatLahir: 'Jakarta', tanggalLahir: '1990-02-15', jenisKelamin: 'Laki-laki', agama: 'Islam', alamat: 'Jl. Cendekia No. 43, Cilandak', statusPegawai: 'PNS', tanggalMasuk: '2010-01-01', skPengangkatan: 'SK-002/2010', pendTerakhir: 'S1 Pendidikan Dasar', jurusan: 'Pendidikan Guru Sekolah Dasar', npwp: '12.345.678.9-012.001', bpjsKesehatan: '1234567891', bpjsKetenagakerjaan: '0987654322', rekeningBank: 'BRI - 1234567891', namaRekening: 'Bustanul Abidin, S.Pd' },
+  { id: 3, niy: '049098034', nip: '198803202012022003', name: 'Sulasmi, S.Pd', role: 'Guru Kelas 3 • Tahfidz', unitId: 'sd', status: 'Aktif', masuk: '07:25:08', method: 'Face Recognition', lateMinutes: 15, foto: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBR0Nf780V4TW5EdW3x62VrF1mPeNfTijQcDdxc59B9ubyV8RGmdaTXCkZPzhlvhnP7LBqmtcJHvsAxz9r01ezF_bFWHmuLMl-0-LAIdJlO79vFwk8Qyvg0H1iwvSnBkLxUEo_7MAd-p8WrlB-jcPZ9iLJsffhkB4WNrTl46s6mFCA8flFDz_gnEl9y7yRHpS-8Lz-h4ooLmcve2qDW0o9lK-Ek-tTO0j81279bi9yAKLokoYLuvlYl', nomorIdentitas: '3174012345678903', kontak: '081234567892', email: 'sulasmi@simpres.sch.id', gelar: 'S.Pd', tempatLahir: 'Jakarta', tanggalLahir: '1988-03-20', jenisKelamin: 'Perempuan', agama: 'Islam', alamat: 'Jl. Cendekia No. 43, Cilandak', statusPegawai: 'PNS', tanggalMasuk: '2012-02-01', skPengangkatan: 'SK-003/2012', pendTerakhir: 'S1 Pendidikan Dasar', jurusan: 'Pendidikan Guru Sekolah Dasar', npwp: '12.345.678.9-012.002', bpjsKesehatan: '1234567892', bpjsKetenagakerjaan: '0987654323', rekeningBank: 'BNI - 1234567892', namaRekening: 'Sulasmi, S.Pd' },
+  { id: 4, niy: '049001054', nip: '199204102015022004', name: 'Wisna Yunita, S.Pd', role: 'Guru Kelas 1 • Tematik', unitId: 'sd', status: 'Aktif', masuk: '06:58:33', method: 'Face Recognition', lateMinutes: 0, foto: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCgynuekB8Gk1EhgzxCAEejK5QCTq--dxn-zhjUUG3wR0PBRIGnNMlQIs7NO9Pql4clk3HulUrOaOMyjxLs03dNJWmhD0yJjKT_S6C-rrbJCVqEoKMSiVHbYqM9GjtcXDlmSsGn8sWeC2NgHwvKBa2LFc9hLA-HF9a5q2eQP3TnGynFxmAyU8kyttA6EOaQCMgzJm5dTjI6_2IvOq4XVWw-ar0Lex26qXNl6LYX--f8Xg2lnZa6G36M', nomorIdentitas: '3174012345678904', kontak: '081234567893', email: 'wisna@simpres.sch.id', gelar: 'S.Pd', tempatLahir: 'Jakarta', tanggalLahir: '1992-04-10', jenisKelamin: 'Perempuan', agama: 'Islam', alamat: 'Jl. Cendekia No. 43, Cilandak', statusPegawai: 'PNS', tanggalMasuk: '2015-02-01', skPengangkatan: 'SK-004/2015', pendTerakhir: 'S1 Pendidikan Dasar', jurusan: 'Pendidikan Guru Sekolah Dasar', npwp: '12.345.678.9-012.003', bpjsKesehatan: '1234567893', bpjsKetenagakerjaan: '0987654324', rekeningBank: 'Mandiri - 1234567893', namaRekening: 'Wisna Yunita, S.Pd' },
+  { id: 5, niy: '029011052', nip: '199505252018022005', name: 'Irmawati, S.Pd', role: 'Guru Sentra', unitId: 'tk', status: 'Aktif', masuk: '07:35:12', method: 'QR Code', lateMinutes: 25, foto: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAErGf59KRZdYfRNLNdlmpkXGa5j9VodsvW9IRQifB4TyvBErE96-O2fTll8QeORfSkrgDLyPkcihNMjYS_IL9StJ5CvC00HjvGar8zzdcML9dpnx7Ft2Bgq-D7lHmiNgnpfC82SZnpRh2R3bfWtaVGD9h5-Po7Hv8UaCWaRqjnPJCYF66Rtoj1Ahmp8uuJ7IFyUljXKmHGpz45QoRdfwL745jycsBIuVyPh7yQ1t__vwUZQRwXIJO2', nomorIdentitas: '3174012345678905', kontak: '081234567894', email: 'irmawati@simpres.sch.id', gelar: 'S.Pd', tempatLahir: 'Jakarta', tanggalLahir: '1995-05-25', jenisKelamin: 'Perempuan', agama: 'Islam', alamat: 'Jl. Cendekia No. 41', statusPegawai: 'GTT', tanggalMasuk: '2018-05-01', skPengangkatan: 'SK-005/2018', pendTerakhir: 'S1 Pendidikan Anak Usia Dini', jurusan: 'PAUD', npwp: '12.345.678.9-012.004', bpjsKesehatan: '1234567894', bpjsKetenagakerjaan: '0987654325', rekeningBank: 'BCA - 1234567894', namaRekening: 'Irmawati, S.Pd' },
+  { id: 6, niy: '029012056', nip: '198206152008011006', name: 'Risa Fadillah, S.Pd', role: 'Guru Biologi & Laboran', unitId: 'sma', status: 'Nonaktif', masuk: null, method: null, lateMinutes: 0, foto: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAbu7OLsBLkoyJ8OZpawNAqI7xd451RkNs9K0c_yDYsZnHJbbwwxMZAW-C1LJNc3Z0Q9sIGpEf77y0K6jOxaQyIjfR-PCKwr9Q45Y4lRqtPsIRPtUOBSp001rUNcpuo_fAxRf0zOckiHZqHBnoQRi-wrohmT-PbS_RcSHEDza_AHB445QyPvtomv5dzBtxuTuQy1IOQwv3syqjpre3Zl0SCanOmnRGl2o2NMV5JQ44Vc5CuQ6f6bVRv', nomorIdentitas: '3174012345678906', kontak: '081234567895', email: 'risa@simpres.sch.id', gelar: 'S.Pd', tempatLahir: 'Jakarta', tanggalLahir: '1982-06-15', jenisKelamin: 'Perempuan', agama: 'Islam', alamat: 'Jl. Cendekia No. 47', statusPegawai: 'PNS', tanggalMasuk: '2008-01-01', skPengangkatan: 'SK-006/2008', pendTerakhir: 'S1 Biologi', jurusan: 'Biologi', npwp: '12.345.678.9-012.005', bpjsKesehatan: '1234567895', bpjsKetenagakerjaan: '0987654326', rekeningBank: 'BRI - 1234567895', namaRekening: 'Risa Fadillah, S.Pd' },
+  { id: 7, niy: '049033108', nip: '198707202013011007', name: 'Hendra Kurniawan, S.Pd.I', role: 'Guru Agama', unitId: 'sd', status: 'Aktif', masuk: null, method: null, lateMinutes: 0, alpha: true, foto: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAjdgkgO9xnqglSqom5PGQPOnWpKDM4PuWSeTuRTW865YOYa64INb-nuOfD2D3VSRbRKOfI6rWrxHBOTbvDf39XGdupMMKKJbVTBVe0sK7FjPqw6lZ0dwGxEfv-s82nKGMMIIrNl-HbHiIvqTpwd0Y8ee1T43iJnyKO2mKjSmQceTIIC-4tcr8UZHwdzhaEpPIbJOepESXnyCXGtlQJvtPkN-5TwXom1lzKUazjmykrK9JSIBB3M0RO', nomorIdentitas: '3174012345678907', kontak: '081234567896', email: 'hendra@simpres.sch.id', gelar: 'S.Pd.I', tempatLahir: 'Jakarta', tanggalLahir: '1987-07-20', jenisKelamin: 'Laki-laki', agama: 'Islam', alamat: 'Jl. Cendekia No. 43, Cilandak', statusPegawai: 'PNS', tanggalMasuk: '2013-07-01', skPengangkatan: 'SK-007/2013', pendTerakhir: 'S1 Pendidikan Agama Islam', jurusan: 'Pendidikan Agama Islam', npwp: '12.345.678.9-012.006', bpjsKesehatan: '1234567896', bpjsKetenagakerjaan: '0987654327', rekeningBank: 'BNI - 1234567896', namaRekening: 'Hendra Kurniawan, S.Pd.I' },
+  { id: 8, niy: '049023183', nip: '198908302014022008', name: 'Silvana Monica, S.Ak', role: 'Staf Administrasi', unitId: 'sma', status: 'Aktif', masuk: '07:08:45', method: 'QR Code', lateMinutes: 0, outsideRadius: true, nomorIdentitas: '3174012345678908', kontak: '081234567897', email: 'silvana@simpres.sch.id', gelar: 'S.Ak', tempatLahir: 'Jakarta', tanggalLahir: '1989-08-30', jenisKelamin: 'Perempuan', agama: 'Islam', alamat: 'Jl. Cendekia No. 47', statusPegawai: 'PNS', tanggalMasuk: '2014-08-01', skPengangkatan: 'SK-008/2014', pendTerakhir: 'S1 Akuntansi', jurusan: 'Akuntansi', npwp: '12.345.678.9-012.007', bpjsKesehatan: '1234567897', bpjsKetenagakerjaan: '0987654328', rekeningBank: 'Mandiri - 1234567897', namaRekening: 'Silvana Monica, S.Ak' },
 ]
 
 export const LEAVES = [
@@ -98,11 +108,14 @@ export const INITIAL_SETTINGS = {
   noWhatsapp: '+62 811-9876-5432',
   zonaWaktu: 'WIB',
   presensi: {
-    // Default jam operasional
-    jamMasukDefault: '07:00',
-    jamPulangDefault: '15:00',
-    // Batas toleransi terlambat (menit)
-    toleransiTerlambat: 15,
+    // ATURAN JAM KERJA GLOBAL — lihat data/jamKerja.js (sumber kebenaran).
+    //   Senin - Kamis : jam masuk 07:10, jam pulang 16:00
+    //   Jumat         : jam masuk 07:10, jam pulang bebas (tanpa batas minimal)
+    //   Sabtu         : jam masuk 07:30, jam pulang 13:00
+    // Field di bawah hanya disimpan agar data lama tidak rusak; presensi tidak
+    // lagi membacanya — status selalu dihitung calculateAttendanceStatus().
+    jamMasukDefault: '07:10',
+    jamPulangDefault: '16:00',
     // Radius geofence default (meter)
     radiusGeofenceDefault: 50,
     // Aktif/nonaktif lokasi presensi
@@ -113,13 +126,6 @@ export const INITIAL_SETTINGS = {
       sd: 75,
       smp: 50,
       sma: 80,
-    },
-    // Toleransi keterlambatan per unit (menit)
-    toleransiKeterlambatanPerUnit: {
-      tk: 15,
-      sd: 15,
-      smp: 15,
-      sma: 15,
     },
   },
   rekap: {
@@ -263,9 +269,13 @@ export function buildFullStaff() {
       const role = roles[h % roles.length]
       const isHadir = hadirCount < targetHadir
       if (isHadir) hadirCount++
-      const late = isHadir && h % 13 === 0 ? 5 + (h % 15) : 0
-      const hh = unitId === 'pst' ? '07' : '06'
-      const mm = String(30 + (h % 28)).padStart(2, '0')
+      // Keterlambatan dihitung dari batas jam masuk global (07:10), dan jam
+      // masuk diturunkan dari nilai itu — jadi data contoh selalu konsisten
+      // dengan calculateAttendanceStatus().
+      const lateMinutes = isHadir && h % 13 === 0 ? 5 + (h % 15) : 0
+      const menitMasuk = jamKeMenit(JAM_MASUK_SENIN_KAMIS) + lateMinutes - (isHadir && lateMinutes === 0 ? h % 9 : 0)
+      const hh = String(Math.floor(menitMasuk / 60)).padStart(2, '0')
+      const mm = String(menitMasuk % 60).padStart(2, '0')
       const gender = h % 2 === 0 ? 'Laki-laki' : 'Perempuan'
       const agama = ['Islam', 'Kristen', 'Katolik', 'Hindu', 'Buddha', 'Konghucu'][h % 6]
       const statusPegawai = ['PNS', 'GTT', 'Honorer'][h % 3]
@@ -283,7 +293,7 @@ export function buildFullStaff() {
         name, role, unitId, status: 'Aktif',
         masuk: isHadir ? `${hh}:${mm}:${String(10 + (h % 49))}` : null,
         method: isHadir ? (h % 2 ? 'Face Recognition' : 'QR Code') : null,
-        late,
+        lateMinutes,
         // 16 digit (provinsi+kabupaten+kecamatan+nik) supaya lolos validasi form.
         nomorIdentitas: `3174${String((h % 99) + 1).padStart(2, '0')}${String(1 + (h % 60)).padStart(2, '0')}${String(1 + ((h >> 3) % 40)).padStart(2, '0')}${String(100000 + (h % 900000))}`,
         kontak: `081${String(200000000 + (h % 800000000))}`,
@@ -310,16 +320,19 @@ export function buildFullStaff() {
   return out
 }
 
-export function buildAttendance(staff) {
+/**
+ * Baris presensi "hari ini" untuk sekumpulan pegawai. Status dan lateMinutes
+ * SELALU berasal dari calculateAttendanceStatus() supaya rekap, dashboard,
+ * monitoring, dan laporan PDF tidak pernah menghitungnya sendiri.
+ */
+export function buildAttendance(staff, tanggal = new Date()) {
+  const rules = jamKerjaRules(tanggal)
   return staff.map((s) => {
     const unit = UNITS.find((u) => u.id === s.unitId)
-    const isHadir = s.masuk !== null
-    let status = 'Belum Presensi'
-    if (isHadir) {
-      status = s.late > 0 ? 'Terlambat' : 'Tepat Waktu'
-    } else if (s.status !== 'Aktif') {
-      status = 'Tidak Aktif'
-    }
+    const isHadir = Boolean(s.masuk)
+    const hasil = calculateAttendanceStatus(tanggal, isHadir ? s.masuk : null)
+    let status = hasil.status
+    if (!isHadir && s.status !== 'Aktif') status = 'Tidak Aktif'
     return {
       id: s.id,
       staffId: s.id,
@@ -328,10 +341,15 @@ export function buildAttendance(staff) {
       role: s.role,
       unitId: s.unitId,
       unitName: unit ? unit.nama : s.unitId,
+      tanggal: hasil.tanggal,
+      hari: hasil.hari,
+      jamKerja: hasil.jamKerja,
+      jamMasuk: hasil.jamMasuk,
+      jamPulang: hasil.jamPulang,
       masuk: s.masuk,
-      pulang: isHadir ? '15:00 WIB' : null,
+      pulang: isHadir ? s.pulang || rules.jamPulang : null,
       method: s.method,
-      late: s.late,
+      lateMinutes: hasil.lateMinutes,
       status,
       alpha: s.alpha || false,
       outsideRadius: s.outsideRadius || false,

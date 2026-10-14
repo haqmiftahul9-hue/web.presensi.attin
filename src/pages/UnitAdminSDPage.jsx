@@ -1,6 +1,13 @@
 import { useState, useEffect } from 'react'
 import EditUnitModal from '../components/EditUnitModal.jsx'
 import { useSimPres, selectUnitName, addActivityLog } from '../store/simPresStore.jsx'
+import { daftarJamKerja } from '../data/jamKerja.js'
+
+function ringkasanJamKerja() {
+  return daftarJamKerja()
+    .map((h) => `${h.hari} ${h.jamKerja}`)
+    .join(' • ')
+}
 
 function UnitAdminSDPage() {
   const { state, dispatch } = useSimPres()
@@ -21,8 +28,6 @@ function UnitAdminSDPage() {
     nama: u.nama,
     alamat: u.alamat,
     radius: u.radius,
-    masuk: u.masuk,
-    pulang: u.pulang,
     latitude: u.latitude,
     longitude: u.longitude,
     geofenceActive: u.geofenceActive,
@@ -63,19 +68,18 @@ function UnitAdminSDPage() {
   }
 
   const handleExport = () => {
-    const headers = ['Nama Unit', 'Kode', 'Alamat', 'Radius (m)', 'Jam Masuk', 'Jam Pulang', 'Jumlah Pegawai', 'Status', 'Latitude', 'Longitude', 'Geofence']
+    const headers = ['Nama Unit', 'Kode', 'Alamat', 'Radius (m)', 'Jumlah Pegawai', 'Status', 'Latitude', 'Longitude', 'Geofence', 'Jam Kerja Global']
     const rows = unitData.map((u) => [
       u.nama,
       u.kode,
       u.alamat,
       u.radius,
-      u.masuk,
-      u.pulang,
       u.pegawai,
       'Aktif',
       u.latitude?.toFixed(5) || '',
       u.longitude?.toFixed(5) || '',
       u.geofenceActive ? 'Aktif' : 'Nonaktif',
+      ringkasanJamKerja(),
     ])
     const csv = [headers.join(','), ...rows.map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(','))].join('\n')
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
@@ -102,14 +106,12 @@ function UnitAdminSDPage() {
           nama: data.name,
           alamat: data.address,
           radius: data.radius,
-          masuk: data.jamMasuk,
-          pulang: data.jamPulang,
           latitude: data.latitude,
           longitude: data.longitude,
           geofenceActive: data.geofenceActive,
         },
       })
-      addActivityLog(dispatch, state, 'Ubah', `Unit • ${data.name}`, `Memperbarui data unit: radius ${data.radius}m, jam ${data.jamMasuk}-${data.jamPulang}, geofence ${data.geofenceActive ? 'aktif' : 'nonaktif'}`, null, null, editingUnit.unitId)
+      addActivityLog(dispatch, state, 'Ubah', `Unit • ${data.name}`, `Memperbarui data unit: radius ${data.radius}m, geofence ${data.geofenceActive ? 'aktif' : 'nonaktif'}`, null, null, editingUnit.unitId)
       showNotification('Unit berhasil diperbarui')
     } else {
       const isDuplicate = state.units.some(
@@ -125,8 +127,6 @@ function UnitAdminSDPage() {
         nama: data.name,
         alamat: data.address,
         radius: data.radius,
-        masuk: data.jamMasuk,
-        pulang: data.jamPulang,
         latitude: data.latitude,
         longitude: data.longitude,
         geofenceActive: data.geofenceActive,
@@ -135,7 +135,7 @@ function UnitAdminSDPage() {
         icon: 'domain',
       }
       dispatch({ type: 'ADD_UNIT', payload: newUnit })
-      addActivityLog(dispatch, state, 'Tambah', `Unit • ${data.name}`, `Tambah unit baru ${data.name} (${data.jamMasuk}-${data.jamPulang}, radius ${data.radius}m)`, null, null, newUnit.unitId)
+      addActivityLog(dispatch, state, 'Tambah', `Unit • ${data.name}`, `Tambah unit baru ${data.name} (radius ${data.radius}m)`, null, null, newUnit.unitId)
       showNotification('Unit baru berhasil ditambahkan')
     }
     setShowModal(false)
@@ -218,12 +218,12 @@ function UnitAdminSDPage() {
                 <p className="font-body-md text-body-md text-on-surface mt-1">{unit.geofenceActive ? 'Aktif' : 'Nonaktif'}</p>
               </div>
               <div>
-                <label className="font-label-sm text-label-sm text-on-surface-variant">Jam Masuk</label>
-                <p className="font-body-md text-body-md text-on-surface mt-1">{unit.masuk} WIB</p>
+                <label className="font-label-sm text-label-sm text-on-surface-variant">Jam Kerja (global)</label>
+                <p className="font-body-md text-body-md text-on-surface mt-1">{ringkasanJamKerja()}</p>
               </div>
               <div>
-                <label className="font-label-sm text-label-sm text-on-surface-variant">Jam Pulang</label>
-                <p className="font-body-md text-body-md text-on-surface mt-1">{unit.pulang} WIB</p>
+                <label className="font-label-sm text-label-sm text-on-surface-variant">Jumat</label>
+                <p className="font-body-md text-body-md text-on-surface mt-1">Masuk 07:10, pulang bebas</p>
               </div>
               <div>
                 <label className="font-label-sm text-label-sm text-on-surface-variant">Total Pegawai</label>
@@ -344,7 +344,7 @@ function UnitAdminSDPage() {
             </div>
             <div className="flex flex-col">
               <h1 className="font-headline-md text-headline-md text-on-surface tracking-tight">Manajemen Unit</h1>
-              <p className="font-body-md text-body-md text-on-surface-variant">Kelola entitas unit sekolah di bawah naungan yayasan, parameter radius geofence, dan jam kerja operasional.</p>
+              <p className="font-body-md text-body-md text-on-surface-variant">Kelola entitas unit sekolah di bawah naungan yayasan, parameter radius geofence, dan titik lokasi presensi.</p>
             </div>
           </div>
           <div className="flex items-center gap-space-xs self-start md:self-auto">
@@ -496,7 +496,7 @@ function UnitAdminSDPage() {
                   <th className="py-3 px-4">Nama Unit</th>
                   <th className="py-3 px-4">Alamat Lengkap</th>
                   <th className="py-3 px-4">Radius</th>
-                  <th className="py-3 px-4">Jam Operasional</th>
+                  <th className="py-3 px-4">Jam Kerja</th>
                   <th className="py-3 px-4 text-center">Pegawai</th>
                   <th className="py-3 px-4 text-center">Status</th>
                   <th className="py-3 px-4 text-center w-48">Aksi</th>
@@ -538,7 +538,7 @@ function UnitAdminSDPage() {
                         <td className="py-4 px-4 whitespace-nowrap">
                           <div className="flex items-center gap-1.5 text-on-surface font-body-sm text-body-sm">
                             <span className="material-symbols-outlined text-[16px] text-outline">schedule</span>
-                            <span>{unit.masuk} – {unit.pulang} WIB</span>
+                            <span title={ringkasanJamKerja()}>Jam kerja global</span>
                           </div>
                         </td>
                         <td className="py-4 px-4 text-center whitespace-nowrap">

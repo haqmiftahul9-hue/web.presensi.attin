@@ -13,8 +13,17 @@ function InstallPrompt() {
   if (!tampilkanBanner) return null
 
   return (
-    <div className="fixed inset-x-0 bottom-20 z-40 mx-auto w-full max-w-[390px] px-4 animate-sp-rise">
-      <div className="flex items-start gap-3 rounded-2xl bg-primary-container p-3.5 text-on-primary shadow-[0_18px_40px_-20px_rgba(11,31,61,0.7)]">
+    // Letak banner dihitung dari navigasi mengambang: nav occupying 16px dari
+    // tepi bawah + 76px tinggi + 16px jarak = 108px, jadi banner diletakkan
+    // 112px (4px napas tambahan) di atasnya. Kalau tinggi nav berubah, angka
+    // ini harus ikut disesuaikan — kalau tidak banner akan menutupi navigasi.
+    // Safe-area bawah (Gesture Bar iOS) menambah ruang lagi lewat
+    // `.sp-install-banner`, sehingga banner tidak pernah menempel navigasi.
+    //
+    // `absolute`, bukan `fixed`: banner harus ikut mengikuti shell 430px di
+    // desktop, bukan melebar mengikuti viewport laptop.
+    <div className="sp-install-banner absolute inset-x-0 bottom-[112px] z-40 mx-auto w-[calc(100%-32px)] max-w-[398px] animate-sp-rise">
+      <div className="flex items-start gap-3 rounded-3xl bg-primary-container p-3.5 text-on-primary shadow-[0_18px_40px_-20px_rgba(11,31,61,0.7)] border border-white/10">
         <span className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
           <Icon name="download_for_offline" className="text-[20px]" />
         </span>

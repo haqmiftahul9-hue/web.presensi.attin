@@ -53,7 +53,7 @@ function CameraLayer({ videoRef, cameraAktif, children, rounded = 'rounded-full'
 
 function FaceFrame({ videoRef, cameraAktif, initials, captured }) {
   return (
-    <div className="relative w-56 h-56 rounded-full p-2 bg-gradient-to-b from-primary-container via-surface-container-high to-primary-container/30 shadow-inner flex items-center justify-center my-1">
+    <div className="relative w-56 h-56 rounded-full p-2 bg-gradient-to-b from-primary-container via-surface-container-high to-primary-container/30 shadow-inner flex items-center justify-center">
       {cameraAktif && (
         <span className="absolute -inset-3 rounded-full bg-emerald-400/15 blur-xl animate-sp-glow pointer-events-none" />
       )}
@@ -80,7 +80,7 @@ function FaceFrame({ videoRef, cameraAktif, initials, captured }) {
 
 function BarcodeFrame({ videoRef, cameraAktif, qrValue, qrTerbaca, captured }) {
   return (
-    <div className="relative w-56 h-56 rounded-2xl flex items-center justify-center my-1 overflow-hidden shadow-inner">
+    <div className="relative w-56 h-56 rounded-2xl flex items-center justify-center overflow-hidden shadow-inner">
       {cameraAktif && (
         <span className="absolute -inset-3 rounded-[24px] bg-emerald-400/15 blur-xl animate-sp-glow pointer-events-none" />
       )}
@@ -134,8 +134,8 @@ function ScanFrame({
       : `Posisikan wajah Anda di dalam bingkai (${labelKamera})`
 
   return (
-    <section className="sp-card p-4 flex flex-col items-center text-center relative overflow-hidden">
-      <div className="w-full flex items-center justify-between mb-3">
+    <section className="sp-card p-4 flex flex-col items-center text-center gap-3.5 relative overflow-hidden">
+      <div className="w-full flex items-center justify-between gap-2">
         <div className="flex items-center gap-1.5 text-emerald-700 font-label-sm text-label-sm">
           <span className={`w-2 h-2 rounded-full ${cameraAktif ? 'bg-emerald-500' : 'bg-amber-400'}`} />
           <span>{cameraAktif ? 'Sensor Siap' : cameraStatus === 'meminta' ? 'Menyiapkan Kamera' : 'Mode Tampilan'}</span>
@@ -171,7 +171,7 @@ function ScanFrame({
       {/* Saat validasi berjalan, bingkai menampilkan proses pencocokan agar
           pengguna tahu kamera/reader sedang dipakai, bukan menggantung. */}
       {verifying && (
-        <div className="mt-3 w-full flex flex-col gap-1.5">
+        <div className="w-full flex flex-col gap-2">
           <div className="flex items-center justify-between">
             <span className="font-label-sm text-label-sm text-secondary flex items-center gap-1">
               <Icon name="progress_activity" className="text-[14px] animate-spin" />
@@ -185,13 +185,13 @@ function ScanFrame({
         </div>
       )}
 
-      <div className="flex items-center gap-1.5 mt-3 text-on-surface-variant font-body-sm text-body-sm">
-        <Icon name={mode === 'barcode' ? 'qr_code_scanner' : 'visibility'} className="text-[16px] text-secondary" />
+      <div className="flex items-center gap-2 text-on-surface-variant font-body-sm text-body-sm leading-snug">
+        <Icon name={mode === 'barcode' ? 'qr_code_scanner' : 'visibility'} className="text-[16px] text-secondary shrink-0" />
         <span>{hint}</span>
       </div>
 
       {/* Status perangkat: kamera yang dipakai dan kemampuan pembacaan QR. */}
-      <div className="mt-3 flex flex-wrap items-center justify-center gap-1.5">
+      <div className="flex flex-wrap items-center justify-center gap-2">
         <span className="px-2.5 py-0.5 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm flex items-center gap-1">
           <span className={`w-1.5 h-1.5 rounded-full ${cameraAktif ? 'bg-emerald-500' : 'bg-amber-400'}`} />
           {labelKamera}
@@ -211,7 +211,7 @@ function ScanFrame({
       </div>
 
       {mode === 'barcode' && (
-        <p className="font-label-sm text-label-sm text-on-surface-variant">
+        <p className="font-label-sm text-label-sm text-on-surface-variant leading-snug">
           {supportsDetector
             ? 'Pembacaan QR otomatis dari kamera perangkat.'
             : 'Peramban ini belum mendukung pembacaan QR otomatis — pindai dilakukan lewat simulator kartu.'}
@@ -219,7 +219,7 @@ function ScanFrame({
       )}
 
       {!cameraAktif && cameraError && (
-        <p className="font-label-sm text-label-sm text-amber-700">Kamera: {cameraError}</p>
+        <p className="font-label-sm text-label-sm text-amber-700 leading-snug">Kamera: {cameraError}</p>
       )}
     </section>
   )

@@ -21,6 +21,8 @@ import MobileRiwayatPage from './pages/mobile/MobileRiwayatPage.jsx'
 import MobileProfilPage from './pages/mobile/MobileProfilPage.jsx'
 import MobileSlipPage from './pages/mobile/MobileSlipPage.jsx'
 import MobileIzinCutiPage from './pages/mobile/MobileIzinCutiPage.jsx'
+import MobileKartuIdPage from './pages/mobile/MobileKartuIdPage.jsx'
+import MobileQrPage from './pages/mobile/MobileQrPage.jsx'
 import MobileLayout from './components/mobile/MobileLayout.jsx'
 import LoginPage from './pages/LoginPage.jsx'
 import AccessDeniedPage from './pages/AccessDeniedPage.jsx'
@@ -48,6 +50,10 @@ function App() {
           <Route path="/mobile/riwayat" element={<MobileRiwayatPage />} />
           <Route path="/mobile/slip" element={<MobileSlipPage />} />
           <Route path="/mobile/izin-cuti" element={<MobileIzinCutiPage />} />
+      {/* Kartu ID dan QR Presensi sengaja dua halaman terpisah, meski memakai
+          satu payload QR yang sama (data/employeeCard.js). */}
+      <Route path="/mobile/kartu-id" element={<MobileKartuIdPage />} />
+      <Route path="/mobile/qr" element={<MobileQrPage />} />
           <Route path="/mobile/profil" element={<MobileProfilPage />} />
         </Route>
 
@@ -57,6 +63,8 @@ function App() {
         <Route path="/riwayat-saya" element={<Navigate to="/mobile/riwayat" replace />} />
         <Route path="/slip-kehadiran-saya" element={<Navigate to="/mobile/slip" replace />} />
         <Route path="/izin-cuti-saya" element={<Navigate to="/mobile/izin-cuti" replace />} />
+      <Route path="/kartu-id-saya" element={<Navigate to="/mobile/kartu-id" replace />} />
+      <Route path="/qr-presensi-saya" element={<Navigate to="/mobile/qr" replace />} />
         <Route path="/profil-saya" element={<Navigate to="/mobile/profil" replace />} />
 
         {/*="/" lama -> beranda sesuai role. */}

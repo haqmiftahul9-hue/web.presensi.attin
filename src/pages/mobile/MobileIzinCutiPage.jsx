@@ -1,59 +1,246 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import Icon from '../../components/Icon.jsx'
 import {
-  useSimPres, selectSelfStaff, selectSelfLeaves, selectUnitById, addActivityLog,
+  useSimPresOptional, selectSelfStaff, selectSelfLeaves, selectUnitById, addActivityLog,
 } from '../../store/simPresStore.jsx'
 import { isoHariIni } from '../../data/presensiMobile.js'
+import { getEmployeeGreeting } from '../../data/sapaanPegawai.js'
+import {
+  JENIS_FORM, jenisIzinCuti, kelompokIzinCuti, aturanLampiran, ikonJenis,
+  warnaJenis, WARNA_STATUS, LABEL_STATUS_PANJANG, STATUS_PENGAJUAN,
+  buildPengajuan, validasiFormPengajuan, formatPeriode, hitungDurasiHari,
+  MAKS_LAMPIRAN,
+} from '../../data/jenisIzinCuti.js'
 import StaffAvatar from '../../components/mobile/StaffAvatar.jsx'
-import { EmptyState, ErrorState, Spinner } from '../../components/mobile/Feedback.jsx'
+import { SectionTitle } from '../../components/mobile/AppShell.jsx'
+import { EmptyState, ErrorState, LoadingState, Spinner } from '../../components/mobile/Feedback.jsx'
 
-const JENIS = ['Sakit', 'Izin Pribadi', 'Cuti Penting', 'Cuti Menikah', 'Tugas Luar']
-const LABEL_STATUS = {
-  Menunggu: 'bg-amber-50 text-amber-800',
-  Disetujui: 'bg-emerald-50 text-emerald-700',
-  Ditolak: 'bg-error-container text-on-error-container',
-}
-const LABEL_JENIS = {
-  'Sakit': 'bg-emerald-100 text-emerald-900',
-  'Izin Pribadi': 'bg-amber-100 text-amber-900',
-  'Cuti Penting': 'bg-blue-100 text-blue-900',
-  'Cuti Menikah': 'bg-rose-100 text-rose-900',
-  'Tugas Luar': 'bg-secondary-fixed text-on-secondary-fixed',
-}
-
-// Field input seragam untuk form mobile.
 const FIELD =
-  'w-full px-3 py-2.5 rounded-xl bg-surface-container-low border border-outline-variant/40 text-body-md text-body-md text-on-surface outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20'
-const LABEL = 'font-label-sm text-label-sm text-on-surface-variant mb-1 block'
+  'sp-field px-3 py-3 bg-surface-container-low border border-outline-variant/50 text-body-md text-body-md text-on-surface outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20'
+const LABEL = 'font-label-sm text-label-sm text-on-surface-variant mb-2 block'
 
-function hitungDurasi(mulai, selesai) {
-  if (!mulai || !selesai) return '1 Hari'
-  const selisih = Math.round((new Date(selesai) - new Date(mulai)) / 86400000) + 1
-  return `${Math.max(1, selisih)} Hari`
+/** Grouping pilihan jenis: Cuti dulu, lalu Izin. */
+const JENIS_TERGROUP = [
+  { kelompok: 'Cuti', nama: 'Cuti' },
+  { kelompok: 'Izin', nama: 'Izin' },
+].map((g) => ({
+  ...g,
+  opsi: JENIS_FORM.filter((j) => kelompokIzinCuti(j) === g.kelompok),
+}))
+
+function ukuranBerkas(byte) {
+  if (!Number.isFinite(byte) || byte <= 0) return ''
+  if (byte < 1024) return `${byte} B`
+  if (byte < 1024 * 1024) return `${Math.round(byte / 1024)} KB`
+  return `${(byte / (1024 * 1024)).toFixed(1)} MB`
+}
+
+function BarisStatus({ status }) {
+  return (
+    <span className={`px-2.5 py-1 rounded-full font-label-sm text-label-sm ${WARNA_STATUS[status] || WARNA_STATUS.Menunggu}`}>
+      {LABEL_STATUS_PANJANG[status] || status}
+    </span>
+  )
 }
 
 /**
- * Pengajuan Izin/Cuti versi mobile: daftar pengajuan milik pegawai sendiri plus
- * form pengajuan. Pengajuan baru langsung masuk ke tabel `leaves` yang sama
- * dengan portal, jadi Kepala Unit langsung melihatnya di halaman yang sama.
+ * Form pengajuan. Dipisah dari halaman supaya form bisa diuji terpisah dari
+ * keadaan "tombol sudah ditekan atau belum".
+ *
+ * Isinya: jenis pengajuan (dikelompokkan Cuti / Izin), tanggal mulai dan
+ * selesai beserta durasinya, alasan, dan lampiran dokumen. Aturan lampiran
+ * mengikuti jenis terpilih — "Lampiran wajib" hanya untuk Cuti Melquear.
+ */
+export function FormPengajuan({
+  jenis, mulai, selesai, alasan, lampiran, galat, mengirim, durasi, inputLampiran,
+  onUbahJenis, onUbahMulai, onUbahSelesai, onUbahAlasan, onUbahBerkas, onBatal, onKirim, onHapusLampiran,
+}) {
+  const aturan = aturanLampiran(jenis)
+
+  return (
+    <form onSubmit={onKirim} className="sp-card p-4 flex flex-col gap-4 animate-sp-rise" noValidate>
+      <div className="flex items-center justify-between gap-2">
+        <span className="font-headline-sm text-headline-sm text-on-surface">Form Pengajuan</span>
+        <button
+          type="button"
+          onClick={onBatal}
+          className="sp-press flex items-center gap-1.5 px-3 py-2 rounded-xl text-on-surface-variant"
+        >
+          <Icon name="close" className="text-[16px] shrink-0" />
+          <span className="font-label-sm text-label-sm">Batalkan</span>
+        </button>
+      </div>
+
+      <div>
+        <span className={LABEL}>Jenis Pengajuan</span>
+        <div className="flex flex-col gap-3">
+          {JENIS_TERGROUP.map((grup) => (
+            <div key={grup.kelompok} className="flex flex-col gap-2">
+              <span className="font-label-sm text-label-sm text-on-surface-variant">{grup.nama}</span>
+              <div className="flex flex-wrap gap-2">
+                {grup.opsi.map((item) => {
+                  const aktif = item === jenis
+                  return (
+                    <button
+                      key={item}
+                      type="button"
+                      onClick={() => onUbahJenis(item)}
+                      aria-pressed={aktif}
+                      className={`px-3.5 py-2.5 rounded-xl border text-left transition-colors ${
+                        aktif
+                          ? 'border-secondary bg-secondary-container text-on-secondary-container'
+                          : 'border-outline-variant bg-surface-container-low text-on-surface-variant'
+                      }`}
+                    >
+                      <span className="flex items-center gap-1.5 font-label-md text-label-md">
+                        <Icon name={ikonJenis(item)} className="text-[16px] shrink-0" />
+                        {item}
+                      </span>
+                      {aturanLampiran(item) === 'wajib' && (
+                        <span className="block font-label-sm text-label-sm text-rose-700 mt-1">Lampiran wajib</span>
+                      )}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className={LABEL} htmlFor="izin-mulai">Tanggal mulai</label>
+          <input id="izin-mulai" type="date" value={mulai} onChange={(e) => onUbahMulai(e.target.value)} className={FIELD} />
+        </div>
+        <div>
+          <label className={LABEL} htmlFor="izin-selesai">Tanggal selesai</label>
+          <input
+            id="izin-selesai"
+            type="date"
+            value={selesai}
+            min={mulai}
+            onChange={(e) => onUbahSelesai(e.target.value)}
+            className={FIELD}
+          />
+        </div>
+      </div>
+      <p className="font-label-sm text-label-sm text-on-surface-variant leading-snug">
+        Durasi: <span className="font-body-sm-medium text-body-sm-medium text-on-surface">{durasi} hari</span>
+        {mulai && selesai && ` • ${formatPeriode(mulai, selesai)}`}
+      </p>
+
+      <div>
+        <label className={LABEL} htmlFor="izin-alasan">
+          Alasan <span className="text-rose-700">*</span>
+        </label>
+        <textarea
+          id="izin-alasan"
+          rows={3}
+          value={alasan}
+          onChange={(e) => onUbahAlasan(e.target.value)}
+          placeholder="Contoh: perlu istirahat sesuai surat dokter, acara keluarga, surat tugas dinas…"
+          className={`${FIELD} resize-none`}
+        />
+      </div>
+
+      <div>
+        <label className={LABEL} htmlFor="izin-lampiran">
+          Lampiran dokumen
+          {aturan === 'wajib' && <span className="text-rose-700"> *</span>}
+          {aturan === 'disarankan' && <span className="text-on-surface-variant"> (disarankan)</span>}
+        </label>
+        <div className="flex flex-col gap-2">
+          <input
+            ref={inputLampiran}
+            id="izin-lampiran"
+            type="file"
+            accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+            onChange={onUbahBerkas}
+            className="w-full text-body-sm text-body-sm text-on-surface-variant file:mr-3 file:rounded-lg file:border-0 file:bg-surface-container file:px-3.5 file:py-2.5 file:font-label-md file:text-label-md file:text-on-surface"
+          />
+          {lampiran && (
+            <p className="flex items-center gap-1.5 font-label-sm text-label-sm text-on-surface-variant">
+              <Icon name="attach_file" className="text-[15px] shrink-0" />
+              <span className="truncate">{lampiran.name}</span>
+              <span className="shrink-0">{ukuranBerkas(lampiran.size)}</span>
+              <button type="button" onClick={onHapusLampiran} className="shrink-0 -mr-2 px-2 py-1.5 rounded-lg text-rose-700 font-label-sm text-label-sm">
+                Hapus
+              </button>
+            </p>
+          )}
+        </div>
+      </div>
+
+      {galat && (
+        <p role="alert" className="rounded-2xl bg-rose-50 text-rose-800 border border-rose-200 px-3.5 py-3 font-body-sm text-body-sm flex items-start gap-2 leading-snug">
+          <Icon name="error" className="text-[16px] mt-0.5 shrink-0" />
+          <span>{galat}</span>
+        </p>
+      )}
+
+      <button
+        type="submit"
+        disabled={mengirim}
+        className="sp-btn w-full py-3.5 bg-primary text-on-primary border-2 border-outline font-headline-sm text-headline-sm flex items-center justify-center gap-2 shadow-md active:scale-[0.99] transition-transform disabled:opacity-60"
+      >
+        {mengirim && <Spinner />}
+        {mengirim ? 'Mengirim...' : 'Kirim Pengajuan'}
+      </button>
+    </form>
+  )
+}
+
+/**
+ * Pengajuan Izin/Cuti versi mobile.
+ *
+ * Alur: tombol utama "+ Buat Pengajuan" membuka form, form memvalidasi
+ * sebelum mengirim, dan hasil kirim memakai buildPengajuan() yang sama dengan
+ * modal portal admin. Pengajuan baru langsung masuk ke tabel `leaves` — tabel
+ * yang sama dibaca dashboard admin unit, rekap izin/cuti, dan log aktivitas,
+ * jadi tidak ada jalur data terpisah yang perlu disinkronkan.
  */
 function MobileIzinCutiPage() {
-  const { state, dispatch } = useSimPres()
-  const staff = selectSelfStaff(state)
+  const ctx = useSimPresOptional()
+  const state = ctx?.state ?? null
+  const dispatch = ctx?.dispatch ?? null
+  const staff = state ? selectSelfStaff(state) : null
   const unit = staff ? selectUnitById(state, staff.unitId) : null
+  const daftar = useMemo(() => (state ? selectSelfLeaves(state) : []), [state])
+
   const [formTerbuka, setFormTerbuka] = useState(false)
-  const [jenis, setJenis] = useState(JENIS[0])
+  const [jenis, setJenis] = useState('Cuti Tahunan')
   const [mulai, setMulai] = useState(() => isoHariIni())
   const [selesai, setSelesai] = useState(() => isoHariIni())
-  const [keterangan, setKeterangan] = useState('')
+  const [alasan, setAlasan] = useState('')
+  const [lampiran, setLampiran] = useState(null)
   const [pesan, setPesan] = useState('')
+  const [galat, setGalat] = useState('')
   const [mengirim, setMengirim] = useState(false)
+  const inputLampiran = useRef(null)
 
-  const daftar = useMemo(() => selectSelfLeaves(state), [state])
+  const durasi = hitungDurasiHari(mulai, selesai)
+
+  function resetForm() {
+    setJenis('Cuti Tahunan')
+    setMulai(isoHariIni())
+    setSelesai(isoHariIni())
+    setAlasan('')
+    setLampiran(null)
+    setGalat('')
+  }
+
+  if (!state) {
+    return (
+      <div className="sp-page sp-page-container py-6">
+        <LoadingState judul="Loading Pengajuan Izin/Cuti" detail="Mengambil data pengajuan Anda…" />
+      </div>
+    )
+  }
 
   if (!staff) {
     return (
-      <div className="px-4 py-6">
+      <div className="sp-page-container py-6">
         <ErrorState
           ikon="badge"
           judul="Data pegawai tidak ditemukan"
@@ -66,49 +253,64 @@ function MobileIzinCutiPage() {
 
   const jumlah = (status) => daftar.filter((l) => l.status === status).length
 
+  /** Validasi form: aturan sama dengan modal portal admin (modul data). */
+  function validasi() {
+    return validasiFormPengajuan({ jenis, mulai, selesai, alasan, lampiran })
+  }
+
+  function pilihBerkas(event) {
+    const berkas = event.target.files?.[0] || null
+    setLampiran(berkas)
+    setGalat(berkas && berkas.size > MAKS_LAMPIRAN ? 'Ukuran lampiran maksimal 5 MB.' : '')
+  }
+
   function kirim(event) {
     event.preventDefault()
-    if (!keterangan.trim()) {
-      setPesan('Keterangan wajib diisi agar pengajuan bisa ditinjau.')
-      return
-    }
-    if (selesai < mulai) {
-      setPesan('Tanggal selesai tidak boleh lebih awal dari tanggal mulai.')
+    const pesanValidasi = validasi()
+    if (pesanValidasi) {
+      setGalat(pesanValidasi)
       return
     }
     setMengirim(true)
-    setPesan('')
+    setGalat('')
+
     const idBaru = state.leaves.length ? Math.max(...state.leaves.map((l) => l.id)) + 1 : 1
-    const periode = mulai === selesai ? formatTanggalPendek(mulai) : `${formatTanggalPendek(mulai)} - ${formatTanggalPendek(selesai)}`
-    dispatch({
-      type: 'ADD_LEAVE',
-      payload: {
-        id: idBaru,
-        staffId: staff.id,
-        jenis,
-        periode,
-        durasi: hitungDurasi(mulai, selesai),
-        lampiran: '',
-        keterangan: keterangan.trim(),
-        status: 'Menunggu',
-      },
+    const pengajuan = buildPengajuan({
+      id: idBaru,
+      staffId: staff.id,
+      jenis,
+      mulai,
+      selesai,
+      alasan,
+      lampiran: lampiran?.name || '',
+      lampiranUkuran: lampiran?.size ?? null,
     })
+
+    dispatch({ type: 'ADD_LEAVE', payload: pengajuan })
     addActivityLog(
       dispatch,
       state,
       'Pengajuan',
       `Cuti/Izin • ${staff.name}`,
-      `${staff.name} mengajukan ${jenis} (${hitungDurasi(mulai, selesai)}): ${keterangan.trim()}`,
+      `${getEmployeeGreeting(staff, { unit })} mengajukan ${pengajuan.jenis} (${pengajuan.durasi}): ${pengajuan.keterangan}`,
+      null,
+      null,
+      staff.unitId,
     )
-    setKeterangan('')
-    setFormTerbuka(false)
+
+    resetForm()
+    if (inputLampiran.current) inputLampiran.current.value = ''
     setMengirim(false)
-    setPesan('Pengajuan terkirim dan menunggu persetujuan Kepala Unit.')
+    setFormTerbuka(false)
+    setPesan(`Pengajuan ${pengajuan.jenis} terkirim dan menunggu persetujuan Kepala Unit.`)
   }
 
   return (
     <div className="sp-page">
-      <section className="bg-primary-container text-on-primary px-4 pt-4 pb-7 rounded-b-[28px] shadow-md">
+      <section className="sp-hero sp-page-container pt-4 pb-6">
+        <span className="sp-pattern-dots" aria-hidden="true" />
+        <span className="sp-blob sp-blob-a" aria-hidden="true" />
+        <div className="relative z-[1]">
         <div className="flex items-center gap-3">
           <StaffAvatar staff={staff} size="w-12 h-12" textClass="font-headline-sm text-headline-sm" />
           <div className="flex flex-col min-w-0">
@@ -118,132 +320,143 @@ function MobileIzinCutiPage() {
           </div>
         </div>
 
+        {/* Ringkasan tiga status pengajuan. */}
         <div className="mt-4 flex items-center">
-          {[
-            { label: 'Menunggu', nilai: jumlah('Menunggu'), tone: 'text-amber-300' },
-            { label: 'Disetujui', nilai: jumlah('Disetujui'), tone: 'text-emerald-300' },
-            { label: 'Ditolak', nilai: jumlah('Ditolak'), tone: 'text-rose-300' },
-          ].map((item, i) => (
-            <div key={item.label} className="flex-1 flex flex-col items-center gap-0.5">
-              {i > 0 && <span className="sr-only">|</span>}
-              <span className={`font-display-lg-mobile text-display-lg-mobile leading-none ${item.tone}`}>
-                {item.nilai}
+          {STATUS_PENGAJUAN.map((status, i) => (
+            <div
+              key={status}
+              className={`flex-1 flex flex-col items-center gap-0.5 ${i > 0 ? 'border-l border-white/10' : ''}`}
+            >
+              <span
+                className={`font-display-lg-mobile text-display-lg-mobile leading-none ${
+                  status === 'Menunggu' ? 'text-amber-300' : status === 'Disetujui' ? 'text-emerald-300' : 'text-rose-300'
+                }`}
+              >
+                {jumlah(status)}
               </span>
-              <span className="font-label-sm text-label-sm text-on-primary-container">{item.label}</span>
+              <span className="font-label-sm text-label-sm text-white/70 text-center">
+                {LABEL_STATUS_PANJANG[status]}
+              </span>
             </div>
           ))}
         </div>
+        </div>
       </section>
 
-      <div className="px-4 -mt-4 relative z-20 flex flex-col gap-4 pb-6">
-        <button
-          type="button"
-          onClick={() => setFormTerbuka((v) => !v)}
-          className="w-full py-3.5 rounded-2xl bg-primary-container text-on-primary font-headline-sm text-headline-sm flex items-center justify-center gap-2 shadow-md active:scale-[0.99] transition-transform"
-        >
-          <Icon name={formTerbuka ? 'close' : 'add'} className="text-[20px]" />
-          {formTerbuka ? 'Batalkan' : 'Buat Pengajuan'}
-        </button>
+      <div className="px-4 relative z-[2] flex flex-col gap-4 pb-2">
+        {/*
+          Tombol utama pengajuan. Sengaja dibuat besar, full width, dengan
+          border putih tebal dan warna biru kontras terhadap header gelap di
+          atasnya: ini aksi paling penting di halaman ini dan harus langsung
+          terlihat tanpa harus mencari.
+        */}
+        {!formTerbuka && (
+          <button
+            type="button"
+            onClick={() => {
+              setFormTerbuka(true)
+              setPesan('')
+              setGalat('')
+            }}
+            className="sp-btn w-full min-h-[60px] py-4 bg-secondary text-on-secondary border-[3px] border-on-secondary shadow-lg shadow-black/30 font-headline-sm text-headline-sm flex items-center justify-center gap-2.5 active:scale-[0.98] transition-transform"
+          >
+            <Icon name="add" className="text-[26px] shrink-0" />
+            Buat Pengajuan
+          </button>
+        )}
 
         {pesan && (
-          <p className="rounded-2xl bg-surface-container-low text-on-surface px-3.5 py-2.5 font-body-sm text-body-sm flex items-start gap-2">
-            <Icon name="info" className="text-[16px] mt-0.5 text-secondary" />
+          <p className="rounded-2xl bg-emerald-50 text-emerald-800 border border-emerald-200 px-3.5 py-3 font-body-sm text-body-sm flex items-start gap-2 leading-snug">
+            <Icon name="check_circle" className="text-[16px] mt-0.5 shrink-0" />
             <span>{pesan}</span>
           </p>
         )}
 
         {formTerbuka && (
-          <form onSubmit={kirim} className="sp-card p-4 flex flex-col gap-3 animate-sp-rise">
-            <div>
-              <label className={LABEL} htmlFor="izin-jenis">Jenis Pengajuan</label>
-              <select
-                id="izin-jenis"
-                value={jenis}
-                onChange={(e) => setJenis(e.target.value)}
-                className={FIELD}
-              >
-                {JENIS.map((item) => (
-                  <option key={item} value={item}>{item}</option>
-                ))}
-              </select>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className={LABEL} htmlFor="izin-mulai">Mulai</label>
-                <input id="izin-mulai" type="date" value={mulai} onChange={(e) => setMulai(e.target.value)} className={FIELD} />
-              </div>
-              <div>
-                <label className={LABEL} htmlFor="izin-selesai">Selesai</label>
-                <input id="izin-selesai" type="date" value={selesai} min={mulai} onChange={(e) => setSelesai(e.target.value)} className={FIELD} />
-              </div>
-            </div>
-            <div>
-              <label className={LABEL} htmlFor="izin-keterangan">Keterangan</label>
-              <textarea
-                id="izin-keterangan"
-                rows={3}
-                value={keterangan}
-                onChange={(e) => setKeterangan(e.target.value)}
-                placeholder="Contoh: melampirkan surat dokter, acara keluarga, tugas luar unit…"
-                className={`${FIELD} resize-none`}
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={mengirim}
-              className="w-full py-3 rounded-xl bg-secondary text-on-secondary font-label-md text-label-md flex items-center justify-center gap-2 active:scale-[0.99] transition-transform disabled:opacity-70"
-            >
-              {mengirim && <Spinner />}
-              {mengirim ? 'Mengirim...' : 'Kirim Pengajuan'}
-            </button>
-          </form>
+          <FormPengajuan
+            jenis={jenis}
+            mulai={mulai}
+            selesai={selesai}
+            alasan={alasan}
+            lampiran={lampiran}
+            galat={galat}
+            mengirim={mengirim}
+            durasi={durasi}
+            inputLampiran={inputLampiran}
+            onUbahJenis={setJenis}
+            onUbahMulai={(v) => {
+              setMulai(v)
+              if (selesai < v) setSelesai(v)
+            }}
+            onUbahSelesai={setSelesai}
+            onUbahAlasan={setAlasan}
+            onUbahBerkas={pilihBerkas}
+            onHapusLampiran={() => {
+              setLampiran(null)
+              if (inputLampiran.current) inputLampiran.current.value = ''
+            }}
+            onBatal={() => {
+              setFormTerbuka(false)
+              setGalat('')
+            }}
+            onKirim={kirim}
+          />
         )}
 
-        <section className="sp-card p-4">
-          <div className="flex items-center justify-between pb-2">
-            <span className="font-headline-sm text-headline-sm text-on-surface">Riwayat Pengajuan</span>
-            <span className="font-label-sm text-label-sm text-on-surface-variant">{daftar.length} pengajuan</span>
-          </div>
+        <section className="flex flex-col gap-2.5">
+          <SectionTitle
+            ikon="history"
+            judul="Riwayat Pengajuan"
+            aksi={<span className="font-label-sm text-label-sm text-on-surface-variant shrink-0">{daftar.length} pengajuan</span>}
+          />
           {daftar.length ? (
-            <ul className="divide-y divide-surface-container">
-              {daftar.map((item) => (
-                <li key={item.id} className="py-3 flex flex-col gap-1.5">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className={`px-2.5 py-0.5 rounded-full font-label-sm text-label-sm ${LABEL_JENIS[item.jenis] || 'bg-surface-container text-on-surface'}`}>
-                      {item.jenis}
-                    </span>
-                    <span className={`px-2.5 py-0.5 rounded-full font-label-sm text-label-sm ${LABEL_STATUS[item.status] || LABEL_STATUS.Menunggu}`}>
-                      {item.status}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 text-on-surface-variant">
-                    <Icon name="event" className="text-[15px]" />
-                    <span className="font-body-sm text-body-sm text-on-surface">{item.periode}</span>
-                    <span className="font-label-sm text-label-sm">• {item.durasi}</span>
-                  </div>
-                  {item.keterangan && (
-                    <p className="font-body-sm text-body-sm text-on-surface-variant">{item.keterangan}</p>
-                  )}
-                </li>
-              ))}
+            <ul className="flex flex-col gap-2.5">
+              {daftar.map((item) => {
+                const detail = jenisIzinCuti(item.jenis)
+                return (
+                  <li key={item.id} className="sp-list-card flex flex-col gap-3">
+                    <div className="flex items-center justify-between gap-2.5">
+                      <span className={`px-2.5 py-1 rounded-full font-label-sm text-label-sm flex items-center gap-1 min-w-0 ${warnaJenis(item.jenis)}`}>
+                        <Icon name={ikonJenis(item.jenis)} className="text-[13px] shrink-0" />
+                        <span className="truncate">{item.jenis}</span>
+                      </span>
+                      <BarisStatus status={item.status} />
+                    </div>
+                    <div className="flex items-center gap-2 text-on-surface-variant flex-wrap">
+                      <Icon name="event" className="text-[15px] shrink-0" />
+                      <span className="font-body-sm text-body-sm text-on-surface">{item.periode}</span>
+                      <span className="font-label-sm text-label-sm">• {item.durasi}</span>
+                      {detail && (
+                        <span className="font-label-sm text-label-sm">• {detail.kelompok}</span>
+                      )}
+                    </div>
+                    {(item.keterangan || item.alasan) && (
+                      <p className="font-body-sm text-body-sm text-on-surface-variant leading-snug">{item.keterangan || item.alasan}</p>
+                    )}
+                    {item.lampiran && (
+                      <p className="flex items-center gap-1.5 font-label-sm text-label-sm text-on-surface-variant">
+                        <Icon name="attach_file" className="text-[15px] shrink-0" />
+                        <span className="truncate">{item.lampiran}</span>
+                        {item.lampiranUkuran ? <span className="shrink-0">• {ukuranBerkas(item.lampiranUkuran)}</span> : null}
+                      </p>
+                    )}
+                  </li>
+                )
+              })}
             </ul>
           ) : (
-            <EmptyState
-              ikon="event_available"
-              judul="Belum ada pengajuan"
-              detail="Ajukan izin atau cuti melalui tombol di atas. Pengajuan masuk ke antrean persetujuan Kepala Unit."
-            />
+            <div className="sp-card p-4">
+              <EmptyState
+                ikon="event_available"
+                judul="Belum ada pengajuan"
+                detail="Tekan tombol Buat Pengajuan untuk mengirim izin atau cuti. Pengajuan masuk ke antrean persetujuan Kepala Unit."
+              />
+            </div>
           )}
         </section>
       </div>
     </div>
   )
-}
-
-function formatTanggalPendek(iso) {
-  const [tahun, bulan, tanggal] = String(iso).split('-').map(Number)
-  const bulanNama = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
-  return `${String(tanggal).padStart(2, '0')} ${bulanNama[(bulan || 1) - 1]} ${tahun}`
 }
 
 export default MobileIzinCutiPage

@@ -49,12 +49,12 @@ function LoadingState({ judul = 'Memuat data…', detail, lines = 3 }) {
 /** Layar kosong: tidak ada data, tapi sistem sehat. */
 function EmptyState({ ikon = 'inbox', judul, detail, aksi }) {
   return (
-    <div className="sp-card p-6 flex flex-col items-center text-center gap-1.5">
+    <div className="sp-card p-6 flex flex-col items-center text-center gap-2">
       <span className="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center">
         <Icon name={ikon} className="text-[24px] text-on-surface-variant" />
       </span>
       <span className="font-body-md-medium text-body-md-medium text-on-surface">{judul}</span>
-      {detail && <span className="font-body-sm text-body-sm text-on-surface-variant">{detail}</span>}
+      {detail && <span className="font-body-sm text-body-sm text-on-surface-variant leading-snug">{detail}</span>}
       {aksi}
     </div>
   )
@@ -63,17 +63,17 @@ function EmptyState({ ikon = 'inbox', judul, detail, aksi }) {
 /** Layar gagal: ada yang salah, selalu ada jalan keluar (aksi pemulihan). */
 function ErrorState({ ikon = 'error_outline', judul = 'Terjadi kesalahan', detail, onCoba }) {
   return (
-    <div className="sp-card p-5 flex flex-col items-center text-center gap-2 border-error/30">
+    <div className="sp-card p-5 flex flex-col items-center text-center gap-2.5 border-error/30">
       <span className="w-12 h-12 rounded-full bg-error-container flex items-center justify-center">
         <Icon name={ikon} className="text-[24px] text-on-error-container" />
       </span>
       <span className="font-body-md-medium text-body-md-medium text-on-surface">{judul}</span>
-      {detail && <span className="font-body-sm text-body-sm text-on-surface-variant">{detail}</span>}
+      {detail && <span className="font-body-sm text-body-sm text-on-surface-variant leading-snug">{detail}</span>}
       {onCoba && (
         <button
           type="button"
           onClick={onCoba}
-          className="sp-press mt-1 px-4 py-2.5 rounded-xl bg-primary-container text-on-primary font-label-md text-label-md flex items-center justify-center gap-1.5"
+          className="sp-press sp-btn mt-1 px-4 py-2.5 bg-primary-container text-on-primary font-label-md text-label-md flex items-center justify-center gap-1.5"
         >
           <Icon name="refresh" className="text-[16px]" />
           Coba lagi

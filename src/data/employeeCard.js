@@ -17,6 +17,8 @@
 //   printed_count   berapa kali kartu dicetak
 //   last_printed_at waktu cetak terakhir (ISO string)
 
+import { getEmployeeGreeting } from './sapaanPegawai.js'
+
 export const CARD_QR_PREFIX = 'SIMPRESPEG-'
 export const CARD_QR_PREFIX_LABEL = 'SIMPRESPEG'
 
@@ -131,14 +133,52 @@ export function shortUnitCode(unit) {
   return parts.join('').slice(0, 3).toUpperCase() || 'U'
 }
 
-/** Payload QR unik pegawai: SIMPRESPEG-{NIY}. */
-export function cardQrValue(staff) {
+/**
+ * PAYLOAD QR PEGAWAI — SATU-SUMBER-KEBENARAN
+ *
+ * Ada dua fitur yang memakai QR pegawai:
+ *   1. Kartu ID PVC (yang dicetak Superadmin dan diunduh dari mobile)
+ *   2. Halaman "QR Presensi" di mobile
+ *
+ * Keduanya WAJIB menampilkan kode yang sama persis, karena satu kode dipakai
+ * untuk dua hal sekaligus: memindai di kios presensi dan mengidentifikasi
+ * pegawai. Kalau kedua halaman menghitung payload-nya sendiri, kode bisa
+ * berbeda dan hasil pindai tidak akan cocok dengan kartu yangPegawai pegang.
+ *
+ * Karena itu tidak ada lagi QR kedua. Semua tempat memanggil
+ * `employeeQrPayload()`; `cardQrValue()` hanyalah nama lama yang dipertahankan
+ * supaya pemanggil lama tidak rusak.
+ *
+ * Format: SIMPRESPEG-{NIY}, dengan NIP sebagai cadangan untuk pegawai yang
+ * datanya belum lengkap.
+ */
+export function employeeQrPayload(staff) {
   if (!staff) return ''
   const niy = String(staff.niy ?? '').trim()
   if (niy) return `${CARD_QR_PREFIX}${niy}`
-  // Pegawai tanpa NIY (data belum lengkap) tetap harus punya kartu unik.
   const nip = String(staff.nip ?? '').trim()
   return `${CARD_QR_PREFIX}${nip || staff.id}`
+}
+
+/** Alias lama (dipakai CetakKartuIdPage, kartu, dan toolbar). */
+export function cardQrValue(staff) {
+  return employeeQrPayload(staff)
+}
+
+/**
+ * Identitas yang dikodekan di QR, dipecah untuk ditampilkan di layar.
+ * `qrValue()` harus sama persis dengan yang digambar QRCodeSvg.
+ */
+export function employeeQrInfo(staff) {
+  const value = employeeQrPayload(staff)
+  const identitas = value.startsWith(CARD_QR_PREFIX) ? value.slice(CARD_QR_PREFIX.length) : value
+  return {
+    value,
+    prefix: CARD_QR_PREFIX,
+    identitas,
+    // Field mana yang dipakai sebagai identitas, untuk ditampilkan ke pengguna.
+    sumber: String(staff?.niy ?? '').trim() ? 'NIY' : (String(staff?.nip ?? '').trim() ? 'NIP' : 'ID pegawai'),
+  }
 }
 
 /** Payload barcode 1D: NIY, atau NIP sebagai cadangan. */
@@ -228,6 +268,9 @@ export function mergeCardWithStaff(card, staff) {
     photo: cardPhotoOf(staff),
     initials: initialsForCard(staff.name),
     statusGroup: statusKepegawaianGroup(staff.statusPegawai),
+    // Sapaan dihitung sekali di sini (gender + unit), lalu dipakai kartu ID
+    // maupun area cetak supaya keduanya tidak pernah berbeda.
+    greeting: getEmployeeGreeting(staff),
   }
 }
 

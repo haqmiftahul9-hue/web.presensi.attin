@@ -125,7 +125,7 @@ export function draftToStaff(draft) {
   if (!staff.status) staff.status = 'Aktif'
   staff.masuk = null
   staff.method = null
-  staff.late = 0
+  staff.lateMinutes = 0
   staff.alpha = false
   staff.outsideRadius = false
   return staff

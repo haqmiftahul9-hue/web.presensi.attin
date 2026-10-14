@@ -8,6 +8,16 @@ import {
   buildEmployeeCard, buildEmployeeCards, cardQrValue, cardBarcodeValue,
   todayISO, addYears, DEFAULT_VALIDITY_YEARS, statusKepegawaianGroup,
 } from '../data/employeeCard.js'
+import { ambilPerubahanProfil, ringkasPerubahanProfil } from '../data/profilGuru.js'
+import {
+  calculateAttendanceStatus, calculateCheckoutStatus, jamKerjaRules, jamKeMenit, menitKeJam,
+  labelJamKerja, STATUS_TERLAMBAT, STATUS_TEPAT_WAKTU, STATUS_BELUM_PRESENSI,
+} from '../data/jamKerja.js'
+
+// Konversi jam <-> menit sekarang milik modul jam kerja. Alias di bawah hanya
+// menjaga nama lama yang masih dipakai halaman lain.
+export { jamKeMenit, menitKeJam }
+export const jamToMenit = jamKeMenit
 
 // ARSITEKTUR SATU SUMBER DATA:
 // - Entitas kanonis hanya disimpan sekali (staff/units/leaves/adminUsers/logs/settings).
@@ -25,6 +35,8 @@ export const MOBILE_MENU_OPTIONS = [
   { key: 'riwayatMobile', label: 'Riwayat Mobile' },
   { key: 'slipMobile', label: 'Slip Mobile' },
   { key: 'izinCutiMobile', label: 'Izin & Cuti Mobile' },
+  { key: 'kartuIdMobile', label: 'Kartu ID Mobile' },
+  { key: 'qrPresensiMobile', label: 'QR Presensi Mobile' },
   { key: 'profilMobile', label: 'Profil Mobile' },
 ]
 
@@ -61,7 +73,7 @@ export const PERMISSION_MATRIX = {
   },
   Guru: {
     aksesDeny: ['view'],
-    // Hanya lima halaman mobile. Menu portal sengaja kosong: meski secara
+    // Hanya halaman-halaman mobile. Menu portal sengaja kosong: meski secara
     // teknis masih 'view', role mobile tidak pernah bisa mencapainya karena
     // canAccessPath() menolak path di luar /mobile/*.
     berandaMobile: ['view'],
@@ -69,6 +81,10 @@ export const PERMISSION_MATRIX = {
     riwayatMobile: ['view'],
     slipMobile: ['view'],
     izinCutiMobile: ['view', 'add'],
+    // Kartu ID & QR Presensi: 'add' dipakai untuk mengunduh PDF kartu miliknya
+    // sendiri. Datanya tetap milik sendiri — selector selectSelfStaff().
+    kartuIdMobile: ['view', 'add'],
+    qrPresensiMobile: ['view'],
     profilMobile: ['view'],
     dashboard: ['view'],
     manajemenUnit: [],
@@ -277,6 +293,8 @@ export const ROUTE_MENU_KEYS = {
   '/mobile/riwayat': 'riwayatMobile',
   '/mobile/slip': 'slipMobile',
   '/mobile/izin-cuti': 'izinCutiMobile',
+  '/mobile/kartu-id': 'kartuIdMobile',
+  '/mobile/qr': 'qrPresensiMobile',
   '/mobile/profil': 'profilMobile',
   // Halaman terminal "akses tidak tersedia". Setiap role punya izin 'view',
   // supaya tujuan redirect selalu punya tempat mendarat yang tidak ditolak.
@@ -336,7 +354,7 @@ export const ROLE_HOME_CANDIDATES = {
   [ROLE_ADMIN_UNIT]: ['/dashboard', '/data-guru-dan-pegawai', '/cetak-kartu-id', '/presensi', '/pengajuan-izin-dan-cuti', '/rekap-dan-laporan', '/ranking-kehadiran', '/log-aktivitas'],
   // Guru/Pegawai hanya membuka aplikasi mobile; kandidat portal yang tersisa
   // dipakai hanya bila someday modul mobile ditutup untuk sebagian akun.
-  [ROLE_GURU]: ['/mobile/home', '/mobile/presensi', '/mobile/riwayat', '/mobile/profil', '/mobile/slip', '/mobile/izin-cuti'],
+  [ROLE_GURU]: ['/mobile/home', '/mobile/presensi', '/mobile/riwayat', '/mobile/profil', '/mobile/slip', '/mobile/izin-cuti', '/mobile/kartu-id', '/mobile/qr'],
   [ROLE_PETUGAS_PRESENSI]: ['/dashboard', '/presensi', '/data-guru-dan-pegawai', '/rekap-dan-laporan', '/ranking-kehadiran', '/pengajuan-izin-dan-cuti', '/log-aktivitas'],
 }
 
@@ -402,56 +420,44 @@ const initialStaff = buildFullStaff()
 function buildInitialAttendanceHistory(staff, trend30) {
   const history = []
   const activeStaff = staff.filter(s => s.status === 'Aktif')
-  
-  // Use last 30 days of trend data to generate per-staff history
+
+  // Riwayat 30 hari terakhir. Jam masuk, lateMinutes, dan status setiap baris
+  // dihitung calculateAttendanceStatus() terhadap hari yang sedang digenerate,
+  // jadi hari Sabtu (batas 07:30) dan hari kerja lain (batas 07:10) otomatis
+  // memakai aturan jam kerjanya masing-masing.
   trend30.forEach((day, dayIndex) => {
     const date = new Date()
     date.setDate(date.getDate() - (29 - dayIndex))
-    const dateStr = date.toISOString().split('T')[0]
-    
+    const rules = jamKerjaRules(date)
+    if (!rules.hariKerja) return
+    const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+
     const hadirTarget = day.hadir
     const terlambatTarget = day.terlambat
-    
+
     // Shuffle staff for this day
     const shuffled = [...activeStaff].sort(() => Math.random() - 0.5)
     let hadirCount = 0
     let terlambatCount = 0
-    
+
     shuffled.forEach((staffMember, idx) => {
       if (hadirCount >= hadirTarget) return
-      
-      const isHadir = true
+
       hadirCount++
-      
-      // Determine if late based on target
-      const isLate = terlambatCount < terlambatTarget && Math.random() < 0.3
+
+      // Terlambat hanya mungkin kalau jam masuk hari itu punya batas.
+      const isLate = rules.batasMasukMenit != null && terlambatCount < terlambatTarget && Math.random() < 0.3
       if (isLate) terlambatCount++
-      
-      const unit = UNITS.find(u => u.id === staffMember.unitId)
-      const unitEntryHour = unit ? parseInt(unit.masuk.split(':')[0]) : 7
-      const unitEntryMin = unit ? parseInt(unit.masuk.split(':')[1]) : 0
-      const unitEntryMinutes = unitEntryHour * 60 + unitEntryMin
-      
-      let masukTime = '07:00'
-      let lateMinutes = 0
-      let method = 'Face Recognition'
-      
-      if (isLate) {
-        lateMinutes = 5 + Math.floor(Math.random() * 25)
-        const arrivalMinutes = unitEntryMinutes + lateMinutes
-        const arrivalHour = Math.floor(arrivalMinutes / 60)
-        const arrivalMin = arrivalMinutes % 60
-        masukTime = `${String(arrivalHour).padStart(2, '0')}:${String(arrivalMin).padStart(2, '0')}`
-      } else {
-        const earlyMinutes = Math.floor(Math.random() * 20)
-        const arrivalMinutes = unitEntryMinutes - earlyMinutes
-        const arrivalHour = Math.floor(arrivalMinutes / 60)
-        const arrivalMin = arrivalMinutes % 60
-        masukTime = `${String(arrivalHour).padStart(2, '0')}:${String(arrivalMin).padStart(2, '0')}`
-      }
-      
-      if (Math.random() < 0.4) method = 'QR Code'
-      
+
+      const selisih = isLate
+        ? 3 + Math.floor(Math.random() * 25)
+        : -Math.floor(Math.random() * 18)
+      const arrivalMinutes = rules.batasMasukMenit + selisih
+      const masukTime = menitKeJam(Math.max(0, arrivalMinutes))
+
+      const hasil = calculateAttendanceStatus(date, masukTime)
+      const method = Math.random() < 0.4 ? 'QR Code' : 'Face Recognition'
+
       history.push({
         id: Date.now() + dayIndex * 10000 + idx,
         date: dateStr,
@@ -460,14 +466,19 @@ function buildInitialAttendanceHistory(staff, trend30) {
         niy: staffMember.niy,
         role: staffMember.role,
         unitId: staffMember.unitId,
+        hari: hasil.hari,
+        jamKerja: hasil.jamKerja,
+        jamMasuk: hasil.jamMasuk,
+        jamPulang: hasil.jamPulang,
         masuk: masukTime,
+        pulang: hasil.jamPulang,
         method,
-        late: lateMinutes,
-        status: lateMinutes > 0 ? 'Terlambat' : 'Tepat Waktu',
+        lateMinutes: hasil.lateMinutes,
+        status: hasil.status,
       })
     })
   })
-  
+
   return history
 }
 
@@ -498,7 +509,7 @@ const initialState = {
   //
   // Kredensial hasil penggantian disimpan di tabel yang sama (lihat
   // buildUserAccount), jadi hanya ada satu sumber kebenaran untuk kredensial
-  // pegawai.
+  // pegawai — tidak ada lagi tabel terpisah per pegawai.
   userAccounts: buildUserAccounts(initialStaff),
   logs: INITIAL_LOGS,
   settings: INITIAL_SETTINGS,
@@ -515,10 +526,6 @@ const initialState = {
   // Kode penyebab kegagalan login (AKUN_TIDAK_DITEMUKAN, PASSWORD_SALAH, ...).
   authErrorCode: null,
   attendanceHistory: initialAttendanceHistory,
-  // Kredensial yang sudah diganti pengguna disimpan di tabel userAccounts
-  // (lihat buildUserAccount). Tidak ada lagi tabel terpisah per pegawai, jadi
-  // hanya ada satu sumber kebenaran untuk kredensial pegawai.
-  userAccounts: buildUserAccounts(initialStaff),
   // Permintaan buka form ganti kata sandi (dipakai tombol di sidebar dan oleh
   // akun ber-mustChangePassword). False = pengguna bebas memakai sistem.
   passwordChangeRequested: false,
@@ -539,17 +546,81 @@ export function simPresReducer(state, action) {
       }
     case 'ADD_LEAVE':
       return { ...state, leaves: [...state.leaves, action.payload] }
-    case 'UPDATE_STAFF':
+    case 'UPDATE_STAFF': {
+      /*
+       * Edit dari portal Superadmin/Admin Unit.
+       *
+       * Penting: helper sinkronisasi (kartu ID, akun user, akun portal) butuh
+       * record pegawai yang LENGKAP, bukan potongan yang dikirim. Kalau hanya
+       * patch yang diteruskan, `syncEmployeeCardsFromStaff` akan menghitung
+       * ulang QR dari NIY yang tidak ada di patch dan menulis
+       * `SIMPRESPEG-<id>` ke kartu — kartu fisik lalu tidak cocok lagi dengan
+       * QR di aplikasi. Karena itu record digabung lebih dulu di sini, lalu
+       * record gabungan itulah yang dipakai bersama oleh semua tabel turunan.
+       */
+      const { id, ...perubahan } = action.payload || {}
+      const sebelum = state.staff.find((s) => s.id === id)
+      const staffBaru = sebelum ? { ...sebelum, ...perubahan } : null
+      if (!staffBaru) return state
       return {
         ...state,
-        staff: state.staff.map((s) =>
-          s.id === action.payload.id ? { ...s, ...action.payload } : s,
-        ),
-        adminUsers: syncAdminUserFromStaff(state.adminUsers, action.payload),
-        employeeCards: syncEmployeeCardsFromStaff(state.employeeCards, action.payload, 'update'),
+        staff: state.staff.map((s) => (s.id === id ? staffBaru : s)),
+        adminUsers: syncAdminUserFromStaff(state.adminUsers, staffBaru),
+        employeeCards: syncEmployeeCardsFromStaff(state.employeeCards, staffBaru, 'update'),
         // Status/unit/NIY akun ikut mengikuti data pegawai yang baru.
-        userAccounts: upsertUserAccount(state.userAccounts, { ...action.payload }, { action: 'update' }),
+        userAccounts: upsertUserAccount(state.userAccounts, staffBaru, { action: 'update' }),
       }
+    }
+    case 'UPDATE_STAFF_PROFILE': {
+      /*
+       * Guru memperbarui data pribasinya sendiri.
+       *
+       * Pagar di lapis reducer, bukan di form:
+       *   - Id pegawai diambil dari SESI, bukan dari payload. Aksi yang mencoba
+       *     mengedit pegawai lain diabaikan.
+       *   - `ambilPerubahanProfil` membuang semua field di luar daftar yang
+       *     boleh diedit, sehingga NIY/NIP/jabatan/unit/status tidak bisa
+       *     berubah walau dikirimDiam-diam di payload.
+       *   - Perubahan ditulis ke `state.staff` — data master yang sama dibaca
+       *     Superadmin, jadi tidak ada salinan profil terpisah.
+       */
+      const staffId = selectSelfStaffId(state)
+      if (staffId == null) return state
+      const target = state.staff.find((s) => s.id === staffId)
+      if (!target) return state
+
+      const { patch, perubahan, ditolak } = ambilPerubahanProfil(target, action.payload || {})
+      // Tidak ada yang berubah (atau semua field ditolak): jangan tulis apa pun.
+      if (Object.keys(patch).length === 0) return state
+
+      const staffBaru = { ...target, ...patch }
+      const namaAktor = selectCurrentUser(state)?.name || target.name
+
+      // Log menyimpan data sebelum & sesudah secara terstruktur, bukan hanya
+      // kalimat ringkasan — supaya halaman Log Aktivitas bisa menampilkan nilai
+      // sebenarnya dan bukan hasil tebakan regex.
+      const log = {
+        ...createActivityLog(
+          state,
+          'Ubah Profil',
+          `Pegawai • ${target.name}`,
+          `${namaAktor} memperbarui data pribadi: ${ringkasPerubahanProfil(perubahan)}`,
+        ),
+        perubahan,
+        // Field terkunci yang mencoba dikirim ikut tercatat sebagai jejak.
+        fieldDitolak: ditolak.map((d) => d.field),
+      }
+
+      return {
+        ...state,
+        staff: state.staff.map((s) => (s.id === staffId ? staffBaru : s)),
+        // Nama & foto ikut memengaruhi kartu ID dan avatar, jadi keduanya
+        // disinkronkan dari data master yang baru.
+        employeeCards: syncEmployeeCardsFromStaff(state.employeeCards, staffBaru, 'update'),
+        userAccounts: upsertUserAccount(state.userAccounts, staffBaru, { action: 'update' }),
+        logs: [log, ...state.logs],
+      }
+    }
     case 'ADD_STAFF': {
       // Id yang bentrok (mis. impor massal) selalu digenerate ulang dari data
       // yang ada, supaya tidak pernah menimpa pegawai lain.
@@ -608,18 +679,23 @@ export function simPresReducer(state, action) {
     case 'UPDATE_ATTENDANCE':
       // Tulis-langsung ke sumber data (staff); attendance adalah turunan.
       const staffForUpdate = state.staff.find(s => s.id === action.payload.id)
+      const hasilUpdate = calculateAttendanceStatus(new Date(), action.payload.masuk ?? staffForUpdate?.masuk ?? null)
       const historyEntryUpdate = staffForUpdate ? {
         id: Date.now(),
-        date: new Date().toISOString().split('T')[0],
+        date: hasilUpdate.tanggal,
         staffId: action.payload.id,
         name: staffForUpdate.name,
         niy: staffForUpdate.niy,
         role: staffForUpdate.role,
         unitId: staffForUpdate.unitId,
+        hari: hasilUpdate.hari,
+        jamKerja: hasilUpdate.jamKerja,
+        jamMasuk: hasilUpdate.jamMasuk,
+        jamPulang: hasilUpdate.jamPulang,
         masuk: action.payload.masuk ?? staffForUpdate.masuk,
         method: action.payload.method ?? staffForUpdate.method,
-        late: action.payload.late ?? staffForUpdate.late ?? 0,
-        status: action.payload.masuk ? (action.payload.late > 0 ? 'Terlambat' : 'Tepat Waktu') : 'Belum Presensi',
+        lateMinutes: hasilUpdate.lateMinutes,
+        status: hasilUpdate.status,
       } : null
       return {
         ...state,
@@ -629,7 +705,9 @@ export function simPresReducer(state, action) {
                 ...s,
                 ...(action.payload.masuk !== undefined ? { masuk: action.payload.masuk } : {}),
                 ...(action.payload.method !== undefined ? { method: action.payload.method } : {}),
-                ...(action.payload.late !== undefined ? { late: action.payload.late } : {}),
+                // lateMinutes tidak pernah dikirim manual: nilainya selalu hasil
+                // calculateAttendanceStatus() untuk tanggal yang sama.
+                ...(action.payload.masuk !== undefined ? { lateMinutes: hasilUpdate.lateMinutes } : {}),
               }
             : s,
         ),
@@ -641,7 +719,7 @@ export function simPresReducer(state, action) {
             role: 'Sistem',
             action: 'Presensi',
             target: `Pegawai • ${state.staff.find(s => s.id === action.payload.id)?.name || 'N/A'}`,
-            desc: `Presensi ${action.payload.method || 'manual'} ${action.payload.masuk ? `pukul ${action.payload.masuk} WIB` : ''}${action.payload.late ? ` (terlambat ${action.payload.late} menit)` : ''}`,
+            desc: `Presensi ${action.payload.method || 'manual'} ${action.payload.masuk ? `pukul ${action.payload.masuk} WIB` : ''}${hasilUpdate.lateMinutes ? ` (terlambat ${hasilUpdate.lateMinutes} menit)` : ''}`,
           },
           ...state.logs,
         ],
@@ -649,18 +727,23 @@ export function simPresReducer(state, action) {
       }
     case 'ADD_ATTENDANCE':
       // Presensi baru = pegawai baru pada sumber data staff.
+      const hasilAdd = calculateAttendanceStatus(new Date(), action.payload.masuk ?? null)
       const historyEntryAdd = {
         id: Date.now(),
-        date: new Date().toISOString().split('T')[0],
+        date: hasilAdd.tanggal,
         staffId: action.payload.staffId ?? action.payload.id,
         name: action.payload.name,
         niy: action.payload.niy,
         role: action.payload.role,
         unitId: action.payload.unitId,
+        hari: hasilAdd.hari,
+        jamKerja: hasilAdd.jamKerja,
+        jamMasuk: hasilAdd.jamMasuk,
+        jamPulang: hasilAdd.jamPulang,
         masuk: action.payload.masuk ?? null,
         method: action.payload.method ?? null,
-        late: action.payload.late ?? 0,
-        status: action.payload.masuk ? (action.payload.late > 0 ? 'Terlambat' : 'Tepat Waktu') : 'Belum Presensi',
+        lateMinutes: hasilAdd.lateMinutes,
+        status: hasilAdd.status,
       }
       return {
         ...state,
@@ -675,7 +758,7 @@ export function simPresReducer(state, action) {
             status: 'Aktif',
             masuk: action.payload.masuk ?? null,
             method: action.payload.method ?? null,
-            late: action.payload.late ?? 0,
+            lateMinutes: hasilAdd.lateMinutes,
             ...(action.payload.alpha ? { alpha: true } : {}),
             ...(action.payload.outsideRadius ? { outsideRadius: true } : {}),
           },
@@ -689,62 +772,82 @@ logs: [
               unit: state.units.find(u => u.id === action.payload.unitId)?.nama || '-',
               action: 'Presensi',
               target: `Pegawai • ${action.payload.name}`,
-              desc: `Presensi ${action.payload.method || 'manual'} ${action.payload.masuk ? `pukul ${action.payload.masuk} WIB` : ''}${action.payload.late ? ` (terlambat ${action.payload.late} menit)` : ''}`,
+              desc: `Presensi ${action.payload.method || 'manual'} ${action.payload.masuk ? `pukul ${action.payload.masuk} WIB` : ''}${hasilAdd.lateMinutes ? ` (terlambat ${hasilAdd.lateMinutes} menit)` : ''}`,
             },
             ...state.logs,
           ],
         attendanceHistory: [historyEntryAdd, ...state.attendanceHistory],
       }
-    case 'CHECK_IN':
+    case 'CHECK_IN': {
       // Cukup tulis ke staff; attendance ter-derive otomatis (satu sumber data).
       const staffForLog = state.staff.find(s => s.id === action.payload.id)
+      const hasilCheckIn = calculateAttendanceStatus(new Date(), action.payload.masuk ?? null)
       const historyEntryCheckIn = staffForLog ? {
         id: Date.now(),
-        date: new Date().toISOString().split('T')[0],
+        date: hasilCheckIn.tanggal,
         staffId: action.payload.id,
         name: staffForLog.name,
         niy: staffForLog.niy,
         role: staffForLog.role,
         unitId: staffForLog.unitId,
+        hari: hasilCheckIn.hari,
+        jamKerja: hasilCheckIn.jamKerja,
+        jamMasuk: hasilCheckIn.jamMasuk,
+        jamPulang: hasilCheckIn.jamPulang,
         masuk: action.payload.masuk,
         method: action.payload.method,
-        late: action.payload.late ?? 0,
-        status: action.payload.late > 0 ? 'Terlambat' : 'Tepat Waktu',
+        lateMinutes: hasilCheckIn.lateMinutes,
+        status: hasilCheckIn.status,
       } : null
       return {
         ...state,
         staff: state.staff.map((s) =>
           s.id === action.payload.id
-            ? { ...s, masuk: action.payload.masuk, method: action.payload.method, late: action.payload.late ?? 0, status: 'Aktif' }
+            ? {
+                ...s,
+                masuk: action.payload.masuk,
+                method: action.payload.method,
+                lateMinutes: hasilCheckIn.lateMinutes,
+                status: 'Aktif',
+              }
             : s,
         ),
-logs: [
-            {
-              id: Date.now(),
-              time: new Date().toLocaleString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
-              actor: staffForLog?.name || 'Pegawai',
-              role: staffForLog?.role || 'Guru',
-              unit: state.units.find(u => u.id === staffForLog?.unitId)?.nama || 'Unit',
-              action: 'Presensi',
-              target: `Pegawai • ${staffForLog?.name || 'N/A'}`,
-              desc: `Presensi ${action.payload.method || 'Face Recognition'} pukul ${action.payload.masuk} WIB${action.payload.late ? ` (terlambat ${action.payload.late} menit)` : ''} di ${state.units.find(u => u.id === staffForLog?.unitId)?.nama || 'Unit'}`,
-            },
-            ...state.logs,
-          ],
+        logs: [
+          {
+            id: Date.now(),
+            time: new Date().toLocaleString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+            actor: staffForLog?.name || 'Pegawai',
+            role: staffForLog?.role || 'Guru',
+            unit: state.units.find(u => u.id === staffForLog?.unitId)?.nama || 'Unit',
+            action: 'Presensi',
+            target: `Pegawai • ${staffForLog?.name || 'N/A'}`,
+            desc: `Presensi ${action.payload.method || 'Face Recognition'} pukul ${action.payload.masuk} WIB${hasilCheckIn.lateMinutes ? ` (terlambat ${hasilCheckIn.lateMinutes} menit)` : ''} di ${state.units.find(u => u.id === staffForLog?.unitId)?.nama || 'Unit'}`,
+          },
+          ...state.logs,
+        ],
         attendanceHistory: historyEntryCheckIn ? [historyEntryCheckIn, ...state.attendanceHistory] : state.attendanceHistory,
       }
+    }
     case 'CHECK_OUT': {
       // Absen pulang hanya sah kalau presensi masuk hari ini sudah tercatat.
       // Guard ini di reducer, bukan hanya di tombol, supaya aksi yang dikirim
       // langsung ke store juga tidak bisa membuat pulang tanpa masuk.
       const staffOut = state.staff.find(s => s.id === action.payload.id)
       if (!staffOut || !staffOut.masuk) return state
-      const hariIni = new Date().toISOString().split('T')[0]
+      const tanggalPulang = jamKerjaRules(new Date()).tanggal
+      // Jumat tidak punya batas minimal jam pulang: calculateCheckoutStatus()
+      // yang memutuskan, bukan Comparing jam secara manual di sini.
+      const hasilPulang = calculateCheckoutStatus(new Date(), action.payload.pulang ?? null)
       return {
         ...state,
         staff: state.staff.map((s) =>
           s.id === action.payload.id
-            ? { ...s, pulang: action.payload.pulang, pulangMethod: action.payload.method || s.pulangMethod || null }
+            ? {
+                ...s,
+                pulang: action.payload.pulang,
+                pulangMethod: action.payload.method || s.pulangMethod || null,
+                latePulangMinutes: hasilPulang.terlambatPulang || 0,
+              }
             : s,
         ),
         logs: [
@@ -756,14 +859,14 @@ logs: [
             unit: state.units.find(u => u.id === staffOut.unitId)?.nama || 'Unit',
             action: 'Presensi',
             target: `Pegawai • ${staffOut.name}`,
-            desc: `Presensi pulang pukul ${action.payload.pulang} WIB`,
+            desc: `Presensi pulang pukul ${action.payload.pulang} WIB — ${hasilPulang.label}`,
           },
           ...state.logs,
         ],
         // Riwayat harian sudah punya baris untuk hari ini (dibuat saat presensi
         // masuk), jadi pulang cukup ditambahkan ke baris itu, bukan baris baru.
         attendanceHistory: state.attendanceHistory.map((h) =>
-          h.staffId === staffOut.id && h.date === hariIni ? { ...h, pulang: action.payload.pulang } : h,
+          h.staffId === staffOut.id && h.date === tanggalPulang ? { ...h, pulang: action.payload.pulang } : h,
         ),
       }
     }
@@ -1331,6 +1434,15 @@ export function useSimPres() {
   return ctx
 }
 
+/**
+ * Versi yang mengembalikan null alih-alih melempar error saat Provider belum
+ * tersedia. Halaman yang harus menampilkan status memuat (bukan layar kosong
+ * atau error) memakainya supaya render pertama tetap aman.
+ */
+export function useSimPresOptional() {
+  return useContext(SimPresContext)
+}
+
 // Semua angka & tabel di bawah otomatis mengikuti unit terpilih karena
 // filter unit berlaku di satu titik ini (sumber data tetap state.staff).
 export function selectActiveStaff(state) {
@@ -1349,12 +1461,15 @@ export function selectJumlahHadir(state) {
   return selectHadirHariIni(state).length
 }
 
-export function selectTerlambat(state) {
-  return selectActiveStaff(state).filter((s) => s.masuk && s.late > 0)
+export function selectTerlambat(state, tanggal = new Date()) {
+  // Status tidak pernah dibaca dari field yang disimpan: dihitung ulang dari
+  // jam masuk aktual vs batas jam kerja hari itu lewat fungsi yang sama dengan
+  // halaman mobile dan laporan.
+  return selectActiveStaff(state).filter((s) => calculateAttendanceStatus(tanggal, s.masuk).lateMinutes > 0)
 }
 
-export function selectJumlahTerlambat(state) {
-  return selectTerlambat(state).length
+export function selectJumlahTerlambat(state, tanggal = new Date()) {
+  return selectTerlambat(state, tanggal).length
 }
 
 export function selectAlpha(state) {
@@ -1381,7 +1496,7 @@ export function selectTingkatKehadiran(state) {
 export function selectRataRataTerlambat(state) {
   const late = selectTerlambat(state)
   if (late.length === 0) return 0
-  const totalMin = late.reduce((sum, s) => sum + s.late, 0)
+  const totalMin = late.reduce((sum, s) => sum + (s.lateMinutes || 0), 0)
   return (totalMin / late.length).toFixed(1)
 }
 
@@ -1589,7 +1704,7 @@ function syncStaffFromAdminUser(staff, adminUser, action) {
         status: adminUser.status,
         masuk: null,
         method: null,
-        late: 0,
+        lateMinutes: 0,
       }
       return [...staff, newStaff]
     }
@@ -1614,7 +1729,7 @@ function syncStaffFromAdminUser(staff, adminUser, action) {
         status: adminUser.status,
         masuk: null,
         method: null,
-        late: 0,
+        lateMinutes: 0,
       }
       return [...staff, newStaff]
     }
@@ -1830,34 +1945,39 @@ export function selectAttendanceSummary(state) {
   return { hadir, terlambat, belum, tidakAktif }
 }
 
-export function selectFilterTabCounts(state) {
+export function selectFilterTabCounts(state, tanggal = new Date()) {
   const hadir = selectHadirHariIni(state)
-  const tepat = hadir.filter((s) => s.late === 0).length
+  const tepat = hadir.filter((s) => calculateAttendanceStatus(tanggal, s.masuk).lateMinutes === 0).length
   const face = hadir.filter((s) => s.method === 'Face Recognition').length
   const qr = hadir.filter((s) => s.method === 'QR Code').length
-  return { semua: hadir.length, tepat, terlambat: selectJumlahTerlambat(state), face, qr }
+  return { semua: hadir.length, tepat, terlambat: selectJumlahTerlambat(state, tanggal), face, qr }
 }
 
-export function selectRekapTableData(state, unitId = null, period = 'Bulanan') {
+// Baris tabel rekap. Kolom "Jam Kerja" menggantikan kolom shift/jam operasional:
+// nilainya diambil dari jam kerja global hari ini, dan status keterlambatan
+// dihitung calculateAttendanceStatus() — bukan dari field terpisah.
+export function selectRekapTableData(state, unitId = null, period = 'Bulanan', tanggal = new Date()) {
   let staff = selectActiveStaff(state)
   const effUnit = resolveUnitFilter(state, unitId)
   if (effUnit) {
     staff = staff.filter((s) => s.unitId === effUnit)
   }
+  const rules = jamKerjaRules(tanggal)
   return staff.map((s) => {
     const unit = state.units.find((u) => u.id === s.unitId)
-    const isHadir = s.masuk !== null
+    const isHadir = Boolean(s.masuk)
+    const status = calculateAttendanceStatus(tanggal, s.masuk)
     let stMasuk = 'Alpha'
     let stMasukType = 'alpha'
     let stPulang = 'Alpha'
     let stPulangType = 'alpha'
     let ket = 'Tanpa surat pemberitahuan'
     if (isHadir) {
-      stMasuk = s.late > 0 ? `Terlambat ${s.late} menit` : 'Tepat Waktu'
-      stMasukType = s.late > 0 ? 'late' : 'good'
-      stPulang = 'Tepat Waktu'
+      stMasuk = status.terlambat ? `${STATUS_TERLAMBAT} ${status.lateMinutes} menit` : STATUS_TEPAT_WAKTU
+      stMasukType = status.terlambat ? 'late' : 'good'
+      stPulang = s.pulang ? calculateCheckoutStatus(tanggal, s.pulang).label : 'Belum absen'
       stPulangType = 'good'
-      ket = s.unitId === 'smp' ? 'Tugas Pengawas Ujian' : s.unitId === 'sd' ? (s.id === 2 ? 'Dispensasi Rapat Gugus' : s.id === 3 ? 'Lupa tap pulang / verifikasi TU' : 'Guru Kelas Reguler') : s.unitId === 'sma' ? (s.id === 6 ? 'Cuti Alasan Penting (Lampiran SK)' : 'Guru Kelas Reguler') : s.unitId === 'tk' ? 'Izin dinas luar jam 14:30' : 'Surat Sakit Dokter RS Radja'
+      ket = s.unitId === 'smp' ? 'Tugas Pengawas Ujian' : s.unitId === 'sd' ? (s.id === 2 ? 'Dispensasi Rapat Gugus' : s.id === 3 ? 'Lupa tap pulang / verifikasi TU' : 'Guru Kelas Reguler') : s.unitId === 'sma' ? (s.id === 6 ? 'Cuti Alasan Penting (Lampiran SK)' : 'Guru Kelas Reguler') : s.unitId === 'tk' ? 'Izin dinas di luar jam kerja' : 'Surat Sakit Dokter RS Radja'
     } else if (s.status === 'Nonaktif') {
       stMasuk = 'Izin'
       stMasukType = 'leave'
@@ -1874,8 +1994,13 @@ export function selectRekapTableData(state, unitId = null, period = 'Bulanan') {
       role: roleLabel,
       niy: s.niy,
       unit: unitName,
+      hari: rules.hari,
+      jamKerja: rules.jamKerja,
+      jamMasuk: rules.jamMasuk,
+      jamPulang: rules.jamPulang,
       masuk: isHadir ? `${s.masuk} WIB` : '-',
-      pulang: isHadir ? '15:00 WIB' : '-',
+      pulang: isHadir ? (s.pulang ? `${s.pulang} WIB` : '-') : '-',
+      lateMinutes: status.lateMinutes,
       stMasuk,
       stMasukType,
       stPulang,
@@ -1885,18 +2010,18 @@ export function selectRekapTableData(state, unitId = null, period = 'Bulanan') {
   })
 }
 
-export function selectRekapReportData(state, unitId = null, period = 'Bulanan') {
+export function selectRekapReportData(state, unitId = null, period = 'Bulanan', tanggal = new Date()) {
   let staff = selectActiveStaff(state)
   const effUnit = resolveUnitFilter(state, unitId)
   if (effUnit) {
     staff = staff.filter((s) => s.unitId === effUnit)
   }
 
-  let attendance = buildAttendance(staff)
+  let attendance = buildAttendance(staff, tanggal)
   if (effUnit) {
     attendance = attendance.filter((a) => a.unitId === effUnit)
   }
-  
+
   let daysInPeriod = 15
   switch (period) {
     case 'Harian': daysInPeriod = 1; break
@@ -1904,15 +2029,17 @@ export function selectRekapReportData(state, unitId = null, period = 'Bulanan') 
     case 'Bulanan': daysInPeriod = 22; break
     case 'Tahunan': daysInPeriod = 240; break
   }
-  
+
   const leaves = selectScopedLeaves(state)
+  const rules = jamKerjaRules(tanggal)
 
   return staff.map((s, idx) => {
     const unit = state.units.find((u) => u.id === s.unitId)
     const staffAttendance = attendance.filter((a) => a.staffId === s.id)
-    const hadir = staffAttendance.filter((a) => a.masuk !== null).length
-    const tepatWaktu = staffAttendance.filter((a) => a.masuk !== null && a.late === 0).length
-    const terlambat = staffAttendance.filter((a) => a.masuk !== null && a.late > 0).length
+    const hadir = staffAttendance.filter((a) => a.masuk).length
+    const tepatWaktu = staffAttendance.filter((a) => a.masuk && a.lateMinutes === 0).length
+    const terlambat = staffAttendance.filter((a) => a.masuk && a.lateMinutes > 0).length
+    const totalLateMinutes = staffAttendance.reduce((sum, a) => sum + (a.lateMinutes || 0), 0)
     const staffLeaves = leaves.filter((l) => 
       l.staffId === s.id && (l.status === 'Disetujui' || l.status === 'Menunggu')
     )
@@ -1939,9 +2066,15 @@ export function selectRekapReportData(state, unitId = null, period = 'Bulanan') 
       unit: unit?.nama || '-',
       periode: getPeriodLabel(period),
       totalHariKerja: daysInPeriod,
+      // Jam Kerja menggantikan kolom shift: hari + rentang jam kerja global.
+      hari: rules.hari,
+      jamKerja: rules.jamKerja,
+      jamMasuk: rules.jamMasuk,
+      jamPulang: rules.jamPulang,
       hadir,
       tepatWaktu,
       terlambat,
+      totalLateMinutes,
       izinSakit,
       alpha,
       persentaseKehadiran: parseFloat(persentaseKehadiran),
@@ -1961,26 +2094,44 @@ function getPeriodLabel(period) {
   }
 }
 
-export function selectRekapSummary(state, unitId = null, period = 'Bulanan') {
+export function selectRekapSummary(state, unitId = null, period = 'Bulanan', tanggal = new Date()) {
   let staff = selectActiveStaff(state)
   const effUnit = resolveUnitFilter(state, unitId)
   if (effUnit) {
     staff = staff.filter((s) => s.unitId === effUnit)
   }
   const totalPegawai = staff.length
-  const hadir = staff.filter((s) => s.masuk !== null).length
-  const tepatWaktu = staff.filter((s) => s.masuk !== null && s.late === 0).length
-  const terlambat = staff.filter((s) => s.masuk !== null && s.late > 0).length
+  const hadir = staff.filter((s) => s.masuk).length
+  // Angka Tepat Waktu / Terlambat di ringkasan dashboard memakai fungsi status
+  // yang sama dengan rekap dan laporan PDF.
+  const statusHariIni = staff.map((s) => calculateAttendanceStatus(tanggal, s.masuk))
+  const tepatWaktu = staff.filter((s, i) => s.masuk && statusHariIni[i].lateMinutes === 0).length
+  const terlambat = staff.filter((s, i) => s.masuk && statusHariIni[i].lateMinutes > 0).length
+  const totalLateMinutes = statusHariIni.reduce((sum, s) => sum + s.lateMinutes, 0)
+  const rules = jamKerjaRules(tanggal)
   const leaves = selectScopedLeaves(state)
   const izinSakit = leaves.filter((l) =>
     (l.status === 'Disetujui' || l.status === 'Menunggu') &&
     staff.some((s) => s.id === l.staffId)
   ).length
-  const alpha = staff.filter((s) => s.masuk === null && !leaves.some((l) =>
+  const alpha = staff.filter((s) => !s.masuk && !leaves.some((l) =>
     (l.status === 'Disetujui' || l.status === 'Menunggu') && l.staffId === s.id
   )).length
   const persentaseKehadiran = totalPegawai > 0 ? ((hadir / totalPegawai) * 100).toFixed(1) : '0.0'
-  return { totalPegawai, hadir, tepatWaktu, terlambat, izinSakit, alpha, persentaseKehadiran }
+  return {
+    totalPegawai,
+    hadir,
+    tepatWaktu,
+    terlambat,
+    totalLateMinutes,
+    hari: rules.hari,
+    jamKerja: rules.jamKerja,
+    jamMasuk: rules.jamMasuk,
+    jamPulang: rules.jamPulang,
+    izinSakit,
+    alpha,
+    persentaseKehadiran,
+  }
 }
 
 export function selectRekapChartData(state, unitId = null, period = 'Bulanan') {
@@ -2093,10 +2244,13 @@ export function selectRankingData(state) {
     stats.totalDays++
     if (record.masuk) {
       stats.hadirCount++
-      if (record.late > 0) {
+      // Keterlambatan dihitung ulang dari tanggal baris tersebut, mengikuti jam
+      // kerja hari itu (Sabtu 07:30, hari kerja lain 07:10).
+      const menit = calculateAttendanceStatus(record.date, record.masuk).lateMinutes
+      if (menit > 0) {
         stats.terlambatCount++
-        stats.totalLateMinutes += record.late
-        stats.lateMinutesList.push(record.late)
+        stats.totalLateMinutes += menit
+        stats.lateMinutesList.push(menit)
       } else {
         stats.tepatWaktuCount++
       }
@@ -2292,10 +2446,13 @@ export function selectRankingDataFiltered(state, { period = 'Bulanan', unitId = 
     stats.totalDays++
     if (record.masuk) {
       stats.hadirCount++
-      if (record.late > 0) {
+      // Keterlambatan dihitung ulang dari tanggal baris tersebut, mengikuti jam
+      // kerja hari itu (Sabtu 07:30, hari kerja lain 07:10).
+      const menit = calculateAttendanceStatus(record.date, record.masuk).lateMinutes
+      if (menit > 0) {
         stats.terlambatCount++
-        stats.totalLateMinutes += record.late
-        stats.lateMinutesList.push(record.late)
+        stats.totalLateMinutes += menit
+        stats.lateMinutesList.push(menit)
       } else {
         stats.tepatWaktuCount++
       }
@@ -2419,7 +2576,7 @@ export function selectRankingDataFiltered(state, { period = 'Bulanan', unitId = 
   return { topOnTime, topLate, insentif, toleransi: unitLateAvg, pembinaan, hasAttendanceData, totalStaffWithAttendance, totalFilteredStaff }
 }
 
-export function selectMonitoringActivity(state) {
+export function selectMonitoringActivity(state, tanggal = new Date()) {
   return selectRecentActivity(state).map((s, idx) => {
     const unit = state.units.find((u) => u.id === s.unitId)
     const unitColor = unit?.id === 'sd' ? 'bg-blue-100 text-secondary'
@@ -2428,26 +2585,18 @@ export function selectMonitoringActivity(state) {
           : unit?.id === 'tk' ? 'bg-indigo-100 text-indigo-800'
             : 'bg-purple-100 text-purple-800'
 
-    // Hitung keterlambatan berdasarkan jam masuk unit vs waktu presensi aktual
-    let lateMinutes = 0
-    let status = 'Belum Presensi'
+    // Keterlambatan dihitung dari jam kerja global hari ini (07:10, atau 07:30
+    // untuk Sabtu) — bukan dari jam operasional unit seperti dulu.
+    const presensi = calculateAttendanceStatus(tanggal, s.masuk)
+    const lateMinutes = presensi.lateMinutes
+    let status = presensi.status
     let statusColor = 'bg-surface-container text-on-surface-variant'
-
-    if (s.masuk && unit) {
-      const unitEntry = unit.masuk // format "07:00" atau "06:45"
-      const [unitHour, unitMin] = unitEntry.split(':').map(Number)
-      const unitEntryMinutes = unitHour * 60 + unitMin
-
-      const [attHour, attMin] = s.masuk.split(':').map(Number)
-      const attMinutes = attHour * 60 + attMin
-
-      lateMinutes = Math.max(0, attMinutes - unitEntryMinutes)
-
+    if (s.masuk && presensi.hariKerja) {
       if (lateMinutes > 0) {
-        status = `Terlambat (${lateMinutes} mnt)`
+        status = `${STATUS_TERLAMBAT} (${lateMinutes} mnt)`
         statusColor = 'bg-amber-100 text-amber-800'
       } else {
-        status = idx === 0 ? 'Baru Masuk' : 'Tepat Waktu'
+        status = idx === 0 ? 'Baru Masuk' : STATUS_TEPAT_WAKTU
         statusColor = 'bg-emerald-100 text-emerald-800'
       }
     }
@@ -2487,6 +2636,11 @@ export function selectMonitoringActivity(state) {
       niy: s.niy,
       unit: unit ? unit.nama : '-',
       unitColor,
+      // Jam kerja global hari ini, menggantikan informasi shift.
+      hari: presensi.hari,
+      jamKerja: presensi.jamKerja,
+      jamMasuk: presensi.jamMasuk,
+      jamPulang: presensi.jamPulang,
       status,
       statusColor,
       method: { icon: methodIcon, label: methodLabel },
@@ -2574,82 +2728,68 @@ export function selectSelfStaff(state) {
   return state.staff.find((s) => s.id === staffId) || null
 }
 
-// "07:15" -> 435. Format tak lazim menghasilkan null (bukan 0) supaya pemanggil
-// bisa memakai nilai default-nya sendiri, bukan diam-diam mengarang tengah malam.
-export function jamToMenit(jam) {
-  const parts = /^(\d{1,2}):(\d{2})$/.exec(String(jam || '').trim())
-  if (!parts) return null
-  const hours = Number(parts[1])
-  const minutes = Number(parts[2])
-  if (hours > 23 || minutes > 59) return null
-  return hours * 60 + minutes
-}
+// "07:15" -> 435 dan sebaliknya sudah didefinisikan di data/jamKerja.js
+// (dialiaskan sebagai jamToMenit / menitKeJam pada bagian atas file ini).
 
-// Kebalikan dari jamToMenit: 435 -> "07:15".
-export function menitKeJam(menit) {
-  const total = Number(menit)
-  if (!Number.isFinite(total) || total < 0) return null
-  const jam = Math.floor(total / 60) % 24
-  const sisa = total % 60
-  return `${String(jam).padStart(2, '0')}:${String(sisa).padStart(2, '0')}`
-}
-
-// Geser jam sebesar sejumlah menit, mis. jamTambahMenit("07:00", 15) -> "07:15".
-export function jamTambahMenit(jam, tambahan) {
-  const dasar = jamToMenit(jam)
-  if (dasar == null) return null
-  return menitKeJam(dasar + (Number(tambahan) || 0))
-}
-
-// Aturan presensi yang berlaku untuk satu unit: jam operasional, toleransi
-// keterlambatan, dan radius geofence. Satu-satunya tempat override per unit
-// dari Pengaturan Global dibaca, supaya penyimpangan antar halaman (toleransi
-// kartu mobile vs. halaman monitoring) tidak mungkin terjadi.
-export function selectPresensiRules(state, unitId) {
+// Aturan presensi untuk satu tanggal: jam kerja global berdasarkan hari
+// (Senin-Kamis 07:10-16:00, Jumat 07:10 tanpa batas pulang, Sabtu 07:30-13:00)
+// ditambah radius geofence unit. Tidak ada lagi jam operasional/toleransi
+// per unit maupun konsep shift: kartu mobile, monitoring, dan rekap semua
+// membaca hasil fungsi yang sama, jadi tidak mungkin berbeda antar halaman.
+export function selectPresensiRules(state, unitId, tanggal = new Date()) {
   const presensi = state.settings?.presensi || {}
   const unit = selectUnitById(state, unitId)
-  const toleransi = presensi.toleransiKeterlambatanPerUnit?.[unitId]
-    ?? presensi.toleransiKeterlambatanDefault
-    ?? 15
   const radius = presensi.radiusGeofencePerUnit?.[unitId]
     ?? presensi.radiusGeofenceDefault
     ?? unit?.radius
     ?? 50
+  const jamKerja = jamKerjaRules(tanggal)
   return {
-    jamMasuk: unit?.masuk || presensi.jamMasukDefault || '07:00',
-    jamPulang: unit?.pulang || presensi.jamPulangDefault || '15:00',
-    toleransi,
+    ...jamKerja,
+    jamMasuk: jamKerja.jamMasuk,
+    jamPulang: jamKerja.jamPulang,
+    jamKerja: jamKerja.jamKerja,
+    labelJamKerja: labelJamKerja(jamKerja),
     radius,
     zonaWaktu: state.settings?.zonaWaktu || 'WIB',
     lokasiAktif: presensi.lokasiAktif !== false,
   }
 }
 
-// Ringkasan "Presensi Hari Ini" untuk halaman milik sendiri. Diturunkan dari
-// baris pegawai (sumber tunggal presensi) plus aturan unit, sehingga kartu
-// ringkasan dan tombol presensi tidak pernah menyimpan salinan terpisah.
-export function selectSelfPresensi(state) {
+// Ringkasan "Presensi Hari Ini" untuk halaman milik sendiri. Status kehadiran
+// dihitung oleh calculateAttendanceStatus() — fungsi yang sama dipakai monitoring,
+// rekap, dashboard, dan laporan PDF.
+export function selectSelfPresensi(state, tanggal = new Date()) {
   const staff = selectSelfStaff(state)
   if (!staff) return null
   const unit = selectUnitById(state, staff.unitId)
-  const rules = selectPresensiRules(state, staff.unitId)
-  const jamMasukMenit = jamToMenit(rules.jamMasuk) ?? 7 * 60
+  const rules = selectPresensiRules(state, staff.unitId, tanggal)
+  const status = calculateAttendanceStatus(tanggal, staff.masuk || null, { jamPulang: staff.pulang || null })
+  const pulang = staff.pulang ? calculateCheckoutStatus(tanggal, staff.pulang) : null
   return {
     staff,
     unit,
     rules,
+    // Tanggal & hari kerja yang dipakai status di atas — halaman tinggal
+    // menampilkan, tidak pernah menghitung sendiri.
+    hari: status.hari,
+    hariKerja: status.hariKerja,
+    jamKerja: status.jamKerja,
     masuk: staff.masuk || null,
     pulang: staff.pulang || null,
-    late: staff.late || 0,
+    lateMinutes: status.lateMinutes,
+    terlambat: status.terlambat,
+    statusHari: status.status,
+    statusMasuk: staff.masuk ? status.label : STATUS_BELUM_PRESENSI,
     method: staff.method || null,
     sudahMasuk: Boolean(staff.masuk),
     sudahPulang: Boolean(staff.pulang),
-    statusMasuk: !staff.masuk
-      ? 'Belum presensi'
-      : staff.late > 0 ? `Terlambat ${staff.late} mnt` : 'Tepat Waktu',
-    // Batas toleransi dihitung dari jam masuk unit, mis. 07:00 + 15 = 07:15.
-    batasMasuk: jamTambahMenit(rules.jamMasuk, rules.toleransi),
-    jamMasukMenit,
+    // Batas presensi = jam masuk hari ini. Tidak ada toleransi tambahan lagi.
+    batasMasuk: status.batasMasuk,
+    jamMasukMenit: status.batasMasukMenit,
+    jamPulangMenit: status.batasPulangMenit,
+    pulangBebas: status.pulangBebas,
+    statusPulang: pulang,
   }
 }
 

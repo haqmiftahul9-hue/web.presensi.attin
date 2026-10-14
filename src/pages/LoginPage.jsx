@@ -654,7 +654,7 @@ function DesktopLoginView(props) {
  * ilustrasi, daftar akun demo, atau teks panjang. Semua kontrol dibuat untuk
  * jari (tinggi minimal 48px, font 16px agar iOS tidak memperbesar tampilan),
  * dan seluruh isinya muat tanpa scroll pada layar 360-430px. Bila keyboard
- * AndroidkeyboardTn缩小 viewport, `100dvh` ikut menyusut sehingga tombol
+ * Android keyboard menyusut viewport, `100dvh` ikut menyusut sehingga tombol
  * Masukan tetap terlihat tanpa perlu menggulir.
  *
  * Identitas yang ditampilkan diambil dari data aplikasi

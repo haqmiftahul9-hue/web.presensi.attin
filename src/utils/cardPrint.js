@@ -278,7 +278,7 @@ function drawCard(doc, row, settings, unit, { x, y, width, photoDataUrl }) {
   const qrBlockH = qrSize + qrLabelGap + qrLabelH
   const qrX = x + width - padX - qrSize
   const qrY = bodyCenter - qrBlockH / 2
-  // Latar putih di luar QR其实是 quiet zone 4 modul, digambar oleh drawQr.
+  // Latar putih di luar QR adalah quiet zone 4 modul, digambar oleh drawQr.
   drawQr(doc, row.qr, qrX, qrY, qrSize)
   drawText(doc, CARD_QR_PREFIX_LABEL, qrX + qrSize / 2, qrY + qrSize + qrLabelGap + qrLabelH / 2, {
     size: em * G.qrLabel, color: COLORS.outline, style: 'bold', align: 'center',

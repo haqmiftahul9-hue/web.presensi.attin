@@ -26,26 +26,29 @@ function GeofenceCard({ geofence, namaTitik, koordinatTeks }) {
   const dy = Math.sin(SUDUT_RADAR) * 46 * skala
 
   return (
-    <section className="sp-card p-4 flex flex-col gap-3">
-      <div className="flex items-center justify-between gap-2">
+    // `gap-3.5` (14px) adalah jarak antar blok: badge status → radar →
+    // baris koordinat. Baris koordinat memakai `border-t` + `pt-3`, jadi
+    // jaraknya ke divider (12px) sama dengan jarak teks di bawahnya.
+    <section className="sp-card p-4 flex flex-col gap-3.5">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
         <div
-          className={`inline-flex items-center gap-2 px-3 py-1 rounded-full border ${
+          className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border min-w-0 ${
             aktif
               ? 'bg-emerald-50 text-emerald-700 border-emerald-200/70'
               : 'bg-error-container text-on-error-container border-error/30'
           }`}
         >
-          <span className="relative flex h-2 w-2">
+          <span className="relative flex h-2 w-2 shrink-0">
             {aktif && (
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
             )}
             <span className={`relative inline-flex rounded-full h-2 w-2 ${aktif ? 'bg-emerald-600' : 'bg-error'}`} />
           </span>
-          <span className="font-label-sm text-label-sm font-semibold">
+          <span className="font-label-sm text-label-sm font-semibold leading-snug">
             {aktif ? 'Anda berada dalam radius' : 'Anda berada di luar radius'}
           </span>
         </div>
-        <span className="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-0.5">
+        <span className="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1 shrink-0">
           <Icon name={membaca ? 'gps_fixed' : 'my_location'} className={`text-[14px] ${aktif ? 'text-emerald-600' : 'text-error'}`} />
           {sumber === 'gps' ? `GPS ±${akurasi ?? '-'} m` : 'GPS nonaktif'}
         </span>
@@ -82,7 +85,10 @@ function GeofenceCard({ geofence, namaTitik, koordinatTeks }) {
         </div>
       </div>
 
-      <div className="flex items-center justify-between gap-2 pt-2 border-t border-surface-container">
+      {/* Batas radius + koordinat. `border-t` dengan `pt-3` membuat divider
+          berjarak 12px dari teks di atas (lewat `gap-3.5` kartu) dan 12px dari
+          teks di bawahnya, dan lebarnya tetap mengikuti area konten kartu. */}
+      <div className="flex items-center justify-between gap-2 pt-3 border-t border-surface-container">
         <span className="font-label-sm text-label-sm text-on-surface-variant">
           Batas radius {radius} m
           {sumber === 'simulasi' ? ' • jarak simulasi' : ''}
@@ -93,7 +99,7 @@ function GeofenceCard({ geofence, namaTitik, koordinatTeks }) {
       </div>
 
       {errorGps && sumber === 'simulasi' && (
-        <p className="font-label-sm text-label-sm text-amber-700 flex items-start gap-1.5">
+        <p className="font-label-sm text-label-sm text-amber-700 flex items-start gap-2 leading-snug">
           <Icon name="gps_off" className="text-[14px] shrink-0 mt-px" />
           <span>{errorGps} — jarak dihitung dari simulasi.</span>
         </p>

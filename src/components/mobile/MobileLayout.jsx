@@ -1,12 +1,12 @@
 import { useEffect } from 'react'
-import Icon from '../Icon.jsx'
 import { NavLink, Outlet, Navigate, useLocation } from 'react-router-dom'
+import Icon from '../Icon.jsx'
 import {
   useSimPres, selectSelfStaff, selectAppMode, selectAppHomePath, MODE_MOBILE,
 } from '../../store/simPresStore.jsx'
-import StaffAvatar from './StaffAvatar.jsx'
 import MobileErrorBoundary from './MobileErrorBoundary.jsx'
 import InstallPrompt from './InstallPrompt.jsx'
+import { GlassTopBar, MobileAppShell } from './AppShell.jsx'
 
 // Bottom navigation modul mobile. Empat menu ini adalah seluruh navigasi
 // role Guru/Pegawai; tidak ada sidebar dan tidak ada tautan ke portal desktop.
@@ -18,10 +18,15 @@ const NAV_ITEMS = [
 ]
 
 /**
- * Kerangka aplikasi mobile untuk role Guru/Pegawai: header lengket, konten, dan
- * bottom navigation. Lebar kolom dikunci 390px (ukuran layar iPhone 12/13/14)
- * supaya di Android maupun iOS tampil sama; di desktop kolomnya tetap berada
- * di tengah dengan latar netral di sekitarnya.
+ * Kerangka aplikasi mobile untuk role Guru/Pegawai: device shell, bar atas
+ * melayang di dalam hero, konten yang bisa digulir, dan bottom navigation
+ * berupa kartu putih melayang.
+ *
+ * Seluruh modul dibungkus `MobileAppShell` sehingga lebarnya berhenti di
+ * 430px: di desktop ia tampil sebagai pratinjau perangkat di tengah layar,
+ * sedangkan di HP (<=430px) shell melar mengikuti layar. Karena itu bottom
+ * navigation memakai `position: absolute` terhadap kolom aplikasi — kalau
+ * `fixed`, ia akan melebar mengikuti viewport laptop dan keluar dari shell.
  *
  * Role portal yang membuka path /mobile/* dialihkan ke beranda desktop-nya di
  * sini, jadi tidak mungkin ada dua bentuk aplikasi yang tampil bersamaan.
@@ -43,86 +48,53 @@ function MobileLayout() {
   }
 
   return (
-    <div className="sp-mobile-root min-h-[100dvh] bg-surface text-body-md text-body-md text-on-surface">
-      {/* Kolom 390px dipakai di layar yang cukup lebar (desktop/tablet). Di HP
-          kolom ini mengambil 100% lebar layar, jadi tidak ada ruang kosong di
-          kiri dan kanan; konten tetap mengalir dan digulir seperti biasa. */}
-      <div className="sp-mobile-column relative mx-auto min-h-[100dvh] h-auto w-full max-w-[430px] bg-surface shadow-[0_24px_60px_-30px_rgba(11,31,61,0.35)] sm:max-w-[390px]">
-        <header className="sp-mobile-header sp-hide-print fixed top-0 z-50 mx-auto w-full max-w-[430px] bg-surface/85 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] pt-safe sm:max-w-[390px]">
-          <div className="h-16 px-2 flex items-center justify-between gap-1">
-            <NavLink to="/mobile/home" className="flex items-center gap-2 min-w-0 h-11 px-2 -ml-2 rounded-xl">
-              <span className="w-9 h-9 rounded-xl bg-primary-container flex items-center justify-center shrink-0">
-                <Icon name="fingerprint" className="text-on-primary text-[20px]" />
-              </span>
-              <span className="flex flex-col min-w-0">
-                <span className="font-headline-sm text-headline-sm text-on-surface leading-tight truncate">SimPres</span>
-                <span className="font-label-sm text-label-sm text-on-surface-variant truncate">Kepegawaian</span>
-              </span>
-            </NavLink>
-
-            <div className="flex items-center gap-0.5 shrink-0">
-              <button
-                type="button"
-                aria-label="Notifikasi"
-                className="sp-press relative w-11 h-11 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors"
-              >
-                <Icon name="notifications" className="text-[22px]" />
-                <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-error ring-2 ring-surface" />
-              </button>
-              <NavLink
-                to="/mobile/profil"
-                aria-label="Profil saya"
-                className="sp-press w-11 h-11 rounded-full flex items-center justify-center"
-              >
-                <StaffAvatar
-                  staff={selectSelfStaff(state)}
-                  size="w-9 h-9"
-                  textClass="font-label-sm text-label-sm"
-                  ring="ring-0"
-                />
-              </NavLink>
-            </div>
-          </div>
+    <MobileAppShell>
+      {/* Kolom aplikasi: mengisi tinggi shell, jadi bottom navigation dan
+          bar atas selalu terlihat tanpa keluar dari bingkai perangkat. */}
+      <div className="sp-mobile-column text-body-md text-on-surface">
+        {/* Bar atas melayang di atas konten (bukan ikut flow), jadi konten
+            menyisakan ruang lewat `pt-16` pada `main` di bawah. Transparan-glass
+            karena hero setiap halaman berwarna gelap, jadi kontrasnya selalu aman. */}
+        <header className="sp-mobile-header sp-hide-print pt-safe">
+          <GlassTopBar staff={selectSelfStaff(state)} />
         </header>
 
-        <main
-          data-mobile-scroll
-          className="w-full h-auto pt-16 pb-28 min-h-[100dvh]"
-        >
-          <MobileErrorBoundary>
+        {/* Konten: satu-satunya wadah scroll di dalam shell.
+            - `pt-16`: ruang untuk bar atas yang melayang (64px), ditambah
+              tinggi notch/status bar yang ditambahkan `.sp-mobile-main` dari CSS.
+            - `padding-bottom` safe-area handled CSS.
+            - Spacer `sp-nav-space` di akhir konten menyisakan ruang agar kartu
+              navigasi tidak menutupi baris terakhir dan halaman tetap bisa
+              digulir sampai paling bawah. */}
+        <main data-mobile-scroll className="sp-mobile-main pt-16">
+          <MobileErrorBoundary resetKey={location.pathname}>
             <Outlet />
           </MobileErrorBoundary>
+          <div className="sp-nav-space" aria-hidden="true" />
         </main>
 
-        {/* Bottom navigation tetap menempel di bawah, dan lebar kolomnya ikut
-            aturan layar yang sama dengan konten (100% di HP, 390px di layar
-            lebar) supaya tidak pernah menutupi isi. */}
-        <nav className="sp-mobile-nav sp-hide-print fixed bottom-0 z-50 mx-auto w-full max-w-[430px] bg-surface/95 backdrop-blur-xl shadow-[0_-2px_12px_rgba(11,31,61,0.08)] pb-safe sm:max-w-[390px]">
-          <div className="flex items-stretch justify-around h-16 px-1">
+        {/* Navigasi bawah: mengambang 16px dari tepi shell, tinggi 76px,
+            radius 24px. Isinya satu baris horizontal (sp-nav-row) berisi
+            empat menu — tidak pernah menumpuk ke bawah. */}
+        <nav className="sp-mobile-nav sp-hide-print sp-nav-float" aria-label="Navigasi utama">
+          <div className="sp-nav-row">
             {NAV_ITEMS.map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}
                 end={item.end}
                 data-path={item.to}
-                className={({ isActive }) =>
-                  `sp-nav-item flex-1 min-h-[56px] flex flex-col items-center justify-center gap-0.5 transition-colors ${
-                    isActive ? 'text-secondary' : 'text-on-surface-variant'
-                  }`
-                }
+                className="sp-nav-float-item"
               >
                 {({ isActive }) => (
                   <>
-                    <span
-                      className={`w-10 h-8 rounded-xl flex items-center justify-center transition-all duration-300 ${
-                        isActive ? 'bg-primary-container shadow-sm' : 'bg-transparent'
-                      }`}
-                    >
-                      <Icon name={item.icon} className={`text-[20px] ${isActive ? 'text-on-primary' : 'text-on-surface-variant'}`} />
-                    </span>
+                    <Icon
+                      name={item.icon}
+                      className={`text-[22px] ${isActive ? 'text-white' : 'text-on-surface-variant'}`}
+                    />
                     <span
                       className={`font-label-sm text-label-sm ${
-                        isActive ? 'text-primary-container font-semibold' : ''
+                        isActive ? 'text-white' : 'text-on-surface-variant'
                       }`}
                     >
                       {item.label}
@@ -138,7 +110,7 @@ function MobileLayout() {
             tetap web murni. */}
         <InstallPrompt />
       </div>
-    </div>
+    </MobileAppShell>
   )
 }
 

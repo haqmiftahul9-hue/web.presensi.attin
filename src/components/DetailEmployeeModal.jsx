@@ -1,4 +1,5 @@
 import { useSimPres, selectUnitName } from '../store/simPresStore.jsx'
+import { calculateAttendanceStatus } from '../data/jamKerja.js'
 import { EMPLOYEE_COLUMNS, EMPLOYEE_GROUPS } from '../data/employeeSchema.js'
 
 const FIELD_CLASS = 'font-body-md-medium text-body-md-medium text-on-surface block break-words'
@@ -28,8 +29,10 @@ function DetailEmployeeModal({ staff, onClose }) {
 
   const unitName = selectUnitName(state, staff.unitId)
   const isAktif = staff.status === 'Aktif'
+  // Status kehadiran dihitung fungsi yang sama dengan seluruh halaman lain.
+  const presensiHariIni = calculateAttendanceStatus(new Date(), staff.masuk || null)
   const presence = staff.masuk
-    ? `${staff.masuk} WIB${staff.late > 0 ? ` (terlambat ${staff.late} menit)` : ' (tepat waktu)'}`
+    ? `${staff.masuk} WIB — ${presensiHariIni.label} (batas ${presensiHariIni.jamMasuk})`
     : 'Belum presensi hari ini'
 
   const valueOf = (key) => {
@@ -113,7 +116,9 @@ function DetailEmployeeModal({ staff, onClose }) {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-space-lg gap-y-space-md">
               <PresenceRow label="Jam Masuk" value={presence} />
               <PresenceRow label="Metode Presensi" value={staff.method || '-'} />
-              <PresenceRow label="Total Terlambat" value={`${staff.late || 0} menit`} />
+              <PresenceRow label="Hari Kerja" value={presensiHariIni.hari} />
+              <PresenceRow label="Jam Kerja" value={`${presensiHariIni.jamMasuk} - ${presensiHariIni.jamPulang ?? 'bebas'}`} />
+              <PresenceRow label="Keterlambatan" value={`${presensiHariIni.lateMinutes} menit`} />
               <PresenceRow
                 label="Keterangan"
                 value={staff.outsideRadius ? 'Di luar radius geofence' : staff.alpha ? 'Tanpa keterangan (alpha)' : '-'}

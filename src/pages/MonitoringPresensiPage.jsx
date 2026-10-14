@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useSimPres } from '../store/simPresStore.jsx'
 import { selectJumlahHadir, selectJumlahTerlambat, selectTotalPegawai, selectUnitSummary, selectFilterTabCounts, selectMonitoringActivity, selectBelumPresensi, selectHadirHariIni, selectCanSwitchUnit, selectActiveUnitId, selectUnitOptionsById, ALL_UNITS } from '../store/simPresStore.jsx'
+import { daftarJamKerja, jamKerjaRules } from '../data/jamKerja.js'
 
 function MonitoringPresensiPage() {
   const { state, dispatch } = useSimPres()
@@ -33,13 +34,6 @@ function MonitoringPresensiPage() {
   const settings = state.settings
   const presensiConfig = settings.presensi || {}
   const zonaWaktu = settings.zonaWaktu || 'WIB'
-  
-  // Helper untuk mendapatkan toleransi per unit
-  const getToleransiUnit = (unitId) => {
-    return presensiConfig.toleransiKeterlambatanPerUnit?.[unitId] 
-      ?? presensiConfig.toleransiKeterlambatanDefault 
-      ?? 15
-  }
   
   // Helper untuk mendapatkan radius geofence per unit
   const getRadiusUnit = (unitId) => {
@@ -127,7 +121,7 @@ function MonitoringPresensiPage() {
       total: 'Pegawai tertinggal',
       percentage: belum > 0 && totalPegawai > 0 ? ((belum / totalPegawai) * 100).toFixed(1) : '0.0',
       subtitle: 'belum check-in / tapping',
-      subtitleHighlight: 'Batas 07:30',
+      subtitleHighlight: `Batas ${jamKerjaRules(new Date()).jamMasuk}`,
       iconBg: 'bg-amber-100',
       iconColor: 'text-amber-600',
       icon: 'person_off',
@@ -140,7 +134,7 @@ function MonitoringPresensiPage() {
       value: String(terlambat),
       total: 'Tercatat dispensasi / denda',
       percentage: terlambat > 0 ? ((terlambat / hadir) * 100).toFixed(1) : '0.0',
-      subtitle: 'Melebihi batas jam masuk unit',
+      subtitle: `Melebihi batas jam masuk ${jamKerjaRules(new Date()).jamMasuk}`,
       subtitleHighlight: '+2 vs kemarin',
       iconBg: 'bg-red-100',
       iconColor: 'text-red-600',
@@ -483,25 +477,18 @@ function MonitoringPresensiPage() {
                 <span className="material-symbols-outlined text-[18px]">info</span>
               </div>
               <div className="flex flex-col min-w-0">
-                <span className="font-body-sm-medium text-body-sm-medium text-gray-900">Toleransi Batas Jam Presensi</span>
+                <span className="font-body-sm-medium text-body-sm-medium text-gray-900">Batas Jam Presensi (Jam Kerja Global)</span>
                 <p className="font-body-sm text-body-sm text-gray-500 mt-1 leading-relaxed">
-                  {state.units.map((unit) => {
-                    const toleransi = getToleransiUnit(unit.id)
-                    const unitEntry = unit.masuk || '07:00'
-                    const [hour, min] = unitEntry.split(':').map(Number)
-                    const toleransiHour = hour
-                    const toleransiMin = min + toleransi
-                    const finalHour = Math.floor(toleransiMin / 60)
-                    const finalMin = toleransiMin % 60
-                    const toleransiTime = `${String(finalHour).padStart(2, '0')}:${String(finalMin).padStart(2, '0')}`
-                    return (
-                      <span key={unit.id} className="block">
-                        <strong className="text-gray-900">{unit.nama}:</strong> {toleransiTime} {getZonaWaktuLabel(zonaWaktu)} (toleransi {toleransi} menit)
-                      </span>
-                    )
-                  })}
+                  {daftarJamKerja().map((h) => (
+                    <span key={h.hari} className="block">
+                      <strong className="text-gray-900">{h.hari}:</strong> masuk {h.jamMasuk} — pulang{' '}
+                      {h.jamPulang ?? 'bebas (tanpa batas minimal)'} {getZonaWaktuLabel(zonaWaktu)}
+                    </span>
+                  ))}
                 </p>
-                <span className="font-label-sm text-label-sm text-gray-400 mt-2">Log melebihi batas jam otomatis diberi status dispensasi/terlambat.</span>
+                <span className="font-label-sm text-label-sm text-gray-400 mt-2">
+                  Masuk tepat pada batas atau sebelumnya = Tepat Waktu. Setelah batas = Terlambat, dihitung dalam menit.
+                </span>
               </div>
             </div>
 

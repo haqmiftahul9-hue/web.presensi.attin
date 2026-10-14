@@ -2,6 +2,7 @@
 import BarcodeSvg from './BarcodeSvg.jsx'
 import { YayasanLogo, UnitLogo } from './CardLogos.jsx'
 import { cardStatusStyle, cardPhotoOf, formatDateID, CARD_QR_PREFIX_LABEL } from '../../data/employeeCard.js'
+import { getEmployeeGreeting } from '../../data/sapaanPegawai.js'
 
 /**
  * Wajah kartu ID PVC (CR80 85.60 x 53.98 mm).
@@ -26,6 +27,8 @@ function CardFace({ row, settings, unit, className = '' }) {
   const initials = row.initials || staff.name
   const statusGroup = row.statusGroup
   const namaYayasan = settings?.namaYayasan || 'Yayasan Pendidikan'
+  // Sapaan mengikuti gender + unit, bukan ditulis manual di kartu.
+  const sapaan = row.greeting || getEmployeeGreeting(staff, { unit })
 
   return (
     <div
@@ -97,14 +100,23 @@ function CardFace({ row, settings, unit, className = '' }) {
         </div>
 
         <div className="flex min-w-0 flex-1 flex-col justify-center">
+          {/* Nama dagang (Umi / Ustadz / Ustadzah) dihitung dari gender + unit
+              pegawai. Nama resmi tetap ikut tercetak di bawahnya: kartu adalah
+              dokumen identitas, jadi nama resminya tidak boleh hilang. */}
           <h3
             className="truncate text-[length:var(--sp-name)] font-bold leading-[1.15] tracking-[-0.01em] text-on-surface"
-            title={staff.name}
+            title={sapaan}
           >
-            {staff.name}
+            {sapaan}
           </h3>
           <p
             className="truncate text-[length:var(--sp-role)] font-semibold leading-[1.2] text-secondary"
+            title={staff.name}
+          >
+            {staff.name}
+          </p>
+          <p
+            className="truncate text-[length:var(--sp-role)] font-medium leading-[1.2] text-on-surface-variant"
             title={staff.role}
           >
             {staff.role || '-'}

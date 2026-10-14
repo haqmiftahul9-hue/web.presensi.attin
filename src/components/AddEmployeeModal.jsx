@@ -27,7 +27,7 @@ function AddEmployeeModal({ onClose, onSave }) {
       id: nextStaffId(state),
       masuk: null,
       method: null,
-      late: 0,
+      lateMinutes: 0,
       alpha: false,
       outsideRadius: false,
     })
