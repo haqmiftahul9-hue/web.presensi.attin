@@ -3,10 +3,10 @@ import { useSimPres, selectJabatanOptions } from '../store/simPresStore.jsx'
 import { EMPLOYEE_COLUMNS, EMPLOYEE_GROUPS } from '../data/employeeSchema.js'
 
 const INPUT_CLASS =
-  'h-10 px-3.5 py-2 rounded-lg bg-surface-container-low border border-outline focus:outline-none focus:bg-surface-container-lowest focus:border-secondary/50 focus:ring-2 focus:ring-secondary/20 font-body-md text-body-md text-on-surface transition-all'
-const ERROR_INPUT_CLASS = 'border-rose-400 focus:border-rose-400 focus:ring-rose-100'
-const LABEL_CLASS = 'font-body-sm-medium text-body-sm-medium text-on-surface'
-const HELP_CLASS = 'text-[11px] text-on-surface-variant'
+  'w-full h-9 px-3 rounded-lg bg-white border border-slate-200 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 text-xs text-slate-800 placeholder:text-slate-400 transition-all'
+const ERROR_INPUT_CLASS = 'border-rose-400 focus:border-rose-500 focus:ring-rose-500/20'
+const LABEL_CLASS = 'text-xs font-semibold text-slate-700'
+const HELP_CLASS = 'text-[11px] text-slate-400'
 
 // Form bersama untuk Tambah & Edit: satu definisi kolom, satu tampilan.
 function EmployeeFormFields({ form, setForm, errors }) {
@@ -19,16 +19,16 @@ function EmployeeFormFields({ form, setForm, errors }) {
   const isCustomJabatan = form.role ? !listed.has(form.role.toLowerCase()) : false
 
   return (
-    <div className="flex flex-col gap-space-lg">
+    <div className="flex flex-col gap-5">
       {EMPLOYEE_GROUPS.map((group) => {
         const columns = EMPLOYEE_COLUMNS.filter((c) => c.group === group)
         if (columns.length === 0) return null
         return (
-          <fieldset key={group} className="flex flex-col gap-space-sm">
-            <legend className="font-label-sm text-label-sm uppercase tracking-wider text-secondary">
+          <fieldset key={group} className="flex flex-col gap-3">
+            <legend className="text-[11px] font-bold uppercase tracking-wider text-blue-600 border-b border-slate-100 pb-1.5 block w-full">
               Data {group}
             </legend>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-space-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               {columns.map((col) => {
                 const err = errorOf(col.key)
                 const wide = col.type === 'text' && col.key === 'alamat'

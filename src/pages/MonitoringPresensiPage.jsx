@@ -165,46 +165,47 @@ function MonitoringPresensiPage() {
 
   return (
     <div className="flex flex-col w-full min-w-0">
-      <div className="p-4 md:p-6 flex flex-col gap-4 md:gap-6 max-w-[1600px] mx-auto w-full">
+      <div className="p-4 md:p-6 flex flex-col gap-5 max-w-[1600px] mx-auto w-full">
+        {/* Header & Controls */}
         <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-2 font-body-sm text-body-sm text-gray-400">
-            <span className="hover:text-gray-700 cursor-pointer transition-colors">Home</span>
-            <span className="material-symbols-outlined text-[14px] text-gray-400">chevron_right</span>
-            <span className="hover:text-gray-700 cursor-pointer transition-colors">Presensi</span>
-            <span className="material-symbols-outlined text-[14px] text-gray-400">chevron_right</span>
-            <span className="text-gray-900 font-body-sm-medium text-body-sm-medium">Monitoring Real-time</span>
+          <div className="flex items-center gap-1.5 text-xs text-slate-400">
+            <span className="hover:text-slate-700 cursor-pointer transition-colors">Home</span>
+            <span className="material-symbols-outlined text-[14px]">chevron_right</span>
+            <span className="hover:text-slate-700 cursor-pointer transition-colors">Presensi</span>
+            <span className="material-symbols-outlined text-[14px]">chevron_right</span>
+            <span className="text-slate-800 font-semibold">Monitoring Real-time</span>
           </div>
 
           <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <h1 className="font-headline-md text-headline-md text-gray-900 tracking-tight">Presensi — Monitoring</h1>
-              <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-50 shadow-sm">
+              <h1 className="text-2xl font-bold tracking-tight text-slate-900">Monitoring Presensi</h1>
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200/80">
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-600"></span>
                 </span>
-                <span className="font-label-sm text-label-sm text-emerald-800 uppercase tracking-wide">Live Feed</span>
+                <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wide">Live Feed</span>
               </div>
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
-              <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-lg shadow-sm border border-gray-200">
-                <span className="material-symbols-outlined text-[18px] text-emerald-600">schedule</span>
-                <span className="font-body-sm-medium text-body-sm-medium text-gray-900 whitespace-nowrap">{liveTime}</span>
+              <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg border border-slate-200/80 shadow-xs text-xs text-slate-700">
+                <span className="material-symbols-outlined text-[16px] text-slate-400">schedule</span>
+                <span className="font-semibold text-slate-800 whitespace-nowrap">{liveTime}</span>
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
               </div>
 
               {lastUpdate && (
-                <div className="flex items-center gap-1.5 px-3 py-2 bg-blue-50 rounded-lg border border-blue-100">
-                  <span className="material-symbols-outlined text-[16px] text-blue-600">update</span>
-                  <span className="font-body-sm text-body-sm text-blue-800 whitespace-nowrap">Terakhir update: {lastUpdate}</span>
+                <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-100 rounded-lg text-xs text-slate-600 border border-slate-200/60">
+                  <span className="material-symbols-outlined text-[15px] text-slate-500">update</span>
+                  <span className="whitespace-nowrap font-medium">Update: {lastUpdate}</span>
                 </div>
               )}
 
               {canSwitchUnit ? (
                 <div className="relative hidden sm:block">
                   <select
-                    className="appearance-none bg-white text-gray-900 font-body-sm-medium text-body-sm-medium pl-3 pr-8 py-2 rounded-lg shadow-sm border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    className="appearance-none bg-white text-slate-800 text-xs font-semibold pl-3 pr-8 py-1.5 rounded-lg border border-slate-200/80 shadow-xs cursor-pointer hover:bg-slate-50 transition-colors focus:outline-none focus:ring-1 focus:ring-blue-500/20"
                     value={selectedUnit}
                     onChange={(e) => dispatch({ type: 'SET_SELECTED_UNIT', payload: e.target.value })}
                   >
@@ -213,20 +214,20 @@ function MonitoringPresensiPage() {
                       <option key={opt.id} value={opt.id}>{opt.nama}</option>
                     ))}
                   </select>
-                  <span className="material-symbols-outlined pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[18px] text-gray-400">expand_more</span>
+                  <span className="material-symbols-outlined pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[16px] text-slate-400">expand_more</span>
                 </div>
               ) : (
-                <div className="hidden sm:flex items-center gap-2 bg-white px-3 py-2 rounded-lg shadow-sm border border-gray-200 cursor-not-allowed" title="Unit mengikuti akun Anda">
-                  <span className="material-symbols-outlined text-[18px] text-gray-400">domain</span>
-                  <span className="font-body-sm-medium text-body-sm-medium text-gray-900 whitespace-nowrap">{unitOptions[0]?.nama || 'Semua Unit (Pusat)'}</span>
-                  <span className="material-symbols-outlined text-[16px] text-gray-400">lock</span>
+                <div className="hidden sm:flex items-center gap-1.5 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200 cursor-not-allowed text-xs text-slate-500" title="Unit mengikuti akun Anda">
+                  <span className="material-symbols-outlined text-[16px] text-slate-400">domain</span>
+                  <span className="font-medium whitespace-nowrap">{unitOptions[0]?.nama || 'Semua Unit (Pusat)'}</span>
+                  <span className="material-symbols-outlined text-[14px] text-slate-400">lock</span>
                 </div>
               )}
 
               <div className="flex items-center gap-2">
                 <div className="relative hidden sm:block">
                   <select
-                    className="appearance-none bg-white text-gray-900 font-body-sm-medium text-body-sm-medium pl-3 pr-8 py-2 rounded-lg shadow-sm border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    className="appearance-none bg-white text-slate-800 text-xs font-medium pl-2.5 pr-7 py-1.5 rounded-lg border border-slate-200/80 shadow-xs cursor-pointer hover:bg-slate-50 transition-colors focus:outline-none focus:ring-1 focus:ring-blue-500/20"
                     value={autoRefresh}
                     onChange={(e) => setAutoRefresh(e.target.value)}
                     disabled={!isAutoRefreshOn}
@@ -235,63 +236,66 @@ function MonitoringPresensiPage() {
                       <option key={opt.value} value={opt.value}>{opt.label}</option>
                     ))}
                   </select>
-                  <span className="material-symbols-outlined pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[18px] text-gray-400">expand_more</span>
+                  <span className="material-symbols-outlined pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 text-[16px] text-slate-400">expand_more</span>
                 </div>
                 <button
                   onClick={() => setIsAutoRefreshOn(!isAutoRefreshOn)}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg shadow-sm border transition-all ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border transition-all text-xs font-medium cursor-pointer shadow-xs ${
                     isAutoRefreshOn
                       ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
-                      : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                      : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
                   }`}
                   type="button"
                 >
-                  <span className={`material-symbols-outlined text-[18px] transition-transform ${isAutoRefreshOn ? 'rotate-0' : 'rotate-180'}`}>sync</span>
-                  <span className="whitespace-nowrap font-body-sm-medium text-body-sm-medium hidden sm:inline">{isAutoRefreshOn ? 'Auto-refresh aktif' : 'Auto-refresh mati'}</span>
+                  <span className={`material-symbols-outlined text-[16px] transition-transform ${isAutoRefreshOn ? 'rotate-0' : 'rotate-180'}`}>sync</span>
+                  <span className="whitespace-nowrap hidden sm:inline">{isAutoRefreshOn ? 'Auto-sync On' : 'Auto-sync Off'}</span>
                 </button>
               </div>
             </div>
           </div>
         </div>
 
+        {/* 3 Metric Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {summaryCards.map((card) => (
-            <div key={card.id} className={`bg-white rounded-xl p-5 shadow-sm border ${card.borderColor} flex flex-col h-full hover:shadow-md transition-shadow`}>
+            <div key={card.id} className="bg-white rounded-xl p-5 border border-slate-200/80 shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all">
               <div className="flex items-start justify-between">
                 <div className="flex-1 min-w-0">
-                  <span className="font-label-sm text-label-sm text-gray-500 uppercase tracking-wider">{card.label}</span>
+                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{card.label}</span>
                   <div className="flex items-baseline gap-2 mt-1.5">
-                    <span className={`font-headline-lg text-headline-lg tracking-tight leading-tight ${card.iconColor}`}>{card.value}</span>
-                    <span className="font-body-sm text-body-sm text-gray-500">{card.total}</span>
+                    <span className="text-3xl font-bold tracking-tight text-slate-900 leading-none">{card.value}</span>
+                    <span className="text-xs text-slate-500 font-medium">{card.total}</span>
                   </div>
                 </div>
-                <div className={`w-11 h-11 rounded-lg flex items-center justify-center shrink-0 ${card.iconBg} ${card.iconColor}`}>
-                  <span className="material-symbols-outlined text-[22px]">{card.icon}</span>
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${card.iconBg} ${card.iconColor}`}>
+                  <span className="material-symbols-outlined text-[20px]">{card.icon}</span>
                 </div>
               </div>
-              <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between">
-                <span className="font-body-sm text-body-sm text-gray-600">{card.percentage}% {card.subtitle}</span>
-                <span className="font-label-sm text-label-sm px-2 py-0.5 rounded font-medium text-gray-600 bg-gray-100">{card.subtitleHighlight}</span>
+              <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                <span className="text-slate-500 font-medium">{card.percentage}% {card.subtitle}</span>
+                <span className="text-[11px] px-2 py-0.5 rounded-full font-semibold text-slate-600 bg-slate-100 border border-slate-200/60">{card.subtitleHighlight}</span>
               </div>
             </div>
           ))}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6 items-start">
+        {/* Main Content Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+          {/* Feed List (8 cols) */}
           <div className="lg:col-span-8">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-              <div className="p-4 md:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></div>
+            <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden">
+              <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
                   <div>
-                    <h2 className="font-headline-sm text-headline-sm text-gray-900">Aktivitas Presensi Terbaru</h2>
-                    <p className="font-body-sm text-body-sm text-gray-500">Log real-time mesin kiosk, face scan, dan mobile app</p>
+                    <h2 className="text-sm font-bold text-slate-900 tracking-tight">Aktivitas Presensi Terbaru</h2>
+                    <p className="text-xs text-slate-400 mt-0.5">Log real-time mesin kiosk, face scan, dan mobile app</p>
                   </div>
                 </div>
                 <div className="relative">
-                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-[18px]">search</span>
+                  <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[17px]">search</span>
                   <input
-                    className="w-full sm:w-64 h-10 pl-10 pr-4 font-body-sm text-body-sm bg-gray-50 border border-gray-200 rounded-lg text-gray-900 placeholder:text-gray-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-primary/20 transition-all"
+                    className="w-full sm:w-60 h-9 pl-8 pr-3 text-xs bg-slate-50/80 border border-slate-200 rounded-lg text-slate-800 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all"
                     placeholder="Cari nama / NIY..."
                     type="text"
                     value={searchTerm}
@@ -300,52 +304,58 @@ function MonitoringPresensiPage() {
                 </div>
               </div>
 
-              <div className="px-4 py-3 bg-gray-50 border-y border-gray-200 flex items-center gap-2 overflow-x-auto">
+              {/* Segmented Filter Tabs */}
+              <div className="px-4 py-2 bg-slate-50/60 border-b border-slate-200/80 flex items-center gap-1.5 overflow-x-auto">
                 {filterTabs.map((tab) => (
                   <button
                     key={tab.id}
                     onClick={() => setActiveFilter(tab.id)}
-                    className={`px-3 py-1.5 rounded-full font-body-sm-medium text-body-sm-medium transition-colors cursor-pointer whitespace-nowrap ${
-                      activeFilter === tab.id ? tab.color : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+                      activeFilter === tab.id
+                        ? 'bg-blue-600 text-white shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
                     }`}
                     type="button"
                   >
                     <span>{tab.label}</span>
-                    <span className={`px-1.5 py-0.25 rounded-full font-label-sm text-label-sm font-semibold ml-1.5 ${activeFilter === tab.id && tab.id !== 'semua' ? 'bg-white/20' : 'bg-gray-200 text-gray-700'}`}>
+                    <span className={`px-1.5 py-0.2 rounded-full text-[10.5px] font-bold ${
+                      activeFilter === tab.id ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'
+                    }`}>
                       {tab.count}
                     </span>
                   </button>
                 ))}
               </div>
 
-              <div className="divide-y divide-gray-200">
+              {/* Feed List Items */}
+              <div className="divide-y divide-slate-100">
                 {syncError && (
-                  <div className="p-4 bg-red-50 border-l-4 border-red-500 flex items-center gap-3">
-                    <span className="material-symbols-outlined text-red-600">sync_problem</span>
-                    <span className="font-body-sm text-body-sm text-red-800">Sinkronisasi gagal: {syncError}. Mencoba lagi...</span>
-                    <button onClick={() => setSyncError(null)} className="ml-auto text-red-600 hover:underline font-body-sm">Tutup</button>
+                  <div className="p-3.5 bg-rose-50 border-l-4 border-rose-500 flex items-center gap-2.5 text-xs text-rose-800">
+                    <span className="material-symbols-outlined text-[18px] text-rose-600">sync_problem</span>
+                    <span>Sinkronisasi gagal: {syncError}. Mencoba lagi...</span>
+                    <button onClick={() => setSyncError(null)} className="ml-auto text-rose-600 hover:underline font-semibold cursor-pointer">Tutup</button>
                   </div>
                 )}
 
                 {hasNoData && (
-                  <div className="p-12 text-center bg-gray-50 rounded-xl">
-                    <span className="material-symbols-outlined text-6xl text-gray-300">history_toggle_off</span>
-                    <h3 className="mt-3 font-body-md-medium text-body-md-medium text-gray-900">Belum Ada Data Presensi</h3>
-                    <p className="mt-1 font-body-sm text-body-sm text-gray-500">Data presensi hari ini belum tersedia. Pastikan pegawai sudah melakukan check-in.</p>
+                  <div className="py-12 px-4 text-center">
+                    <span className="material-symbols-outlined text-4xl text-slate-300">history_toggle_off</span>
+                    <h3 className="mt-2 text-xs font-semibold text-slate-800">Belum Ada Data Presensi</h3>
+                    <p className="mt-1 text-xs text-slate-400">Data presensi hari ini belum tersedia. Pastikan pegawai sudah melakukan check-in.</p>
                   </div>
                 )}
 
                 {hasNoActivity && !hasNoData && (
-                  <div className="p-8 text-center bg-gray-50 rounded-xl">
-                    <span className="material-symbols-outlined text-5xl text-gray-300">filter_alt_off</span>
-                    <h3 className="mt-2 font-body-md-medium text-body-md-medium text-gray-900">Tidak Ada Aktivitas Sesuai Filter</h3>
-                    <p className="mt-1 font-body-sm text-body-sm text-gray-500">Coba ubah filter tab, unit, atau kata kunci pencarian.</p>
+                  <div className="py-10 px-4 text-center">
+                    <span className="material-symbols-outlined text-4xl text-slate-300">filter_alt_off</span>
+                    <h3 className="mt-2 text-xs font-semibold text-slate-800">Tidak Ada Aktivitas Sesuai Filter</h3>
+                    <p className="mt-1 text-xs text-slate-400">Coba ubah filter tab, unit, atau kata kunci pencarian.</p>
                   </div>
                 )}
 
                 {!hasNoData && !hasNoActivity && (
                   <>
-                    <div className="hidden md:grid grid-cols-[40px_1fr_auto_auto] gap-4 px-4 py-3 bg-gray-50 text-gray-500 font-label-sm text-label-sm uppercase tracking-wider border-b border-gray-200">
+                    <div className="hidden md:grid grid-cols-[36px_1fr_auto_auto] gap-4 px-4 py-2.5 bg-slate-50/80 text-slate-500 text-[11px] font-bold uppercase tracking-wider border-b border-slate-200/80">
                       <div></div>
                       <div>Pegawai</div>
                       <div className="flex items-center gap-2">
@@ -356,42 +366,41 @@ function MonitoringPresensiPage() {
                       <div className="text-right">Waktu</div>
                     </div>
                     {filteredActivity.map((item) => (
-                      <div key={item.id} className={`p-4 hover:bg-gray-50 transition-colors ${item.highlight ? 'bg-blue-50/50' : ''} ${item.rowBg || ''} relative`}>
-                        {item.highlight && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-r"></div>}
-                        <div className="md:grid grid-cols-[40px_1fr_auto_auto] gap-4 items-center">
+                      <div key={item.id} className="p-3.5 hover:bg-slate-50/60 transition-colors">
+                        <div className="md:grid grid-cols-[36px_1fr_auto_auto] gap-4 items-center">
                           <div className="relative flex-shrink-0">
-                            <div className="w-10 h-10 rounded-full bg-primary/10 text-primary font-headline-sm text-headline-sm flex items-center justify-center shadow-sm">
+                            <div className="w-9 h-9 rounded-lg bg-blue-50/80 border border-blue-100 text-blue-700 font-bold text-xs flex items-center justify-center">
                               {item.initials}
                             </div>
                             {item.highlight && (
-                              <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 ring-2 ring-white flex items-center justify-center font-label-sm text-label-sm text-white">
-                                <span className="material-symbols-outlined text-[10px]">check</span>
+                              <span className="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-emerald-500 ring-2 ring-white flex items-center justify-center text-white">
+                                <span className="material-symbols-outlined text-[8px]">check</span>
                               </span>
                             )}
                           </div>
                           <div className="min-w-0">
                             <div className="flex flex-wrap items-center gap-2">
-                              <span className="font-body-md text-body-md text-gray-900 truncate">{item.name}</span>
-                              <span className="font-label-sm text-label-sm px-2 py-0.5 rounded-full font-semibold bg-gray-100 text-gray-700">{item.unit}</span>
-                              <span className={`font-label-sm text-label-sm px-2 py-0.5 rounded-full font-medium ${item.statusColor}`}>{item.status}</span>
+                              <span className="text-xs font-semibold text-slate-900 truncate">{item.name}</span>
+                              <span className="text-[10.5px] px-2 py-0.5 rounded-md font-semibold bg-slate-100 text-slate-700 border border-slate-200/60">{item.unit}</span>
+                              <span className={`text-[10.5px] px-2 py-0.5 rounded-full font-semibold ${item.statusColor}`}>{item.status}</span>
                             </div>
-                            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1 font-body-sm text-body-sm text-gray-500">
-                              <span>NIY: <strong className="font-medium text-gray-700">{item.niy}</strong></span>
+                            <div className="flex flex-wrap items-center gap-2 mt-0.5 text-xs text-slate-400 font-mono">
+                              <span>NIY: <strong className="text-slate-600 font-medium">{item.niy}</strong></span>
                             </div>
                           </div>
                           <div className="hidden md:flex flex-col items-start gap-1">
-                            <span className="inline-flex items-center gap-1.5 font-body-sm text-body-sm text-gray-700">
-                              <span className={`material-symbols-outlined text-[16px] ${item.method.label === 'Face Recognition' ? 'text-blue-600' : item.method.label === 'QR Code' ? 'text-purple-600' : item.method.label === 'Mobile GPS' ? 'text-indigo-600' : 'text-gray-500'}`}>{item.method.icon}</span>
+                            <span className="inline-flex items-center gap-1.5 text-xs text-slate-700">
+                              <span className={`material-symbols-outlined text-[16px] ${item.method.label === 'Face Recognition' ? 'text-blue-600' : item.method.label === 'QR Code' ? 'text-purple-600' : item.method.label === 'Mobile GPS' ? 'text-indigo-600' : 'text-slate-500'}`}>{item.method.icon}</span>
                               <span className="font-medium">{item.method.label}</span>
                             </span>
-                            <span className={`inline-flex items-center gap-1.5 font-body-sm text-body-sm ${item.location.color}`}>
-                              <span className="material-symbols-outlined text-[15px]">{item.location.icon}</span>
+                            <span className={`inline-flex items-center gap-1.5 text-xs ${item.location.color}`}>
+                              <span className="material-symbols-outlined text-[14px]">{item.location.icon}</span>
                               <span className="font-medium">{item.location.label}</span>
                             </span>
                           </div>
                           <div className="flex flex-col items-end md:items-end gap-0.5 text-right">
-                            <span className="font-headline-sm text-headline-sm font-semibold text-emerald-700 whitespace-nowrap">{item.time}</span>
-                            <span className="font-body-sm text-body-sm text-gray-500">{item.timeAgo}</span>
+                            <span className="text-xs font-bold text-emerald-700 font-mono whitespace-nowrap">{item.time}</span>
+                            <span className="text-[11px] text-slate-400">{item.timeAgo}</span>
                           </div>
                         </div>
                       </div>
@@ -400,113 +409,113 @@ function MonitoringPresensiPage() {
                 )}
               </div>
 
-              <div className="p-4 bg-gray-50 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-3">
-                <span className="font-body-sm text-body-sm text-gray-500 text-center sm:text-left">
-                  Menampilkan <strong className="font-semibold text-gray-900">{filteredActivity.length}</strong> dari <strong className="font-semibold text-gray-900">{selectJumlahHadir(state)}</strong> aktivitas presensi hari ini
+              <div className="p-3.5 bg-white border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+                <span className="text-slate-500 text-center sm:text-left">
+                  Menampilkan <strong className="font-semibold text-slate-800">{filteredActivity.length}</strong> dari <strong className="font-semibold text-slate-800">{selectJumlahHadir(state)}</strong> presensi
                 </span>
                 <button
                   onClick={() => alert('Membuka Rekap Log Lengkap...')}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-white hover:bg-gray-50 rounded-lg text-primary font-body-sm-medium text-body-sm-medium shadow-sm border border-gray-200 transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 hover:bg-slate-100 rounded-lg text-slate-700 font-medium text-xs border border-slate-200 transition-colors cursor-pointer"
                   type="button"
                 >
                   <span>Buka Rekap Log Lengkap</span>
-                  <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                  <span className="material-symbols-outlined text-[15px]">arrow_forward</span>
                 </button>
               </div>
             </div>
           </div>
 
+          {/* Right Column (4 cols) */}
           <div className="lg:col-span-4 flex flex-col gap-4">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 flex flex-col gap-5">
+            {/* Sebaran Unit Card */}
+            <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs p-5 flex flex-col gap-4">
               <div>
                 <div className="flex items-center justify-between">
-                  <h2 className="font-headline-sm text-headline-sm text-gray-900">Sebaran per Unit</h2>
-                  <span className="font-label-sm text-label-sm text-primary bg-blue-50 px-2 py-0.5 rounded-full font-semibold">5 Satuan</span>
+                  <h2 className="text-sm font-bold text-slate-900 tracking-tight">Sebaran per Unit</h2>
+                  <span className="text-[11px] font-bold text-blue-700 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded-full">5 Satuan</span>
                 </div>
-                <p className="font-body-sm text-body-sm text-gray-500 mt-0.5">Tingkat kehadiran real-time per sekolah naungan</p>
+                <p className="text-xs text-slate-400 mt-0.5">Tingkat kehadiran real-time per sekolah naungan</p>
               </div>
 
-              <div className="flex items-center justify-between p-3 rounded-lg bg-emerald-50 text-emerald-900 border border-emerald-100">
+              <div className="flex items-center justify-between p-3 rounded-xl bg-emerald-50/80 text-emerald-900 border border-emerald-100/80">
                 <div className="flex items-center gap-2">
                   <span className="material-symbols-outlined text-[18px] text-emerald-600">location_searching</span>
-                  <span className="font-body-sm-medium text-body-sm-medium">Kepatuhan Geofence</span>
+                  <span className="text-xs font-semibold">Kepatuhan Geofence</span>
                 </div>
-                <span className="font-body-md-medium text-body-md-medium text-emerald-700 leading-snug">99.1% <span className="font-label-sm text-label-sm font-medium">Valid</span></span>
+                <span className="text-xs font-bold text-emerald-700">99.1% <span className="text-[11px] font-normal text-emerald-600">Valid</span></span>
               </div>
 
               {/* Radius Geofence per Unit */}
-              <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
-                <span className="font-label-sm text-label-sm text-gray-600 uppercase tracking-wider">Radius Geofence per Unit</span>
-                <div className="grid grid-cols-2 gap-2 mt-2 text-sm">
+              <div className="p-3 bg-slate-50 border border-slate-200/70 rounded-xl">
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-2">Radius Geofence per Unit</span>
+                <div className="grid grid-cols-2 gap-2 text-xs">
                   {state.units.map((unit) => (
-                    <div key={unit.id} className="flex justify-between">
-                      <span className="text-gray-600">{unit.nama}</span>
-                      <span className="font-medium text-gray-900">{getRadiusUnit(unit.id)} m</span>
+                    <div key={unit.id} className="flex justify-between items-center py-0.5 border-b border-slate-100 last:border-none">
+                      <span className="text-slate-600 truncate">{unit.nama}</span>
+                      <span className="font-semibold text-slate-900 ml-1">{getRadiusUnit(unit.id)}m</span>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-3.5">
                 {unitSummary.map((unit) => (
                   <div key={unit.id} className="flex flex-col gap-1.5">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between text-xs">
                       <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                        <span className="font-body-sm-medium text-body-sm-medium text-gray-900">{unit.name}</span>
+                        <span className="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
+                        <span className="font-semibold text-slate-800">{unit.name}</span>
                       </div>
-                      <div className="flex items-baseline gap-1">
-                        <span className="font-body-sm-medium text-body-sm-medium text-gray-900">{unit.present}/{unit.total}</span>
-                        <span className="font-body-sm text-body-sm font-semibold text-primary">({unit.percentage}%)</span>
+                      <div className="flex items-baseline gap-1 font-mono">
+                        <span className="font-semibold text-slate-800">{unit.present}/{unit.total}</span>
+                        <span className="text-blue-600 font-bold">({unit.percentage}%)</span>
                       </div>
                     </div>
-                    <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
-                      <div className="h-full rounded-full transition-all duration-500 bg-emerald-500" style={{ width: `${unit.percentage}%` }}></div>
+                    <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                      <div className="h-full rounded-full transition-all duration-500 bg-blue-600" style={{ width: `${unit.percentage}%` }}></div>
                     </div>
-                    <div className="flex justify-between items-center font-label-sm text-label-sm text-gray-500">
+                    <div className="flex justify-between items-center text-[11px] text-slate-400">
                       <span>Sisa {unit.total - unit.present} Pegawai</span>
-                      <span className="bg-gray-100 px-2 py-0.5 rounded font-medium text-gray-600">{unit.total - unit.present > 0 ? `${unit.total - unit.present} Belum Masuk` : 'Semua Hadir'}</span>
+                      <span className="bg-slate-100 px-1.5 py-0.2 rounded text-slate-600 font-medium">{unit.total - unit.present > 0 ? `${unit.total - unit.present} Belum Masuk` : 'Semua Hadir'}</span>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex items-start gap-3">
-              <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-primary shrink-0 mt-0.5">
-                <span className="material-symbols-outlined text-[18px]">info</span>
+            {/* Jam Kerja Info */}
+            <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs p-4 flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shrink-0 mt-0.5">
+                <span className="material-symbols-outlined text-[17px]">info</span>
               </div>
-              <div className="flex flex-col min-w-0">
-                <span className="font-body-sm-medium text-body-sm-medium text-gray-900">Batas Jam Presensi (Jam Kerja Global)</span>
-                <p className="font-body-sm text-body-sm text-gray-500 mt-1 leading-relaxed">
+              <div className="flex flex-col min-w-0 text-xs">
+                <span className="font-semibold text-slate-800">Batas Jam Presensi (Global)</span>
+                <p className="text-slate-500 mt-1 leading-relaxed">
                   {daftarJamKerja().map((h) => (
-                    <span key={h.hari} className="block">
-                      <strong className="text-gray-900">{h.hari}:</strong> masuk {h.jamMasuk} — pulang{' '}
-                      {h.jamPulang ?? 'bebas (tanpa batas minimal)'} {getZonaWaktuLabel(zonaWaktu)}
+                    <span key={h.hari} className="block text-[11.5px]">
+                      <strong className="text-slate-700">{h.hari}:</strong> {h.jamMasuk} — {h.jamPulang ?? 'bebas'} {getZonaWaktuLabel(zonaWaktu)}
                     </span>
                   ))}
                 </p>
-                <span className="font-label-sm text-label-sm text-gray-400 mt-2">
-                  Masuk tepat pada batas atau sebelumnya = Tepat Waktu. Setelah batas = Terlambat, dihitung dalam menit.
-                </span>
               </div>
             </div>
 
-            <div className="bg-primary text-white rounded-xl p-4 shadow-sm flex flex-col justify-between gap-3">
+            {/* Kirim Pengingat WhatsApp Card */}
+            <div className="bg-[#0B132B] text-white border border-slate-800 rounded-xl p-5 shadow-xs flex flex-col justify-between gap-3">
               <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-[20px] text-primary/30">notifications_active</span>
-                <span className="font-headline-sm text-headline-sm">Kirim Pengingat Masuk</span>
+                <span className="material-symbols-outlined text-[18px] text-blue-400">notifications_active</span>
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-300">Pengingat Masuk</span>
               </div>
-              <p className="font-body-sm text-body-sm text-primary/80">
-                Masih ada {belum} staf yang belum melakukan presensi hari ini. Kirim notifikasi dorongan instan via WhatsApp gateway yayasan.
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Masih ada <strong className="text-white font-semibold">{belum}</strong> pegawai belum presensi. Kirim notifikasi dorongan instan via WhatsApp gateway yayasan.
               </p>
               <button
                 onClick={() => alert(`Mengirim broadcast pengingat ke ${belum} Guru/Staf...`)}
-                className="w-full py-2 px-3 bg-white/20 hover:bg-white/30 text-white font-body-sm-medium text-body-sm-medium rounded-lg transition-colors flex items-center justify-center gap-2 shadow-sm cursor-pointer"
+                className="w-full py-2.5 px-3 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 shadow-xs cursor-pointer"
                 type="button"
               >
-                <span className="material-symbols-outlined text-[18px]">send</span>
-                <span>Broadcast Pengingat ({belum} Guru/Staf)</span>
+                <span className="material-symbols-outlined text-[16px]">send</span>
+                <span>Broadcast Pengingat ({belum} Pegawai)</span>
               </button>
             </div>
           </div>

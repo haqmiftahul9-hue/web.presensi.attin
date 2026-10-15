@@ -177,86 +177,76 @@ function UnitAdminSDPage() {
     const pegawaiList = [...state.staff.filter((s) => s.unitId === unit.id), ...state.adminUsers.filter((a) => a.unitId === unit.id)]
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" onClick={() => setDetailUnit(null)}>
-        <div className="relative w-full max-w-2xl bg-surface-container-lowest rounded-2xl shadow-2xl border border-outline/20 overflow-hidden flex flex-col max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
-          <div className="px-space-lg py-space-md border-b border-outline/20 flex items-start justify-between bg-surface-container/50">
+        <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-slate-200/80 overflow-hidden flex flex-col max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
+          <div className="px-6 py-4 border-b border-slate-100 flex items-start justify-between bg-white">
             <div>
-              <h2 className="font-headline-sm text-headline-sm text-primary leading-snug">Detail Unit: {unit.nama}</h2>
-              <p className="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Informasi lengkap unit dan daftar pegawai.</p>
+              <h2 className="text-base font-bold text-slate-900 leading-snug">Detail Unit: {unit.nama}</h2>
+              <p className="text-xs text-slate-500 mt-0.5">Informasi konfigurasi unit dan daftar pegawai.</p>
             </div>
-            <button onClick={() => setDetailUnit(null)} className="w-8 h-8 rounded-full flex items-center justify-center text-outline hover:bg-surface-container hover:text-on-surface transition-colors cursor-pointer" type="button">
-              <span className="material-symbols-outlined text-[20px]">close</span>
+            <button onClick={() => setDetailUnit(null)} className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer" type="button">
+              <span className="material-symbols-outlined text-[18px]">close</span>
             </button>
           </div>
-          <div className="p-space-lg overflow-y-auto space-y-space-md">
+          <div className="p-6 overflow-y-auto space-y-5 text-xs">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="font-label-sm text-label-sm text-on-surface-variant">Nama Unit</label>
-                <p className="font-body-md text-body-md text-on-surface mt-1">{unit.nama}</p>
+              <div className="p-3 bg-slate-50/70 rounded-lg border border-slate-200/80">
+                <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Nama Unit</label>
+                <p className="text-xs font-bold text-slate-800 mt-0.5">{unit.nama}</p>
               </div>
-              <div>
-                <label className="font-label-sm text-label-sm text-on-surface-variant">Kode Unit</label>
-                <p className="font-body-md text-body-md text-on-surface mt-1">{unit.kode}</p>
+              <div className="p-3 bg-slate-50/70 rounded-lg border border-slate-200/80">
+                <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Kode Unit</label>
+                <p className="text-xs font-bold text-slate-800 mt-0.5 font-mono">{unit.kode}</p>
               </div>
-              <div>
-                <label className="font-label-sm text-label-sm text-on-surface-variant">Alamat</label>
-                <p className="font-body-md text-body-md text-on-surface mt-1">{unit.alamat}</p>
+              <div className="p-3 bg-slate-50/70 rounded-lg border border-slate-200/80 sm:col-span-2">
+                <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Alamat</label>
+                <p className="text-xs text-slate-700 mt-0.5">{unit.alamat}</p>
               </div>
-              <div>
-                <label className="font-label-sm text-label-sm text-on-surface-variant">Radius Geofence</label>
-                <p className="font-body-md text-body-md text-on-surface mt-1">{unit.radius} meter</p>
+              <div className="p-3 bg-slate-50/70 rounded-lg border border-slate-200/80">
+                <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Radius Geofence</label>
+                <p className="text-xs font-bold text-blue-600 mt-0.5">{unit.radius} meter</p>
               </div>
-              <div>
-                <label className="font-label-sm text-label-sm text-on-surface-variant">Latitude</label>
-                <p className="font-body-md text-body-md text-on-surface mt-1">{unit.latitude?.toFixed(5) || '-'}</p>
+              <div className="p-3 bg-slate-50/70 rounded-lg border border-slate-200/80">
+                <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Geofence Status</label>
+                <span className={`inline-flex px-2 py-0.5 rounded-full text-[11px] font-semibold mt-0.5 border ${unit.geofenceActive ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-600 border-slate-200'}`}>
+                  {unit.geofenceActive ? 'Aktif' : 'Nonaktif'}
+                </span>
               </div>
-              <div>
-                <label className="font-label-sm text-label-sm text-on-surface-variant">Longitude</label>
-                <p className="font-body-md text-body-md text-on-surface mt-1">{unit.longitude?.toFixed(5) || '-'}</p>
+              <div className="p-3 bg-slate-50/70 rounded-lg border border-slate-200/80">
+                <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Koordinat (Lat, Lng)</label>
+                <p className="text-xs text-slate-700 mt-0.5 font-mono">{unit.latitude?.toFixed(5) || '-'}, {unit.longitude?.toFixed(5) || '-'}</p>
               </div>
-              <div>
-                <label className="font-label-sm text-label-sm text-on-surface-variant">Geofence</label>
-                <p className="font-body-md text-body-md text-on-surface mt-1">{unit.geofenceActive ? 'Aktif' : 'Nonaktif'}</p>
-              </div>
-              <div>
-                <label className="font-label-sm text-label-sm text-on-surface-variant">Jam Kerja (global)</label>
-                <p className="font-body-md text-body-md text-on-surface mt-1">{ringkasanJamKerja()}</p>
-              </div>
-              <div>
-                <label className="font-label-sm text-label-sm text-on-surface-variant">Jumat</label>
-                <p className="font-body-md text-body-md text-on-surface mt-1">Masuk 07:10, pulang bebas</p>
-              </div>
-              <div>
-                <label className="font-label-sm text-label-sm text-on-surface-variant">Total Pegawai</label>
-                <p className="font-body-md text-body-md text-on-surface mt-1">{unit.pegawai} orang</p>
-              </div>
-              <div>
-                <label className="font-label-sm text-label-sm text-on-surface-variant">Status</label>
-                <p className="font-body-md text-body-md text-on-surface mt-1">Aktif</p>
+              <div className="p-3 bg-slate-50/70 rounded-lg border border-slate-200/80">
+                <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Total Pegawai Terdaftar</label>
+                <p className="text-xs font-bold text-slate-800 mt-0.5">{unit.pegawai} orang</p>
               </div>
             </div>
-            <div className="pt-4 border-t border-outline/20">
-              <h3 className="font-body-md-medium text-body-md-medium text-on-surface mb-3">Daftar Pegawai ({pegawaiList.length})</h3>
-              <div className="max-h-60 overflow-y-auto">
+
+            <div className="pt-3 border-t border-slate-100">
+              <h3 className="text-xs font-bold text-slate-800 mb-3 flex items-center justify-between">
+                <span>Daftar Pegawai Terdaftar</span>
+                <span className="text-[11px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">{pegawaiList.length} Pegawai</span>
+              </h3>
+              <div className="max-h-60 overflow-y-auto rounded-lg border border-slate-200 bg-white">
                 {pegawaiList.length === 0 ? (
-                  <p className="font-body-sm text-body-sm text-on-surface-variant text-center py-8">Belum ada pegawai di unit ini</p>
+                  <p className="text-xs text-slate-400 text-center py-8">Belum ada pegawai di unit ini</p>
                 ) : (
-                  <table className="w-full text-left text-sm">
+                  <table className="w-full text-left text-xs">
                     <thead>
-                      <tr className="border-b border-outline/30 text-on-surface-variant">
-                        <th className="pb-2 pr-4">NIY</th>
-                        <th className="pb-2 pr-4">Nama</th>
-                        <th className="pb-2 pr-4">Jabatan</th>
-                        <th className="pb-2">Status</th>
+                      <tr className="bg-slate-50/80 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                        <th className="py-2.5 px-3">NIY</th>
+                        <th className="py-2.5 px-3">Nama</th>
+                        <th className="py-2.5 px-3">Jabatan</th>
+                        <th className="py-2.5 px-3">Status</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-outline/20">
+                    <tbody className="divide-y divide-slate-100">
                       {pegawaiList.map((p) => (
-                        <tr key={p.id}>
-                          <td className="py-2 pr-4 font-body-sm text-body-sm text-on-surface">{p.niy}</td>
-                          <td className="py-2 pr-4 font-body-sm text-body-sm text-on-surface">{p.name}</td>
-                          <td className="py-2 pr-4 font-body-sm text-body-sm text-on-surface-variant">{p.role}</td>
-                          <td className="py-2">
-                            <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${p.status === 'Aktif' ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
+                        <tr key={p.id} className="hover:bg-slate-50/60 transition-colors">
+                          <td className="py-2 px-3 font-mono text-slate-600">{p.niy}</td>
+                          <td className="py-2 px-3 font-semibold text-slate-800">{p.name}</td>
+                          <td className="py-2 px-3 text-slate-500">{p.role}</td>
+                          <td className="py-2 px-3">
+                            <span className={`inline-flex px-2 py-0.5 rounded-full text-[11px] font-semibold border ${p.status === 'Aktif' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'}`}>
                               {p.status}
                             </span>
                           </td>
@@ -268,8 +258,8 @@ function UnitAdminSDPage() {
               </div>
             </div>
           </div>
-          <div className="px-space-lg py-space-md bg-surface-container/50 border-t border-outline/20 flex justify-end">
-            <button onClick={() => setDetailUnit(null)} className="px-space-md py-2 rounded-lg bg-primary-container text-on-primary font-body-md-medium text-body-md-medium transition-colors cursor-pointer" type="button">Tutup</button>
+          <div className="px-6 py-3.5 bg-slate-50/80 border-t border-slate-100 flex justify-end">
+            <button onClick={() => setDetailUnit(null)} className="h-9 px-4 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs transition-colors shadow-xs cursor-pointer" type="button">Tutup</button>
           </div>
         </div>
       </div>
@@ -281,31 +271,31 @@ function UnitAdminSDPage() {
     const unit = deleteTarget
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" onClick={() => setDeleteTarget(null)}>
-        <div className="relative w-full max-w-md bg-surface-container-lowest rounded-2xl shadow-2xl border border-outline/20 overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
-          <div className="px-space-lg py-space-md border-b border-outline/20 flex items-start justify-between bg-surface-container/50">
+        <div className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-200/80 overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
+          <div className="px-6 py-4 border-b border-slate-100 flex items-start justify-between bg-white">
             <div>
-              <h2 className="font-headline-sm text-headline-sm text-error leading-snug">Hapus Unit?</h2>
-              <p className="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Tindakan ini tidak dapat dibatalkan.</p>
+              <h2 className="text-base font-bold text-rose-600 leading-snug">Hapus Unit?</h2>
+              <p className="text-xs text-slate-500 mt-0.5">Tindakan ini tidak dapat dibatalkan.</p>
             </div>
-            <button onClick={() => setDeleteTarget(null)} className="w-8 h-8 rounded-full flex items-center justify-center text-outline hover:bg-surface-container hover:text-on-surface transition-colors cursor-pointer" type="button">
-              <span className="material-symbols-outlined text-[20px]">close</span>
+            <button onClick={() => setDeleteTarget(null)} className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer" type="button">
+              <span className="material-symbols-outlined text-[18px]">close</span>
             </button>
           </div>
-          <div className="p-space-lg space-y-space-md">
+          <div className="p-6 space-y-4">
             <div className="flex flex-col items-center text-center">
-              <div className="w-16 h-16 rounded-full bg-rose-50 flex items-center justify-center mb-4">
-                <span className="material-symbols-outlined text-[28px] text-rose-600">warning</span>
+              <div className="w-14 h-14 rounded-full bg-rose-50 border border-rose-100 flex items-center justify-center mb-3 text-rose-600">
+                <span className="material-symbols-outlined text-[26px]">warning</span>
               </div>
-              <h3 className="font-headline-sm text-headline-sm text-on-surface">Hapus "{unit.nama}"?</h3>
-              <p className="font-body-md text-body-md text-on-surface-variant mt-2 leading-relaxed">Data unit dan informasi terkait akan dihapus. Apakah Anda yakin?</p>
+              <h3 className="text-sm font-bold text-slate-900">Hapus "{unit.nama}"?</h3>
+              <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">Seluruh data unit dan radius geofence terkait akan dihapus dari sistem. Lanjutkan penghapusan?</p>
             </div>
           </div>
-          <div className="px-space-lg py-space-md bg-surface-container/50 border-t border-outline/20 flex items-center justify-end gap-space-md">
-            <button onClick={() => setDeleteTarget(null)} className="px-space-md py-2 rounded-lg border border-outline bg-surface-container-lowest hover:bg-surface-container text-on-surface-variant font-body-md-medium text-body-md-medium transition-colors cursor-pointer" type="button">
+          <div className="px-6 py-3.5 bg-slate-50/80 border-t border-slate-100 flex items-center justify-end gap-2.5">
+            <button onClick={() => setDeleteTarget(null)} className="h-9 px-4 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold transition-colors shadow-xs cursor-pointer" type="button">
               Batal
             </button>
-            <button onClick={confirmDelete} className="px-space-md py-2 rounded-lg bg-rose-600 hover:bg-rose-700 text-on-primary font-body-md-medium text-body-md-medium flex items-center gap-2 shadow-sm transition-colors cursor-pointer" type="button">
-              <span className="material-symbols-outlined text-[18px]">delete</span>
+            <button onClick={confirmDelete} className="h-9 px-4 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer" type="button">
+              <span className="material-symbols-outlined text-[16px]">delete</span>
               <span>Hapus Unit</span>
             </button>
           </div>
@@ -315,68 +305,68 @@ function UnitAdminSDPage() {
   }
 
   return (
-    <div className="flex flex-col w-full">
+    <div className="flex flex-col w-full min-w-0">
       <NotifToast />
-      <div className="px-space-xl py-space-sm flex flex-wrap items-center justify-between gap-space-sm">
-        <div className="flex items-center gap-2 font-body-sm text-body-sm text-on-surface-variant">
-          <span className="hover:text-secondary cursor-pointer transition-colors">Home</span>
-          <span className="material-symbols-outlined text-[16px] text-outline">chevron_right</span>
-          <span className="hover:text-secondary cursor-pointer transition-colors">Superadmin</span>
-          <span className="material-symbols-outlined text-[16px] text-outline">chevron_right</span>
-          <span className="text-on-surface font-body-md-medium text-body-md-medium">Manajemen Unit</span>
-        </div>
-        <div className="flex items-center gap-space-md">
-          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-surface-container-low">
+      <div className="p-4 md:p-6 flex flex-col gap-5 max-w-[1600px] mx-auto w-full">
+        {/* Header Breadcrumb & Status */}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-1.5 text-xs text-slate-400">
+            <span className="hover:text-slate-700 cursor-pointer transition-colors">Home</span>
+            <span className="material-symbols-outlined text-[14px]">chevron_right</span>
+            <span className="hover:text-slate-700 cursor-pointer transition-colors">Superadmin</span>
+            <span className="material-symbols-outlined text-[14px]">chevron_right</span>
+            <span className="text-slate-800 font-semibold">Manajemen Unit</span>
+          </div>
+          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200/80">
             <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-secondary"></span>
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-600"></span>
             </span>
-            <span className="font-label-sm text-label-sm text-on-surface-variant">Server Pusat: Normal</span>
+            <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wide">Server Pusat: Normal</span>
           </div>
         </div>
-      </div>
 
-      <div className="px-space-xl py-space-lg flex flex-col gap-space-lg">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-space-sm">
-          <div className="flex items-center gap-space-sm">
-            <div className="w-10 h-10 rounded-xl bg-surface-container-low flex items-center justify-center text-primary-container">
-              <span className="material-symbols-outlined text-[24px]">apartment</span>
+        {/* Title and Top Actions */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shrink-0">
+              <span className="material-symbols-outlined text-[22px]">apartment</span>
             </div>
             <div className="flex flex-col">
-              <h1 className="font-headline-md text-headline-md text-on-surface tracking-tight">Manajemen Unit</h1>
-              <p className="font-body-md text-body-md text-on-surface-variant">Kelola entitas unit sekolah di bawah naungan yayasan, parameter radius geofence, dan titik lokasi presensi.</p>
+              <h1 className="text-2xl font-bold tracking-tight text-slate-900">Manajemen Unit Sekolah</h1>
+              <p className="text-xs text-slate-500">Kelola entitas unit sekolah di bawah naungan yayasan, radius geofence, dan koordinat presensi.</p>
             </div>
           </div>
-          <div className="flex items-center gap-space-xs self-start md:self-auto">
+          <div className="flex items-center gap-2 self-start md:self-auto flex-wrap">
             <button
               onClick={handleExport}
-              className="flex items-center gap-space-xs px-space-md py-2.5 bg-surface-container-low hover:bg-surface-container text-on-surface-variant hover:text-on-surface font-body-md-medium text-body-md-medium rounded-lg shadow-sm transition-colors cursor-pointer"
+              className="h-9 px-3.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 font-medium text-xs rounded-lg shadow-xs transition-colors cursor-pointer inline-flex items-center gap-1.5"
               type="button"
             >
-              <span className="material-symbols-outlined text-[18px]">file_download</span>
+              <span className="material-symbols-outlined text-[17px] text-slate-500">file_download</span>
               <span>Ekspor Data</span>
             </button>
             <div className="relative">
               <button
                 onClick={() => setShowFilter(!showFilter)}
-                className="flex items-center gap-space-xs px-space-md py-2.5 bg-surface-container-low hover:bg-surface-container text-on-surface-variant hover:text-on-surface font-body-md-medium text-body-md-medium rounded-lg shadow-sm transition-colors cursor-pointer"
+                className="h-9 px-3.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 font-medium text-xs rounded-lg shadow-xs transition-colors cursor-pointer inline-flex items-center gap-1.5"
                 type="button"
               >
-                <span className="material-symbols-outlined text-[18px]">tune</span>
+                <span className="material-symbols-outlined text-[17px] text-slate-500">tune</span>
                 <span>Filter: {filterStatus === 'all' ? 'Semua' : 'Aktif'}</span>
               </button>
               {showFilter && (
-                <div className="absolute right-0 top-full mt-1 w-40 bg-surface-container-lowest rounded-lg shadow-lg border border-outline/30 py-1 z-10">
+                <div className="absolute right-0 top-full mt-1 w-40 bg-white rounded-xl shadow-lg border border-slate-200 py-1 z-10">
                   <button
                     onClick={() => { setFilterStatus('all'); setShowFilter(false) }}
-                    className={`w-full px-3 py-2 text-left font-body-sm text-body-sm transition-colors ${filterStatus === 'all' ? 'bg-secondary/10 text-secondary' : 'text-on-surface hover:bg-surface-container-low'}`}
+                    className={`w-full px-3 py-2 text-left text-xs font-medium transition-colors cursor-pointer ${filterStatus === 'all' ? 'bg-blue-50 text-blue-700' : 'text-slate-700 hover:bg-slate-50'}`}
                     type="button"
                   >
                     Semua Status
                   </button>
                   <button
                     onClick={() => { setFilterStatus('active'); setShowFilter(false) }}
-                    className={`w-full px-3 py-2 text-left font-body-sm text-body-sm transition-colors ${filterStatus === 'active' ? 'bg-secondary/10 text-secondary' : 'text-on-surface hover:bg-surface-container-low'}`}
+                    className={`w-full px-3 py-2 text-left text-xs font-medium transition-colors cursor-pointer ${filterStatus === 'active' ? 'bg-blue-50 text-blue-700' : 'text-slate-700 hover:bg-slate-50'}`}
                     type="button"
                   >
                     Aktif
@@ -384,129 +374,126 @@ function UnitAdminSDPage() {
                 </div>
               )}
             </div>
+            <button
+              onClick={() => { setEditingUnit(null); setShowModal(true) }}
+              className="h-9 px-4 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs inline-flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+              type="button"
+            >
+              <span className="material-symbols-outlined text-[17px]">add</span>
+              <span>Tambah Unit Baru</span>
+            </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-lg">
-          <div className="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm relative overflow-hidden flex flex-col justify-between">
-            <div className="h-1 absolute top-0 left-0 right-0 bg-secondary"></div>
-            <div className="flex items-start justify-between mb-space-sm">
+        {/* 4 Metric Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="bg-white rounded-xl border border-slate-200/80 p-5 shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all">
+            <div className="flex items-start justify-between">
               <div>
-                <span className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Total Unit Terdaftar</span>
-                <h3 className="font-headline-lg text-headline-lg text-on-surface mt-1 leading-tight">{state.units.length}</h3>
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Unit</span>
+                <h3 className="text-3xl font-bold tracking-tight text-slate-900 mt-1.5 leading-none">{state.units.length}</h3>
               </div>
-              <div className="w-10 h-10 rounded-lg bg-surface-container-low text-secondary flex items-center justify-center">
-                <span className="material-symbols-outlined text-[22px]">domain</span>
+              <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center">
+                <span className="material-symbols-outlined text-[20px]">domain</span>
               </div>
             </div>
-            <div className="pt-space-xs flex items-center justify-between text-on-surface-variant font-body-sm text-body-sm">
-              <span className="flex items-center gap-1 text-on-surface">
-                <span className="material-symbols-outlined text-[16px] text-secondary">check_circle</span>
-                Semua berstatus aktif
+            <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+              <span className="flex items-center gap-1 text-slate-600">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                Semua aktif
               </span>
-              <span className="font-label-sm text-label-sm text-secondary bg-secondary/10 px-2 py-0.5 rounded">Aktif</span>
+              <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 rounded-full">Aktif</span>
             </div>
           </div>
 
-          <div className="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm relative overflow-hidden flex flex-col justify-between">
-            <div className="h-1 absolute top-0 left-0 right-0 bg-emerald-600"></div>
-            <div className="flex items-start justify-between mb-space-sm">
+          <div className="bg-white rounded-xl border border-slate-200/80 p-5 shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all">
+            <div className="flex items-start justify-between">
               <div>
-                <span className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Total Pegawai</span>
-                <h3 className="font-headline-lg text-headline-lg text-on-surface mt-1 leading-tight">{state.staff.length}</h3>
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Pegawai</span>
+                <h3 className="text-3xl font-bold tracking-tight text-slate-900 mt-1.5 leading-none">{state.staff.length}</h3>
               </div>
-              <div className="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
-                <span className="material-symbols-outlined text-[22px]">badge</span>
+              <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center">
+                <span className="material-symbols-outlined text-[20px]">badge</span>
               </div>
             </div>
-            <div className="pt-space-xs flex items-center justify-between text-on-surface-variant font-body-sm text-body-sm">
-              <span className="flex items-center gap-1 text-on-surface">
-                <span className="material-symbols-outlined text-[16px] text-secondary">trending_up</span>
+            <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+              <span className="flex items-center gap-1">
+                <span className="material-symbols-outlined text-[15px] text-blue-600">trending_up</span>
                 Tersebar di {state.units.length} unit
               </span>
             </div>
           </div>
 
-          <div className="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm relative overflow-hidden flex flex-col justify-between">
-            <div className="h-1 absolute top-0 left-0 right-0 bg-amber-500"></div>
-            <div className="flex items-start justify-between mb-space-sm">
+          <div className="bg-white rounded-xl border border-slate-200/80 p-5 shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all">
+            <div className="flex items-start justify-between">
               <div>
-                <span className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Rata-rata Radius</span>
-                <h3 className="font-headline-lg text-headline-lg text-on-surface mt-1 leading-tight">{Math.round(state.units.reduce((sum, u) => sum + u.radius, 0) / state.units.length)}</h3>
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Rata-rata Radius</span>
+                <h3 className="text-3xl font-bold tracking-tight text-slate-900 mt-1.5 leading-none">{Math.round(state.units.reduce((sum, u) => sum + u.radius, 0) / state.units.length)}<span className="text-sm font-semibold text-slate-500 ml-1">m</span></h3>
               </div>
-              <div className="w-10 h-10 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center">
-                <span className="material-symbols-outlined text-[22px]">radar</span>
+              <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-100 text-amber-600 flex items-center justify-center">
+                <span className="material-symbols-outlined text-[20px]">radar</span>
               </div>
             </div>
-            <div className="pt-space-xs flex items-center justify-between text-on-surface-variant font-body-sm text-body-sm">
-              <span className="flex items-center gap-1 text-on-surface">
-                <span className="material-symbols-outlined text-[16px] text-secondary">location_on</span>
+            <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+              <span className="flex items-center gap-1">
+                <span className="material-symbols-outlined text-[15px] text-amber-600">location_on</span>
                 Toleransi standar
               </span>
             </div>
           </div>
 
-          <div className="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm relative overflow-hidden flex flex-col justify-between">
-            <div className="h-1 absolute top-0 left-0 right-0 bg-secondary"></div>
-            <div className="flex items-start justify-between mb-space-sm">
+          <div className="bg-white rounded-xl border border-slate-200/80 p-5 shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all">
+            <div className="flex items-start justify-between">
               <div>
-                <span className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Kepatuhan Geofence</span>
-                <h3 className="font-headline-lg text-headline-lg text-secondary mt-1 leading-tight">98.4%</h3>
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Kepatuhan Geofence</span>
+                <h3 className="text-3xl font-bold tracking-tight text-slate-900 mt-1.5 leading-none">98.4%</h3>
               </div>
-              <div className="w-10 h-10 rounded-lg bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center">
-                <span className="material-symbols-outlined text-[22px]">verified_user</span>
+              <div className="w-10 h-10 rounded-xl bg-purple-50 border border-purple-100 text-purple-600 flex items-center justify-center">
+                <span className="material-symbols-outlined text-[20px]">verified_user</span>
               </div>
             </div>
-            <div className="pt-space-xs flex items-center justify-between text-on-surface-variant font-body-sm text-body-sm">
-              <span className="flex items-center gap-1 text-on-surface">
-                <span className="material-symbols-outlined text-[16px] text-secondary">check_circle</span>
+            <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+              <span className="flex items-center gap-1 text-slate-600">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                 Zona kehadiran valid
               </span>
-              <span className="font-label-sm text-label-sm text-secondary bg-secondary/10 px-2 py-0.5 rounded">Valid</span>
+              <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 rounded-full">Valid</span>
             </div>
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-space-sm">
-          <button
-            onClick={() => { setEditingUnit(null); setShowModal(true) }}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-body-md-medium text-body-md-medium shadow-sm transition-all cursor-pointer"
-            type="button"
-          >
-            <span className="material-symbols-outlined text-[20px]">add</span>
-            <span>+ Tambah Unit Baru</span>
-          </button>
-          <div className="relative min-w-[220px] flex-1 max-w-sm">
-            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">search</span>
-            <input
-              className="w-full h-9 pl-9 pr-3 font-body-sm text-body-sm bg-surface-container-low rounded-lg text-on-surface placeholder:text-outline focus:outline-none focus:bg-surface-container-lowest"
-              placeholder="Cari nama unit, kode, atau alamat..."
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
+        {/* Search Bar */}
+        <div className="relative max-w-sm">
+          <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[17px]">search</span>
+          <input
+            className="w-full h-9 pl-8 pr-3 text-xs bg-white border border-slate-200 rounded-lg text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 shadow-xs transition-colors"
+            placeholder="Cari nama unit, kode, atau alamat..."
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
         </div>
 
-        <div className="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+        {/* Table Container */}
+        <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden">
           <div className="sp-table-wrap">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="bg-surface-container-low/70 border-b border-outline/50 text-on-surface-variant font-label-md text-label-md uppercase tracking-wider leading-tight">
-                  <th className="py-3 px-4">Nama Unit</th>
-                  <th className="py-3 px-4">Alamat Lengkap</th>
-                  <th className="py-3 px-4">Radius</th>
-                  <th className="py-3 px-4">Jam Kerja</th>
-                  <th className="py-3 px-4 text-center">Pegawai</th>
-                  <th className="py-3 px-4 text-center">Status</th>
-                  <th className="py-3 px-4 text-center w-48">Aksi</th>
+                <tr className="bg-slate-50/80 border-b border-slate-200/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                  <th className="py-3 px-3.5">Nama Unit</th>
+                  <th className="py-3 px-3.5">Alamat Lengkap</th>
+                  <th className="py-3 px-3.5">Radius</th>
+                  <th className="py-3 px-3.5">Jam Kerja</th>
+                  <th className="py-3 px-3.5 text-center">Pegawai</th>
+                  <th className="py-3 px-3.5 text-center">Status</th>
+                  <th className="py-3 px-3.5 text-right w-36">Aksi</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-outline/20 font-body-md text-body-md">
+              <tbody className="divide-y divide-slate-100">
                 {paginatedData.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="py-12 px-4 text-center text-on-surface-variant">
-                      Tidak ada data unit
+                    <td colSpan={7} className="py-12 px-4 text-center text-slate-400 text-xs">
+                      Tidak ada data unit yang sesuai.
                     </td>
                   </tr>
                 ) : (
@@ -514,67 +501,68 @@ function UnitAdminSDPage() {
                     const kodePrefix = unit.kode.split('-')[1] || unit.kode.substring(0, 2)
                     const iconKey = kodePrefix.toUpperCase()
                     return (
-                      <tr key={unit.id} className="hover:bg-surface-container-low/50 transition-colors">
-                        <td className="py-4 px-4">
-                          <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-lg bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center font-label-md text-label-md font-semibold flex-shrink-0">
+                      <tr key={unit.id} className="hover:bg-slate-50/60 transition-colors">
+                        <td className="py-3 px-3.5">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-lg bg-blue-50 border border-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold flex-shrink-0">
                               {iconKey}
                             </div>
                             <div className="flex flex-col min-w-0">
-                              <span className="font-body-md-medium text-body-md-medium text-on-surface leading-snug truncate max-w-xs">{unit.nama}</span>
-                              <span className="font-body-sm text-body-sm text-on-surface-variant">Kode: {unit.kode}</span>
+                              <span className="font-semibold text-slate-900 leading-snug truncate max-w-xs">{unit.nama}</span>
+                              <span className="text-[11px] text-slate-400 font-mono mt-0.5">Kode: {unit.kode}</span>
                             </div>
                           </div>
                         </td>
-                        <td className="py-4 px-4 max-w-xs">
-                          <p className="font-body-sm text-body-sm text-on-surface truncate" title={unit.alamat}>{unit.alamat}</p>
+                        <td className="py-3 px-3.5 max-w-xs">
+                          <p className="text-slate-600 truncate" title={unit.alamat}>{unit.alamat}</p>
                         </td>
-                        <td className="py-4 px-4 whitespace-nowrap">
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-secondary/10 text-secondary font-label-sm text-label-sm border border-secondary/20">
-                            <span className="material-symbols-outlined text-[14px]">radar</span>
+                        <td className="py-3 px-3.5 whitespace-nowrap">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200/60 text-slate-700 font-mono text-[11px]">
+                            <span className="material-symbols-outlined text-[13px] text-slate-400">radar</span>
                             {unit.radius} m
                           </span>
                         </td>
-                        <td className="py-4 px-4 whitespace-nowrap">
-                          <div className="flex items-center gap-1.5 text-on-surface font-body-sm text-body-sm">
-                            <span className="material-symbols-outlined text-[16px] text-outline">schedule</span>
-                            <span title={ringkasanJamKerja()}>Jam kerja global</span>
+                        <td className="py-3 px-3.5 whitespace-nowrap">
+                          <div className="flex items-center gap-1.5 text-slate-600 text-xs">
+                            <span className="material-symbols-outlined text-[15px] text-slate-400">schedule</span>
+                            <span title={ringkasanJamKerja()}>Global (07:00)</span>
                           </div>
                         </td>
-                        <td className="py-4 px-4 text-center whitespace-nowrap">
-                          <span className="font-body-md-medium text-body-md-medium text-on-surface">{unit.pegawai}</span>
-                          <span className="font-body-sm text-body-sm text-on-surface-variant ml-1">Orang</span>
+                        <td className="py-3 px-3.5 text-center whitespace-nowrap font-mono">
+                          <span className="font-bold text-slate-900">{unit.pegawai}</span>
+                          <span className="text-slate-400 text-[11px] ml-1">Staf</span>
                         </td>
-                        <td className="py-4 px-4 text-center">
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-label-sm text-label-sm font-label-sm">
+                        <td className="py-3 px-3.5 text-center">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/60 text-[11px] font-semibold">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                             Aktif
                           </span>
                         </td>
-                        <td className="py-4 px-4 text-center">
-                          <div className="flex items-center justify-center gap-1">
+                        <td className="py-3 px-3.5 text-right">
+                          <div className="flex items-center justify-end gap-1">
                             <button
                               onClick={() => openDetail(unit)}
-                              className="w-8 h-8 rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface-variant hover:text-on-surface flex items-center justify-center transition-colors cursor-pointer"
+                              className="w-7 h-7 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors cursor-pointer"
                               type="button"
                               title="Detail"
                             >
-                              <span className="material-symbols-outlined text-[18px]">visibility</span>
+                              <span className="material-symbols-outlined text-[16px]">visibility</span>
                             </button>
                             <button
                               onClick={() => openEdit(unit)}
-                              className="w-8 h-8 rounded-lg bg-secondary/10 hover:bg-secondary/20 text-secondary flex items-center justify-center transition-colors cursor-pointer"
+                              className="w-7 h-7 rounded-md bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-100 flex items-center justify-center transition-colors cursor-pointer"
                               type="button"
                               title="Edit"
                             >
-                              <span className="material-symbols-outlined text-[18px]">edit</span>
+                              <span className="material-symbols-outlined text-[16px]">edit</span>
                             </button>
                             <button
                               onClick={() => handleDelete(unit)}
-                              className="w-8 h-8 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 flex items-center justify-center transition-colors cursor-pointer"
+                              className="w-7 h-7 rounded-md bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-100 flex items-center justify-center transition-colors cursor-pointer"
                               type="button"
                               title="Hapus"
                             >
-                              <span className="material-symbols-outlined text-[18px]">delete</span>
+                              <span className="material-symbols-outlined text-[16px]">delete</span>
                             </button>
                           </div>
                         </td>
@@ -586,17 +574,17 @@ function UnitAdminSDPage() {
             </table>
           </div>
 
-          <div className="py-3 px-4 bg-surface-container-lowest border-t border-outline/30 flex flex-col sm:flex-row items-center justify-between gap-space-sm">
-            <span className="font-body-sm text-body-sm text-on-surface-variant">
-              Menampilkan <strong className="font-body-sm-medium text-body-sm-medium text-on-surface">{(currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, filtered.length)}</strong> dari <strong className="font-body-sm-medium text-body-sm-medium text-on-surface">{filtered.length}</strong> unit
+          <div className="px-4 py-3 bg-white border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+            <span>
+              Menampilkan <strong className="font-semibold text-slate-800">{(currentPage - 1) * itemsPerPage + 1}–{Math.min(currentPage * itemsPerPage, filtered.length)}</strong> dari <strong className="font-semibold text-slate-800">{filtered.length}</strong> unit
             </span>
-            <div className="flex items-center gap-space-md">
-              <div className="flex items-center gap-2">
-                <span className="font-body-sm text-body-sm text-on-surface-variant">Per halaman:</span>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1.5">
+                <span>Per halaman:</span>
                 <select
                   value={itemsPerPage}
                   onChange={(e) => { setItemsPerPage(parseInt(e.target.value)); setCurrentPage(1) }}
-                  className="h-8 px-2 bg-surface-container-low text-on-surface font-body-sm text-body-sm rounded border border-outline/30 focus:outline-none focus:ring-2 focus:ring-secondary/20 cursor-pointer"
+                  className="h-7 px-2 bg-slate-50 text-slate-800 font-medium rounded border border-slate-200 focus:outline-none cursor-pointer"
                 >
                   <option value={5}>5</option>
                   <option value={10}>10</option>
@@ -608,21 +596,21 @@ function UnitAdminSDPage() {
                 <button
                   onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
-                  className="w-8 h-8 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-100 transition-colors disabled:opacity-40 disabled:hover:bg-transparent disabled:cursor-not-allowed cursor-pointer"
                   type="button"
                 >
-                  <span className="material-symbols-outlined text-[18px]">chevron_left</span>
+                  <span className="material-symbols-outlined text-[17px]">chevron_left</span>
                 </button>
-                <span className="px-2 font-body-sm text-body-sm text-on-surface-variant">
-                  Halaman {currentPage} dari {totalPages}
+                <span className="px-1 text-slate-600 font-medium">
+                  {currentPage} / {totalPages}
                 </span>
                 <button
                   onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
-                  className="w-8 h-8 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-100 transition-colors disabled:opacity-40 disabled:hover:bg-transparent disabled:cursor-not-allowed cursor-pointer"
                   type="button"
                 >
-                  <span className="material-symbols-outlined text-[18px]">chevron_right</span>
+                  <span className="material-symbols-outlined text-[17px]">chevron_right</span>
                 </button>
               </div>
             </div>

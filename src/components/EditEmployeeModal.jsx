@@ -42,56 +42,56 @@ function EditEmployeeModal({ staff, onClose, onSave }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" onClick={onClose}>
       <div
-        className="relative w-full max-w-3xl bg-surface-container-lowest rounded-2xl shadow-2xl border border-outline/20 overflow-hidden flex flex-col max-h-[90vh]"
+        className="relative w-full max-w-3xl bg-white rounded-2xl shadow-2xl border border-slate-200/80 overflow-hidden flex flex-col max-h-[90vh]"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
         aria-labelledby="modalTitle"
       >
-        <div className="px-space-lg py-space-md border-b border-outline/20 flex items-start justify-between bg-surface-container/50">
+        <div className="px-6 py-4 border-b border-slate-100 flex items-start justify-between bg-white">
           <div>
-            <h2 className="font-headline-md text-headline-md text-primary leading-tight" id="modalTitle">
+            <h2 className="text-base font-bold text-slate-900 leading-snug" id="modalTitle">
               Edit Pegawai
             </h2>
-            <p className="font-body-sm text-body-sm text-on-surface-variant mt-0.5">
-              Perbarui data {staff?.name} (NIY {staff?.niy}).
+            <p className="text-xs text-slate-500 mt-0.5">
+              Perbarui data {staff?.name} (NIY: {staff?.niy}).
             </p>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full flex items-center justify-center text-outline hover:bg-surface-container hover:text-on-surface transition-colors cursor-pointer"
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
             title="Tutup dialog"
             type="button"
           >
-            <span className="material-symbols-outlined text-[20px]">close</span>
+            <span className="material-symbols-outlined text-[18px]">close</span>
           </button>
         </div>
 
-        <div className="p-space-lg overflow-y-auto">
+        <div className="p-6 overflow-y-auto">
           <EmployeeFormFields form={form} setForm={setForm} errors={errors} />
         </div>
 
-        <div className="px-space-lg py-space-md bg-surface-container/50 border-t border-outline/20 flex items-center justify-between gap-space-md">
-          <span className="text-xs text-on-surface-variant">
+        <div className="px-6 py-3.5 bg-slate-50/80 border-t border-slate-100 flex items-center justify-between gap-3">
+          <span className="text-xs text-slate-500">
             {Object.keys(errors).length > 0
               ? `${Object.keys(errors).length} kolom perlu diperbaiki`
-              : 'Perubahan langsung tercermin di tabel.'}
+              : 'Perubahan langsung tersimpan ke sistem.'}
           </span>
-          <div className="flex items-center gap-space-md">
+          <div className="flex items-center gap-2.5">
             <button
               onClick={onClose}
-              className="px-space-md py-2 rounded-lg border border-outline bg-surface-container-lowest hover:bg-surface-container text-on-surface-variant font-body-md-medium transition-colors cursor-pointer"
+              className="h-9 px-4 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-xs transition-colors cursor-pointer"
               type="button"
             >
               Batal
             </button>
             <button
               onClick={handleSave}
-              className="px-space-md py-2 rounded-lg bg-primary-container hover:bg-primary text-on-primary font-body-md-medium flex items-center gap-2 shadow-sm transition-colors cursor-pointer"
+              className="h-9 px-4 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
               id="btnSaveEmployee"
               type="button"
             >
-              <span className="material-symbols-outlined text-[18px]">check</span>
+              <span className="material-symbols-outlined text-[16px]">check</span>
               <span>Simpan Perubahan</span>
             </button>
           </div>

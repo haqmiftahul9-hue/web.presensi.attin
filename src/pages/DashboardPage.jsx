@@ -34,64 +34,56 @@ function DashboardPage() {
   }, [settings.zonaWaktu])
 
   return (
-    <div className="flex flex-col w-full">
-      <div className="px-space-lg py-space-lg flex flex-col gap-space-lg">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-space-sm">
-          <div className="flex items-center gap-space-sm">
-            <div className="w-10 h-10 rounded-xl bg-surface-container-low flex items-center justify-center text-primary">
+    <div className="flex flex-col w-full min-w-0">
+      <div className="p-4 sm:p-6 lg:p-8 flex flex-col gap-6 max-w-7xl w-full mx-auto">
+        {/* Page Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-1 border-b border-slate-200/80">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shadow-2xs">
               {settings.logo ? (
-                <img src={settings.logo} alt={settings.namaAplikasi} className="w-10 h-10 rounded-xl object-cover" />
+                <img src={settings.logo} alt={settings.namaAplikasi} className="w-11 h-11 rounded-xl object-cover" />
               ) : (
                 <span className="material-symbols-outlined text-[24px]">space_dashboard</span>
               )}
             </div>
             <div className="flex flex-col">
-              <h1 className="font-headline-md text-headline-md text-on-surface tracking-tight leading-snug">{settings.namaAplikasi || 'SimPres'}</h1>
-              <p className="font-body-md text-body-md text-on-surface-variant leading-relaxed">{settings.tagline || 'Sistem Informasi Presensi Multi-Unit Sekolah'}</p>
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 leading-tight">
+                  {settings.namaAplikasi || 'SimPres'}
+                </h1>
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200/60">
+                  {currentRole}
+                </span>
+              </div>
+              <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+                {settings.tagline || 'Sistem Informasi Presensi Multi-Unit Sekolah'}
+              </p>
             </div>
           </div>
-          <div className="flex items-center gap-space-xs self-start md:self-auto bg-surface-container-lowest px-space-md py-space-xs rounded-full shadow-sm text-on-surface-variant">
-            <span className="material-symbols-outlined text-[16px]">home</span>
-            <span className="font-body-sm text-body-sm">Home</span>
-            <span className="text-outline font-body-sm text-body-sm">/</span>
-            <span className="font-body-sm text-body-sm">{currentRole}</span>
-            <span className="text-outline font-body-sm text-body-sm">/</span>
-            <span className="font-body-sm text-body-sm">
-              {selectIsAllUnits(state) ? 'Semua Unit' : selectActiveUnitLabel(state)}
-            </span>
-            <span className="text-outline font-body-sm text-body-sm">/</span>
-            <span className="font-body-sm-medium text-body-sm-medium text-secondary">Dashboard</span>
-          </div>
-        </div>
 
-        <div className="bg-secondary-fixed/30 rounded-xl p-space-md flex flex-col lg:flex-row lg:items-center justify-between gap-space-sm shadow-sm">
-          <div className="flex items-center gap-space-sm">
-            <div className="w-8 h-8 rounded-full bg-secondary-fixed flex items-center justify-center text-secondary flex-shrink-0">
-              <span className="material-symbols-outlined text-[18px]">verified_user</span>
+          <div className="flex flex-wrap items-center gap-2 self-start md:self-auto">
+            {/* Unit Indicator */}
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-slate-200/80 shadow-2xs text-xs text-slate-700 font-medium">
+              <span className="material-symbols-outlined text-[16px] text-blue-600">domain</span>
+              <span>{selectIsAllUnits(state) ? 'Semua Unit Sekolah' : selectActiveUnitLabel(state)}</span>
             </div>
-            <div className="font-body-md text-body-md text-on-primary-fixed">
-              <span className="font-body-md-medium text-body-md-medium">Assalamualaikum, {currentRole}.</span> Selamat datang di {settings.namaAplikasi || 'SimPres'} — {settings.tagline || 'Sistem Informasi Presensi Multi-Unit Sekolah'}.
-            </div>
-          </div>
-          <div className="flex items-center gap-space-md text-on-surface-variant self-end lg:self-auto">
-            <div className="flex items-center gap-2">
-              <span className="relative flex h-2.5 w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-secondary"></span>
+
+            {/* Live Clock & Sync */}
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border border-slate-200/80 shadow-2xs text-xs text-slate-600">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
               </span>
-              <span className="font-label-sm text-label-sm text-secondary uppercase tracking-wider">Sinkronisasi Otomatis Aktif</span>
-            </div>
-            <div className="h-4 w-px bg-outline-variant"></div>
-            <div className="flex items-center gap-1 font-body-sm text-body-sm text-on-surface-variant">
-              <span className="material-symbols-outlined text-[16px]">schedule</span>
-              <span className="font-body-sm text-body-sm">{liveTime || '...'}</span>
+              <span className="font-medium text-slate-700">{liveTime || 'Memuat waktu...'}</span>
             </div>
           </div>
         </div>
 
+        {/* Metric KPI Cards */}
         <StatCards />
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-space-lg">
+        {/* Charts & Breakdown Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <div className="lg:col-span-7">
             <WeeklyTrend />
           </div>
@@ -100,6 +92,7 @@ function DashboardPage() {
           </div>
         </div>
 
+        {/* Recent Activity Table */}
         <RecentActivity />
       </div>
     </div>

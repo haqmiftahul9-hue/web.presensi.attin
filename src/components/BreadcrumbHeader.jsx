@@ -7,42 +7,46 @@ function BreadcrumbHeader() {
   const aktif = selectTotalPegawai(state)
 
   return (
-    <div className="flex flex-col md:flex-row md:items-center justify-between gap-space-sm">
+    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-1 border-b border-slate-200/80">
       <div className="flex flex-col">
-        <nav className="flex items-center gap-space-xs text-on-surface-variant font-label-sm text-label-sm mb-1">
-          <a className="hover:text-secondary transition-colors" href="#">Home</a>
-          <span className="material-symbols-outlined text-[14px]">chevron_right</span>
+        <nav className="flex items-center gap-1.5 text-xs text-slate-400 mb-1">
+          <span className="hover:text-slate-600 transition-colors">Home</span>
+          <span className="material-symbols-outlined text-[13px]">chevron_right</span>
           <span>Master Data</span>
-          <span className="material-symbols-outlined text-[14px]">chevron_right</span>
-          <span className="text-on-surface font-body-sm-medium text-body-sm-medium">Data Guru/Pegawai</span>
+          <span className="material-symbols-outlined text-[13px]">chevron_right</span>
+          <span className="text-slate-700 font-semibold">Data Guru/Pegawai</span>
         </nav>
-        <div className="flex items-center gap-space-xs">
-          <div className="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center text-primary-container">
+        <div className="flex items-center gap-2.5">
+          <div className="w-9 h-9 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shadow-2xs">
             <span className="material-symbols-outlined text-[20px]">badge</span>
           </div>
-          <h1 className="font-headline-md text-headline-md text-on-surface tracking-tight">Data Guru/Pegawai</h1>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 leading-tight">
+            Data Guru & Pegawai
+          </h1>
         </div>
-        <p className="font-body-sm text-body-sm text-on-surface-variant mt-0.5">
+        <p className="text-xs sm:text-sm text-slate-500 mt-1">
           Kelola direktori pendidik dan tenaga kependidikan terdaftar lintas unit sekolah
         </p>
       </div>
-      <div className="flex items-center gap-space-xs">
-        <div className="px-space-md py-space-xs rounded-lg bg-surface-container-lowest shadow-sm flex items-center gap-space-sm">
-          <div className="w-8 h-8 rounded-full bg-secondary-fixed flex items-center justify-center text-on-secondary-fixed">
+
+      <div className="flex items-center gap-2.5 self-start md:self-auto">
+        <div className="px-3.5 py-2 rounded-xl bg-white border border-slate-200/80 shadow-2xs flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-blue-50 border border-blue-100/60 flex items-center justify-center text-blue-600">
             <span className="material-symbols-outlined text-[18px]">groups</span>
           </div>
           <div className="flex flex-col">
-            <span className="font-label-sm text-label-sm text-on-surface-variant uppercase">Total Guru & Pegawai</span>
-            <span className="font-headline-sm text-headline-sm text-on-surface leading-tight">{total} Orang</span>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Guru & Staf</span>
+            <span className="text-sm font-bold text-slate-900 leading-tight">{total} Orang</span>
           </div>
         </div>
-        <div className="px-space-md py-space-xs rounded-lg bg-surface-container-lowest shadow-sm flex items-center gap-space-sm">
-          <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600">
+
+        <div className="px-3.5 py-2 rounded-xl bg-white border border-slate-200/80 shadow-2xs flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-100/60 flex items-center justify-center text-emerald-600">
             <span className="material-symbols-outlined text-[18px]">check_circle</span>
           </div>
           <div className="flex flex-col">
-            <span className="font-label-sm text-label-sm text-on-surface-variant uppercase">Status Aktif</span>
-            <span className="font-headline-sm text-headline-sm text-emerald-600 leading-tight">{aktif} Staf</span>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Status Aktif</span>
+            <span className="text-sm font-bold text-emerald-600 leading-tight">{aktif} Staf</span>
           </div>
         </div>
       </div>

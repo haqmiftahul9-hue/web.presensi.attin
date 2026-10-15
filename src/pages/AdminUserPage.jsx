@@ -91,7 +91,7 @@ function AdminUserPage() {
         statusBg: u.status === 'Aktif' ? 'bg-emerald-100' : 'bg-rose-100',
         statusText: u.status === 'Aktif' ? 'text-emerald-800' : 'text-rose-800',
         statusDot: u.status === 'Aktif' ? 'bg-emerald-600' : 'bg-rose-600',
-        rowBg: u.id % 2 === 0 ? 'bg-surface-container-low/30' : '',
+        rowBg: u.id % 2 === 0 ? 'bg-slate-50/40' : '',
       }
     })
   }, [paged, state])
@@ -331,137 +331,123 @@ function AdminUserPage() {
   const endIdx = filtered.length === 0 ? 0 : startIdx + rows.length - 1
 
   return (
-    <div className="flex flex-col w-full">
-      <div className="w-full bg-surface-container-lowest px-space-xl py-space-sm flex flex-wrap items-center justify-between gap-space-sm">
-        <div className="flex items-center gap-2 text-on-surface-variant font-label-md text-label-md">
-          <span className="hover:text-secondary cursor-pointer transition-colors">Home</span>
-          <span className="material-symbols-outlined text-[16px] text-outline">chevron_right</span>
-          <span className="hover:text-secondary cursor-pointer transition-colors">Superadmin</span>
-          <span className="material-symbols-outlined text-[16px] text-outline">chevron_right</span>
-          <span className="text-on-surface font-body-md-medium text-body-md-medium">Manajemen Admin & User</span>
-        </div>
-        <div className="flex items-center gap-space-md">
-          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-surface-container-low">
+    <div className="flex flex-col w-full min-w-0">
+      <div className="p-4 md:p-6 flex flex-col gap-5 max-w-[1600px] mx-auto w-full">
+        {/* Header Breadcrumb & Status */}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-1.5 text-xs text-slate-400">
+            <span className="hover:text-slate-700 cursor-pointer transition-colors">Home</span>
+            <span className="material-symbols-outlined text-[14px]">chevron_right</span>
+            <span className="hover:text-slate-700 cursor-pointer transition-colors">Superadmin</span>
+            <span className="material-symbols-outlined text-[14px]">chevron_right</span>
+            <span className="text-slate-800 font-semibold">Manajemen Admin &amp; User</span>
+          </div>
+          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200/80">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-600"></span>
             </span>
-            <span className="font-label-sm text-label-sm text-on-surface-variant">Server Pusat: Normal</span>
-          </div>
-          <span className="text-outline-variant">|</span>
-          <div className="flex items-center gap-1.5 font-label-sm text-label-sm text-on-surface-variant">
-            <span className="material-symbols-outlined text-[16px] text-secondary">database</span>
-            <span>Sinkronisasi Terakhir: 14:02 WIB</span>
+            <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wide">Server Pusat: Normal</span>
           </div>
         </div>
-      </div>
 
-      <div className="p-space-xl flex flex-col gap-space-lg">
-        <div className="flex flex-col gap-space-md">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-space-sm">
-            <div>
-              <h1 className="font-headline-md text-headline-md text-primary tracking-tight">Manajemen Admin & User</h1>
-              <p className="font-body-md text-body-md text-on-surface-variant mt-1 max-w-3xl">
-                Kelola hak akses akun sistem, penugasan per unit sekolah, otentikasi peran, dan kredensial pengguna terpusat.
-              </p>
+        {/* Title and Top Actions */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900">Manajemen Admin &amp; User</h1>
+            <p className="text-xs text-slate-500 mt-0.5 max-w-3xl">
+              Kelola hak akses akun sistem, penugasan per unit sekolah, otentikasi peran, dan kredensial pengguna terpusat.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 self-start md:self-auto flex-wrap">
+            <button
+              onClick={openAdd}
+              className="h-9 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-lg shadow-xs transition-all cursor-pointer inline-flex items-center gap-1.5"
+              type="button"
+            >
+              <span className="material-symbols-outlined text-[18px]">person_add</span>
+              <span>Tambah Admin/User Baru</span>
+            </button>
+          </div>
+        </div>
+
+        {/* 4 Metric Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="bg-white rounded-xl border border-slate-200/80 p-5 shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all">
+            <div className="flex items-start justify-between">
+              <div>
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Akun Aktif</span>
+                <h3 className="text-3xl font-bold tracking-tight text-slate-900 mt-1.5 leading-none">{state.adminUsers.filter((u) => u.status === 'Aktif').length}</h3>
+              </div>
+              <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center">
+                <span className="material-symbols-outlined text-[20px]">group</span>
+              </div>
             </div>
-            <div className="flex items-center gap-space-xs">
-              <button
-                onClick={openAdd}
-                className="flex items-center gap-space-xs px-space-md py-2.5 bg-emerald-600 hover:bg-emerald-700 text-on-primary font-body-md-medium text-body-md-medium rounded-lg shadow-sm transition-all active:scale-[0.99] cursor-pointer"
-                type="button"
-              >
-                <span className="material-symbols-outlined text-[20px]">person_add</span>
-                <span>+ Tambah Admin/User Baru</span>
-              </button>
+            <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+              <span className="flex items-center gap-1 text-slate-600">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                Terverifikasi aktif
+              </span>
+              <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 rounded-full">Aktif</span>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-md">
-            <div className="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex flex-col justify-between">
-              <div className="flex items-center justify-between">
-                <span className="font-label-md text-label-md text-on-surface-variant">Total Akun Aktif</span>
-                <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                  <span className="material-symbols-outlined text-[20px]">group</span>
-                </div>
+          <div className="bg-white rounded-xl border border-slate-200/80 p-5 shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all">
+            <div className="flex items-start justify-between">
+              <div>
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Superadmin Pusat</span>
+                <h3 className="text-3xl font-bold tracking-tight text-slate-900 mt-1.5 leading-none">{state.adminUsers.filter((u) => u.role === 'Superadmin' && u.status === 'Aktif').length}</h3>
               </div>
-              <div className="mt-space-sm">
-                <div className="flex items-baseline gap-2">
-                  <span className="font-headline-sm text-headline-sm text-primary leading-tight">{state.adminUsers.filter((u) => u.status === 'Aktif').length}</span>
-                  <span className="font-body-sm text-body-sm text-on-surface-variant">Pengguna</span>
-                </div>
-                <div className="mt-2 flex items-center gap-1.5">
-                  <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-label-sm text-label-sm">+12 bulan ini</span>
-                  <span className="font-body-sm text-body-sm text-on-surface-variant">terverifikasi</span>
-                </div>
+              <div className="w-10 h-10 rounded-xl bg-purple-50 border border-purple-100 text-purple-600 flex items-center justify-center">
+                <span className="material-symbols-outlined text-[20px]">shield_person</span>
               </div>
             </div>
+            <div className="mt-4 pt-3 border-t border-slate-100 flex items-center gap-1 text-xs text-purple-700 font-medium">
+              <span className="material-symbols-outlined text-[15px]">verified_user</span>
+              <span>Hak akses penuh sistem</span>
+            </div>
+          </div>
 
-            <div className="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex flex-col justify-between">
-              <div className="flex items-center justify-between">
-                <span className="font-label-md text-label-md text-on-surface-variant">Superadmin Pusat</span>
-                <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center">
-                  <span className="material-symbols-outlined text-[20px]">shield_person</span>
-                </div>
+          <div className="bg-white rounded-xl border border-slate-200/80 p-5 shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all">
+            <div className="flex items-start justify-between">
+              <div>
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Admin Unit Sekolah</span>
+                <h3 className="text-3xl font-bold tracking-tight text-slate-900 mt-1.5 leading-none">{state.adminUsers.filter((u) => u.role === 'Admin Unit' && u.status === 'Aktif').length}</h3>
               </div>
-              <div className="mt-space-sm">
-                <div className="flex items-baseline gap-2">
-                  <span className="font-headline-sm text-headline-sm text-primary leading-tight">{state.adminUsers.filter((u) => u.role === 'Superadmin' && u.status === 'Aktif').length}</span>
-                  <span className="font-body-sm text-body-sm text-on-surface-variant">Akun</span>
-                </div>
-                <div className="mt-2 flex items-center gap-1 text-purple-700 font-body-sm text-body-sm">
-                  <span className="material-symbols-outlined text-[16px]">verified_user</span>
-                  <span>Hak akses penuh sistem</span>
-                </div>
+              <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center">
+                <span className="material-symbols-outlined text-[20px]">admin_panel_settings</span>
               </div>
             </div>
+            <div className="mt-4 pt-3 border-t border-slate-100 flex items-center gap-1 text-xs text-slate-500">
+              <span className="material-symbols-outlined text-[15px] text-blue-600">apartment</span>
+              <span>{state.units.length} unit sekolah</span>
+            </div>
+          </div>
 
-            <div className="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex flex-col justify-between">
-              <div className="flex items-center justify-between">
-                <span className="font-label-md text-label-md text-on-surface-variant">Admin Unit Sekolah</span>
-                <div className="w-8 h-8 rounded-lg bg-blue-50 text-secondary flex items-center justify-center">
-                  <span className="material-symbols-outlined text-[20px]">admin_panel_settings</span>
-                </div>
+          <div className="bg-white rounded-xl border border-slate-200/80 p-5 shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all">
+            <div className="flex items-start justify-between">
+              <div>
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Guru &amp; Staf Akun</span>
+                <h3 className="text-3xl font-bold tracking-tight text-slate-900 mt-1.5 leading-none">{state.adminUsers.filter((u) => u.role === 'Guru' && u.status === 'Aktif').length}</h3>
               </div>
-              <div className="mt-space-sm">
-                <div className="flex items-baseline gap-2">
-                  <span className="font-headline-sm text-headline-sm text-primary leading-tight">{state.adminUsers.filter((u) => u.role === 'Admin Unit' && u.status === 'Aktif').length}</span>
-                  <span className="font-body-sm text-body-sm text-on-surface-variant">Akun</span>
-                </div>
-                <div className="mt-2 flex items-center gap-1 text-secondary font-body-sm text-body-sm">
-                  <span className="material-symbols-outlined text-[16px]">apartment</span>
-                  <span>{state.units.length} unit sekolah terdaftar</span>
-                </div>
+              <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 text-slate-700 flex items-center justify-center">
+                <span className="material-symbols-outlined text-[20px]">badge</span>
               </div>
             </div>
-
-            <div className="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex flex-col justify-between">
-              <div className="flex items-center justify-between">
-                <span className="font-label-md text-label-md text-on-surface-variant">Guru & Staf Akun</span>
-                <div className="w-8 h-8 rounded-lg bg-slate-100 text-on-surface-variant flex items-center justify-center">
-                  <span className="material-symbols-outlined text-[20px]">badge</span>
-                </div>
-              </div>
-              <div className="mt-space-sm">
-                <div className="flex items-baseline gap-2">
-                  <span className="font-headline-sm text-headline-sm text-primary leading-tight">{state.adminUsers.filter((u) => u.role === 'Guru' && u.status === 'Aktif').length}</span>
-                  <span className="font-body-sm text-body-sm text-on-surface-variant">Akun</span>
-                </div>
-                <div className="mt-2 flex items-center gap-1 text-slate-600 font-body-sm text-body-sm">
-                  <span className="material-symbols-outlined text-[16px]">phonelink_setup</span>
-                  <span>Terhubung mobile app SimPres</span>
-                </div>
-              </div>
+            <div className="mt-4 pt-3 border-t border-slate-100 flex items-center gap-1 text-xs text-slate-500">
+              <span className="material-symbols-outlined text-[15px] text-slate-400">phonelink_setup</span>
+              <span>Mobile app SimPres</span>
             </div>
           </div>
         </div>
 
-        <div className="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-space-sm">
-          <div className="flex flex-wrap items-center gap-space-xs flex-1 lg:flex-nowrap">
-            <div className="relative min-w-[240px] flex-1 lg:max-w-xs">
-              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[20px]">search</span>
+        {/* Filter Toolbar */}
+        <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs p-3.5 space-y-3 flex flex-col">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative flex-1 min-w-[200px]">
+              <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[17px]">search</span>
               <input
-                className="w-full h-10 pl-10 pr-space-md bg-surface-container-low rounded-lg font-body-sm text-body-sm text-on-surface placeholder:text-outline focus:outline-none focus:bg-surface-container-lowest"
+                className="w-full h-9 pl-8 pr-3 bg-slate-50/80 border border-slate-200 rounded-lg text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-colors"
                 placeholder="Cari nama, email, atau NIY..."
                 type="text"
                 value={searchTerm}
@@ -470,7 +456,7 @@ function AdminUserPage() {
             </div>
             <div className="relative">
               <select
-                className="h-10 pl-3 pr-8 bg-surface-container-low text-on-surface rounded-lg font-body-sm text-body-sm focus:outline-none appearance-none cursor-pointer"
+                className="h-9 pl-2.5 pr-7 bg-slate-50/80 border border-slate-200 text-slate-800 rounded-lg text-xs font-medium focus:outline-none appearance-none cursor-pointer"
                 value={roleFilter}
                 onChange={(e) => setRoleFilter(e.target.value)}
               >
@@ -479,11 +465,11 @@ function AdminUserPage() {
                   <option key={r.value} value={r.value}>{r.label}</option>
                 ))}
               </select>
-              <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-outline text-[18px] pointer-events-none">expand_more</span>
+              <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 text-[16px] pointer-events-none">expand_more</span>
             </div>
             <div className="relative">
               <select
-                className="h-10 pl-3 pr-8 bg-surface-container-low text-on-surface rounded-lg font-body-sm text-body-sm focus:outline-none appearance-none cursor-pointer"
+                className="h-9 pl-2.5 pr-7 bg-slate-50/80 border border-slate-200 text-slate-800 rounded-lg text-xs font-medium focus:outline-none appearance-none cursor-pointer"
                 value={unitFilter}
                 onChange={(e) => setUnitFilter(e.target.value)}
               >
@@ -492,11 +478,11 @@ function AdminUserPage() {
                   <option key={u.id} value={u.id}>{u.nama}</option>
                 ))}
               </select>
-              <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-outline text-[18px] pointer-events-none">expand_more</span>
+              <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 text-[16px] pointer-events-none">expand_more</span>
             </div>
             <div className="relative">
               <select
-                className="h-10 pl-3 pr-8 bg-surface-container-low text-on-surface rounded-lg font-body-sm text-body-sm focus:outline-none appearance-none cursor-pointer"
+                className="h-9 pl-2.5 pr-7 bg-slate-50/80 border border-slate-200 text-slate-800 rounded-lg text-xs font-medium focus:outline-none appearance-none cursor-pointer"
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
               >
@@ -504,145 +490,138 @@ function AdminUserPage() {
                 <option value="Aktif">Aktif</option>
                 <option value="Nonaktif">Nonaktif</option>
               </select>
-              <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-outline text-[18px] pointer-events-none">expand_more</span>
+              <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 text-[16px] pointer-events-none">expand_more</span>
             </div>
-          </div>
-          <div className="flex items-center gap-space-xs justify-end lg:flex-nowrap">
             <button
               onClick={resetFilters}
-              className="flex items-center gap-1.5 h-10 px-space-md rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface-variant hover:text-on-surface transition-colors font-body-md-medium text-body-md-medium cursor-pointer"
+              className="h-9 px-3 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-600 hover:text-slate-900 transition-colors text-xs font-medium cursor-pointer inline-flex items-center gap-1.5"
               type="button"
             >
-              <span className="material-symbols-outlined text-[18px]">filter_alt</span>
-              <span>Reset Filter</span>
+              <span className="material-symbols-outlined text-[16px]">restart_alt</span>
+              <span>Reset</span>
             </button>
             <button
               onClick={handleExport}
-              className="flex items-center gap-1.5 h-10 px-space-md rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface font-body-md-medium text-body-md-medium transition-colors cursor-pointer"
+              className="h-9 px-3.5 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 font-medium text-xs transition-colors cursor-pointer inline-flex items-center gap-1.5 sm:ml-auto"
               type="button"
             >
-              <span className="material-symbols-outlined text-[18px]">file_download</span>
+              <span className="material-symbols-outlined text-[16px] text-slate-500">file_download</span>
               <span>Ekspor Data</span>
             </button>
           </div>
         </div>
 
         {successMessage && (
-          <div className="flex items-center gap-2 px-space-md py-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 font-body-sm text-body-sm">
-            <span className="material-symbols-outlined text-[18px]">mark_email_read</span>
+          <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs">
+            <span className="material-symbols-outlined text-[18px] text-emerald-600">mark_email_read</span>
             <span>{successMessage}</span>
           </div>
         )}
 
-        <div className="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+        {/* Table Container */}
+        <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden">
           <div className="sp-table-wrap">
-            <table className="w-full min-w-[760px] text-left border-collapse">
+            <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="bg-surface-container-low border-b border-surface-container text-on-surface-variant font-label-sm text-label-sm uppercase tracking-wider leading-tight">
-                  <th className="py-3 px-3 w-12 text-center">
-                    <input className="rounded w-4 h-4 text-secondary focus:ring-0 cursor-pointer" type="checkbox" />
-                  </th>
-                  <th className="py-3 px-3 font-semibold">Pengguna</th>
-                  <th className="py-3 px-3 font-semibold">Kontak & NIY</th>
-                  <th className="py-3 px-3 font-semibold">Peran</th>
-                  <th className="py-3 px-3 font-semibold">Unit</th>
-                  <th className="py-3 px-3 font-semibold">Status</th>
-                  <th className="py-3 px-2 w-[200px] font-semibold text-center whitespace-nowrap">Aksi</th>
+                <tr className="bg-slate-50/80 border-b border-slate-200/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                  <th className="py-3 px-3.5">Pengguna</th>
+                  <th className="py-3 px-3.5">Kontak &amp; NIY</th>
+                  <th className="py-3 px-3.5">Peran</th>
+                  <th className="py-3 px-3.5">Unit</th>
+                  <th className="py-3 px-3.5">Status</th>
+                  <th className="py-3 px-3.5 text-right w-44">Aksi</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-surface-container font-body-sm text-body-sm">
+              <tbody className="divide-y divide-slate-100">
                 {rows.map((user) => (
-                  <tr key={user.id} className={`hover:bg-surface-container-low/60 transition-colors duration-150 ${user.rowBg}`}>
-                    <td className="py-3 px-3 text-center w-12">
-                      <input className="rounded w-4 h-4 text-secondary focus:ring-0 cursor-pointer" type="checkbox" />
-                    </td>
-                    <td className="py-3 px-3 max-w-[280px]">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-9 h-9 rounded-full font-headline-xs text-headline-xs flex items-center justify-center font-semibold flex-shrink-0 ${user.roleBg} ${user.roleText}`}>
+                  <tr key={user.id} className="hover:bg-slate-50/60 transition-colors">
+                    <td className="py-3 px-3.5 max-w-[280px]">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-lg bg-blue-50 border border-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs flex-shrink-0">
                           {user.initials}
                         </div>
                         <div className="flex flex-col min-w-0 flex-1">
-                          <span className="font-body-md-medium text-body-md-medium text-on-surface truncate">{user.name}</span>
-                          <span className="font-label-xs text-label-xs text-on-surface-variant">NIK: {user.nik}</span>
+                          <span className="font-semibold text-slate-900 truncate">{user.name}</span>
+                          <span className="text-[10.5px] text-slate-400 font-mono mt-0.5">NIK: {user.nik}</span>
                         </div>
                       </div>
                     </td>
-                    <td className="py-3 px-3 max-w-[240px]">
-                      <div className="flex flex-col min-w-0 gap-0.5">
-                        <span className="font-body-sm text-body-sm text-on-surface truncate">{user.email}</span>
-                        <span className="font-label-xs text-label-xs text-on-surface-variant font-mono">NIY {user.niy}</span>
+                    <td className="py-3 px-3.5 max-w-[240px]">
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-slate-700 truncate">{user.email}</span>
+                        <span className="text-[10.5px] text-slate-400 font-mono mt-0.5">NIY {user.niy}</span>
                       </div>
                     </td>
-                    <td className="py-3 px-3 w-[150px]">
-                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-label-xs text-label-xs font-medium whitespace-nowrap ${user.roleBg} ${user.roleText}`}>
+                    <td className="py-3 px-3.5 whitespace-nowrap">
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${user.roleBg} ${user.roleText} border border-slate-200/60`}>
                         <span className={`w-1.5 h-1.5 rounded-full ${user.roleDot}`}></span>
                         {user.role}
                       </span>
                     </td>
-                    <td className="py-3 px-3 max-w-[200px]">
-                      <div className="flex items-center gap-2 text-on-surface min-w-0">
-                        <span className="material-symbols-outlined text-[15px] text-outline flex-shrink-0">{user.unitIcon}</span>
-                        <span className="font-body-sm-medium text-body-sm-medium truncate">{user.unit}</span>
+                    <td className="py-3 px-3.5 max-w-[200px]">
+                      <div className="flex items-center gap-1.5 text-slate-700 min-w-0">
+                        <span className="material-symbols-outlined text-[15px] text-slate-400 flex-shrink-0">{user.unitIcon}</span>
+                        <span className="font-medium truncate">{user.unit}</span>
                       </div>
                     </td>
-                    <td className="py-3 px-3 w-[140px]">
-                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-label-xs text-label-xs font-medium whitespace-nowrap ${user.statusBg} ${user.statusText}`}>
+                    <td className="py-3 px-3.5 whitespace-nowrap">
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${user.statusBg} ${user.statusText} border border-slate-200/60`}>
                         <span className={`w-1.5 h-1.5 rounded-full ${user.statusDot}`}></span>
                         {user.status}
                       </span>
                     </td>
-                    <td className="py-3 px-2 w-[200px] text-center whitespace-nowrap">
-                      <div className="flex items-center justify-center gap-1 flex-nowrap">
+                    <td className="py-3 px-3.5 text-right whitespace-nowrap">
+                      <div className="flex items-center justify-end gap-1">
                         <button
                           onClick={() => openDetail(user)}
-                          className="w-8 h-8 rounded-lg flex items-center justify-center text-secondary hover:bg-secondary/10 transition-colors cursor-pointer"
+                          className="w-7 h-7 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors cursor-pointer"
                           title="Detail Pengguna"
                           type="button"
                         >
-                          <span className="material-symbols-outlined text-[18px]">visibility</span>
+                          <span className="material-symbols-outlined text-[16px]">visibility</span>
                         </button>
                         <button
                           onClick={() => openEdit(user)}
-                          className="w-8 h-8 rounded-lg flex items-center justify-center text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors cursor-pointer"
+                          className="w-7 h-7 rounded-md bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-100 flex items-center justify-center transition-colors cursor-pointer"
                           title="Edit Pengguna"
                           type="button"
                         >
-                          <span className="material-symbols-outlined text-[18px]">edit</span>
+                          <span className="material-symbols-outlined text-[16px]">edit</span>
                         </button>
                         <button
                           onClick={() => openResetPassword(user)}
-                          className="w-8 h-8 rounded-lg flex items-center justify-center text-amber-600 hover:bg-amber-50 transition-colors cursor-pointer"
+                          className="w-7 h-7 rounded-md bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-100 flex items-center justify-center transition-colors cursor-pointer"
                           title="Reset Password"
                           type="button"
                         >
-                          <span className="material-symbols-outlined text-[18px]">lock_reset</span>
+                          <span className="material-symbols-outlined text-[16px]">lock_reset</span>
                         </button>
                         {user.status === 'Aktif' ? (
                           <button
                             onClick={() => toggleStatus(user)}
-                            className="w-8 h-8 rounded-lg flex items-center justify-center text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                            className="w-7 h-7 rounded-md bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-100 flex items-center justify-center transition-colors cursor-pointer"
                             title="Nonaktifkan Akun"
                             type="button"
                           >
-                            <span className="material-symbols-outlined text-[18px]">block</span>
+                            <span className="material-symbols-outlined text-[16px]">block</span>
                           </button>
                         ) : (
                           <button
                             onClick={() => toggleStatus(user)}
-                            className="w-8 h-8 rounded-lg flex items-center justify-center text-emerald-600 hover:bg-emerald-50 transition-colors cursor-pointer"
+                            className="w-7 h-7 rounded-md bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-100 flex items-center justify-center transition-colors cursor-pointer"
                             title="Aktifkan Kembali"
                             type="button"
                           >
-                            <span className="material-symbols-outlined text-[18px]">check_circle</span>
+                            <span className="material-symbols-outlined text-[16px]">check_circle</span>
                           </button>
                         )}
                         <button
                           onClick={() => openDelete(user)}
-                          className="w-8 h-8 rounded-lg flex items-center justify-center text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                          className="w-7 h-7 rounded-md bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-100 flex items-center justify-center transition-colors cursor-pointer"
                           title="Hapus Pengguna"
                           type="button"
                         >
-                          <span className="material-symbols-outlined text-[18px]">delete</span>
+                          <span className="material-symbols-outlined text-[16px]">delete</span>
                         </button>
                       </div>
                     </td>
@@ -653,43 +632,45 @@ function AdminUserPage() {
           </div>
 
           {filtered.length === 0 && (
-            <div className="px-space-xl py-space-xl flex flex-col items-center justify-center text-center">
-              <span className="material-symbols-outlined text-[32px] text-outline mb-2">search_off</span>
-              <h4 className="font-headline-sm text-headline-sm text-on-surface">Tidak ada pengguna ditemukan</h4>
-              <p className="font-body-sm text-body-sm text-on-surface-variant mt-1 max-w-sm">
+            <div className="py-12 px-4 flex flex-col items-center justify-center text-center">
+              <span className="material-symbols-outlined text-[32px] text-slate-300 mb-2">search_off</span>
+              <h4 className="text-xs font-semibold text-slate-800">Tidak ada pengguna ditemukan</h4>
+              <p className="text-xs text-slate-400 mt-1 max-w-sm">
                 Tidak ada akun yang cocok dengan filter pencarian Anda. Hapus beberapa filter atau reset pencarian.
               </p>
               <button
                 onClick={resetFilters}
-                className="mt-3 flex items-center gap-1.5 h-9 px-3.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-secondary font-body-sm-medium text-body-sm-medium transition-colors cursor-pointer"
+                className="mt-3 inline-flex items-center gap-1.5 h-8 px-3 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-xs transition-colors cursor-pointer"
                 type="button"
               >
-                <span className="material-symbols-outlined text-[16px]">filter_alt</span>
+                <span className="material-symbols-outlined text-[15px]">restart_alt</span>
                 <span>Reset Filter</span>
               </button>
             </div>
           )}
 
-          <div className="px-space-md py-space-sm bg-surface-container-lowest flex flex-col sm:flex-row items-center justify-between gap-space-sm">
-            <div className="font-body-sm text-body-sm text-on-surface-variant">
-              Menampilkan <span className="font-body-sm-medium text-body-sm-medium text-on-surface">{startIdx}</span> - <span className="font-body-sm-medium text-body-sm-medium text-on-surface">{endIdx}</span> dari <span className="font-body-sm-medium text-body-sm-medium text-on-surface">{filtered.length}</span> pengguna terdaftar
+          <div className="px-4 py-3 bg-white border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+            <div>
+              Menampilkan <span className="font-semibold text-slate-800">{startIdx}</span>–<span className="font-semibold text-slate-800">{endIdx}</span> dari <span className="font-semibold text-slate-800">{filtered.length}</span> akun
             </div>
             <div className="flex items-center gap-1">
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="w-8 h-8 rounded-lg flex items-center justify-center text-outline hover:bg-surface-container hover:text-on-surface transition-colors disabled:opacity-40 cursor-pointer"
+                className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-100 transition-colors disabled:opacity-40 disabled:hover:bg-transparent disabled:cursor-not-allowed cursor-pointer"
                 type="button"
               >
-                <span className="material-symbols-outlined text-[18px]">chevron_left</span>
+                <span className="material-symbols-outlined text-[17px]">chevron_left</span>
               </button>
               {Array.from({ length: totalPages }, (_, i) => i + 1).map((pNum) => (
                 <button
                   key={pNum}
                   onClick={() => setPage(pNum)}
-                  className={pNum === page
-                    ? 'w-8 h-8 rounded-lg bg-secondary text-on-secondary font-label-sm text-label-sm shadow-sm'
-                    : 'w-8 h-8 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-label-sm text-label-sm transition-colors'}
+                  className={`w-8 h-8 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+                    pNum === page
+                      ? 'bg-blue-600 text-white shadow-xs'
+                      : 'text-slate-700 hover:bg-slate-100'
+                  }`}
                   type="button"
                 >
                   {pNum}
@@ -698,122 +679,122 @@ function AdminUserPage() {
               <button
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
-                className="w-8 h-8 rounded-lg flex items-center justify-center text-outline hover:bg-surface-container hover:text-on-surface transition-colors disabled:opacity-40 cursor-pointer"
+                className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-100 transition-colors disabled:opacity-40 disabled:hover:bg-transparent disabled:cursor-not-allowed cursor-pointer"
                 type="button"
               >
-                <span className="material-symbols-outlined text-[18px]">chevron_right</span>
+                <span className="material-symbols-outlined text-[17px]">chevron_right</span>
               </button>
             </div>
           </div>
         </div>
 
-        <div className="rounded-xl p-space-md bg-surface-container-low flex flex-col md:flex-row items-start md:items-center justify-between gap-space-md">
+        <div className="bg-white rounded-xl border border-slate-200/80 p-5 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="flex items-start gap-3">
-            <div className="w-9 h-9 rounded-lg bg-surface-container-lowest text-secondary flex items-center justify-center flex-shrink-0 shadow-sm">
+            <div className="w-9 h-9 rounded-xl bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0">
               <span className="material-symbols-outlined text-[20px]">security</span>
             </div>
             <div>
-              <h4 className="font-body-md-medium text-body-md-medium text-on-surface leading-snug">Panduan Kebijolan Hak Akses Yayasan</h4>
-              <p className="font-body-sm text-body-sm text-on-surface-variant mt-0.5 leading-relaxed">
+              <h4 className="text-sm font-bold text-slate-900 leading-snug">Panduan Kebijakan Hak Akses Yayasan</h4>
+              <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
                 Admin Unit hanya memiliki wewenang approval presensi dan penyesuaian jadwal pada unit bersangkutan. Otoritas penambahan akun guru dan reset kata sandi massal dipegang oleh Superadmin Pusat.
               </p>
             </div>
           </div>
           <button
             onClick={openMatrix}
-            className="px-4 py-2 bg-surface-container-lowest hover:bg-white text-secondary font-body-sm-medium text-body-sm-medium rounded-lg shadow-sm whitespace-nowrap transition-colors cursor-pointer"
+            className="h-9 px-4 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 font-medium text-xs rounded-lg shadow-xs whitespace-nowrap transition-colors cursor-pointer shrink-0"
             type="button"
           >
-            Lihat Matriks Role & Izin
+            Lihat Matriks Role &amp; Izin
           </button>
         </div>
       </div>
 
       {showForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm" onClick={closeForm}>
-          <div className="bg-surface-container-lowest w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
-            <div className="px-space-lg py-space-md bg-surface-container-lowest flex items-center justify-between">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" onClick={closeForm}>
+          <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-slate-200/80 overflow-hidden flex flex-col max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-secondary/10 text-secondary flex items-center justify-center">
-                  <span className="material-symbols-outlined text-[22px]">{formMode === 'add' ? 'person_add' : 'edit'}</span>
+                <div className="w-9 h-9 rounded-xl bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+                  <span className="material-symbols-outlined text-[20px]">{formMode === 'add' ? 'person_add' : 'edit'}</span>
                 </div>
                 <div>
-                  <h3 className="font-headline-sm text-headline-sm text-primary leading-tight">{formMode === 'add' ? 'Tambah User Baru' : 'Edit User'}</h3>
-                  <p className="font-body-sm text-body-sm text-on-surface-variant mt-0.5">
+                  <h3 className="text-base font-bold text-slate-900 tracking-tight">{formMode === 'add' ? 'Tambah User Baru' : 'Edit User'}</h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
                     {formMode === 'add' ? 'Buat akun pengguna baru dan atur hak akses peran serta unit sekolah.' : 'Perbarui data akun pengguna dan konfigurasi hak aksesnya.'}
                   </p>
                 </div>
               </div>
               <button
                 onClick={closeForm}
-                className="w-8 h-8 rounded-lg flex items-center justify-center text-outline hover:bg-surface-container hover:text-on-surface transition-colors cursor-pointer"
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
                 type="button"
               >
-                <span className="material-symbols-outlined text-[20px]">close</span>
+                <span className="material-symbols-outlined text-[18px]">close</span>
               </button>
             </div>
 
-            <div className="p-space-lg overflow-y-auto flex flex-col gap-space-md">
+            <div className="p-6 overflow-y-auto flex flex-col gap-4">
               <div className="flex flex-col gap-1.5">
-                <label className="font-body-sm-medium text-body-sm-medium text-on-surface">
+                <label className="text-xs font-semibold text-slate-700">
                   Nama Lengkap Beserta Gelar <span className="text-rose-500">*</span>
                 </label>
                 <div className="relative">
-                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">badge</span>
+                  <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[18px] pointer-events-none">badge</span>
                   <input
-                    className={`w-full h-10 pl-10 pr-space-md bg-surface-container-low rounded-lg font-body-md text-body-md text-on-surface focus:outline-none focus:bg-surface-container-lowest focus:ring-2 ${formErrors.name ? 'focus:ring-rose-500/20' : 'focus:ring-secondary/20'}`}
+                    className={`w-full h-9 pl-9 pr-3 bg-white border rounded-lg text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none transition-all ${formErrors.name ? 'border-rose-300 focus:border-rose-500 focus:ring-1 focus:ring-rose-500/20' : 'border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20'}`}
                     placeholder="e.g. Wisna Yunita, S.Pd"
                     type="text"
                     value={form.name}
                     onChange={(e) => updateField('name', e.target.value)}
                   />
                 </div>
-                {formErrors.name && <span className="font-body-sm text-body-sm text-rose-500">{formErrors.name}</span>}
+                {formErrors.name && <span className="text-xs text-rose-500 mt-0.5">{formErrors.name}</span>}
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-space-md">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
-                  <label className="font-body-sm-medium text-body-sm-medium text-on-surface">
+                  <label className="text-xs font-semibold text-slate-700">
                     Alamat Email Resmi <span className="text-rose-500">*</span>
                   </label>
                   <div className="relative">
-                    <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">mail</span>
+                    <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[18px] pointer-events-none">mail</span>
                     <input
-                      className={`w-full h-10 pl-10 pr-space-md bg-surface-container-low rounded-lg font-body-md text-body-md text-on-surface focus:outline-none focus:bg-surface-container-lowest focus:ring-2 ${formErrors.email ? 'focus:ring-rose-500/20' : 'focus:ring-secondary/20'}`}
+                      className={`w-full h-9 pl-9 pr-3 bg-white border rounded-lg text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none transition-all ${formErrors.email ? 'border-rose-300 focus:border-rose-500 focus:ring-1 focus:ring-rose-500/20' : 'border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20'}`}
                       placeholder="wisna.y@sd.raudhatuljannah.sch.id"
                       type="email"
                       value={form.email}
                       onChange={(e) => updateField('email', e.target.value)}
                     />
                   </div>
-                  {formErrors.email && <span className="font-body-sm text-body-sm text-rose-500">{formErrors.email}</span>}
+                  {formErrors.email && <span className="text-xs text-rose-500 mt-0.5">{formErrors.email}</span>}
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="font-body-sm-medium text-body-sm-medium text-on-surface">
-                    NIY (Nomor Induk Yayasan) <span className="text-on-surface-variant">(Opsional)</span>
+                  <label className="text-xs font-semibold text-slate-700">
+                    NIY (Nomor Induk Yayasan) <span className="text-slate-400 font-normal">(Opsional)</span>
                   </label>
                   <div className="relative">
-                    <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">numbers</span>
+                    <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[18px] pointer-events-none">numbers</span>
                     <input
-                      className={`w-full h-10 pl-10 pr-space-md bg-surface-container-low rounded-lg font-body-md text-body-md text-on-surface focus:outline-none focus:bg-surface-container-lowest focus:ring-2 ${formErrors.niy ? 'focus:ring-rose-500/20' : 'focus:ring-secondary/20'}`}
+                      className={`w-full h-9 pl-9 pr-3 bg-white border rounded-lg text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none transition-all ${formErrors.niy ? 'border-rose-300 focus:border-rose-500 focus:ring-1 focus:ring-rose-500/20' : 'border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20'}`}
                       placeholder="e.g. 049001054"
                       type="text"
                       value={form.niy}
                       onChange={(e) => updateField('niy', e.target.value)}
                     />
                   </div>
-                  {formErrors.niy && <span className="font-body-sm text-body-sm text-rose-500">{formErrors.niy}</span>}
+                  {formErrors.niy && <span className="text-xs text-rose-500 mt-0.5">{formErrors.niy}</span>}
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-space-md">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
-                  <label className="font-body-sm-medium text-body-sm-medium text-on-surface">
+                  <label className="text-xs font-semibold text-slate-700">
                     Role / Peran Sistem <span className="text-rose-500">*</span>
                   </label>
                   <div className="relative">
                     <select
-                      className={`w-full h-10 pl-3 pr-8 bg-surface-container-low rounded-lg font-body-md text-body-md text-on-surface focus:outline-none appearance-none cursor-pointer ${formErrors.role ? 'ring-2 ring-rose-500/30' : ''}`}
+                      className={`w-full h-9 pl-3 pr-8 bg-white border rounded-lg text-xs font-medium text-slate-800 focus:outline-none appearance-none cursor-pointer transition-all ${formErrors.role ? 'border-rose-300 focus:border-rose-500 focus:ring-1 focus:ring-rose-500/20' : 'border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20'}`}
                       value={form.role}
                       onChange={(e) => updateField('role', e.target.value)}
                     >
@@ -821,17 +802,17 @@ function AdminUserPage() {
                         <option key={r.value} value={r.value}>{r.label}</option>
                       ))}
                     </select>
-                    <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-outline text-[18px] pointer-events-none">expand_more</span>
+                    <span className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[18px] pointer-events-none">expand_more</span>
                   </div>
-                  {formErrors.role && <span className="font-body-sm text-body-sm text-rose-500">{formErrors.role}</span>}
+                  {formErrors.role && <span className="text-xs text-rose-500 mt-0.5">{formErrors.role}</span>}
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="font-body-sm-medium text-body-sm-medium text-on-surface">
+                  <label className="text-xs font-semibold text-slate-700">
                     Unit Penugasan Sekolah <span className="text-rose-500">*</span>
                   </label>
                   <div className="relative">
                     <select
-                      className={`w-full h-10 pl-3 pr-8 bg-surface-container-low rounded-lg font-body-md text-body-md text-on-surface focus:outline-none appearance-none cursor-pointer ${formErrors.unitId ? 'ring-2 ring-rose-500/30' : ''}`}
+                      className={`w-full h-9 pl-3 pr-8 bg-white border rounded-lg text-xs font-medium text-slate-800 focus:outline-none appearance-none cursor-pointer transition-all ${formErrors.unitId ? 'border-rose-300 focus:border-rose-500 focus:ring-1 focus:ring-rose-500/20' : 'border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20'}`}
                       value={form.unitId}
                       onChange={(e) => updateField('unitId', e.target.value)}
                     >
@@ -840,46 +821,45 @@ function AdminUserPage() {
                         <option key={u.id} value={u.id}>{u.nama}</option>
                       ))}
                     </select>
-                    <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-outline text-[18px] pointer-events-none">expand_more</span>
+                    <span className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[18px] pointer-events-none">expand_more</span>
                   </div>
-                  {formErrors.unitId && <span className="font-body-sm text-body-sm text-rose-500">{formErrors.unitId}</span>}
+                  {formErrors.unitId && <span className="text-xs text-rose-500 mt-0.5">{formErrors.unitId}</span>}
                 </div>
               </div>
 
-              <p className="font-body-sm text-body-sm text-on-surface-variant -mt-2">
-                Pilihan unit wajib untuk akun dengan peran <span className="font-body-sm-medium text-body-sm-medium text-on-surface">Admin Unit</span> dan <span className="font-body-sm-medium text-body-sm-medium text-on-surface">Guru/Pegawai</span>.
+              <p className="text-[11px] text-slate-400 -mt-1.5">
+                Pilihan unit wajib untuk akun dengan peran <strong className="text-slate-600 font-semibold">Admin Unit</strong> dan <strong className="text-slate-600 font-semibold">Guru/Pegawai</strong>.
               </p>
 
               <div className="flex flex-col gap-1.5">
-                <label className="font-body-sm-medium text-body-sm-medium text-on-surface">
+                <label className="text-xs font-semibold text-slate-700">
                   Status Akun <span className="text-rose-500">*</span>
                 </label>
                 <div className="relative">
-                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">toggle_on</span>
                   <select
-                    className={`w-full h-10 pl-10 pr-8 bg-surface-container-low rounded-lg font-body-md text-body-md text-on-surface focus:outline-none appearance-none cursor-pointer ${formErrors.status ? 'ring-2 ring-rose-500/30' : ''}`}
+                    className={`w-full h-9 pl-3 pr-8 bg-white border rounded-lg text-xs font-medium text-slate-800 focus:outline-none appearance-none cursor-pointer transition-all ${formErrors.status ? 'border-rose-300 focus:border-rose-500 focus:ring-1 focus:ring-rose-500/20' : 'border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20'}`}
                     value={form.status}
                     onChange={(e) => updateField('status', e.target.value)}
                   >
                     <option value="Aktif">Aktif</option>
                     <option value="Nonaktif">Nonaktif</option>
                   </select>
-                  <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-outline text-[18px] pointer-events-none">expand_more</span>
+                  <span className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[18px] pointer-events-none">expand_more</span>
                 </div>
-                {formErrors.status && <span className="font-body-sm text-body-sm text-rose-500">{formErrors.status}</span>}
+                {formErrors.status && <span className="text-xs text-rose-500 mt-0.5">{formErrors.status}</span>}
               </div>
 
               {formMode === 'add' && (
                 <>
                   <div className="flex flex-col gap-1.5">
-                    <label className="font-body-sm-medium text-body-sm-medium text-on-surface">
-                      Password Sementera
+                    <label className="text-xs font-semibold text-slate-700">
+                      Password Sementara
                     </label>
                     <div className="flex items-center gap-2">
                       <div className="relative flex-1">
-                        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">key</span>
+                        <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[18px] pointer-events-none">key</span>
                         <input
-                          className="w-full h-10 pl-10 pr-space-md bg-surface-container-low rounded-lg font-mono font-body-md text-body-md text-on-surface focus:outline-none focus:bg-surface-container-lowest"
+                          className="w-full h-9 pl-9 pr-3 bg-slate-50 border border-slate-200 rounded-lg font-mono text-xs text-slate-800 focus:outline-none focus:bg-white focus:border-blue-500"
                           id="tempPasswordInput"
                           type="text"
                           value={form.password}
@@ -888,55 +868,55 @@ function AdminUserPage() {
                       </div>
                       <button
                         onClick={() => updateField('password', generatePassword())}
-                        className="h-10 px-3.5 bg-surface-container-low hover:bg-surface-container text-secondary font-body-sm-medium text-body-sm-medium rounded-lg flex items-center gap-1.5 transition-colors whitespace-nowrap cursor-pointer"
+                        className="h-9 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-lg flex items-center gap-1.5 transition-colors whitespace-nowrap cursor-pointer"
                         type="button"
                       >
-                        <span className="material-symbols-outlined text-[18px]">autorenew</span>
-                        <span>+ Generate Otomatis</span>
+                        <span className="material-symbols-outlined text-[16px]">autorenew</span>
+                        <span>Acak Otomatis</span>
                       </button>
                     </div>
                   </div>
 
-                  <div className="p-space-md bg-surface-container-low rounded-xl flex items-start justify-between gap-space-sm">
+                  <div className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-100 flex items-start justify-between gap-3">
                     <div className="flex flex-col">
-                      <span className="font-body-md-medium text-body-md-medium text-on-surface">Wajib ganti password saat login pertama</span>
-                      <span className="font-body-sm text-body-sm text-on-surface-variant mt-0.5">
+                      <span className="text-xs font-semibold text-slate-800">Wajib ganti password saat login pertama</span>
+                      <span className="text-[11px] text-slate-400 mt-0.5">
                         Pengguna akan diminta membuat password baru segera setelah pertama kali masuk ke portal web atau mobile app SimPres.
                       </span>
                     </div>
-                    <label className="relative inline-flex items-center cursor-pointer flex-shrink-0 mt-0.5">
+                    <label className="relative inline-flex items-center cursor-pointer shrink-0 mt-0.5">
                       <input
                         checked={form.forceChange}
                         onChange={(e) => updateField('forceChange', e.target.checked)}
                         className="sr-only peer"
                         type="checkbox"
                       />
-                      <div className="w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-secondary"></div>
+                      <div className="w-10 h-5.5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4.5 after:w-4.5 after:transition-all peer-checked:bg-blue-600"></div>
                     </label>
                   </div>
                 </>
               )}
             </div>
 
-            <div className="px-space-lg py-space-md bg-surface-container-low flex flex-col sm:flex-row items-center justify-between gap-space-md">
-              <div className="flex items-center gap-1.5 text-on-surface-variant font-body-sm text-body-sm">
+            <div className="px-6 py-3.5 bg-slate-50/80 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div className="flex items-center gap-1.5 text-xs text-slate-500">
                 <span className="material-symbols-outlined text-[16px] text-emerald-600">mark_email_read</span>
                 <span>{formMode === 'add' ? 'Kredensial otomatis terkirim via notifikasi email.' : 'Perubahan tersimpan dan berlaku untuk login berikutnya.'}</span>
               </div>
-              <div className="flex items-center gap-space-xs w-full sm:w-auto justify-end">
+              <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
                 <button
                   onClick={closeForm}
-                  className="px-space-md py-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface font-body-md-medium text-body-md-medium transition-colors cursor-pointer"
+                  className="h-9 px-4 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs transition-colors cursor-pointer"
                   type="button"
                 >
                   Batal
                 </button>
                 <button
                   onClick={handleSave}
-                  className="px-space-md py-2 rounded-lg bg-primary-container hover:bg-primary text-on-primary font-body-md-medium text-body-md-medium shadow-sm flex items-center gap-1.5 transition-all cursor-pointer"
+                  className="h-9 px-4 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
                   type="button"
                 >
-                  <span className="material-symbols-outlined text-[18px]">check</span>
+                  <span className="material-symbols-outlined text-[16px]">check</span>
                   <span>{formMode === 'add' ? 'Simpan Pengguna' : 'Simpan Perubahan'}</span>
                 </button>
               </div>
@@ -958,53 +938,53 @@ function AdminUserPage() {
       )}
 
       {showMatrix && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm" onClick={() => setShowMatrix(false)}>
-          <div className="bg-surface-container-lowest w-full max-w-4xl rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
-            <div className="px-space-lg py-space-md bg-surface-container-lowest flex items-center justify-between border-b border-surface-container">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" onClick={() => setShowMatrix(false)}>
+          <div className="relative w-full max-w-4xl bg-white rounded-2xl shadow-2xl border border-slate-200/80 overflow-hidden flex flex-col max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-secondary/10 text-secondary flex items-center justify-center">
-                  <span className="material-symbols-outlined text-[22px]">security</span>
+                <div className="w-9 h-9 rounded-xl bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+                  <span className="material-symbols-outlined text-[20px]">security</span>
                 </div>
                 <div>
-                  <h3 className="font-headline-sm text-headline-sm text-primary leading-tight">Matriks Role & Izin</h3>
-                  <p className="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Kebijakan hak akses per peran sistem SimPres</p>
+                  <h3 className="text-base font-bold text-slate-900 tracking-tight">Matriks Peran & Hak Akses</h3>
+                  <p className="text-xs text-slate-500 mt-0.5">Konfigurasi izin operasi modul untuk setiap peran pengguna</p>
                 </div>
               </div>
               <button
                 onClick={() => setShowMatrix(false)}
-                className="w-8 h-8 rounded-lg flex items-center justify-center text-outline hover:bg-surface-container hover:text-on-surface transition-colors cursor-pointer"
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
                 type="button"
               >
-                <span className="material-symbols-outlined text-[20px]">close</span>
+                <span className="material-symbols-outlined text-[18px]">close</span>
               </button>
             </div>
 
-            <div className="p-space-lg overflow-auto">
-              <div className="sp-table-wrap">
+            <div className="p-6 overflow-y-auto space-y-4">
+              <div className="border border-slate-200/80 rounded-xl overflow-hidden shadow-2xs">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-surface-container-low border-b border-surface-container text-on-surface-variant font-label-sm text-label-sm uppercase tracking-wider">
-                      <th className="py-3 px-4 font-semibold sticky left-0 z-10 bg-surface-container-low">Menu / Fitur</th>
-                      <th className="py-3 px-4 text-center font-semibold">Superadmin</th>
-                      <th className="py-3 px-4 text-center font-semibold">Admin Unit</th>
-                      <th className="py-3 px-4 text-center font-semibold">Guru / Staf</th>
+                    <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 text-[11px] font-bold uppercase tracking-wider">
+                      <th className="py-2.5 px-4 font-bold sticky left-0 z-10 bg-slate-50">Menu / Fitur</th>
+                      <th className="py-2.5 px-4 text-center font-bold">Superadmin</th>
+                      <th className="py-2.5 px-4 text-center font-bold">Admin Unit</th>
+                      <th className="py-2.5 px-4 text-center font-bold">Guru / Staf</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-surface-container font-body-sm text-body-sm">
+                  <tbody className="divide-y divide-slate-100 text-xs">
                     {MENU_OPTIONS.map((menu, idx) => {
                       const superPerms = matrixPerms?.Superadmin?.[menu.key] || []
                       const unitPerms = matrixPerms?.['Admin Unit']?.[menu.key] || []
                       const guruPerms = matrixPerms?.Guru?.[menu.key] || []
                       return (
-                        <tr key={menu.key} className={idx % 2 === 0 ? 'bg-surface-container-low/30' : ''}>
-                          <td className="py-3 px-4 font-body-md-medium text-body-md-medium text-on-surface">{menu.label}</td>
-                          <td className="py-3 px-4 text-center">
-                            <div className="flex items-center justify-center gap-1">
+                        <tr key={menu.key} className={idx % 2 === 0 ? 'bg-slate-50/30' : 'bg-white'}>
+                          <td className="py-2.5 px-4 font-semibold text-slate-800">{menu.label}</td>
+                          <td className="py-2.5 px-4 text-center">
+                            <div className="flex items-center justify-center gap-1.5">
                               {PERMISSION_ACTIONS.map((perm) => (
-                                <label key={perm} className="flex items-center justify-center cursor-pointer">
+                                <label key={perm} className="flex items-center justify-center cursor-pointer p-0.5">
                                   <input
                                     type="checkbox"
-                                    className="w-4 h-4 text-secondary rounded border-surface-container-high focus:ring-secondary"
+                                    className="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500/20"
                                     checked={superPerms.includes(perm)}
                                     onChange={() => togglePerm('Superadmin', menu.key, perm)}
                                   />
@@ -1012,13 +992,13 @@ function AdminUserPage() {
                               ))}
                             </div>
                           </td>
-                          <td className="py-3 px-4 text-center">
-                            <div className="flex items-center justify-center gap-1">
+                          <td className="py-2.5 px-4 text-center">
+                            <div className="flex items-center justify-center gap-1.5">
                               {PERMISSION_ACTIONS.map((perm) => (
-                                <label key={perm} className="flex items-center justify-center cursor-pointer">
+                                <label key={perm} className="flex items-center justify-center cursor-pointer p-0.5">
                                   <input
                                     type="checkbox"
-                                    className="w-4 h-4 text-secondary rounded border-surface-container-high focus:ring-secondary"
+                                    className="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500/20"
                                     checked={unitPerms.includes(perm)}
                                     onChange={() => togglePerm('Admin Unit', menu.key, perm)}
                                   />
@@ -1026,13 +1006,13 @@ function AdminUserPage() {
                               ))}
                             </div>
                           </td>
-                          <td className="py-3 px-4 text-center">
-                            <div className="flex items-center justify-center gap-1">
+                          <td className="py-2.5 px-4 text-center">
+                            <div className="flex items-center justify-center gap-1.5">
                               {PERMISSION_ACTIONS.map((perm) => (
-                                <label key={perm} className="flex items-center justify-center cursor-pointer">
+                                <label key={perm} className="flex items-center justify-center cursor-pointer p-0.5">
                                   <input
                                     type="checkbox"
-                                    className="w-4 h-4 text-secondary rounded border-surface-container-high focus:ring-secondary"
+                                    className="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500/20"
                                     checked={guruPerms.includes(perm)}
                                     onChange={() => togglePerm('Guru', menu.key, perm)}
                                   />
@@ -1047,57 +1027,55 @@ function AdminUserPage() {
                 </table>
               </div>
 
-              <div className="mt-6 p-4 bg-surface-container-low rounded-xl">
-                <h4 className="font-body-md-medium text-body-md-medium text-on-surface mb-3">Keterangan Ikon</h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                  <div className="flex items-center gap-2 text-on-surface-variant font-body-sm text-body-sm">
-                    <span className="w-6 h-6 rounded flex items-center justify-center bg-emerald-100 text-emerald-700">
-                      <span className="material-symbols-outlined text-[14px]">visibility</span>
+              <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                <h4 className="text-xs font-bold text-slate-800 mb-2.5">Keterangan Izin Operasi</h4>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs text-slate-600">
+                  <div className="flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-md flex items-center justify-center bg-emerald-50 text-emerald-700 border border-emerald-100">
+                      <span className="material-symbols-outlined text-[13px]">visibility</span>
                     </span>
-                    <span>Bisa Melihat</span>
+                    <span className="font-medium">Lihat (View)</span>
                   </div>
-                  <div className="flex items-center gap-2 text-on-surface-variant font-body-sm text-body-sm">
-                    <span className="w-6 h-6 rounded flex items-center justify-center bg-emerald-100 text-emerald-700">
-                      <span className="material-symbols-outlined text-[14px]">add</span>
+                  <div className="flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-md flex items-center justify-center bg-blue-50 text-blue-700 border border-blue-100">
+                      <span className="material-symbols-outlined text-[13px]">add</span>
                     </span>
-                    <span>Bisa Menambah</span>
+                    <span className="font-medium">Tambah (Create)</span>
                   </div>
-                  <div className="flex items-center gap-2 text-on-surface-variant font-body-sm text-body-sm">
-                    <span className="w-6 h-6 rounded flex items-center justify-center bg-emerald-100 text-emerald-700">
-                      <span className="material-symbols-outlined text-[14px]">edit</span>
+                  <div className="flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-md flex items-center justify-center bg-amber-50 text-amber-700 border border-amber-100">
+                      <span className="material-symbols-outlined text-[13px]">edit</span>
                     </span>
-                    <span>Bisa Mengedit</span>
+                    <span className="font-medium">Edit (Update)</span>
                   </div>
-                  <div className="flex items-center gap-2 text-on-surface-variant font-body-sm text-body-sm">
-                    <span className="w-6 h-6 rounded flex items-center justify-center bg-emerald-100 text-emerald-700">
-                      <span className="material-symbols-outlined text-[14px]">delete</span>
+                  <div className="flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-md flex items-center justify-center bg-rose-50 text-rose-700 border border-rose-100">
+                      <span className="material-symbols-outlined text-[13px]">delete</span>
                     </span>
-                    <span>Bisa Menghapus</span>
+                    <span className="font-medium">Hapus (Delete)</span>
                   </div>
                 </div>
               </div>
 
-              <div className="mt-4 p-4 bg-secondary/5 rounded-xl border border-secondary/20">
-                <p className="font-body-sm text-body-sm text-on-surface">
-                  <span className="font-body-sm-medium text-body-sm-medium">Catatan:</span> Superadmin memiliki akses penuh ke seluruh sistem. Admin Unit hanya mengelola unit sekolahnya masing-masing. Guru/Staf hanya dapat melihat data dan mengajukan izin/cuti.
-                </p>
+              <div className="p-3 bg-blue-50/50 rounded-xl border border-blue-100 text-xs text-slate-600 leading-relaxed">
+                <strong className="text-blue-900 font-semibold">Catatan:</strong> Superadmin memiliki akses penuh ke seluruh modul sistem. Admin Unit dibatasi pada unit sekolah penugasan. Guru/Staf dibatasi pada modul presensi pribadi dan pengajuan izin/cuti.
               </div>
             </div>
 
-            <div className="px-space-lg py-space-md bg-surface-container-low flex justify-end gap-space-xs border-t border-surface-container">
+            <div className="px-6 py-3.5 bg-slate-50/80 border-t border-slate-100 flex items-center justify-end gap-2.5">
               <button
                 onClick={resetMatrix}
-                className="px-space-md py-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-body-md-medium text-body-md-medium transition-colors cursor-pointer"
+                className="h-9 px-4 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs transition-colors cursor-pointer"
                 type="button"
               >
-                Reset
+                Reset Default
               </button>
               <button
                 onClick={saveMatrix}
-                className="px-space-md py-2 rounded-lg bg-primary-container hover:bg-primary text-on-primary font-body-md-medium text-body-md-medium shadow-sm flex items-center gap-1.5 transition-all cursor-pointer"
+                className="h-9 px-4 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
                 type="button"
               >
-                <span className="material-symbols-outlined text-[18px]">check</span>
+                <span className="material-symbols-outlined text-[16px]">check</span>
                 <span>Simpan Perubahan</span>
               </button>
             </div>
@@ -1106,116 +1084,124 @@ function AdminUserPage() {
       )}
 
       {showDetail && detailUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm" onClick={closeDetail}>
-          <div className="bg-surface-container-lowest w-full max-w-xl rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
-            <div className="px-space-lg py-space-md bg-surface-container-lowest flex items-center justify-between border-b border-surface-container">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" onClick={closeDetail}>
+          <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-slate-200/80 overflow-hidden flex flex-col max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-secondary/10 text-secondary flex items-center justify-center">
-                  <span className="material-symbols-outlined text-[22px]">person</span>
+                <div className="w-9 h-9 rounded-xl bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+                  <span className="material-symbols-outlined text-[20px]">person</span>
                 </div>
                 <div>
-                  <h3 className="font-headline-sm text-headline-sm text-primary leading-tight">Detail Pengguna</h3>
-                  <p className="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Informasi lengkap akun dan hak akses</p>
+                  <h3 className="text-base font-bold text-slate-900 tracking-tight">Detail Pengguna</h3>
+                  <p className="text-xs text-slate-500 mt-0.5">Informasi lengkap akun dan matriks hak akses</p>
                 </div>
               </div>
               <button
                 onClick={closeDetail}
-                className="w-8 h-8 rounded-lg flex items-center justify-center text-outline hover:bg-surface-container hover:text-on-surface transition-colors cursor-pointer"
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
                 type="button"
               >
-                <span className="material-symbols-outlined text-[20px]">close</span>
+                <span className="material-symbols-outlined text-[18px]">close</span>
               </button>
             </div>
 
-            <div className="p-space-lg overflow-y-auto">
-              <div className="flex flex-col items-center text-center mb-6">
-                <div className={`w-20 h-20 rounded-full font-headline-md text-headline-md flex items-center justify-center font-semibold ${detailUser.role === 'Superadmin' ? 'bg-purple-100 text-purple-700' : detailUser.role === 'Admin Unit' ? 'bg-blue-100 text-secondary' : 'bg-slate-100 text-slate-700'}`}>
+            <div className="p-6 overflow-y-auto space-y-4">
+              <div className="flex flex-col items-center text-center p-4 bg-slate-50/70 rounded-xl border border-slate-100">
+                <div className={`w-16 h-16 rounded-2xl text-lg font-bold flex items-center justify-center shadow-xs ${
+                  detailUser.role === 'Superadmin' ? 'bg-purple-100 text-purple-700 border border-purple-200' :
+                  detailUser.role === 'Admin Unit' ? 'bg-blue-100 text-blue-700 border border-blue-200' :
+                  'bg-slate-200 text-slate-700 border border-slate-300'
+                }`}>
                   {detailUser.name.split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase()}
                 </div>
-                <div className="mt-4">
-                  <h4 className="font-headline-sm text-headline-sm text-on-surface">{detailUser.name}</h4>
-                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-label-xs text-label-xs font-medium mt-2 ${detailUser.role === 'Superadmin' ? 'bg-purple-100 text-purple-700' : detailUser.role === 'Admin Unit' ? 'bg-blue-100 text-secondary' : 'bg-slate-100 text-slate-700'}`}>
+                <div className="mt-3">
+                  <h4 className="text-sm font-bold text-slate-900">{detailUser.name}</h4>
+                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold mt-1.5 ${
+                    detailUser.role === 'Superadmin' ? 'bg-purple-50 text-purple-700 border border-purple-200' :
+                    detailUser.role === 'Admin Unit' ? 'bg-blue-50 text-blue-700 border border-blue-200' :
+                    'bg-slate-100 text-slate-700 border border-slate-200'
+                  }`}>
                     {detailUser.role}
                   </span>
                 </div>
               </div>
 
-              <div className="space-y-4 mb-6">
-                <div className="p-4 bg-surface-container-low rounded-xl">
-                  <h5 className="font-body-md-medium text-body-md-medium text-on-surface mb-3">Informasi Akun</h5>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <span className="font-label-sm text-label-sm text-on-surface-variant block mb-1">Email</span>
-                      <span className="font-body-sm text-body-sm text-on-surface">{detailUser.email}</span>
-                    </div>
-                    <div>
-                      <span className="font-label-sm text-label-sm text-on-surface-variant block mb-1">NIY</span>
-                      <span className="font-body-sm text-body-sm text-on-surface font-mono">{detailUser.niy || '-'}</span>
-                    </div>
-                    <div>
-                      <span className="font-label-sm text-label-sm text-on-surface-variant block mb-1">Unit Penugasan</span>
-                      <span className="font-body-sm text-body-sm text-on-surface">{selectUnitName(state, detailUser.unitId)}</span>
-                    </div>
-                    <div>
-                      <span className="font-label-sm text-label-sm text-on-surface-variant block mb-1">Status</span>
-                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-label-xs text-label-xs font-medium ${detailUser.status === 'Aktif' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}>
-                        <span className={`w-1.5 h-1.5 rounded-full ${detailUser.status === 'Aktif' ? 'bg-emerald-600' : 'bg-rose-600'}`}></span>
-                        {detailUser.status}
-                      </span>
-                    </div>
+              <div className="p-4 bg-slate-50/70 rounded-xl border border-slate-100">
+                <h5 className="text-xs font-bold text-slate-800 mb-3 uppercase tracking-wider">Informasi Kredensial</h5>
+                <div className="grid grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <span className="text-[11px] font-medium text-slate-400 block mb-0.5">Email</span>
+                    <span className="font-semibold text-slate-800 truncate block">{detailUser.email}</span>
                   </div>
-                </div>
-
-                <div className="p-4 bg-surface-container-low rounded-xl">
-                  <h5 className="font-body-md-medium text-body-md-medium text-on-surface mb-3">Hak Akses (Permission Matrix)</h5>
-                  <div className="sp-table-wrap">
-                    <table className="w-full text-left border-collapse">
-                      <thead>
-                        <tr className="bg-surface-container-low border-b border-surface-container text-on-surface-variant font-label-sm text-label-sm uppercase tracking-wider">
-                          <th className="py-2 px-3 font-semibold">Menu / Fitur</th>
-                          <th className="py-2 px-3 text-center font-semibold">Izin</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-surface-container font-body-sm text-body-sm">
-                        {MENU_OPTIONS.map((menu) => {
-                          const userPerms = state.permissionMatrix?.[detailUser.role]?.[menu.key] || []
-                          return (
-                            <tr key={menu.key}>
-                              <td className="py-2 px-3 font-body-md-medium text-body-md-medium text-on-surface">{menu.label}</td>
-                              <td className="py-2 px-3 text-center">
-                                <div className="flex items-center justify-center gap-1">
-                                  {PERMISSION_ACTIONS.map((perm) => (
-                                    <span
-                                      key={perm}
-                                      className={`w-6 h-6 rounded flex items-center justify-center font-label-xs ${userPerms.includes(perm) ? 'bg-emerald-100 text-emerald-700' : 'bg-surface-container-high text-on-surface-variant'}`}
-                                    >
-                                      {perm === 'view' && <span className="material-symbols-outlined text-[12px]">visibility</span>}
-                                      {perm === 'add' && <span className="material-symbols-outlined text-[12px]">add</span>}
-                                      {perm === 'edit' && <span className="material-symbols-outlined text-[12px]">edit</span>}
-                                      {perm === 'delete' && <span className="material-symbols-outlined text-[12px]">delete</span>}
-                                    </span>
-                                  ))}
-                                </div>
-                              </td>
-                            </tr>
-                          )
-                        })}
-                      </tbody>
-                    </table>
+                  <div>
+                    <span className="text-[11px] font-medium text-slate-400 block mb-0.5">NIY</span>
+                    <span className="font-mono font-semibold text-slate-800">{detailUser.niy || '-'}</span>
+                  </div>
+                  <div>
+                    <span className="text-[11px] font-medium text-slate-400 block mb-0.5">Unit Penugasan</span>
+                    <span className="font-semibold text-slate-800">{selectUnitName(state, detailUser.unitId)}</span>
+                  </div>
+                  <div>
+                    <span className="text-[11px] font-medium text-slate-400 block mb-0.5">Status</span>
+                    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold ${detailUser.status === 'Aktif' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'}`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${detailUser.status === 'Aktif' ? 'bg-emerald-500' : 'bg-rose-500'}`}></span>
+                      {detailUser.status}
+                    </span>
                   </div>
                 </div>
               </div>
 
-              <div className="flex justify-end pt-4 border-t border-surface-container">
-                <button
-                  onClick={closeDetail}
-                  className="px-space-md py-2 rounded-lg bg-primary-container hover:bg-primary text-on-primary font-body-md-medium text-body-md-medium shadow-sm flex items-center gap-1.5 transition-all cursor-pointer"
-                  type="button"
-                >
-                  <span className="material-symbols-outlined text-[18px]">check</span>
-                  <span>Tutup</span>
-                </button>
+              <div className="border border-slate-200/80 rounded-xl overflow-hidden shadow-2xs">
+                <div className="px-3.5 py-2.5 bg-slate-50 border-b border-slate-100">
+                  <h5 className="text-xs font-bold text-slate-800">Hak Akses Modul Aktif</h5>
+                </div>
+                <div className="max-h-52 overflow-y-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-slate-50/50 border-b border-slate-100 text-slate-400 text-[10.5px] font-bold uppercase tracking-wider">
+                        <th className="py-2 px-3 font-semibold">Menu / Modul</th>
+                        <th className="py-2 px-3 text-center font-semibold">Izin Aktif</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 text-xs">
+                      {MENU_OPTIONS.map((menu) => {
+                        const userPerms = state.permissionMatrix?.[detailUser.role]?.[menu.key] || []
+                        return (
+                          <tr key={menu.key} className="hover:bg-slate-50/50 transition-colors">
+                            <td className="py-2 px-3 font-medium text-slate-800">{menu.label}</td>
+                            <td className="py-2 px-3 text-center">
+                              <div className="flex items-center justify-center gap-1">
+                                {PERMISSION_ACTIONS.map((perm) => (
+                                  <span
+                                    key={perm}
+                                    title={perm}
+                                    className={`w-5 h-5 rounded flex items-center justify-center ${userPerms.includes(perm) ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-300'}`}
+                                  >
+                                    {perm === 'view' && <span className="material-symbols-outlined text-[11px]">visibility</span>}
+                                    {perm === 'add' && <span className="material-symbols-outlined text-[11px]">add</span>}
+                                    {perm === 'edit' && <span className="material-symbols-outlined text-[11px]">edit</span>}
+                                    {perm === 'delete' && <span className="material-symbols-outlined text-[11px]">delete</span>}
+                                  </span>
+                                ))}
+                              </div>
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               </div>
+            </div>
+
+            <div className="px-6 py-3.5 bg-slate-50/80 border-t border-slate-100 flex items-center justify-end">
+              <button
+                onClick={closeDetail}
+                className="h-9 px-4 rounded-lg bg-slate-800 hover:bg-slate-900 text-white font-semibold text-xs flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+                type="button"
+              >
+                <span>Tutup</span>
+              </button>
             </div>
           </div>
         </div>

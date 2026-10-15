@@ -188,9 +188,9 @@ function StaffTable({ unitFilter, searchTerm, statusFilter, currentPage, setCurr
   const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1)
 
   return (
-    <div className="bg-surface-container-lowest rounded-xl shadow-sm flex flex-col overflow-hidden">
+    <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs flex flex-col overflow-hidden">
       <div className="w-full sp-table-wrap is-sticky">
-        <table className="w-full table-fixed border-collapse text-left font-body-md text-body-md text-on-surface">
+        <table className="w-full table-fixed border-collapse text-left text-xs text-slate-800">
           <colgroup>
             <col className="w-[4%] xl:w-[4%]" />
             <col className="w-[11%] xl:w-[10%]" />
@@ -201,130 +201,130 @@ function StaffTable({ unitFilter, searchTerm, statusFilter, currentPage, setCurr
             <col className="w-[20%] xl:w-[25%] 2xl:w-[26%]" />
           </colgroup>
           <thead>
-            <tr className="bg-surface-container-low text-on-surface-variant font-label-md text-label-md uppercase tracking-wider border-b border-outline/20">
-              <th className="h-10 px-3 text-center align-middle whitespace-nowrap" scope="col">#</th>
-              <th className="h-10 px-3 align-middle whitespace-nowrap" scope="col">NIY/NIP</th>
-              <th className="h-10 px-3 align-middle whitespace-nowrap" scope="col">Nama Lengkap &amp; Gelar</th>
-              <th className="h-10 px-3 align-middle whitespace-nowrap" scope="col">Unit Sekolah</th>
-              <th className="h-10 px-3 align-middle whitespace-nowrap" scope="col">Jabatan / Penugasan</th>
-              <th className="h-10 px-3 text-center align-middle whitespace-nowrap" scope="col">Status</th>
-              <th className="h-10 px-3 text-right align-middle whitespace-nowrap" scope="col">Aksi Manajemen</th>
+            <tr className="bg-slate-50/80 border-b border-slate-200/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+              <th className="h-10 px-3.5 text-center align-middle whitespace-nowrap" scope="col">#</th>
+              <th className="h-10 px-3.5 align-middle whitespace-nowrap" scope="col">NIY/NIP</th>
+              <th className="h-10 px-3.5 align-middle whitespace-nowrap" scope="col">Nama Lengkap &amp; Gelar</th>
+              <th className="h-10 px-3.5 align-middle whitespace-nowrap" scope="col">Unit Sekolah</th>
+              <th className="h-10 px-3.5 align-middle whitespace-nowrap" scope="col">Jabatan / Penugasan</th>
+              <th className="h-10 px-3.5 text-center align-middle whitespace-nowrap" scope="col">Status</th>
+              <th className="h-10 px-3.5 text-right align-middle whitespace-nowrap" scope="col">Aksi Manajemen</th>
             </tr>
           </thead>
-          <tbody className="text-on-surface divide-y divide-surface-container-low">
+          <tbody className="divide-y divide-slate-100">
             {paginatedStaff.map((row) => (
               <tr
                 key={row.key}
-                className={`${focusedId === row.key ? 'bg-amber-50 ring-1 ring-inset ring-amber-200' : row.rowBg} hover:bg-surface-container-low transition-colors`}
+                className={`${focusedId === row.key ? 'bg-amber-50/80 ring-1 ring-inset ring-amber-200' : 'hover:bg-slate-50/60'} transition-colors`}
               >
-                <td className="h-14 px-3 text-center align-middle text-label-md text-label-md text-on-surface-variant tabular-nums">{row.no}</td>
-                <td className="h-14 px-3 align-middle">
-                  <span className="block truncate font-mono font-body-sm text-body-sm text-on-surface" title={`NIY ${row.niy}`}>{row.niy}</span>
+                <td className="h-14 px-3.5 text-center align-middle text-xs text-slate-400 font-mono tabular-nums">{row.no}</td>
+                <td className="h-14 px-3.5 align-middle">
+                  <span className="block truncate font-mono text-xs font-semibold text-slate-800" title={`NIY ${row.niy}`}>{row.niy}</span>
                   {row.nip ? (
-                    <span className="block truncate font-mono text-[11px] text-on-surface-variant" title={`NIP ${row.nip}`}>{row.nip}</span>
+                    <span className="block truncate font-mono text-[10.5px] text-slate-400 mt-0.5" title={`NIP ${row.nip}`}>{row.nip}</span>
                   ) : null}
                 </td>
-                <td className="h-14 px-3 align-middle">
-                  <div className="flex items-center gap-space-xs min-w-0">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-headline-sm text-headline-sm flex-shrink-0 ${row.avatar}`}>
+                <td className="h-14 px-3.5 align-middle">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-8 h-8 rounded-lg bg-blue-50/80 border border-blue-100 text-blue-700 font-bold text-xs flex items-center justify-center flex-shrink-0">
                       {row.initials}
                     </div>
                     <div className="flex flex-col min-w-0 leading-tight">
                       <span
-                        className={`block truncate font-body-md-medium text-body-md-medium text-on-surface ${row.isInactive ? 'opacity-70' : ''}`}
+                        className={`block truncate text-xs font-semibold text-slate-900 ${row.isInactive ? 'opacity-60' : ''}`}
                         title={row.name}
                       >
                         {row.name}
                       </span>
-                      <span className="block truncate text-[11px] text-on-surface-variant mt-0.5" title={row.gelar}>{row.gelar || '-'}</span>
-                      <span className="block truncate text-[11px] text-secondary mt-0.5" title={row.extraRole}>{row.extraRole}</span>
+                      <span className="block truncate text-[11px] text-slate-400 mt-0.5" title={row.gelar}>{row.gelar || '-'}</span>
+                      <span className="block truncate text-[11px] text-blue-600 font-medium mt-0.5" title={row.extraRole}>{row.extraRole}</span>
                     </div>
                   </div>
                 </td>
-                <td className="h-14 px-3 align-middle">
+                <td className="h-14 px-3.5 align-middle">
                   <div className="flex items-center gap-1.5 min-w-0">
-                    <span className="material-symbols-outlined text-secondary text-[16px] flex-shrink-0 leading-none">{row.unitIcon}</span>
-                    <span className="block truncate text-[13px] leading-snug text-on-surface" title={row.unit}>{row.unit}</span>
+                    <span className="material-symbols-outlined text-blue-600 text-[16px] flex-shrink-0 leading-none">{row.unitIcon}</span>
+                    <span className="block truncate text-xs font-medium text-slate-800" title={row.unit}>{row.unit}</span>
                   </div>
-                  {/* Info akun login: dibuat otomatis dari data pegawai ini. */}
+                  {/* Info akun login */}
                   {row.akun ? (
                     <span
-                      className="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-surface-container text-[10.5px] leading-tight text-on-surface-variant"
+                      className="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-slate-100/80 border border-slate-200/60 text-[10.5px] font-mono text-slate-600"
                       title={`Akun ${row.akun.username} • role ${row.akun.role}${row.akun.wajibGanti ? ' • wajib ganti sandi' : ''}`}
                     >
-                      <span className="material-symbols-outlined text-[12px] leading-none">account_circle</span>
+                      <span className="material-symbols-outlined text-[12px] leading-none text-slate-400">account_circle</span>
                       {row.akun.username}
-                      {row.akun.wajibGanti && <span className="text-amber-700">• ganti sandi</span>}
+                      {row.akun.wajibGanti && <span className="text-amber-600 font-semibold">• ganti sandi</span>}
                     </span>
                   ) : (
-                    <span className="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-error-container text-[10.5px] text-on-error-container">
+                    <span className="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-rose-50 border border-rose-100 text-[10.5px] text-rose-600">
                       <span className="material-symbols-outlined text-[12px] leading-none">person_off</span>
                       Belum ada akun
                     </span>
                   )}
                 </td>
-                <td className="h-14 px-3 align-middle">
-                  <span className="block text-body-md text-body-md text-on-surface leading-snug line-clamp-2 break-words" title={row.assignment}>
+                <td className="h-14 px-3.5 align-middle">
+                  <span className="block text-xs text-slate-700 leading-snug line-clamp-2 break-words" title={row.assignment}>
                     {row.assignment}
                   </span>
                 </td>
-                <td className="h-14 px-3 text-center align-middle">
+                <td className="h-14 px-3.5 text-center align-middle">
                   {row.statusActive ? (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-label-md text-label-md bg-emerald-50 text-emerald-600 whitespace-nowrap">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60 whitespace-nowrap">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                       Aktif
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-label-md text-label-md bg-rose-50 text-rose-700 whitespace-nowrap">
-                      <span className="w-1.5 h-1.5 rounded-full bg-rose-600"></span>
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-600 border border-slate-200 whitespace-nowrap">
+                      <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
                       Nonaktif
                     </span>
                   )}
                 </td>
-                <td className="h-14 px-3 align-middle">
-                  <div className="flex items-center justify-end gap-1">
+                <td className="h-14 px-3.5 align-middle">
+                  <div className="flex items-center justify-end gap-1.5">
                     <button
                       onClick={() => openModal('detail', row.staff)}
-                      className="h-8 shrink-0 whitespace-nowrap px-2 rounded-lg bg-blue-50 hover:bg-blue-100 text-secondary font-label-md text-label-md inline-flex items-center gap-1 transition-colors"
+                      className="h-7 shrink-0 whitespace-nowrap px-2 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium inline-flex items-center gap-1 transition-colors cursor-pointer"
                       title="Detail Pegawai"
                       aria-label="Detail Pegawai"
                       type="button"
                     >
-                      <span className="material-symbols-outlined text-[16px] leading-none">visibility</span>
+                      <span className="material-symbols-outlined text-[15px] leading-none">visibility</span>
                       <span className="hidden 2xl:inline">Detail</span>
                     </button>
                     <button
                       onClick={() => openModal('edit', row.staff)}
-                      className="h-8 shrink-0 whitespace-nowrap px-2 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-700 font-label-md text-label-md inline-flex items-center gap-1 transition-colors"
+                      className="h-7 shrink-0 whitespace-nowrap px-2 rounded-md bg-blue-50 hover:bg-blue-100 border border-blue-100 text-blue-700 text-xs font-medium inline-flex items-center gap-1 transition-colors cursor-pointer"
                       title="Edit Pegawai"
                       aria-label="Edit Pegawai"
                       type="button"
                     >
-                      <span className="material-symbols-outlined text-[16px] leading-none">edit</span>
+                      <span className="material-symbols-outlined text-[15px] leading-none">edit</span>
                       <span className="hidden 2xl:inline">Edit</span>
                     </button>
                     <button
                       onClick={() => openModal('reset', row.staff)}
-                      className="h-8 shrink-0 whitespace-nowrap px-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface-variant font-label-md text-label-md inline-flex items-center gap-1 transition-colors"
+                      className="h-7 shrink-0 whitespace-nowrap px-2 rounded-md bg-amber-50 hover:bg-amber-100 border border-amber-100 text-amber-700 text-xs font-medium inline-flex items-center gap-1 transition-colors cursor-pointer"
                       title="Reset Sandi Presensi"
                       aria-label="Reset Sandi Presensi"
                       type="button"
                     >
-                      <span className="material-symbols-outlined text-[16px] leading-none">lock_reset</span>
+                      <span className="material-symbols-outlined text-[15px] leading-none">lock_reset</span>
                       <span className="hidden 2xl:inline">Reset</span>
                     </button>
                     <button
                       onClick={() => openModal('delete', row.staff)}
-                      className={`h-8 shrink-0 whitespace-nowrap px-2 rounded-lg font-label-md text-label-md inline-flex items-center gap-1 transition-colors ${
+                      className={`h-7 shrink-0 whitespace-nowrap px-2 rounded-md text-xs font-medium inline-flex items-center gap-1 transition-colors cursor-pointer border ${
                         row.statusActive
-                          ? 'bg-red-50 hover:bg-red-100 text-red-600'
-                          : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-600'
+                          ? 'bg-rose-50 hover:bg-rose-100 border-rose-200/80 text-rose-700'
+                          : 'bg-emerald-50 hover:bg-emerald-100 border-emerald-200/80 text-emerald-700'
                       }`}
                       title={row.statusActive ? 'Nonaktifkan / Hapus Pegawai' : 'Aktifkan Kembali / Hapus Pegawai'}
                       aria-label={row.statusActive ? 'Nonaktifkan atau Hapus Pegawai' : 'Aktifkan atau Hapus Pegawai'}
                       type="button"
                     >
-                      <span className="material-symbols-outlined text-[16px] leading-none">{row.statusActive ? 'block' : 'check_circle'}</span>
+                      <span className="material-symbols-outlined text-[15px] leading-none">{row.statusActive ? 'block' : 'check_circle'}</span>
                       <span className="hidden 2xl:inline">{row.statusActive ? 'Nonaktif' : 'Aktifkan'}</span>
                     </button>
                   </div>
@@ -333,7 +333,7 @@ function StaffTable({ unitFilter, searchTerm, statusFilter, currentPage, setCurr
             ))}
             {filteredStaff.length === 0 && (
               <tr>
-                <td colSpan="7" className="py-10 text-center text-on-surface-variant">
+                <td colSpan="7" className="py-12 text-center text-slate-400 text-xs">
                   Tidak ada data pegawai yang sesuai dengan filter.
                 </td>
               </tr>
@@ -343,23 +343,23 @@ function StaffTable({ unitFilter, searchTerm, statusFilter, currentPage, setCurr
       </div>
 
       {toast && (
-        <div className="px-3 py-2 bg-emerald-50 text-emerald-800 text-xs flex items-center gap-2 border-t border-outline/20">
-          <span className="material-symbols-outlined text-[16px]">check_circle</span>
+        <div className="px-3.5 py-2 bg-emerald-50 text-emerald-800 border-t border-emerald-200 text-xs flex items-center gap-2">
+          <span className="material-symbols-outlined text-[16px] text-emerald-600">check_circle</span>
           <span>{toast}</span>
         </div>
       )}
 
-      <div className="p-space-md bg-surface-container-lowest flex flex-col sm:flex-row items-center justify-between gap-space-sm border-t border-outline/20">
-        <div className="flex items-center gap-space-xs text-on-surface-variant font-body-sm text-body-sm">
+      <div className="px-4 py-3 bg-white border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+        <div className="flex items-center gap-2 flex-wrap">
           <span>
-            Menampilkan <strong className="font-body-sm-medium text-body-sm-medium text-on-surface">{firstShown}–{lastShown}</strong> dari{' '}
-            <strong className="font-body-sm-medium text-body-sm-medium text-on-surface">{filteredStaff.length}</strong> data pegawai
+            Menampilkan <strong className="font-semibold text-slate-800">{firstShown}–{lastShown}</strong> dari{' '}
+            <strong className="font-semibold text-slate-800">{filteredStaff.length}</strong> pegawai
           </span>
-          <span className="text-surface-variant">•</span>
-          <div className="flex items-center gap-1">
+          <span className="text-slate-300">•</span>
+          <div className="flex items-center gap-1.5">
             <span>Baris per halaman:</span>
             <select
-              className="h-7 px-2 bg-surface-container-low text-on-surface font-body-sm text-body-sm rounded focus:outline-none cursor-pointer border border-outline/30"
+              className="h-7 px-2 bg-slate-50 border border-slate-200 text-slate-800 rounded font-medium focus:outline-none cursor-pointer"
               value={rowsPerPage}
               onChange={(e) => {
                 setRowsPerPage(e.target.value)
@@ -373,19 +373,19 @@ function StaffTable({ unitFilter, searchTerm, statusFilter, currentPage, setCurr
         <div className="flex items-center gap-1">
           <button
             disabled={safePage === 1}
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-on-surface-variant/40 bg-surface-container-low cursor-not-allowed"
+            className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-100 transition-colors disabled:opacity-40 disabled:hover:bg-transparent disabled:cursor-not-allowed cursor-pointer"
             type="button"
             onClick={() => setCurrentPage(safePage - 1)}
           >
-            <span className="material-symbols-outlined text-[18px]">chevron_left</span>
+            <span className="material-symbols-outlined text-[17px]">chevron_left</span>
           </button>
           {pageNumbers.map((page) => (
             <button
               key={page}
-              className={`w-8 h-8 rounded-lg flex items-center justify-center font-body-sm text-body-sm transition-colors ${
+              className={`w-8 h-8 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
                 safePage === page
-                  ? 'bg-primary-container text-on-primary font-body-sm-medium text-body-sm-medium'
-                  : 'text-on-surface hover:bg-surface-container'
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'text-slate-700 hover:bg-slate-100'
               }`}
               type="button"
               onClick={() => setCurrentPage(page)}
@@ -395,11 +395,11 @@ function StaffTable({ unitFilter, searchTerm, statusFilter, currentPage, setCurr
           ))}
           <button
             disabled={safePage === totalPages}
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-on-surface hover:bg-surface-container text-body-sm transition-colors disabled:text-on-surface-variant/40 disabled:cursor-not-allowed"
+            className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-100 transition-colors disabled:opacity-40 disabled:hover:bg-transparent disabled:cursor-not-allowed cursor-pointer"
             type="button"
             onClick={() => setCurrentPage(safePage + 1)}
           >
-            <span className="material-symbols-outlined text-[18px]">chevron_right</span>
+            <span className="material-symbols-outlined text-[17px]">chevron_right</span>
           </button>
         </div>
       </div>

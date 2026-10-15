@@ -233,41 +233,48 @@ function RankingKehadiranPage() {
 
   return (
     <div className="flex flex-col w-full">
-      <div className="p-space-lg md:p-space-xl flex flex-col gap-space-lg max-w-[1600px] mx-auto w-full">
+      <div className="p-4 sm:p-6 lg:p-8 max-w-[1600px] mx-auto space-y-6 w-full">
         {/* PAGE HEADER */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-space-sm">
-          <div className="flex flex-col">
-            <h1 className="font-headline-md text-headline-md text-on-surface tracking-tight">Ranking Kehadiran</h1>
-            <p className="font-body-md text-body-md text-on-surface-variant mt-1">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
+              <span className="p-2 rounded-lg bg-blue-50 text-blue-600 border border-blue-100">
+                <span className="material-symbols-outlined text-[20px] leading-none">military_tech</span>
+              </span>
+              Ranking Kehadiran
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-500 mt-1">
               Pemantauan reputasi dan analisis kepatuhan ketepatan waktu pegawai antar-unit sekolah secara berkala.
             </p>
           </div>
-          <nav className="flex items-center gap-1.5 px-space-sm py-1.5 rounded-lg bg-surface-container-lowest shadow-sm w-fit">
-            <span className="material-symbols-outlined text-outline text-[16px]">home</span>
-            <span className="font-body-sm text-body-sm text-outline">Home</span>
-            <span className="material-symbols-outlined text-outline text-[14px]">chevron_right</span>
-            <span className="font-body-sm text-body-sm text-outline">Presensi</span>
-            <span className="material-symbols-outlined text-outline text-[14px]">chevron_right</span>
-            <span className="font-body-sm-medium text-body-sm-medium text-secondary">Ranking Kehadiran</span>
-          </nav>
+          <div className="flex items-center self-start md:self-auto bg-slate-50 border border-slate-200/80 px-3 py-1.5 rounded-lg shadow-xs">
+            <div className="flex items-center gap-1.5 text-xs text-slate-500">
+              <span className="material-symbols-outlined text-[15px] text-slate-400">home</span>
+              <span>Home</span>
+              <span className="text-slate-300">/</span>
+              <span>Presensi</span>
+              <span className="text-slate-300">/</span>
+              <span className="text-blue-600 font-semibold">Ranking Kehadiran</span>
+            </div>
+          </div>
         </div>
 
         {/* CONTROL TOOLBAR */}
-        <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-space-md p-space-md rounded-xl bg-surface-container-lowest shadow-sm">
-          <div className="flex flex-wrap items-center gap-space-sm">
+        <div className="bg-white rounded-xl border border-slate-200/80 p-3.5 shadow-xs flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-2.5">
             {/* Segmented Toggle Periode */}
-            <div className="flex items-center p-1 rounded-lg bg-surface-container-low">
+            <div className="inline-flex p-1 bg-slate-100 rounded-lg gap-1 border border-slate-200/60">
               {tabs.map((tab) => (
                 <button
                   key={tab}
                   onClick={() => {
                     setActiveTab(tab)
-                    setSelectedDateRange(null) // Reset custom date range when tab changes
+                    setSelectedDateRange(null)
                   }}
-                  className={`px-space-md py-1.5 rounded-md font-body-sm text-body-sm transition-colors cursor-pointer ${
+                  className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${
                     activeTab === tab
-                      ? 'bg-primary-container text-on-primary shadow-sm'
-                      : 'text-on-surface-variant hover:text-on-surface'
+                      ? 'bg-white text-slate-900 shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
                   }`}
                   type="button"
                 >
@@ -278,41 +285,41 @@ function RankingKehadiranPage() {
             
             {/* Unit Selector — hanya Superadmin */}
             {canSwitchUnit && (
-            <div className="relative" ref={unitMenuRef}>
-              <button
-                onClick={() => {
-                  setOpenUnitMenu(!openUnitMenu)
-                  setOpenDateMenu(false)
-                }}
-                className="h-10 px-space-md flex items-center gap-space-xs rounded-lg bg-surface-container-lowest text-on-surface hover:bg-surface-container-low transition-colors shadow-sm cursor-pointer"
-                type="button"
-              >
-                <span className="material-symbols-outlined text-secondary text-[18px]">apartment</span>
-                <span className="font-body-sm-medium text-body-sm-medium">{selectedUnitOption.label}</span>
-                <span className="material-symbols-outlined text-outline text-[18px]">{openUnitMenu ? 'expand_less' : 'expand_more'}</span>
-              </button>
-              {openUnitMenu && (
-                <div className="absolute right-0 top-full mt-1.5 w-64 bg-surface-container-lowest rounded-lg shadow-lg border border-outline-variant overflow-hidden z-10 animate-fade-in">
-                  {unitOptions.map((opt) => (
-                    <button
-                      key={opt.id}
-                      onClick={() => {
-                        dispatch({ type: 'SET_SELECTED_UNIT', payload: opt.id })
-                        setOpenUnitMenu(false)
-                      }}
-                      className={`w-full px-space-md py-2 text-left font-body-sm text-body-sm transition-colors ${
-                        selectedUnit === opt.id
-                          ? 'bg-primary-container text-on-primary'
-                          : 'text-on-surface hover:bg-surface-container-low'
-                      }`}
-                      type="button"
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+              <div className="relative" ref={unitMenuRef}>
+                <button
+                  onClick={() => {
+                    setOpenUnitMenu(!openUnitMenu)
+                    setOpenDateMenu(false)
+                  }}
+                  className="h-9 px-3 flex items-center gap-2 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 font-medium text-xs transition-colors shadow-xs cursor-pointer"
+                  type="button"
+                >
+                  <span className="material-symbols-outlined text-slate-400 text-[16px]">apartment</span>
+                  <span>{selectedUnitOption.label}</span>
+                  <span className="material-symbols-outlined text-slate-400 text-[16px]">{openUnitMenu ? 'expand_less' : 'expand_more'}</span>
+                </button>
+                {openUnitMenu && (
+                  <div className="absolute left-0 top-full mt-1.5 w-64 bg-white rounded-xl shadow-lg border border-slate-200 py-1.5 z-20 animate-fade-in">
+                    {unitOptions.map((opt) => (
+                      <button
+                        key={opt.id}
+                        onClick={() => {
+                          dispatch({ type: 'SET_SELECTED_UNIT', payload: opt.id })
+                          setOpenUnitMenu(false)
+                        }}
+                        className={`w-full px-3.5 py-2 text-left text-xs transition-colors ${
+                          selectedUnit === opt.id
+                            ? 'bg-blue-50 text-blue-700 font-semibold'
+                            : 'text-slate-700 hover:bg-slate-50'
+                        }`}
+                        type="button"
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             )}
             
             {/* Month/Date Range Badge */}
@@ -322,63 +329,68 @@ function RankingKehadiranPage() {
                   setOpenDateMenu(!openDateMenu)
                   setOpenUnitMenu(false)
                 }}
-                className="h-10 px-space-md flex items-center gap-space-xs rounded-lg bg-surface-container-low text-on-surface hover:bg-surface-container transition-colors shadow-sm cursor-pointer"
+                className="h-9 px-3 flex items-center gap-2 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 font-medium text-xs transition-colors shadow-xs cursor-pointer"
                 type="button"
               >
-                <span className="material-symbols-outlined text-[18px]">calendar_today</span>
-                <span className="font-body-sm-medium text-body-sm-medium text-on-surface">{formatDateRange(dateRange)}</span>
-                <span className="material-symbols-outlined text-outline text-[18px]">{openDateMenu ? 'expand_less' : 'expand_more'}</span>
+                <span className="material-symbols-outlined text-slate-400 text-[16px]">calendar_today</span>
+                <span>{formatDateRange(dateRange)}</span>
+                <span className="material-symbols-outlined text-slate-400 text-[16px]">{openDateMenu ? 'expand_less' : 'expand_more'}</span>
               </button>
               {openDateMenu && (
-                <div className="absolute right-0 top-full mt-1.5 w-56 bg-surface-container-lowest rounded-lg shadow-lg border border-outline-variant overflow-hidden z-10 animate-fade-in p-2">
-                  <div className="px-2 py-1 font-label-sm text-label-sm text-on-surface-variant uppercase">Preset Cepat</div>
-                  {['Harian', 'Mingguan', 'Bulanan', 'Tahunan'].map((preset) => (
-                    <button
-                      key={preset}
-                      onClick={() => {
-                        setActiveTab(preset)
-                        setSelectedDateRange(null)
-                        setOpenDateMenu(false)
-                      }}
-                      className={`w-full px-3 py-2 text-left font-body-sm text-body-sm rounded-md transition-colors ${
-                        activeTab === preset && !selectedDateRange
-                          ? 'bg-primary-container text-on-primary'
-                          : 'text-on-surface hover:bg-surface-container-low'
-                      }`}
-                      type="button"
-                    >
-                      {preset}
-                    </button>
-                  ))}
-                  <div className="border-t border-outline-variant my-1"></div>
-                  <div className="px-2 py-1 font-label-sm text-label-sm text-on-surface-variant uppercase">Kustom</div>
-                  <div className="px-2 py-2 space-y-2">
-                    <div>
-                      <label className="block font-body-xs text-body-xs text-on-surface-variant mb-1">Tanggal Mulai</label>
-                      <input
-                        type="date"
-                        value={dateRange.start}
-                        onChange={(e) => setSelectedDateRange({ ...dateRange, start: e.target.value })}
-                        className="w-full px-2 py-1.5 rounded-md bg-surface-container-lowest border border-outline text-body-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
-                      />
+                <div className="absolute left-0 sm:right-0 sm:left-auto top-full mt-1.5 w-64 bg-white rounded-xl shadow-lg border border-slate-200 p-3 z-20 animate-fade-in space-y-3">
+                  <div>
+                    <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Preset Cepat</div>
+                    <div className="grid grid-cols-2 gap-1">
+                      {['Harian', 'Mingguan', 'Bulanan', 'Tahunan'].map((preset) => (
+                        <button
+                          key={preset}
+                          onClick={() => {
+                            setActiveTab(preset)
+                            setSelectedDateRange(null)
+                            setOpenDateMenu(false)
+                          }}
+                          className={`px-2.5 py-1.5 text-left text-xs rounded-lg transition-colors ${
+                            activeTab === preset && !selectedDateRange
+                              ? 'bg-blue-50 text-blue-700 font-semibold'
+                              : 'text-slate-700 hover:bg-slate-50'
+                          }`}
+                          type="button"
+                        >
+                          {preset}
+                        </button>
+                      ))}
                     </div>
-                    <div>
-                      <label className="block font-body-xs text-body-xs text-on-surface-variant mb-1">Tanggal Akhir</label>
-                      <input
-                        type="date"
-                        value={dateRange.end}
-                        onChange={(e) => setSelectedDateRange({ ...dateRange, end: e.target.value })}
-                        className="w-full px-2 py-1.5 rounded-md bg-surface-container-lowest border border-outline text-body-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary"
-                      />
+                  </div>
+                  <div className="border-t border-slate-100 pt-2">
+                    <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Rentang Kustom</div>
+                    <div className="space-y-2">
+                      <div>
+                        <label className="block text-[11px] font-medium text-slate-500 mb-1">Tanggal Mulai</label>
+                        <input
+                          type="date"
+                          value={dateRange.start}
+                          onChange={(e) => setSelectedDateRange({ ...dateRange, start: e.target.value })}
+                          className="w-full h-8 px-2.5 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-800 focus:bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-medium text-slate-500 mb-1">Tanggal Akhir</label>
+                        <input
+                          type="date"
+                          value={dateRange.end}
+                          onChange={(e) => setSelectedDateRange({ ...dateRange, end: e.target.value })}
+                          className="w-full h-8 px-2.5 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-800 focus:bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20"
+                        />
+                      </div>
+                      <button
+                        onClick={() => setOpenDateMenu(false)}
+                        className="w-full h-8 flex items-center justify-center gap-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-xs transition-colors cursor-pointer"
+                        type="button"
+                      >
+                        <span className="material-symbols-outlined text-[15px]">check</span>
+                        <span>Terapkan</span>
+                      </button>
                     </div>
-                    <button
-                      onClick={() => setOpenDateMenu(false)}
-                      className="w-full h-9 flex items-center justify-center gap-space-xs rounded-lg bg-primary-container text-on-primary hover:bg-primary transition-colors font-body-sm-medium text-body-sm-medium cursor-pointer"
-                      type="button"
-                    >
-                      <span className="material-symbols-outlined text-[16px]">check</span>
-                      <span>Terapkan</span>
-                    </button>
                   </div>
                 </div>
               )}
@@ -386,78 +398,82 @@ function RankingKehadiranPage() {
           </div>
           
           {/* Action Button */}
-          <div className="flex items-center gap-space-sm">
+          <div className="flex items-center gap-2">
             <button
               onClick={handleExport}
               disabled={!ranking.hasAttendanceData || ranking.totalStaffWithAttendance === 0}
-              className={`h-10 px-space-md flex items-center justify-center gap-space-xs rounded-lg transition-all shadow-sm ${
+              className={`h-9 px-3.5 flex items-center justify-center gap-2 rounded-lg border transition-all text-xs font-semibold shadow-xs ${
                 !ranking.hasAttendanceData || ranking.totalStaffWithAttendance === 0
-                  ? 'bg-surface-container-low text-on-surface-variant cursor-not-allowed opacity-50'
-                  : 'bg-surface-container-lowest text-on-surface hover:bg-surface-container-low cursor-pointer'
+                  ? 'bg-slate-50 border-slate-200 text-slate-400 cursor-not-allowed opacity-60'
+                  : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700 cursor-pointer'
               }`}
               type="button"
             >
-              <span className="material-symbols-outlined text-secondary text-[18px]">file_download</span>
-              <span className="font-body-sm-medium text-body-sm-medium">Export Peringkat (.XLSX)</span>
+              <span className="material-symbols-outlined text-slate-500 text-[16px]">file_download</span>
+              <span>Export Peringkat (.XLSX)</span>
             </button>
           </div>
         </div>
 
         {/* MAIN LEADERBOARD SECTION */}
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-space-lg">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           {/* LEFT COLUMN: TOP 10 ON-TIME */}
-          <div className="flex flex-col bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
-            <div className="p-space-lg flex flex-col gap-space-xs bg-surface-container-lowest">
+          <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden flex flex-col">
+            <div className="p-4 sm:p-5 border-b border-slate-100 bg-slate-50/50 flex flex-col gap-1">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-space-xs">
-                  <div className="w-8 h-8 rounded-lg bg-surface-container-low flex items-center justify-center text-secondary">
-                    <span className="material-symbols-outlined text-[20px]">military_tech</span>
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
+                    <span className="material-symbols-outlined text-[18px]">military_tech</span>
                   </div>
-                  <h2 className="font-headline-sm text-headline-sm text-on-surface">Top 10 Paling Tepat Waktu</h2>
+                  <h2 className="text-sm sm:text-base font-bold text-slate-900">Top 10 Paling Tepat Waktu</h2>
                 </div>
-                <span className="px-2.5 py-0.5 rounded-full font-label-sm text-label-sm bg-surface-container-high text-on-surface-variant">
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
                   {ranking.topOnTime.length > 0 && ranking.topOnTime[0].terlambatCount === 0 ? '100% On-Time' : `${ranking.topOnTime.length} Pegawai`}
                 </span>
               </div>
-              <p className="font-body-sm text-body-sm text-on-surface-variant">
+              <p className="text-xs text-slate-500 mt-0.5">
                 Pegawai dengan tingkat kedisiplinan dan kepatuhan jam masuk tertinggi
               </p>
             </div>
-            <div className="flex flex-col">
+            <div className="flex flex-col divide-y divide-slate-100">
               {ranking.topOnTime.length === 0 ? (
-                <div className="p-space-lg text-center text-on-surface-variant">
+                <div className="p-8 text-center text-xs text-slate-400">
                   {emptyMessage}
                 </div>
               ) : (
                 ranking.topOnTime.map((item) => (
                   <div
                     key={item.rank}
-                    className="p-space-md flex items-center justify-between gap-space-sm bg-surface-container-low/40 hover:bg-surface-container-low transition-colors"
+                    className="p-3.5 sm:px-4 flex items-center justify-between gap-3 hover:bg-slate-50/60 transition-colors"
                   >
-                    <div className="flex items-center gap-space-sm min-w-0">
-                      <div className="w-8 h-8 rounded-full bg-secondary/10 flex items-center justify-center flex-shrink-0">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 font-bold text-xs ${
+                        item.rank === 1
+                          ? 'bg-amber-50 border border-amber-200 text-amber-700'
+                          : 'bg-slate-100 border border-slate-200 text-slate-600'
+                      }`}>
                         {item.rank === 1 ? (
-                          <span className="material-symbols-outlined text-secondary text-[18px]">workspace_premium</span>
+                          <span className="material-symbols-outlined text-[16px] text-amber-600">workspace_premium</span>
                         ) : (
-                          <span className="font-body-sm text-body-sm text-on-surface-variant">{item.rank}</span>
+                          item.rank
                         )}
                       </div>
-                      <div className="w-10 h-10 rounded-full bg-primary-container text-on-primary font-body-sm-medium text-body-sm-medium flex items-center justify-center flex-shrink-0">
+                      <div className="w-9 h-9 rounded-lg bg-blue-50 border border-blue-100 text-blue-700 font-bold text-xs flex items-center justify-center flex-shrink-0">
                         {item.initials}
                       </div>
                       <div className="flex flex-col min-w-0">
-                        <div className="flex items-center gap-space-xs flex-wrap">
-                          <span className="font-body-md-medium text-body-md-medium text-on-surface truncate">{item.name}</span>
-                          <span className="px-2 py-0.5 rounded-full font-label-sm text-label-sm bg-secondary-fixed text-on-secondary-fixed">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-xs font-bold text-slate-900 truncate">{item.name}</span>
+                          <span className="px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200 text-slate-600 font-medium text-[10px]">
                             {item.unit}
                           </span>
                         </div>
-                        <span className="font-body-sm text-body-sm text-on-surface-variant truncate">{item.role}</span>
+                        <span className="text-[11px] text-slate-500 truncate mt-0.5">{item.role}</span>
                       </div>
                     </div>
                     <div className="flex flex-col items-end flex-shrink-0 text-right">
-                      <span className="font-body-sm-medium text-body-sm-medium text-on-surface">{item.late}</span>
-                      <span className="font-body-sm text-body-sm text-on-surface-variant">
+                      <span className="text-xs font-bold text-emerald-600">{item.late}</span>
+                      <span className="text-[11px] text-slate-400">
                         {item.stat}{item.statSub ? ` (${item.statSub})` : ''}
                       </span>
                     </div>
@@ -468,63 +484,63 @@ function RankingKehadiranPage() {
           </div>
 
           {/* RIGHT COLUMN: TOP 10 FREQUENTLY LATE */}
-          <div className="flex flex-col bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
-            <div className="p-space-lg flex flex-col gap-space-xs bg-surface-container-lowest">
+          <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden flex flex-col">
+            <div className="p-4 sm:p-5 border-b border-slate-100 bg-slate-50/50 flex flex-col gap-1">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-space-xs">
-                  <div className="w-8 h-8 rounded-lg bg-surface-container-low flex items-center justify-center text-error">
-                    <span className="material-symbols-outlined text-[20px]">hourglass_empty</span>
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600">
+                    <span className="material-symbols-outlined text-[18px]">hourglass_empty</span>
                   </div>
-                  <h2 className="font-headline-sm text-headline-sm text-on-surface">Top 10 Paling Sering Terlambat</h2>
+                  <h2 className="text-sm sm:text-base font-bold text-slate-900">Top 10 Paling Sering Terlambat</h2>
                 </div>
-                <span className="px-2.5 py-0.5 rounded-full font-label-sm text-label-sm bg-error-container text-on-error-container">
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200/80">
                   Perlu Evaluasi
                 </span>
               </div>
-              <p className="font-body-sm text-body-sm text-on-surface-variant">
+              <p className="text-xs text-slate-500 mt-0.5">
                 Daftar pegawai dengan akumulasi keterlambatan tertinggi periode ini
               </p>
             </div>
-            <div className="flex flex-col">
+            <div className="flex flex-col divide-y divide-slate-100">
               {ranking.topLate.length === 0 ? (
-                <div className="p-space-lg text-center text-on-surface-variant">
+                <div className="p-8 text-center text-xs text-slate-400">
                   {emptyMessage}
                 </div>
               ) : (
                 ranking.topLate.map((item) => (
                   <div
                     key={item.rank}
-                    className="p-space-md flex items-center justify-between gap-space-sm bg-surface-container-lowest hover:bg-surface-container-low transition-colors"
+                    className="p-3.5 sm:px-4 flex items-center justify-between gap-3 hover:bg-slate-50/60 transition-colors"
                   >
-                    <div className="flex items-center gap-space-sm min-w-0">
-                      <div className="w-8 h-8 rounded-full bg-surface-container-high text-on-surface font-label-md text-label-md flex items-center justify-center flex-shrink-0">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-7 h-7 rounded-lg bg-slate-100 border border-slate-200 text-slate-600 font-bold text-xs flex items-center justify-center flex-shrink-0">
                         {item.rank}
                       </div>
-                      <div className="w-10 h-10 rounded-full bg-surface-container-high text-on-surface font-body-sm-medium text-body-sm-medium flex items-center justify-center flex-shrink-0">
+                      <div className="w-9 h-9 rounded-lg bg-blue-50 border border-blue-100 text-blue-700 font-bold text-xs flex items-center justify-center flex-shrink-0">
                         {item.initials}
                       </div>
                       <div className="flex flex-col min-w-0">
-                        <div className="flex items-center gap-space-xs flex-wrap">
-                          <span className="font-body-md-medium text-body-md-medium text-on-surface truncate">{item.name}</span>
-                          <span className="px-2 py-0.5 rounded-full font-label-sm text-label-sm bg-secondary-fixed text-on-secondary-fixed">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-xs font-bold text-slate-900 truncate">{item.name}</span>
+                          <span className="px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200 text-slate-600 font-medium text-[10px]">
                             {item.unit}
                           </span>
                         </div>
-                        <span className="font-body-sm text-body-sm text-on-surface-variant truncate">{item.role}</span>
+                        <span className="text-[11px] text-slate-500 truncate mt-0.5">{item.role}</span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-space-sm flex-shrink-0">
+                    <div className="flex items-center gap-2.5 flex-shrink-0">
                       <div className="flex flex-col items-end text-right">
-                        <span className={`font-body-sm-medium text-body-sm-medium ${item.rank === 1 ? 'text-error' : 'text-on-surface'}`}>
+                        <span className={`text-xs font-bold ${item.rank === 1 ? 'text-rose-600' : 'text-slate-800'}`}>
                           {item.count}
                         </span>
-                        <span className="font-body-sm text-body-sm text-on-surface-variant">{item.avg}</span>
+                        <span className="text-[11px] text-slate-400">{item.avg}</span>
                       </div>
                       <button
-                        className={`h-8 px-2.5 rounded-lg font-body-sm-medium text-body-sm-medium cursor-pointer transition-colors ${
+                        className={`h-7 px-2.5 rounded-lg text-xs font-semibold cursor-pointer transition-colors border ${
                           item.rank === 1
-                            ? 'bg-surface-container-highest text-error hover:bg-error-container'
-                            : 'bg-surface-container-low text-on-surface-variant hover:bg-surface-container-high'
+                            ? 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100'
+                            : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
                         }`}
                         type="button"
                       >

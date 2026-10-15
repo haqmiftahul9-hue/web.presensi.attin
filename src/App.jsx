@@ -5,6 +5,7 @@ import {
 } from './store/simPresStore.jsx'
 import Layout from './Layout.jsx'
 import DashboardPage from './pages/DashboardPage.jsx'
+import DashboardOverview from './pages/DashboardOverview.jsx'
 import UnitAdminSDPage from './pages/UnitAdminSDPage.jsx'
 import DataGuruPegawaiPage from './pages/DataGuruPegawaiPage.jsx'
 import CetakKartuIdPage from './pages/CetakKartuIdPage.jsx'
@@ -79,6 +80,15 @@ function App() {
             permission menu — itulah yang membuat alur redirect selalu punya
             tempat mendarat dan tidak pernah berputar. */}
         <Route path="/403" element={<ProtectedRoute><AccessDeniedPage /></ProtectedRoute>} />
+
+        {/* ===== DASHBOARD OVERVIEW =====
+            Sidebar vertikal sendiri + konten mengisi sisa viewport. Sengaja di
+            LUAR <Layout> supaya tidak ada sidebar ganda; gerbang aksesnya tetap
+            ProtectedRoute (butuh sesi + izin menu 'dashboard'). */}
+        <Route
+          path="/dashboard-overview"
+          element={<ProtectedRoute><DashboardOverview /></ProtectedRoute>}
+        />
 
         {/* ===== APLIKASI DESKTOP (Superadmin / Admin Unit / Petugas) =====
             /superadmin hanya Superadmin (dicek ProtectedRoute lewat ROUTE_ROLES),

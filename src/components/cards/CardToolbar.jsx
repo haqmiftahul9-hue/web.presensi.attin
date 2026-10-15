@@ -19,17 +19,17 @@ const STATUS_AKTIF_OPTIONS = [
 
 // Semua kontrol sengaja memakai tinggi (h-10) dan jarak (gap-3) yang sama
 // agar ketiga baris toolbar terlihat rata dan tidak ada ruang kosong berlebihan.
-const ROW = 'flex flex-wrap items-center gap-3'
+const ROW = 'flex flex-wrap items-center gap-2.5'
 const FIELD_BASE =
-  'h-10 w-full bg-surface-container-low hover:bg-surface-container text-on-surface font-body-md text-body-md rounded-lg focus:outline-none focus:bg-surface-container-lowest focus:ring-1 focus:ring-secondary/30'
-const SELECT_CLASS = `${FIELD_BASE} pl-9 pr-8 appearance-none cursor-pointer truncate`
-const SEARCH_CLASS = `${FIELD_BASE} pl-9 pr-3`
+  'h-9 w-full bg-slate-50 border border-slate-200 text-slate-800 text-xs font-medium rounded-lg focus:bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-colors'
+const SELECT_CLASS = `${FIELD_BASE} pl-8 pr-7 appearance-none cursor-pointer truncate`
+const SEARCH_CLASS = `${FIELD_BASE} pl-8 pr-3 placeholder:text-slate-400`
 const ICON_LEFT =
-  'material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px] pointer-events-none leading-none'
+  'material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[16px] pointer-events-none leading-none'
 const ICON_RIGHT =
-  'material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px] pointer-events-none leading-none'
+  'material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 text-[16px] pointer-events-none leading-none'
 const BTN_BASE =
-  'h-10 inline-flex items-center justify-center gap-2 rounded-lg font-body-md-medium text-body-md-medium transition-colors shadow-sm cursor-pointer whitespace-nowrap'
+  'h-9 inline-flex items-center justify-center gap-1.5 rounded-lg text-xs font-semibold transition-colors shadow-xs cursor-pointer whitespace-nowrap'
 
 /**
  * Toolbox Cetak Kartu ID, disusun tiga baris agar mudah dipindai:
@@ -70,18 +70,18 @@ function CardToolbar({
   }, [selectedCount, allSelected])
 
   return (
-    <div className="bg-surface-container-lowest rounded-xl shadow-sm p-space-md flex flex-col gap-3">
+    <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs p-3.5 sm:p-4 flex flex-col gap-3">
       {/* ===== Baris 1: aksi utama ===== */}
       <div className={ROW}>
-        <label className="flex h-10 shrink-0 cursor-pointer items-center gap-2 rounded-lg bg-surface-container-low hover:bg-surface-container px-3 transition-colors">
+        <label className="flex h-9 shrink-0 cursor-pointer items-center gap-2 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 px-3 transition-colors text-xs font-semibold text-slate-700">
           <input
             ref={masterRef}
             type="checkbox"
             checked={allSelected}
             onChange={onToggleSelectAll}
-            className="w-4 h-4 rounded border-outline/40 text-secondary focus:ring-2 focus:ring-secondary/40 cursor-pointer"
+            className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
           />
-          <span className="font-body-md-medium text-body-md-medium text-on-surface whitespace-nowrap">
+          <span className="whitespace-nowrap">
             Pilih Semua ({filteredCount})
           </span>
         </label>
@@ -89,9 +89,9 @@ function CardToolbar({
         <button
           type="button"
           onClick={onReset}
-          className={`${BTN_BASE} flex-1 sm:flex-none shrink-0 px-4 bg-surface-container-lowest hover:bg-surface-container text-on-surface`}
+          className={`${BTN_BASE} flex-1 sm:flex-none shrink-0 px-3.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700`}
         >
-          <span className="material-symbols-outlined text-[18px] leading-none">restore</span>
+          <span className="material-symbols-outlined text-[16px] leading-none text-slate-400">restore</span>
           <span>Reset Filter</span>
         </button>
 
@@ -103,9 +103,9 @@ function CardToolbar({
           type="button"
           onClick={onDownload}
           disabled={selectedCount === 0 || Boolean(busy)}
-          className={`${BTN_BASE} flex-1 sm:flex-none px-4 bg-surface-container-low hover:bg-surface-container text-on-surface disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-surface-container-low`}
+          className={`${BTN_BASE} flex-1 sm:flex-none px-3.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed`}
         >
-          <span className="material-symbols-outlined text-[18px] leading-none text-on-surface-variant">download</span>
+          <span className="material-symbols-outlined text-[16px] leading-none text-slate-400">download</span>
           <span>{busy === 'pdf' ? 'Menyusun PDF...' : 'Unduh PDF'}</span>
         </button>
 
@@ -113,9 +113,9 @@ function CardToolbar({
           type="button"
           onClick={onPrint}
           disabled={selectedCount === 0 || Boolean(busy)}
-          className={`${BTN_BASE} flex-1 sm:flex-none px-5 bg-primary hover:bg-primary-container text-on-primary disabled:opacity-50 disabled:cursor-not-allowed`}
+          className={`${BTN_BASE} flex-1 sm:flex-none px-4 bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-40 disabled:cursor-not-allowed`}
         >
-          <span className="material-symbols-outlined text-[20px] leading-none">print</span>
+          <span className="material-symbols-outlined text-[16px] leading-none">print</span>
           <span>{busy === 'print' ? 'Menyiapkan...' : `Cetak Terpilih (${selectedCount})`}</span>
         </button>
       </div>
@@ -144,7 +144,7 @@ function CardToolbar({
           <div className="relative">
             <span className={ICON_LEFT}>domain</span>
             <div
-              className="h-10 w-full pl-9 pr-8 bg-surface-container flex items-center text-on-surface-variant font-body-md text-body-md rounded-lg truncate cursor-not-allowed"
+              className="h-9 w-full pl-8 pr-7 bg-slate-100 border border-slate-200 flex items-center text-slate-500 text-xs font-medium rounded-lg truncate cursor-not-allowed"
               title="Unit mengikuti akun Anda"
               aria-label={`Unit terkunci: ${unitOptions[0]?.nama || 'Semua Unit'}`}
             >
@@ -233,10 +233,10 @@ function CardToolbar({
           type="button"
           onClick={onApplyValidity}
           disabled={selectedCount === 0}
-          className={`${BTN_BASE} flex-1 sm:flex-none px-3 bg-surface-container-low hover:bg-surface-container text-on-surface disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-surface-container-low`}
+          className={`${BTN_BASE} flex-1 sm:flex-none px-3.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed`}
           title="Terapkan masa berlaku ke kartu yang sedang dipilih"
         >
-          <span className="material-symbols-outlined text-[18px] leading-none">published_with_changes</span>
+          <span className="material-symbols-outlined text-[16px] leading-none text-slate-500">published_with_changes</span>
           <span>Terapkan</span>
         </button>
       </div>

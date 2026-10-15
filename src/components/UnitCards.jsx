@@ -9,7 +9,7 @@ function UnitCards() {
     return {
       icon: u.icon,
       label: u.nama,
-      count: `${staffInUnit} Pendidik/Staf`,
+      count: staffInUnit,
       subtitle: u.id === 'tk' ? '100% Terverifikasi Presensi'
         : u.id === 'sd' ? 'Unit Terbesar (Paralel 4)'
         : u.id === 'smp' ? 'Guru Mapel & Wali Kelas'
@@ -18,16 +18,22 @@ function UnitCards() {
   })
 
   return (
-    <div className={`grid grid-cols-1 gap-space-md ${visibleUnits.length > 1 ? 'md:grid-cols-4' : 'md:grid-cols-1'}`}>
+    <div className={`grid grid-cols-1 gap-4 ${visibleUnits.length > 1 ? 'sm:grid-cols-2 xl:grid-cols-4' : 'grid-cols-1'}`}>
       {cards.map((unit) => (
-        <div key={unit.label} className="p-space-md rounded-xl bg-surface-container-lowest shadow-sm flex items-center gap-space-md">
-          <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-secondary flex-shrink-0">
-            <span className="material-symbols-outlined text-[24px]">{unit.icon}</span>
+        <div
+          key={unit.label}
+          className="bg-white rounded-xl border border-slate-200/80 p-4 shadow-xs hover:border-slate-300 transition-all flex items-center gap-3.5 group"
+        >
+          <div className="w-11 h-11 rounded-xl bg-blue-50/80 border border-blue-100/60 text-blue-600 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+            <span className="material-symbols-outlined text-[22px]">{unit.icon}</span>
           </div>
           <div className="flex flex-col min-w-0">
-            <span className="font-label-sm text-label-sm text-on-surface-variant uppercase">{unit.label}</span>
-            <span className="font-headline-sm text-headline-sm text-on-surface">{unit.count}</span>
-            <span className="font-body-sm text-body-sm text-secondary truncate">{unit.subtitle}</span>
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider truncate">{unit.label}</span>
+            <div className="flex items-baseline gap-1 mt-0.5">
+              <span className="text-xl font-bold text-slate-900 tracking-tight leading-none">{unit.count}</span>
+              <span className="text-xs text-slate-500 font-medium">Pegawai</span>
+            </div>
+            <span className="text-[11px] text-slate-400 truncate mt-1">{unit.subtitle}</span>
           </div>
         </div>
       ))}

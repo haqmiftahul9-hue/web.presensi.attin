@@ -160,15 +160,15 @@ function LeaveRequestModal({ isOpen, onClose, onSave, staffList, units }) {
   }
 
   const getInputClass = (field) => {
-    const base = 'w-full h-10 px-3.5 py-2 rounded-lg bg-surface-container-low border focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-secondary/20 font-body-md text-body-md text-on-surface transition-all'
+    const base = 'w-full h-9 text-xs text-slate-800 bg-white border rounded-lg px-3 focus:outline-none transition-all'
     const error = errors[field] && touched[field]
-    return `${base} ${error ? 'border-rose-500 focus:border-rose-500' : 'border-outline focus:border-secondary/50'}`
+    return `${base} ${error ? 'border-rose-300 focus:border-rose-500 focus:ring-1 focus:ring-rose-500/20' : 'border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20'}`
   }
 
   const getTextareaClass = (field) => {
-    const base = 'px-3.5 py-2.5 rounded-lg bg-surface-container-low border focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-secondary/20 font-body-md text-body-md text-on-surface transition-all resize-none leading-relaxed'
+    const base = 'w-full p-3 text-xs text-slate-800 bg-white border rounded-lg focus:outline-none transition-all resize-none leading-relaxed'
     const error = errors[field] && touched[field]
-    return `${base} ${error ? 'border-rose-500 focus:border-rose-500' : 'border-outline focus:border-secondary/50'}`
+    return `${base} ${error ? 'border-rose-300 focus:border-rose-500 focus:ring-1 focus:ring-rose-500/20' : 'border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20'}`
   }
 
   if (!isOpen) return null
@@ -176,31 +176,31 @@ function LeaveRequestModal({ isOpen, onClose, onSave, staffList, units }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" onClick={onClose}>
       <div
-        className="relative w-full max-w-xl bg-surface-container-lowest rounded-2xl shadow-2xl border border-outline/20 overflow-hidden flex flex-col max-h-[90vh]"
+        className="relative w-full max-w-xl bg-white rounded-2xl shadow-2xl border border-slate-200/80 overflow-hidden flex flex-col max-h-[90vh]"
         onClick={e => e.stopPropagation()}
       >
-        <div className="px-space-lg py-space-md border-b border-outline/20 flex items-start justify-between bg-surface-container/50">
+        <div className="px-6 py-4 border-b border-slate-100 flex items-start justify-between bg-slate-50/50">
           <div>
-            <h2 className="font-headline-sm text-headline-sm text-primary leading-snug">
+            <h2 className="text-base font-bold text-slate-900 tracking-tight">
               Ajukan Izin Staf (Manual TU)
             </h2>
-            <p className="font-body-sm text-body-sm text-on-surface-variant mt-0.5">
+            <p className="text-xs text-slate-500 mt-0.5">
               Isi formulir pengajuan izin/cuti untuk pegawai.
             </p>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full flex items-center justify-center text-outline hover:bg-surface-container hover:text-on-surface transition-colors cursor-pointer"
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
             title="Tutup dialog"
             type="button"
           >
-            <span className="material-symbols-outlined text-[20px]">close</span>
+            <span className="material-symbols-outlined text-[18px]">close</span>
           </button>
         </div>
 
-        <div className="p-space-lg overflow-y-auto space-y-space-md">
+        <div className="p-6 overflow-y-auto space-y-4">
           <div className="flex flex-col gap-1.5">
-            <label className="font-body-sm-medium text-body-sm-medium text-on-surface" htmlFor="selectPegawai">
+            <label className="text-xs font-semibold text-slate-700" htmlFor="selectPegawai">
               Nama Pegawai <span className="text-rose-500">*</span>
             </label>
             <div className="relative">
@@ -218,20 +218,20 @@ function LeaveRequestModal({ isOpen, onClose, onSave, staffList, units }) {
                   </option>
                 ))}
               </select>
-              <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-outline text-[20px] pointer-events-none">person</span>
+              <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px] pointer-events-none">expand_more</span>
             </div>
             {errors.selectedStaffId && touched.selectedStaffId && (
-              <span className="font-body-sm text-body-sm text-rose-500">{errors.selectedStaffId}</span>
+              <span className="text-xs text-rose-500 mt-0.5">{errors.selectedStaffId}</span>
             )}
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-space-md">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
-              <label className="font-body-sm-medium text-body-sm-medium text-on-surface" htmlFor="inputNIY">
+              <label className="text-xs font-semibold text-slate-700" htmlFor="inputNIY">
                 NIY/NIP
               </label>
               <input
-                className="w-full h-10 px-3.5 py-2 rounded-lg bg-surface-container-low border border-outline focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-secondary/20 font-body-md text-body-md text-on-surface-variant transition-all"
+                className="w-full h-9 px-3 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-600 focus:outline-none"
                 id="inputNIY"
                 type="text"
                 value={selectedStaff?.niy || ''}
@@ -239,11 +239,11 @@ function LeaveRequestModal({ isOpen, onClose, onSave, staffList, units }) {
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="font-body-sm-medium text-body-sm-medium text-on-surface" htmlFor="inputUnit">
+              <label className="text-xs font-semibold text-slate-700" htmlFor="inputUnit">
                 Unit
               </label>
               <input
-                className="w-full h-10 px-3.5 py-2 rounded-lg bg-surface-container-low border border-outline focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-secondary/20 font-body-md text-body-md text-on-surface-variant transition-all"
+                className="w-full h-9 px-3 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-600 focus:outline-none"
                 id="inputUnit"
                 type="text"
                 value={selectedUnit?.nama || ''}
@@ -253,7 +253,7 @@ function LeaveRequestModal({ isOpen, onClose, onSave, staffList, units }) {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="font-body-sm-medium text-body-sm-medium text-on-surface" htmlFor="selectJenis">
+            <label className="text-xs font-semibold text-slate-700" htmlFor="selectJenis">
               Jenis Izin/Cuti <span className="text-rose-500">*</span>
             </label>
             <div className="relative">
@@ -269,18 +269,18 @@ function LeaveRequestModal({ isOpen, onClose, onSave, staffList, units }) {
                   <option key={opt} value={opt}>{opt}</option>
                 ))}
               </select>
-              <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-outline text-[20px] pointer-events-none">event_note</span>
+              <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px] pointer-events-none">expand_more</span>
             </div>
-            {errors.jenis && touched.jenis && <span className="font-body-sm text-body-sm text-rose-500">{errors.jenis}</span>}
+            {errors.jenis && touched.jenis && <span className="text-xs text-rose-500 mt-0.5">{errors.jenis}</span>}
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-space-md">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
-              <label className="font-body-sm-medium text-body-sm-medium text-on-surface" htmlFor="inputTanggalMulai">
+              <label className="text-xs font-semibold text-slate-700" htmlFor="inputTanggalMulai">
                 Tanggal Mulai <span className="text-rose-500">*</span>
               </label>
               <div className="relative flex items-center">
-                <span className="material-symbols-outlined absolute left-3 text-outline text-[18px]">calendar_month</span>
+                <span className="material-symbols-outlined absolute left-2.5 text-slate-400 text-[18px] pointer-events-none">calendar_month</span>
                 <input
                   className={getInputClass('tanggalMulai') + ' pl-9'}
                   id="inputTanggalMulai"
@@ -292,15 +292,15 @@ function LeaveRequestModal({ isOpen, onClose, onSave, staffList, units }) {
                 />
               </div>
               {errors.tanggalMulai && touched.tanggalMulai && (
-                <span className="font-body-sm text-body-sm text-rose-500">{errors.tanggalMulai}</span>
+                <span className="text-xs text-rose-500 mt-0.5">{errors.tanggalMulai}</span>
               )}
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="font-body-sm-medium text-body-sm-medium text-on-surface" htmlFor="inputTanggalSelesai">
+              <label className="text-xs font-semibold text-slate-700" htmlFor="inputTanggalSelesai">
                 Tanggal Selesai <span className="text-rose-500">*</span>
               </label>
               <div className="relative flex items-center">
-                <span className="material-symbols-outlined absolute left-3 text-outline text-[18px]">calendar_month</span>
+                <span className="material-symbols-outlined absolute left-2.5 text-slate-400 text-[18px] pointer-events-none">calendar_month</span>
                 <input
                   className={getInputClass('tanggalSelesai') + ' pl-9'}
                   id="inputTanggalSelesai"
@@ -312,46 +312,46 @@ function LeaveRequestModal({ isOpen, onClose, onSave, staffList, units }) {
                 />
               </div>
               {errors.tanggalSelesai && touched.tanggalSelesai && (
-                <span className="font-body-sm text-body-sm text-rose-500">{errors.tanggalSelesai}</span>
+                <span className="text-xs text-rose-500 mt-0.5">{errors.tanggalSelesai}</span>
               )}
             </div>
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="font-body-sm-medium text-body-sm-medium text-on-surface" htmlFor="inputDurasi">
+            <label className="text-xs font-semibold text-slate-700" htmlFor="inputDurasi">
               Durasi (Otomatis)
             </label>
             <input
-              className="w-full h-10 px-3.5 py-2 rounded-lg bg-surface-container-high border border-outline focus:outline-none font-body-md text-body-md text-primary font-medium text-center transition-all"
+              className="w-full h-9 px-3 rounded-lg bg-slate-50 border border-slate-200 text-xs font-semibold text-blue-700 focus:outline-none"
               id="inputDurasi"
               type="text"
               value={durasi}
               readOnly
             />
-            <span className="font-body-sm text-body-sm text-on-surface-variant">Dihitung otomatis dari tanggal mulai dan selesai</span>
+            <span className="text-[11px] text-slate-400">Dihitung otomatis dari tanggal mulai dan selesai</span>
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="font-body-sm-medium text-body-sm-medium text-on-surface" htmlFor="inputKeterangan">
-              Keterangan/Alasan <span className="text-rose-500">*</span>
+            <label className="text-xs font-semibold text-slate-700" htmlFor="inputKeterangan">
+              Keterangan / Alasan <span className="text-rose-500">*</span>
             </label>
             <textarea
               className={getTextareaClass('keterangan')}
               id="inputKeterangan"
-              placeholder="Tuliskan alasan izin/cuti..."
+              placeholder="Tuliskan alasan pengajuan izin atau cuti..."
               rows={3}
               value={keterangan}
               onChange={e => handleChange('keterangan', e.target.value)}
               onBlur={e => handleBlur('keterangan', e.target.value)}
             />
             {errors.keterangan && touched.keterangan && (
-              <span className="font-body-sm text-body-sm text-rose-500">{errors.keterangan}</span>
+              <span className="text-xs text-rose-500 mt-0.5">{errors.keterangan}</span>
             )}
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="font-body-sm-medium text-body-sm-medium text-on-surface">
-              Upload Lampiran <span className="text-rose-500">*</span>
+            <label className="text-xs font-semibold text-slate-700">
+              Upload Lampiran {aturanLampiran(jenis) === 'wajib' && <span className="text-rose-500">*</span>}
             </label>
             <div className="relative">
               <input
@@ -359,54 +359,56 @@ function LeaveRequestModal({ isOpen, onClose, onSave, staffList, units }) {
                 id="inputLampiran"
                 accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                 onChange={handleFileChange}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
               />
               <div
-                className={`w-full h-24 border-2 border-dashed rounded-lg flex flex-col items-center justify-center gap-2 cursor-pointer transition-all ${
-                  lampiran ? 'border-emerald-500 bg-emerald-50' : 'border-outline/50 hover:border-secondary/50 hover:bg-surface-container-low'
+                className={`w-full py-4 px-4 border-2 border-dashed rounded-xl flex flex-col items-center justify-center gap-1.5 cursor-pointer transition-all ${
+                  lampiran ? 'border-emerald-400 bg-emerald-50/50' : 'border-slate-200 hover:border-blue-400 hover:bg-slate-50/80 bg-slate-50/40'
                 }`}
               >
                 {lampiran ? (
                   <>
-                    <span className="material-symbols-outlined text-emerald-600 text-[32px]">check_circle</span>
-                    <span className="font-body-sm text-body-sm text-emerald-700">{lampiran.name}</span>
-                    <span className="font-label-sm text-label-sm text-on-surface-variant">
+                    <span className="material-symbols-outlined text-emerald-600 text-[26px]">check_circle</span>
+                    <span className="text-xs font-medium text-emerald-800">{lampiran.name}</span>
+                    <span className="text-[11px] text-slate-400">
                       {(lampiran.size / 1024).toFixed(1)} KB
                     </span>
                   </>
                 ) : (
                   <>
-                    <span className="material-symbols-outlined text-outline text-[32px]">cloud_upload</span>
-                    <span className="font-body-md text-body-md text-on-surface-variant">
-                      Seret & lepas file di sini atau klik untuk pilih
+                    <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 mb-0.5">
+                      <span className="material-symbols-outlined text-[20px]">cloud_upload</span>
+                    </div>
+                    <span className="text-xs font-medium text-slate-700">
+                      Pilih berkas atau seret ke sini
                     </span>
-                    <span className="font-label-sm text-label-sm text-outline">
-                      PDF, DOC, JPG, PNG (Max 5MB)
+                    <span className="text-[11px] text-slate-400">
+                      PDF, DOC, DOCX, JPG, PNG (Maks 5MB)
                     </span>
                   </>
                 )}
               </div>
             </div>
             {errors.lampiran && touched.lampiran && (
-              <span className="font-body-sm text-body-sm text-rose-500">{errors.lampiran}</span>
+              <span className="text-xs text-rose-500 mt-0.5">{errors.lampiran}</span>
             )}
           </div>
         </div>
 
-        <div className="px-space-lg py-space-md bg-surface-container/50 border-t border-outline/20 flex items-center justify-end gap-space-md">
+        <div className="px-6 py-3.5 bg-slate-50/80 border-t border-slate-100 flex items-center justify-end gap-2.5">
           <button
             onClick={onClose}
-            className="px-space-md py-2 rounded-lg border border-outline bg-surface-container-lowest hover:bg-surface-container text-on-surface-variant font-body-md-medium text-body-md-medium transition-colors cursor-pointer"
+            className="h-9 px-4 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs transition-colors cursor-pointer"
             type="button"
           >
             Batal
           </button>
           <button
             onClick={handleSubmit}
-            className="px-space-md py-2 rounded-lg bg-primary-container hover:bg-primary text-on-primary font-body-md-medium text-body-md-medium flex items-center gap-2 shadow-sm transition-colors cursor-pointer"
+            className="h-9 px-4 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
             type="button"
           >
-            <span className="material-symbols-outlined text-[18px]">save</span>
+            <span className="material-symbols-outlined text-[16px]">save</span>
             <span>Simpan Pengajuan</span>
           </button>
         </div>

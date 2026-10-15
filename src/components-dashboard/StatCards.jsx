@@ -9,69 +9,84 @@ function StatCards() {
   const alpha = selectJumlahAlpha(state)
   const rataRataTerlambat = selectRataRataTerlambat(state)
 
+  const rate = total > 0 ? ((hadir / total) * 100).toFixed(1) : '0.0'
+
   return (
-    // 1 kolom di HP (360-430px), 2 kolom di tablet (>=768px), 4 kolom di desktop.
-// Ukuran teks card tidak diubah — kartu tetap nyaman dibaca, halaman hanya
-// jadi lebih panjang dan di-scroll normal.
-<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-space-lg">
-      <div className="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col justify-between relative overflow-hidden">
-        <div className="flex flex-col gap-space-xs">
-          <div className="w-11 h-11 rounded-xl bg-secondary-fixed/50 flex items-center justify-center text-secondary mb-1">
-            <span className="material-symbols-outlined text-[22px]">group</span>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5">
+      {/* 1. Total Pegawai */}
+      <div className="bg-white rounded-xl border border-slate-200/80 p-5 shadow-xs hover:shadow-sm hover:border-slate-300 transition-all flex flex-col justify-between">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Pegawai</span>
+          <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100/80 flex items-center justify-center text-blue-600 shadow-2xs">
+            <span className="material-symbols-outlined text-[20px]">groups</span>
           </div>
-          <span className="font-headline-lg text-headline-lg text-on-surface leading-tight">{total}</span>
-          <span className="font-body-md-medium text-body-md-medium text-on-surface">Total Pegawai</span>
-          <span className="font-body-sm text-body-sm text-secondary mt-1 flex items-center gap-1">
-            <span className="material-symbols-outlined text-[14px]">arrow_upward</span>
-            +4 staf baru bulan ini
-          </span>
         </div>
-        <div className="w-full h-[3px] bg-secondary absolute bottom-0 left-0"></div>
+        <div className="mt-3">
+          <span className="text-3xl font-bold tracking-tight text-slate-900 font-headline-lg">{total}</span>
+          <div className="mt-2.5 flex items-center">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-blue-50 text-blue-700 border border-blue-100">
+              <span className="material-symbols-outlined text-[13px]">arrow_upward</span>
+              +4 staf baru bulan ini
+            </span>
+          </div>
+        </div>
       </div>
 
-      <div className="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col justify-between relative overflow-hidden">
-        <div className="flex flex-col gap-space-xs">
-          <div className="w-11 h-11 rounded-xl bg-surface-container-high flex items-center justify-center text-surface-tint mb-1">
-            <span className="material-symbols-outlined text-[22px]">check_circle</span>
+      {/* 2. Hadir Hari Ini */}
+      <div className="bg-white rounded-xl border border-slate-200/80 p-5 shadow-xs hover:shadow-sm hover:border-slate-300 transition-all flex flex-col justify-between">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Hadir Hari Ini</span>
+          <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100/80 flex items-center justify-center text-emerald-600 shadow-2xs">
+            <span className="material-symbols-outlined text-[20px]">check_circle</span>
           </div>
-          <span className="font-headline-lg text-headline-lg text-on-surface leading-tight">{hadir}</span>
-          <span className="font-body-md-medium text-body-md-medium text-on-surface">Hadir Hari Ini</span>
-          <span className="font-body-sm text-body-sm text-on-surface-variant mt-1 flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-secondary"></span>
-            {(total > 0 ? ((hadir / total) * 100).toFixed(1) : '0.0')}% tingkat kehadiran
-          </span>
         </div>
-        <div className="w-full h-[3px] bg-secondary-container absolute bottom-0 left-0"></div>
+        <div className="mt-3">
+          <span className="text-3xl font-bold tracking-tight text-slate-900 font-headline-lg">{hadir}</span>
+          <div className="mt-2.5 flex items-center">
+            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-100">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+              {rate}% tingkat kehadiran
+            </span>
+          </div>
+        </div>
       </div>
 
-      <div className="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col justify-between relative overflow-hidden">
-        <div className="flex flex-col gap-space-xs">
-          <div className="w-11 h-11 rounded-xl bg-surface-variant flex items-center justify-center text-on-surface-variant mb-1">
-            <span className="material-symbols-outlined text-[22px]">alarm</span>
+      {/* 3. Terlambat Hari Ini */}
+      <div className="bg-white rounded-xl border border-slate-200/80 p-5 shadow-xs hover:shadow-sm hover:border-slate-300 transition-all flex flex-col justify-between">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Terlambat</span>
+          <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-100/80 flex items-center justify-center text-amber-600 shadow-2xs">
+            <span className="material-symbols-outlined text-[20px]">schedule</span>
           </div>
-          <span className="font-headline-lg text-headline-lg text-on-surface leading-tight">{terlambat}</span>
-          <span className="font-body-md-medium text-body-md-medium text-on-surface">Terlambat Hari Ini</span>
-          <span className="font-body-sm text-body-sm text-outline mt-1 flex items-center gap-1">
-            <span className="material-symbols-outlined text-[14px]">timer</span>
-            Rata-rata {rataRataTerlambat} menit
-          </span>
         </div>
-        <div className="w-full h-[3px] bg-outline absolute bottom-0 left-0"></div>
+        <div className="mt-3">
+          <span className="text-3xl font-bold tracking-tight text-slate-900 font-headline-lg">{terlambat}</span>
+          <div className="mt-2.5 flex items-center">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-amber-50 text-amber-700 border border-amber-100">
+              <span className="material-symbols-outlined text-[13px]">timer</span>
+              Rata-rata {rataRataTerlambat} menit
+            </span>
+          </div>
+        </div>
       </div>
 
-      <div className="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col justify-between relative overflow-hidden">
-        <div className="flex flex-col gap-space-xs">
-          <div className="w-11 h-11 rounded-xl bg-error-container flex items-center justify-center text-error mb-1">
-            <span className="material-symbols-outlined text-[22px]">person_off</span>
+      {/* 4. Alpha Hari Ini */}
+      <div className="bg-white rounded-xl border border-slate-200/80 p-5 shadow-xs hover:shadow-sm hover:border-slate-300 transition-all flex flex-col justify-between">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Alpha / Belum</span>
+          <div className="w-10 h-10 rounded-xl bg-rose-50 border border-rose-100/80 flex items-center justify-center text-rose-600 shadow-2xs">
+            <span className="material-symbols-outlined text-[20px]">person_off</span>
           </div>
-          <span className="font-headline-lg text-headline-lg text-error leading-tight">{alpha}</span>
-          <span className="font-body-md-medium text-body-md-medium text-on-surface">Alpha Hari Ini</span>
-          <span className="font-body-sm text-body-sm text-on-error-container mt-1 flex items-center gap-1">
-            <span className="material-symbols-outlined text-[14px]">pending</span>
-            Menunggu konfirmasi verifikator
-          </span>
         </div>
-        <div className="w-full h-[3px] bg-error absolute bottom-0 left-0"></div>
+        <div className="mt-3">
+          <span className={`text-3xl font-bold tracking-tight font-headline-lg ${alpha > 0 ? 'text-rose-600' : 'text-slate-900'}`}>{alpha}</span>
+          <div className="mt-2.5 flex items-center">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-rose-50 text-rose-700 border border-rose-100">
+              <span className="material-symbols-outlined text-[13px]">info</span>
+              Menunggu konfirmasi
+            </span>
+          </div>
+        </div>
       </div>
     </div>
   )

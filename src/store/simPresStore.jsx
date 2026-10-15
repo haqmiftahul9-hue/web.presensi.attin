@@ -302,6 +302,10 @@ export const ROUTE_MENU_KEYS = {
   // Dashboard desktop, dipisah per mode peran.
   '/superadmin': 'dashboard',
   '/dashboard': 'dashboard',
+  // Dashboard Overview: sidebar sendiri + konten mengisi viewport. Memakai izin
+  // menu 'dashboard' yang sama agar role portal yang boleh lihat dashboard bisa
+  // membukanya tanpa menambah permission baru.
+  '/dashboard-overview': 'dashboard',
   // Modul portal desktop.
   '/unit-sd-islam-rj': 'manajemenUnit',
   '/manajemen-admin-user': 'manajemenAdminUser',

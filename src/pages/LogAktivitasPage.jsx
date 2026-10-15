@@ -4,13 +4,13 @@ import { useSimPres } from '../store/simPresStore.jsx'
 import { initialsOf, selectUnitName, selectCurrentUser, selectCurrentUserRole, hasMenuPermission, selectScopedLogs, selectScopedAdminUsers, selectActiveUnitId } from '../store/simPresStore.jsx'
 
 const actionStyles = {
-  tambah: 'bg-blue-50 text-blue-700',
-  ubah: 'bg-amber-50 text-amber-800',
-  hapus: 'bg-red-50 text-red-700',
-  login: 'bg-surface-container text-on-surface-variant',
-  reset: 'bg-red-50 text-red-700',
-  persetujuan: 'bg-emerald-50 text-emerald-800',
-  konfigurasi: 'bg-purple-50 text-purple-700',
+  tambah: 'bg-blue-50 text-blue-700 border border-blue-200/80',
+  ubah: 'bg-amber-50 text-amber-800 border border-amber-200/80',
+  hapus: 'bg-rose-50 text-rose-700 border border-rose-200/80',
+  login: 'bg-slate-100 text-slate-700 border border-slate-200',
+  reset: 'bg-red-50 text-red-700 border border-red-200/80',
+  persetujuan: 'bg-emerald-50 text-emerald-800 border border-emerald-200/80',
+  konfigurasi: 'bg-purple-50 text-purple-700 border border-purple-200/80',
 }
 
 const actionIcons = {
@@ -207,33 +207,35 @@ function LogAktivitasPage() {
     return (
       <div className="flex flex-col w-full">
         <div className="px-space-lg py-space-md flex flex-col gap-space-md">
-          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-space-sm">
-            <div className="flex flex-col gap-space-2xs">
-              <nav className="flex items-center gap-space-2xs text-on-surface-variant font-label-sm text-label-sm tracking-normal">
-                <span className="hover:text-on-surface cursor-pointer transition-colors">Home</span>
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
+            <div className="flex flex-col gap-1.5">
+              <nav className="flex items-center gap-1.5 text-xs text-slate-400">
+                <span className="hover:text-slate-700 cursor-pointer transition-colors">Home</span>
                 <span className="material-symbols-outlined text-[14px]">chevron_right</span>
-                <span className="hover:text-on-surface cursor-pointer transition-colors">Pengaturan & Sistem</span>
+                <span className="hover:text-slate-700 cursor-pointer transition-colors">Pengaturan & Sistem</span>
                 <span className="material-symbols-outlined text-[14px]">chevron_right</span>
-                <span className="text-secondary font-body-sm-medium text-body-sm-medium">Log Aktivitas</span>
+                <span className="text-slate-800 font-semibold">Log Aktivitas</span>
               </nav>
-              <div className="flex items-center gap-space-xs mt-1">
-                <div className="w-8 h-8 rounded-lg bg-surface-container-high flex items-center justify-center text-primary flex-shrink-0">
+              <div className="flex items-center gap-2 mt-1">
+                <div className="w-8 h-8 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 flex-shrink-0">
                   <span className="material-symbols-outlined text-[20px]">history</span>
                 </div>
-                <h1 className="font-headline-md text-headline-md text-on-surface tracking-tight leading-tight">Log Aktivitas</h1>
+                <h1 className="text-2xl font-bold tracking-tight text-slate-900 leading-tight">Log Aktivitas</h1>
               </div>
-              <p className="font-body-md text-body-md text-on-surface-variant max-w-3xl leading-relaxed">
+              <p className="text-xs text-slate-500 max-w-3xl leading-relaxed">
                 Anda tidak memiliki akses untuk melihat halaman ini.
               </p>
             </div>
           </div>
-          <div className="bg-surface-container-lowest rounded-lg p-space-lg shadow-sm flex items-center justify-center min-h-[300px]">
-            <div className="text-center">
-              <span className="material-symbols-outlined text-[48px] text-on-surface-variant">lock</span>
-              <h3 className="font-headline-sm text-headline-sm text-on-surface mt-3">Akses Ditolak</h3>
-              <p className="font-body-md text-body-md text-on-surface-variant mt-2 max-w-md">
+          <div className="bg-white rounded-xl border border-slate-200/80 p-8 shadow-xs flex items-center justify-center min-h-[320px]">
+            <div className="text-center max-w-md">
+              <div className="w-14 h-14 rounded-2xl bg-amber-50 border border-amber-100 text-amber-600 flex items-center justify-center mx-auto mb-3">
+                <span className="material-symbols-outlined text-[28px]">lock</span>
+              </div>
+              <h3 className="text-base font-bold text-slate-900">Akses Ditolak</h3>
+              <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
                 Hanya Superadmin dan Admin Unit yang dapat mengakses Log Aktivitas.
-                Role Anda (<strong>{currentUserRole}</strong>) tidak memiliki izin untuk melihat log sistem.
+                Role Anda (<strong className="text-slate-800">{currentUserRole}</strong>) tidak memiliki izin untuk melihat log audit sistem.
               </p>
             </div>
           </div>
@@ -285,9 +287,9 @@ function LogAktivitasPage() {
     const { date, time } = formatLogDateTime(selectedLog.time)
     const unitName = selectedLog.unit || '-'
     const { before, after } = parseLogDetailsFromRow(selectedLog)
-    const roleBadgeClass = selectedLog.role === 'Superadmin' ? 'bg-purple-50 text-purple-700' : 
-                           selectedLog.role === 'Admin Unit' ? 'bg-blue-50 text-blue-700' : 
-                           selectedLog.role === 'Sistem' ? 'bg-surface-container text-on-surface' : 'bg-slate-50 text-slate-700'
+    const roleBadgeClass = selectedLog.role === 'Superadmin' ? 'bg-purple-50 text-purple-700 border-purple-200' : 
+                           selectedLog.role === 'Admin Unit' ? 'bg-blue-50 text-blue-700 border-blue-200' : 
+                           selectedLog.role === 'Sistem' ? 'bg-slate-100 text-slate-700 border-slate-200' : 'bg-slate-50 text-slate-700 border-slate-200'
     return { date, time, unitName, before, after, roleBadgeClass }
   }
 
@@ -451,107 +453,99 @@ function LogAktivitasPage() {
   return (
     <>
       <div className="flex flex-col w-full">
-        <div className="px-space-lg py-space-md flex flex-col gap-space-md">
-          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-space-sm">
-            <div className="flex flex-col gap-space-2xs">
-              <nav className="flex items-center gap-space-2xs text-on-surface-variant font-label-sm text-label-sm tracking-normal">
-                <span className="hover:text-on-surface cursor-pointer transition-colors">Home</span>
-                <span className="material-symbols-outlined text-[14px]">chevron_right</span>
-                <span className="hover:text-on-surface cursor-pointer transition-colors">Pengaturan & Sistem</span>
-                <span className="material-symbols-outlined text-[14px]">chevron_right</span>
-                <span className="text-secondary font-body-sm-medium text-body-sm-medium">Log Aktivitas</span>
-              </nav>
-              <div className="flex items-center gap-space-xs mt-1">
-                <div className="w-8 h-8 rounded-lg bg-surface-container-high flex items-center justify-center text-primary flex-shrink-0">
-                  <span className="material-symbols-outlined text-[20px]">history</span>
-                </div>
-                <h1 className="font-headline-md text-headline-md text-on-surface tracking-tight leading-tight">Log Aktivitas</h1>
-              </div>
-              <p className="font-body-md text-body-md text-on-surface-variant max-w-3xl leading-relaxed">
+        <div className="p-4 sm:p-6 lg:p-8 max-w-[1600px] mx-auto space-y-6 w-full">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
+                <span className="p-2 rounded-lg bg-blue-50 text-blue-600 border border-blue-100">
+                  <span className="material-symbols-outlined text-[20px] leading-none">history</span>
+                </span>
+                Log Aktivitas
+              </h1>
+              <p className="text-xs sm:text-sm text-slate-500 mt-1">
                 Rekam jejak seluruh aktivitas sistem, perubahan data master, konfigurasi unit, dan autentikasi pengguna secara real-time.
               </p>
             </div>
-            <div className="flex items-center gap-space-xs flex-shrink-0 self-start md:self-auto">
+            <div className="flex items-center gap-2 flex-shrink-0 self-start md:self-auto flex-wrap">
               <button
                 onClick={clearFilters}
                 disabled={!hasActiveFilters}
-                className="h-10 px-space-sm rounded-lg bg-surface-container-lowest text-on-surface hover:bg-surface-container transition-colors flex items-center gap-1.5 shadow-sm font-body-sm text-body-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                className="h-9 px-3.5 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-1.5 shadow-xs text-xs font-semibold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                 type="button"
               >
-                <span className="material-symbols-outlined text-[18px] text-on-surface-variant">filter_alt_off</span>
+                <span className="material-symbols-outlined text-[16px] text-slate-400">filter_alt_off</span>
                 <span>Bersihkan Filter</span>
               </button>
               <button
                 onClick={handleExportCSV}
-                className="h-10 px-space-md rounded-lg bg-primary-container hover:bg-primary text-on-primary transition-colors flex items-center gap-2 shadow-sm font-body-sm text-body-sm cursor-pointer"
+                className="h-9 px-3.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition-colors flex items-center gap-1.5 shadow-xs text-xs font-semibold cursor-pointer"
                 type="button"
               >
-                <span className="material-symbols-outlined text-[18px]">download</span>
+                <span className="material-symbols-outlined text-[16px]">download</span>
                 <span>Export Log (.CSV)</span>
               </button>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-space-sm">
-            <div className="bg-surface-container-lowest rounded-lg p-space-sm shadow-sm flex items-center justify-between">
-              <div className="flex items-center gap-space-sm">
-                <div className="w-9 h-9 rounded-lg bg-surface-container-low flex items-center justify-center text-secondary">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="bg-white rounded-xl border border-slate-200/80 p-4 shadow-xs flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shadow-xs">
                   <span className="material-symbols-outlined text-[20px]">trending_up</span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="font-label-md text-label-md uppercase tracking-wider text-on-surface-variant">Total Log Hari Ini</span>
-                  <span className="font-body-md-medium text-body-md-medium text-on-surface leading-snug">{totalLogHariIni} Catatan</span>
+                  <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Total Log Hari Ini</span>
+                  <span className="text-lg font-bold text-slate-900 leading-snug">{totalLogHariIni} Catatan</span>
                 </div>
               </div>
-              <span className="font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-surface-container text-on-surface-variant">Hari ini</span>
+              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">Hari ini</span>
             </div>
-            <div className="bg-surface-container-lowest rounded-lg p-space-sm shadow-sm flex items-center justify-between">
-              <div className="flex items-center gap-space-sm">
-                <div className="w-9 h-9 rounded-lg bg-surface-container-low flex items-center justify-center text-secondary">
+            <div className="bg-white rounded-xl border border-slate-200/80 p-4 shadow-xs flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shadow-xs">
                   <span className="material-symbols-outlined text-[20px]">person</span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="font-label-md text-label-md uppercase tracking-wider text-on-surface-variant">User Teraktif</span>
-                  <span className="font-body-md-medium text-body-md-medium text-on-surface leading-snug">{topUser ? `${topUser[0].split(',')[0]} (${topUser[1]}x)` : '-'}</span>
+                  <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">User Teraktif</span>
+                  <span className="text-lg font-bold text-slate-900 leading-snug truncate max-w-[160px]">{topUser ? `${topUser[0].split(',')[0]} (${topUser[1]}x)` : '-'}</span>
                 </div>
               </div>
-              <span className="font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed">Terbanyak</span>
+              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-100">Terbanyak</span>
             </div>
-            <div className="bg-surface-container-lowest rounded-lg p-space-sm shadow-sm flex items-center justify-between">
-              <div className="flex items-center gap-space-sm">
-                <div className="w-9 h-9 rounded-lg bg-surface-container-low flex items-center justify-center text-secondary">
+            <div className="bg-white rounded-xl border border-slate-200/80 p-4 shadow-xs flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shadow-xs">
                   <span className="material-symbols-outlined text-[20px]">security_update_good</span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="font-label-md text-label-md uppercase tracking-wider text-on-surface-variant">Kebijakan Retensi</span>
-                  <span className="font-body-md-medium text-body-md-medium text-on-surface leading-snug">{RETENSI_HARI} Hari Penyimpanan</span>
+                  <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Kebijakan Retensi</span>
+                  <span className="text-lg font-bold text-slate-900 leading-snug">{RETENSI_HARI} Hari</span>
                 </div>
               </div>
-              <span className="font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-surface-container text-on-surface-variant">Auto-purge</span>
+              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">Auto-purge</span>
             </div>
           </div>
 
-          <div className="bg-surface-container-lowest rounded-lg p-space-sm shadow-sm flex flex-col lg:flex-row items-stretch lg:items-center gap-space-xs">
-            <div className="relative min-w-[220px]" ref={dateRangeDropdownRef}>
+          <div className="bg-white rounded-xl border border-slate-200/80 p-3.5 shadow-xs flex flex-col lg:flex-row items-stretch lg:items-center gap-2.5">
+            <div className="relative min-w-[200px]" ref={dateRangeDropdownRef}>
               <button
                 onClick={() => setShowDateRangeDropdown(prev => !prev)}
-                className="w-full h-10 px-space-sm bg-surface-container-low rounded-lg text-on-surface cursor-pointer hover:bg-surface-container transition-colors flex items-center gap-2 shadow-sm font-body-sm text-body-sm"
+                className="w-full h-9 px-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-slate-800 cursor-pointer transition-colors flex items-center justify-between text-xs font-medium"
                 type="button"
               >
-                <span className="material-symbols-outlined text-on-surface-variant text-[18px]">calendar_today</span>
-                <div className="flex flex-col text-left">
-                  <span className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider leading-tight">Rentang Tanggal</span>
-                  <span className="font-body-sm-medium text-body-sm-medium text-on-surface leading-tight mt-0.5">
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-slate-400 text-[16px]">calendar_today</span>
+                  <span>
                     {dateRange === 'custom' 
                       ? `${customStart ? new Date(customStart).toLocaleDateString('id-ID', {day:'2-digit',month:'short',year:'numeric'}) : 'Mulai'} - ${customEnd ? new Date(customEnd).toLocaleDateString('id-ID', {day:'2-digit',month:'short',year:'numeric'}) : 'Selesai'}`
                       : getDateRangeLabel(dateRange)
                     }
                   </span>
                 </div>
-                <span className="material-symbols-outlined text-on-surface-variant text-[18px] ml-auto">arrow_drop_down</span>
+                <span className="material-symbols-outlined text-slate-400 text-[16px]">arrow_drop_down</span>
               </button>
               {showDateRangeDropdown && (
-                <div className="absolute left-0 top-full mt-1 w-56 bg-surface-container-lowest rounded-lg shadow-lg border border-outline/30 py-1 z-10">
+                <div className="absolute left-0 top-full mt-1.5 w-56 bg-white rounded-xl shadow-lg border border-slate-200 py-1.5 z-20 animate-fade-in">
                   {['today', 'weekly', 'monthly', 'custom'].map((range) => (
                     <button
                       key={range}
@@ -566,7 +560,7 @@ function LogAktivitasPage() {
                         }
                         setShowDateRangeDropdown(false)
                       }}
-                      className={`w-full px-3 py-2 text-left font-body-sm text-body-sm transition-colors ${dateRange === range ? 'bg-secondary/10 text-secondary' : 'text-on-surface hover:bg-surface-container-low'}`}
+                      className={`w-full px-3.5 py-2 text-left text-xs transition-colors ${dateRange === range ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-slate-700 hover:bg-slate-50'}`}
                       type="button"
                     >
                       {getDateRangeLabel(range)}
@@ -575,21 +569,21 @@ function LogAktivitasPage() {
                 </div>
               )}
               {showCustomDatePicker && (
-                <div ref={customDatePickerRef} className="absolute left-0 top-full mt-1 w-56 bg-surface-container-lowest rounded-lg shadow-lg border border-outline/30 py-2 z-10">
-                  <div className="p-2 border-b border-outline/20">
-                    <span className="font-label-sm text-label-sm text-on-surface-variant">Tanggal Mulai</span>
+                <div ref={customDatePickerRef} className="absolute left-0 top-full mt-1.5 w-60 bg-white rounded-xl shadow-lg border border-slate-200 p-3 z-20 animate-fade-in space-y-2">
+                  <div>
+                    <span className="block text-[11px] font-medium text-slate-500 mb-1">Tanggal Mulai</span>
                     <input
                       type="date"
-                      className="w-full h-9 px-3 bg-surface-container-low rounded-lg font-body-sm text-body-sm text-on-surface focus:outline-none focus:bg-surface-container-lowest mt-1"
+                      className="w-full h-8 px-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 focus:bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20"
                       value={customStart}
                       onChange={(e) => setCustomStart(e.target.value)}
                     />
                   </div>
-                  <div className="p-2">
-                    <span className="font-label-sm text-label-sm text-on-surface-variant">Tanggal Akhir</span>
+                  <div>
+                    <span className="block text-[11px] font-medium text-slate-500 mb-1">Tanggal Akhir</span>
                     <input
                       type="date"
-                      className="w-full h-9 px-3 bg-surface-container-low rounded-lg font-body-sm text-body-sm text-on-surface focus:outline-none focus:bg-surface-container-lowest mt-1"
+                      className="w-full h-8 px-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 focus:bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20"
                       value={customEnd}
                       onChange={(e) => setCustomEnd(e.target.value)}
                     />
@@ -599,7 +593,7 @@ function LogAktivitasPage() {
             </div>
             <div className="relative min-w-[180px]">
               <select
-                className="w-full h-10 appearance-none pl-space-sm pr-8 bg-surface-container-low text-on-surface font-body-sm-medium text-body-sm-medium rounded-lg focus:outline-none focus:bg-surface-container cursor-pointer transition-colors"
+                className="w-full h-9 pl-3 pr-8 bg-slate-50 border border-slate-200 text-slate-800 text-xs font-medium rounded-lg focus:bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 cursor-pointer transition-colors"
                 value={selectedUser}
                 onChange={(e) => setSelectedUser(e.target.value)}
               >
@@ -608,11 +602,10 @@ function LogAktivitasPage() {
                   <option key={u.id} value={u.name}>{u.name} ({u.role})</option>
                 ))}
               </select>
-              <span className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px] pointer-events-none">expand_more</span>
             </div>
             <div className="relative min-w-[150px]">
               <select
-                className="w-full h-10 appearance-none pl-space-sm pr-8 bg-surface-container-low text-on-surface font-body-sm-medium text-body-sm-medium rounded-lg focus:outline-none focus:bg-surface-container cursor-pointer transition-colors"
+                className="w-full h-9 pl-3 pr-8 bg-slate-50 border border-slate-200 text-slate-800 text-xs font-medium rounded-lg focus:bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 cursor-pointer transition-colors"
                 value={selectedAction}
                 onChange={(e) => setSelectedAction(e.target.value)}
               >
@@ -625,12 +618,11 @@ function LogAktivitasPage() {
                 <option value="persetujuan">Approval</option>
                 <option value="konfigurasi">Konfigurasi</option>
               </select>
-              <span className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px] pointer-events-none">expand_more</span>
             </div>
             <div className="relative flex-1">
-              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">search</span>
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[16px]">search</span>
               <input
-                className="w-full h-10 pl-9 pr-space-md bg-surface-container-low text-on-surface placeholder:text-outline font-body-sm text-body-sm rounded-lg focus:outline-none focus:bg-surface-container transition-colors"
+                className="w-full h-9 pl-9 pr-3 bg-slate-50 border border-slate-200 text-slate-800 placeholder:text-slate-400 text-xs rounded-lg focus:bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-colors"
                 placeholder="Cari target objek, user, atau keterangan..."
                 type="text"
                 value={search}
@@ -639,86 +631,84 @@ function LogAktivitasPage() {
             </div>
           </div>
 
-          <div className="bg-surface-container-lowest rounded-lg shadow-sm overflow-hidden flex flex-col">
+          <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden flex flex-col">
             <div className="sp-table-wrap w-full">
-              <table className="w-full text-left font-body-md text-body-md border-collapse min-w-[1000px]">
+              <table className="w-full text-left text-xs border-collapse min-w-[1000px]">
                 <thead>
-                  <tr className="bg-surface-container-low text-on-surface-variant font-label-md text-label-md uppercase tracking-wider h-11 border-b border-outline/20">
-                    <th className="py-2.5 px-space-md w-[160px]" scope="col">Waktu & Tanggal</th>
-                    <th className="py-2.5 px-space-sm w-[260px]" scope="col">User Pelaksana</th>
-                    <th className="py-2.5 px-space-sm w-[140px]" scope="col">Jenis Aksi</th>
-                    <th className="py-2.5 px-space-sm w-[250px]" scope="col">Target / Objek</th>
-                    <th className="py-2.5 px-space-md" scope="col">Keterangan Aktivitas</th>
+                  <tr className="bg-slate-50/80 text-slate-500 font-bold text-[11px] uppercase tracking-wider h-11 border-b border-slate-200/80">
+                    <th className="py-3 px-4 w-[160px]" scope="col">Waktu & Tanggal</th>
+                    <th className="py-3 px-3.5 w-[260px]" scope="col">User Pelaksana</th>
+                    <th className="py-3 px-3.5 w-[140px]" scope="col">Jenis Aksi</th>
+                    <th className="py-3 px-3.5 w-[250px]" scope="col">Target / Objek</th>
+                    <th className="py-3 px-4" scope="col">Keterangan Aktivitas</th>
                   </tr>
                 </thead>
-                <tbody className="font-body-md text-body-md text-on-surface divide-y divide-surface-container-low">
-                  {paginatedData.map((row, idx) => {
+                <tbody className="divide-y divide-slate-100">
+                  {paginatedData.map((row) => {
                     const { date, time } = formatLogDateTime(row.time)
                     const displayAction = actionLabels[row.actionType] || row.action
                     return (
                       <tr 
                         key={row.id} 
-                        className={`${idx % 2 === 1 ? 'bg-surface-container-low/50' : 'bg-surface-container-lowest'} hover:bg-surface-container-low/60 transition-colors duration-150 cursor-pointer`}
+                        className="hover:bg-slate-50/60 transition-colors cursor-pointer"
                         onClick={() => openDetailModal(row)}
                       >
-                        <td className="py-3 px-space-md whitespace-nowrap">
-                          <div className="flex flex-col items-start gap-0.5 text-on-surface">
-                            <span className="font-body-sm-medium text-body-sm-medium text-on-surface">{date}</span>
-                            <span className="font-body-sm text-body-sm text-on-surface-variant">{time}</span>
+                        <td className="py-3 px-4 whitespace-nowrap">
+                          <div className="flex flex-col items-start">
+                            <span className="font-semibold text-slate-900">{date}</span>
+                            <span className="text-[11px] text-slate-400 mt-0.5">{time}</span>
                           </div>
                         </td>
-                        <td className="py-3 px-space-sm">
-                          <div className="flex items-center gap-space-xs">
-                            <div className="w-8 h-8 rounded-full bg-primary-container text-on-primary font-body-sm-medium text-body-sm-medium flex items-center justify-center flex-shrink-0">
+                        <td className="py-3 px-3.5">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-lg bg-blue-50 border border-blue-100 text-blue-700 font-bold text-xs flex items-center justify-center flex-shrink-0">
                               {row.initials}
                             </div>
                             <div className="flex flex-col min-w-0">
-                              <span className="font-body-sm-medium text-body-sm-medium text-on-surface truncate max-w-xs">{row.name}</span>
-                              <span className={`font-label-sm text-label-sm ${row.roleColor} leading-tight`}>{row.role}</span>
+                              <span className="font-semibold text-slate-900 truncate max-w-xs">{row.name}</span>
+                              <span className="text-[11px] font-medium text-slate-500">{row.role}</span>
                             </div>
                           </div>
                         </td>
-                        <td className="py-3 px-space-sm">
-                          <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full font-label-sm text-label-sm font-medium tracking-tight ${actionStyles[row.actionType]}`}>
+                        <td className="py-3 px-3.5">
+                          <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${actionStyles[row.actionType]}`}>
                             <span className="material-symbols-outlined text-[13px]">{actionIcons[row.actionType]}</span>
                             <span>{displayAction}</span>
                           </span>
                         </td>
-                        <td className="py-3 px-space-sm">
+                        <td className="py-3 px-3.5">
                           <div className="flex flex-col min-w-0">
-                            <span className="font-body-sm-medium text-body-sm-medium text-on-surface truncate max-w-xs">{row.target}</span>
-                            <span className="font-body-sm text-body-sm text-on-surface-variant truncate max-w-xs">{row.targetSub}</span>
+                            <span className="font-semibold text-slate-800 truncate max-w-xs">{row.target}</span>
+                            <span className="text-[11px] text-slate-400 truncate max-w-xs">{row.targetSub}</span>
                           </div>
                         </td>
-                        <td className="py-3 px-space-md">
-                          <div className="relative max-w-lg">
-                            <p className="font-body-sm text-body-sm text-on-surface leading-relaxed truncate" title={row.desc}>
-                              {truncateText(row.desc, 100)}
-                            </p>
-                            {row.desc.length > 100 && (
-                              <div className="absolute bottom-full left-0 mb-1 z-10 w-80 bg-surface-container-lowest rounded-lg shadow-lg border border-outline/20 p-3 hidden group-hover:block">
-                                <p className="font-body-sm text-body-sm text-on-surface leading-relaxed whitespace-pre-wrap">{row.desc}</p>
-                              </div>
-                            )}
-                          </div>
+                        <td className="py-3 px-4">
+                          <p className="text-xs text-slate-600 leading-relaxed truncate max-w-lg" title={row.desc}>
+                            {truncateText(row.desc, 100)}
+                          </p>
                         </td>
                       </tr>
                     )
                   })}
+                  {paginatedData.length === 0 && (
+                    <tr>
+                      <td colSpan={5} className="py-12 text-center text-xs text-slate-400">Tidak ada data log yang sesuai</td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
-            <div className="px-space-md py-space-sm bg-surface-container-lowest border-t border-surface-container flex flex-col sm:flex-row items-center justify-between gap-space-sm">
-              <div className="flex items-center gap-space-md">
-                <div className="font-body-sm text-body-sm text-on-surface-variant">
-                  Menampilkan <span className="font-body-sm-medium text-body-sm-medium text-on-surface font-semibold">{(currentPage - 1) * itemsPerPage + 1}</span> - <span className="font-body-sm-medium text-body-sm-medium text-on-surface font-semibold">{Math.min(currentPage * itemsPerPage, filteredData.length)}</span> dari <span className="font-body-sm-medium text-body-sm-medium text-on-surface font-semibold">{filteredData.length}</span> catatan log
+            <div className="p-4 bg-white border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+              <div className="flex items-center gap-3 flex-wrap">
+                <div>
+                  Menampilkan <span className="font-semibold text-slate-800">{(currentPage - 1) * itemsPerPage + 1}</span>–<span className="font-semibold text-slate-800">{Math.min(currentPage * itemsPerPage, filteredData.length)}</span> dari <span className="font-semibold text-blue-600">{filteredData.length}</span> catatan log
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <span className="font-body-sm text-body-sm text-on-surface-variant">Baris per halaman:</span>
+                  <span>Baris per halaman:</span>
                   <select
                     value={itemsPerPage}
                     onChange={(e) => { setItemsPerPage(parseInt(e.target.value)); setCurrentPage(1) }}
-                    className="h-8 px-2 bg-surface-container-low text-on-surface font-body-sm text-body-sm rounded border border-outline/30 focus:outline-none focus:ring-2 focus:ring-secondary/20 cursor-pointer"
+                    className="h-7 px-2 bg-slate-50 border border-slate-200 text-slate-700 text-xs rounded-md focus:bg-white focus:border-blue-500 cursor-pointer"
                   >
                     {ITEMS_PER_PAGE_OPTIONS.map((opt) => (
                       <option key={opt} value={opt}>{opt}</option>
@@ -730,7 +720,7 @@ function LogAktivitasPage() {
                 <button
                   onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
-                  className="h-8 px-2.5 rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface-variant hover:text-on-surface transition-colors flex items-center gap-1 font-label-sm text-label-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="h-8 px-2.5 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 transition-colors flex items-center gap-1 text-xs font-semibold disabled:opacity-40 disabled:cursor-not-allowed"
                   type="button"
                 >
                   <span className="material-symbols-outlined text-[16px]">chevron_left</span>
@@ -751,10 +741,10 @@ function LogAktivitasPage() {
                     <button
                       key={pageNum}
                       onClick={() => setCurrentPage(pageNum)}
-                      className={`w-8 h-8 rounded-lg font-body-sm-medium text-body-sm-medium flex items-center justify-center transition-colors cursor-pointer ${
+                      className={`w-8 h-8 rounded-lg text-xs font-semibold flex items-center justify-center transition-colors cursor-pointer ${
                         pageNum === currentPage
-                          ? 'bg-primary text-on-primary shadow-sm'
-                          : 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface'
+                          ? 'bg-blue-600 text-white shadow-xs'
+                          : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
                       }`}
                       type="button"
                     >
@@ -763,21 +753,12 @@ function LogAktivitasPage() {
                   )
                 })}
                 {totalPages > 5 && (
-                  <>
-                    <span className="w-6 text-center font-label-sm text-label-sm text-on-surface-variant tracking-widest">...</span>
-                    <button
-                      onClick={() => setCurrentPage(totalPages)}
-                      className="w-8 h-8 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-body-sm-medium text-body-sm-medium flex items-center justify-center transition-colors cursor-pointer"
-                      type="button"
-                    >
-                      {totalPages}
-                    </button>
-                  </>
+                  <span className="w-6 text-center text-slate-400">...</span>
                 )}
                 <button
                   onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
-                  className="h-8 px-2.5 rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface transition-colors flex items-center gap-1 font-label-sm text-label-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="h-8 px-2.5 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 transition-colors flex items-center gap-1 text-xs font-semibold disabled:opacity-40 disabled:cursor-not-allowed"
                   type="button"
                 >
                   <span>Berikutnya</span>
@@ -789,100 +770,100 @@ function LogAktivitasPage() {
         </div>
       </div>
       {showDetailModal && selectedLog && detailData && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" onClick={closeDetailModal}>
-          <div className="relative w-full max-w-2xl bg-surface-container-lowest rounded-2xl shadow-2xl border border-outline/20 overflow-hidden flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
-            <div className="px-space-lg py-space-md border-b border-outline/20 flex items-center justify-between bg-surface-container/50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs" onClick={closeDetailModal}>
+          <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-slate-200/80 overflow-hidden flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
+            <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
               <div>
-                <h2 className="font-headline-sm text-headline-sm text-primary leading-snug">Detail Log Aktivitas</h2>
-                <p className="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Informasi lengkap aktivitas sistem</p>
+                <h2 className="text-base font-bold text-slate-900">Detail Log Aktivitas</h2>
+                <p className="text-xs text-slate-500 mt-0.5">Informasi lengkap aktivitas sistem</p>
               </div>
-              <button onClick={closeDetailModal} className="w-8 h-8 rounded-full flex items-center justify-center text-outline hover:bg-surface-container hover:text-on-surface transition-colors cursor-pointer" type="button">
+              <button onClick={closeDetailModal} className="p-2 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer" type="button">
                 <span className="material-symbols-outlined text-[20px]">close</span>
               </button>
             </div>
-            <div className="p-space-lg overflow-y-auto space-y-space-md">
-              <div className="bg-surface-container-low rounded-lg p-4">
-                <div className="grid grid-cols-2 gap-3 text-sm">
+            <div className="p-5 overflow-y-auto space-y-4">
+              <div className="bg-slate-50/80 rounded-xl border border-slate-200/60 p-4">
+                <div className="grid grid-cols-2 gap-3 text-xs">
                   <div>
-                    <span className="font-label-sm text-label-sm text-on-surface-variant">ID Log</span>
-                    <p className="font-body-sm-medium text-body-sm-medium text-on-surface font-mono mt-0.5">{selectedLog.id}</p>
+                    <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">ID Log</span>
+                    <p className="font-mono text-slate-800 font-medium mt-0.5">{selectedLog.id}</p>
                   </div>
                   <div>
-                    <span className="font-label-sm text-label-sm text-on-surface-variant">Waktu</span>
-                    <p className="font-body-sm-medium text-body-sm-medium text-on-surface mt-0.5">{detailData.date} • {detailData.time}</p>
+                    <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Waktu</span>
+                    <p className="text-slate-800 font-medium mt-0.5">{detailData.date} • {detailData.time}</p>
                   </div>
                   <div>
-                    <span className="font-label-sm text-label-sm text-on-surface-variant">User</span>
-                    <p className="font-body-sm-medium text-body-sm-medium text-on-surface mt-0.5">{selectedLog.name}</p>
+                    <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">User</span>
+                    <p className="text-slate-800 font-medium mt-0.5">{selectedLog.name}</p>
                   </div>
                   <div>
-                    <span className="font-label-sm text-label-sm text-on-surface-variant">Role</span>
-                    <p className="font-body-sm-medium text-body-sm-medium text-on-surface mt-0.5">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${detailData.roleBadgeClass}`}>
+                    <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Role</span>
+                    <p className="mt-0.5">
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold border ${detailData.roleBadgeClass}`}>
                         {selectedLog.role}
                       </span>
                     </p>
                   </div>
                   <div>
-                    <span className="font-label-sm text-label-sm text-on-surface-variant">Unit</span>
-                    <p className="font-body-sm-medium text-body-sm-medium text-on-surface mt-0.5">{detailData.unitName}</p>
+                    <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Unit</span>
+                    <p className="text-slate-800 font-medium mt-0.5">{detailData.unitName}</p>
                   </div>
                   <div>
-                    <span className="font-label-sm text-label-sm text-on-surface-variant">Jenis Aktivitas</span>
-                    <p className="font-body-sm-medium text-body-sm-medium text-on-surface mt-0.5">
-                      <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-label-sm text-label-sm font-medium tracking-tight ${actionStyles[selectedLog.actionType]}`}>
+                    <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Jenis Aktivitas</span>
+                    <p className="mt-0.5">
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold border ${actionStyles[selectedLog.actionType]}`}>
                         <span className="material-symbols-outlined text-[13px]">{actionIcons[selectedLog.actionType]}</span>
                         <span>{actionLabels[selectedLog.actionType] || selectedLog.action}</span>
                       </span>
                     </p>
                   </div>
-                  <div>
-                    <span className="font-label-sm text-label-sm text-on-surface-variant">Target</span>
-                    <p className="font-body-sm-medium text-body-sm-medium text-on-surface mt-0.5">{selectedLog.target}</p>
+                  <div className="col-span-2">
+                    <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Target</span>
+                    <p className="text-slate-800 font-medium mt-0.5">{selectedLog.target}</p>
                   </div>
                   <div className="col-span-2">
-                    <span className="font-label-sm text-label-sm text-on-surface-variant">Data Sebelum Perubahan</span>
-                    <div className="mt-1 p-3 bg-surface-container-lowest rounded border border-outline/20 max-h-40 overflow-y-auto">
+                    <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Data Sebelum Perubahan</span>
+                    <div className="mt-1 p-3 bg-white rounded-lg border border-slate-200 max-h-40 overflow-y-auto">
                       {Object.keys(detailData.before).length > 0 ? (
                         <dl className="space-y-1">
                           {Object.entries(detailData.before).map(([key, val]) => (
-                            <div key={key} className="flex justify-between gap-2 text-sm">
-                              <dt className="font-label-sm text-label-sm text-on-surface-variant">{key}</dt>
-                              <dd className="font-body-sm-medium text-body-sm-medium text-on-surface font-mono">{val}</dd>
+                            <div key={key} className="flex justify-between gap-2 text-xs">
+                              <dt className="text-slate-500">{key}</dt>
+                              <dd className="font-mono text-slate-800 font-medium">{val}</dd>
                             </div>
                           ))}
                         </dl>
                       ) : (
-                        <p className="font-body-sm text-body-sm text-on-surface-variant italic">Tidak ada data perubahan tercatat</p>
+                        <p className="text-xs text-slate-400 italic">Tidak ada data perubahan tercatat</p>
                       )}
                     </div>
                   </div>
                   <div className="col-span-2">
-                    <span className="font-label-sm text-label-sm text-on-surface-variant">Data Sesudah Perubahan</span>
-                    <div className="mt-1 p-3 bg-surface-container-lowest rounded border border-outline/20 max-h-40 overflow-y-auto">
+                    <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Data Sesudah Perubahan</span>
+                    <div className="mt-1 p-3 bg-white rounded-lg border border-slate-200 max-h-40 overflow-y-auto">
                       {Object.keys(detailData.after).length > 0 ? (
                         <dl className="space-y-1">
                           {Object.entries(detailData.after).map(([key, val]) => (
-                            <div key={key} className="flex justify-between gap-2 text-sm">
-                              <dt className="font-label-sm text-label-sm text-on-surface-variant">{key}</dt>
-                              <dd className="font-body-sm-medium text-body-sm-medium text-on-surface font-mono">{val}</dd>
+                            <div key={key} className="flex justify-between gap-2 text-xs">
+                              <dt className="text-slate-500">{key}</dt>
+                              <dd className="font-mono text-slate-800 font-medium">{val}</dd>
                             </div>
                           ))}
                         </dl>
                       ) : (
-                        <p className="font-body-sm text-body-sm text-on-surface-variant italic">Tidak ada data perubahan tercatat</p>
+                        <p className="text-xs text-slate-400 italic">Tidak ada data perubahan tercatat</p>
                       )}
                     </div>
                   </div>
                   <div className="col-span-2">
-                    <span className="font-label-sm text-label-sm text-on-surface-variant">Keterangan Lengkap</span>
-                    <p className="font-body-sm text-body-sm text-on-surface mt-1 whitespace-pre-wrap bg-surface-container-lowest p-3 rounded border border-outline/20">{selectedLog.desc}</p>
+                    <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Keterangan Lengkap</span>
+                    <p className="text-xs text-slate-800 mt-1 whitespace-pre-wrap bg-white p-3 rounded-lg border border-slate-200">{selectedLog.desc}</p>
                   </div>
                 </div>
               </div>
             </div>
-            <div className="px-space-lg py-space-md bg-surface-container/50 border-t border-outline/20 flex justify-end">
-              <button onClick={closeDetailModal} className="px-space-md py-2 rounded-lg bg-primary-container hover:bg-primary text-on-primary font-body-md-medium text-body-md-medium transition-colors cursor-pointer" type="button">Tutup</button>
+            <div className="p-4 bg-slate-50/50 border-t border-slate-100 flex justify-end">
+              <button onClick={closeDetailModal} className="h-9 px-4 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-xs transition-colors cursor-pointer" type="button">Tutup</button>
             </div>
           </div>
         </div>
