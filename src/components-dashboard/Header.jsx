@@ -6,7 +6,7 @@ function Header() {
           <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[20px]">search</span>
           <input
             className="w-full h-10 pl-10 pr-space-md bg-surface-container-low rounded-lg font-body-md text-body-md text-on-surface placeholder:text-outline focus:outline-none focus:bg-surface-container-lowest"
-            placeholder="Cari pegawai, NIP, atau data presensi..."
+            placeholder="Cari pegawai, NIY, atau data presensi..."
             type="text"
           />
         </div>
