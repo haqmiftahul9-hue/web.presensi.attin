@@ -11,6 +11,7 @@ import { getEmployeeGreeting, getEmployeeFormalName } from '../../data/sapaanPeg
 import StaffAvatar from '../../components/mobile/StaffAvatar.jsx'
 import { FormEditProfil } from '../../components/mobile/FormEditProfil.jsx'
 import { ErrorState, LoadingState } from '../../components/mobile/Feedback.jsx'
+import { getRegisteredFaceData } from '../../services/faceRecognitionService.js'
 
 /** Baris informasi label:nilai.
  *
@@ -110,6 +111,7 @@ function MobileProfilPage() {
   const [bukaEdit, setBukaEdit] = useState(false)
   const [pesan, setPesan] = useState('')
   const [konfirmasiKeluar, setKonfirmasiKeluar] = useState(false)
+  const registeredFace = staff ? getRegisteredFaceData(staff) : null
 
   if (!state) {
     return (
@@ -363,6 +365,13 @@ function MobileProfilPage() {
               judul="QR Presensi"
               sub="Kode unik untuk scan presensi & identifikasi"
               onClick={() => navigate('/mobile/qr')}
+            />
+
+            <BarisMenu
+              ikon="face_retouching_natural"
+              judul="Pendaftaran Wajah AI"
+              sub={registeredFace ? 'Biometrik wajah terdaftar & aktif' : 'Wajah belum terdaftar — klik untuk mendaftar'}
+              onClick={() => navigate('/mobile/presensi?mode=face')}
             />
 
             {bolehGantiSandi && (

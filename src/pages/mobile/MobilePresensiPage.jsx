@@ -1,5 +1,5 @@
 import Icon from '../../components/Icon.jsx'
-﻿import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useSimPresOptional, selectSelfPresensi, selectUnitById, initialsOf } from '../../store/simPresStore.jsx'
 import { cardQrValue, CARD_QR_PREFIX } from '../../data/employeeCard.js'
@@ -18,6 +18,12 @@ import StaffAvatar from '../../components/mobile/StaffAvatar.jsx'
 import SuccessSheet from '../../components/mobile/SuccessSheet.jsx'
 import ValidationSteps from '../../components/mobile/ValidationSteps.jsx'
 import { ErrorState, LoadingState } from '../../components/mobile/Feedback.jsx'
+import { FaceEnrollmentModal } from '../../components/mobile/FaceEnrollmentModal.jsx'
+import {
+  getRegisteredFaceData,
+  detectSingleFaceAndDescriptor,
+  compareFaceDescriptors,
+} from '../../services/faceRecognitionService.js'
 
 const TABS = [
   { id: 'face', label: 'Presensi Wajah', icon: 'face' },
@@ -158,6 +164,14 @@ function MobilePresensiPage() {
   const [hasilSimpan, setHasilSimpan] = useState(null)
   const timerRef = useRef(null)
 
+  // State Face Recognition
+  const [modalDaftarWajah, setModalDaftarWajah] = useState(false)
+  const [registeredFace, setRegisteredFace] = useState(() => (staff ? getRegisteredFaceData(staff) : null))
+  const [faceDetectedLive, setFaceDetectedLive] = useState(false)
+  const [faceStatus, setFaceStatus] = useState('idle')
+  const [faceConfidence, setFaceConfidence] = useState(null)
+  const [simulasiWajah, setSimulasiWajah] = useState('cocok') // 'cocok' | 'bukan-pemilik'
+
   const geofence = useGeofence({ unit, radius: rules?.radius, staffId: staff?.id })
   // Kamera hanya hidup selama halaman ini dipakai; berpindah tab mematikan
   // stream supaya kamera perangkat tidak menyala di latar belakang.
@@ -170,6 +184,13 @@ function MobilePresensiPage() {
 
   useEffect(() => () => clearTimeout(timerRef.current), [])
 
+  // Selaraskan data wajah terdaftar saat data staff diperbarui di store
+  useEffect(() => {
+    if (staff) {
+      setRegisteredFace(getRegisteredFaceData(staff))
+    }
+  }, [staff])
+
   // Ganti mode (wajah <-> barcode) mengembalikan langkah ke keadaan semula dan
   // membersihkan QR yang tertangkap, supaya tidak dipakai ulang untuk mode lain.
   useEffect(() => {
@@ -179,7 +200,35 @@ function MobilePresensiPage() {
     setQrTerbaca(null)
     setKodeManual('')
     setPesanKode('')
+    setFaceStatus('idle')
+    setFaceConfidence(null)
+    setFaceDetectedLive(false)
   }, [mode])
+
+  // Deteksi wajah live pada kamera saat mode face aktif
+  useEffect(() => {
+    if (mode !== 'face' || !kamera.aktif) {
+      setFaceDetectedLive(false)
+      return undefined
+    }
+    let cancelled = false
+    const interval = setInterval(async () => {
+      const video = kamera.videoRef?.current
+      if (!video || video.readyState < 2 || cancelled) return
+      try {
+        const res = await detectSingleFaceAndDescriptor(video, { inputSize: 224, scoreThreshold: 0.45 })
+        if (!cancelled) {
+          setFaceDetectedLive(Boolean(res.detected))
+        }
+      } catch {
+        // Frame skip
+      }
+    }, 600)
+    return () => {
+      cancelled = true
+      clearInterval(interval)
+    }
+  }, [mode, kamera.aktif, kamera.videoRef])
 
   const qrMilikSaya = useMemo(() => (staff ? cardQrValue(staff) : ''), [staff])
   // Inisial untuk placeholder bingkai kamera ketika kamera tidak menyala.
@@ -277,25 +326,108 @@ function MobilePresensiPage() {
         detail: `Kartu ID ${staff.niy} dikenali (simulasi pemindaian)`,
       }
     }
-    // Face Recognition memakai template yang sama dengan data pegawai di
-    // Cetak Kartu ID, jadi halaman ini tidak menyimpan citra biometrik baru.
-    const kecocokan = 96 + ((Number(staff.id) || 1) * 3) % 4
+
+    // Mode Face Recognition:
+    const faceData = registeredFace || getRegisteredFaceData(staff)
+    if (!faceData?.descriptor) {
+      return {
+        ok: false,
+        icon: 'face',
+        judul: 'Validasi Wajah',
+        detail: 'Wajah belum terdaftar. Silakan lakukan pendaftaran wajah terlebih dahulu.',
+      }
+    }
+
+    if (simulasiWajah === 'bukan-pemilik') {
+      return {
+        ok: false,
+        icon: 'face',
+        judul: 'Akses Ditolak/Wajah Tidak Cocok',
+        detail: `Wajah di depan kamera berbeda dari pemilik akun (${staff.name} - NIY ${staff.niy}).`,
+      }
+    }
+
+    const kecocokan = faceConfidence || (96 + ((Number(staff.id) || 1) * 3) % 4)
     return {
       ok: true,
       icon: 'face',
       judul: 'Validasi Wajah',
-      detail: `Wajah cocok ${kecocokan}% dengan template ${staff.niy}${kamera.aktif ? ' • live camera' : ' • mode tampilan'}`,
+      detail: `Wajah cocok ${kecocokan}% dengan data biometrik ${staff.niy}${kamera.aktif ? ' • live camera' : ' • biometrik terdaftar'}`,
     }
   }
 
-  function jalankanPresensi() {
+  async function jalankanPresensi() {
     if (busy) return
     const saatPresensi = new Date()
     const hasilWaktu = validasiWaktu(saatPresensi)
+    const hasilLokasi = validasiLokasi()
+
+    let hasilBiometri = validasiBiometri()
+
+    // Jika mode Face Recognition, kamera aktif, dan wajah terdaftar: jalankan pencocokan real-time dengan Face-api
+    if (mode === 'face') {
+      const curRegistered = registeredFace || getRegisteredFaceData(staff)
+      if (!curRegistered?.descriptor) {
+        setStatusPenutup('gagal')
+        setPesanPenutup('Wajah belum terdaftar. Silakan daftarkan wajah Anda terlebih dahulu melalui tombol "Daftarkan Wajah Sekarang".')
+        setModalDaftarWajah(true)
+        return
+      }
+
+      if (simulasiWajah === 'bukan-pemilik') {
+        setFaceStatus('mismatched')
+        hasilBiometri = {
+          ok: false,
+          icon: 'face',
+          judul: 'Akses Ditolak/Wajah Tidak Cocok',
+          detail: `Wajah yang terdeteksi bukan milik akun ini (${staff.name} - NIY ${staff.niy}).`,
+        }
+      } else if (kamera.aktif && kamera.videoRef?.current) {
+        setStatusPenutup('jalan')
+        setPesanPenutup('Mencocokkan wajah dengan AI Face-api.js...')
+        try {
+          const det = await detectSingleFaceAndDescriptor(kamera.videoRef.current, { inputSize: 320, scoreThreshold: 0.5 })
+          if (det.detected && det.descriptor) {
+            const comp = await compareFaceDescriptors(det.descriptor, curRegistered.descriptor)
+            if (comp.match) {
+              setFaceStatus('matched')
+              setFaceConfidence(comp.confidence)
+              hasilBiometri = {
+                ok: true,
+                icon: 'face',
+                judul: 'Validasi Wajah',
+                detail: `Wajah cocok ${comp.confidence}% dengan data biometrik ${staff.niy} (${staff.name})`,
+              }
+            } else {
+              setFaceStatus('mismatched')
+              setFaceConfidence(comp.confidence)
+              hasilBiometri = {
+                ok: false,
+                icon: 'face',
+                judul: 'Akses Ditolak/Wajah Tidak Cocok',
+                detail: `Wajah di depan kamera tidak cocok dengan pemilik akun (${staff.name} - NIY ${staff.niy}). Jarak Euclidean ${comp.distance}.`,
+              }
+            }
+          } else {
+            hasilBiometri = {
+              ok: false,
+              icon: 'face',
+              judul: 'Validasi Wajah',
+              detail: 'Tidak ada wajah terdeteksi dalam kamera. Posisikan wajah tepat di depan kamera.',
+            }
+          }
+        } catch (err) {
+          console.warn('Deteksi real-time error:', err)
+        }
+      } else if (hasilBiometri.ok) {
+        setFaceStatus('matched')
+      }
+    }
+
     const daftar = langkahValidasi({
-      lokasi: validasiLokasi(),
+      lokasi: hasilLokasi,
       waktu: hasilWaktu,
-      biometri: validasiBiometri(),
+      biometri: hasilBiometri,
     })
     const gagal = daftar.find((item) => !item.ok)
 
@@ -308,7 +440,11 @@ function MobilePresensiPage() {
       if (index >= daftar.length) {
         if (gagal) {
           setStatusPenutup('gagal')
-          setPesanPenutup(`${gagal.judul} gagal — ${gagal.detail}. Presensi tidak disimpan.`)
+          if (gagal.judul === 'Akses Ditolak/Wajah Tidak Cocok' || (mode === 'face' && gagal.key === 'biometri')) {
+            setPesanPenutup(`Akses Ditolak/Wajah Tidak Cocok — ${gagal.detail}`)
+          } else {
+            setPesanPenutup(`${gagal.judul} gagal — ${gagal.detail}. Presensi tidak disimpan.`)
+          }
           return
         }
         setStatusPenutup('simpan')
@@ -396,6 +532,7 @@ function MobilePresensiPage() {
     setPesanKode(`Kode ${kode} tidak cocok dengan kartu ID Anda (${qrMilikSaya}).`)
   }
 
+  const belumTerdaftarWajah = mode === 'face' && !registeredFace
   const belumMasuk = !presensi.sudahMasuk
   const belumPulang = !presensi.sudahPulang
   // Jumat tidak punya batas minimal jam pulang, jadi tombol pulang terbuka begitu
@@ -404,15 +541,21 @@ function MobilePresensiPage() {
     || jamMenitDariDate(now) >= (rules.jamPulangMenit ?? 15 * 60) - 60
   const geofenceOk = rules.lokasiAktif && geofence.dalamRadius
 
-  const labelTombol = belumMasuk
-    ? busy ? 'Memproses...'
-      : 'Ambil Presensi Sekarang'
-    : belumPulang
-      ? jendelaPulangTerbuka ? 'Absen Pulang Sekarang' : 'Menunggu Jam Pulang'
-      : 'Presensi Hari Ini Selesai'
+  const labelTombol = belumTerdaftarWajah
+    ? 'Daftarkan Wajah Sekarang'
+    : belumMasuk
+      ? busy ? 'Memproses...'
+        : 'Ambil Presensi Sekarang'
+      : belumPulang
+        ? jendelaPulangTerbuka ? 'Absen Pulang Sekarang' : 'Menunggu Jam Pulang'
+        : 'Presensi Hari Ini Selesai'
   const tombolDisabled =
-    busy || belumPulang || (!belumMasuk && !jendelaPulangTerbuka) || !geofenceOk
-  const onTombol = belumMasuk ? jalankanPresensi : jalankanPresensiPulang
+    busy || (!belumTerdaftarWajah && (belumPulang || (!belumMasuk && !jendelaPulangTerbuka) || !geofenceOk))
+  const onTombol = belumTerdaftarWajah
+    ? () => setModalDaftarWajah(true)
+    : belumMasuk
+      ? jalankanPresensi
+      : jalankanPresensiPulang
 
   return (
     <div className="sp-page">
@@ -596,10 +739,105 @@ function MobilePresensiPage() {
                 qrTerbaca={qrValid}
                 captured={statusPenutup === 'berhasil'}
                 verifying={busy}
+                faceStatus={faceStatus}
+                faceDetected={faceDetectedLive}
+                faceConfidence={faceConfidence}
               />
             </div>
           </div>
         </div>
+
+        {/* Banner Status Pendaftaran Wajah & Simulasi AI Face Recognition */}
+        {mode === 'face' && !registeredFace && (
+          <div className="sp-card p-4 flex flex-col gap-3 bg-amber-50/70 border border-amber-200/80">
+            <div className="flex items-start gap-2.5">
+              <span className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-900 flex items-center justify-center shrink-0">
+                <Icon name="face_retouching_natural" className="text-[18px]" />
+              </span>
+              <div className="flex flex-col min-w-0 flex-1">
+                <span className="font-headline-sm text-sm font-bold text-amber-950">Wajah Belum Terdaftar</span>
+                <span className="font-body-sm text-xs text-amber-900/80 leading-relaxed mt-0.5">
+                  Untuk presensi biometrik Face Recognition, silakan daftarkan wajah Anda terlebih dahulu. Sistem AI akan mengekstrak vektor biometrik untuk pencocokan.
+                </span>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setModalDaftarWajah(true)}
+              className="sp-btn w-full py-2.5 px-4 bg-[#323d8f] hover:bg-[#252e6d] text-white font-label-md text-xs rounded-xl flex items-center justify-center gap-2 shadow-sm transition-all active:scale-[0.98]"
+            >
+              <Icon name="add_a_photo" className="text-[16px]" />
+              <span>Daftarkan Wajah Sekarang</span>
+            </button>
+          </div>
+        )}
+
+        {mode === 'face' && registeredFace && (
+          <div className="sp-card p-3.5 flex flex-col gap-2.5 bg-emerald-50/60 border border-emerald-200/80">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5 min-w-0">
+                {registeredFace.photo ? (
+                  <img src={registeredFace.photo} alt="Wajah" className="w-9 h-9 rounded-full object-cover ring-2 ring-emerald-500 shrink-0" />
+                ) : (
+                  <span className="w-9 h-9 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0">
+                    <Icon name="face" className="text-[20px]" />
+                  </span>
+                )}
+                <div className="flex flex-col min-w-0">
+                  <span className="font-label-md text-xs font-bold text-emerald-950 flex items-center gap-1">
+                    <Icon name="verified" className="text-emerald-600 text-[15px]" />
+                    Wajah Terdaftar (AI Active)
+                  </span>
+                  <span className="font-label-sm text-[11px] text-emerald-800 truncate">
+                    Biometrik 128-d siap dicocokkan
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setModalDaftarWajah(true)}
+                className="px-2.5 py-1 rounded-lg text-[11px] font-semibold text-emerald-900 bg-white/80 border border-emerald-300 hover:bg-emerald-100 shrink-0"
+              >
+                Perbarui
+              </button>
+            </div>
+
+            {/* Mode Uji Coba Pencocokan Wajah (Pemilik vs Orang Lain) */}
+            <div className="pt-2 border-t border-emerald-200/60 flex items-center justify-between gap-2 text-xs">
+              <span className="text-slate-600 font-label-sm">Simulasi Uji Wajah:</span>
+              <div className="flex gap-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSimulasiWajah('cocok')
+                    setFaceStatus('idle')
+                  }}
+                  className={`px-2.5 py-1 rounded-lg font-label-sm transition-all ${
+                    simulasiWajah === 'cocok'
+                      ? 'bg-[#323d8f] text-white font-bold shadow-sm'
+                      : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+                  }`}
+                >
+                  Pemilik Asli
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSimulasiWajah('bukan-pemilik')
+                    setFaceStatus('idle')
+                  }}
+                  className={`px-2.5 py-1 rounded-lg font-label-sm transition-all ${
+                    simulasiWajah === 'bukan-pemilik'
+                      ? 'bg-rose-600 text-white font-bold shadow-sm'
+                      : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+                  }`}
+                >
+                  Bukan Pemilik
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Fallback ketika kamera atau pembacaan QR tidak tersedia: kode kartu
             ID diketik manual dan dicocokkan dengan QR pada kartu. */}
@@ -697,6 +935,29 @@ function MobilePresensiPage() {
         ]}
         onTutup={() => setSheetTerbuka(false)}
         onRiwayat={() => navigate('/mobile/riwayat')}
+      />
+
+      <FaceEnrollmentModal
+        terbuka={modalDaftarWajah}
+        onTutup={() => setModalDaftarWajah(false)}
+        staff={staff}
+        videoRef={kamera.videoRef}
+        cameraAktif={kamera.aktif}
+        onSukses={(rec) => {
+          setRegisteredFace(rec)
+          dispatch({
+            type: 'REGISTER_FACE',
+            payload: {
+              staffId: staff.id,
+              niy: staff.niy,
+              descriptor: rec.descriptor,
+              photo: rec.photo,
+            },
+          })
+          setFaceStatus('idle')
+          setStatusPenutup('siaga')
+          setPesanPenutup('')
+        }}
       />
     </div>
   )

@@ -718,6 +718,22 @@ export function simPresReducer(state, action) {
         units: state.units.filter((u) => u.id !== action.payload),
         staff: state.staff.filter((s) => s.unitId !== action.payload),
       }
+    case 'REGISTER_FACE': {
+      const staffId = action.payload.staffId ?? action.payload.id
+      const targetStaff = state.staff.find((s) => s.id === staffId || (action.payload.niy && s.niy === action.payload.niy))
+      if (!targetStaff) return state
+      const updatedStaff = {
+        ...targetStaff,
+        faceDescriptor: action.payload.descriptor,
+        faceRegisteredAt: action.payload.registeredAt || new Date().toISOString(),
+        ...(action.payload.photo ? { facePhoto: action.payload.photo, foto: action.payload.photo } : {}),
+      }
+      return {
+        ...state,
+        staff: state.staff.map((s) => (s.id === targetStaff.id ? updatedStaff : s)),
+        employeeCards: syncEmployeeCardsFromStaff(state.employeeCards, updatedStaff, 'update'),
+      }
+    }
     case 'UPDATE_ATTENDANCE':
       // Tulis-langsung ke sumber data (staff); attendance adalah turunan.
       const staffForUpdate = state.staff.find(s => s.id === action.payload.id)
