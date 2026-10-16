@@ -1472,7 +1472,7 @@ export async function performLogin({ state, dispatch, identifier, password, reme
     user.unitId,
   )
 
-  return { ok: true, path }
+  return { ok: true, path, user }
 }
 
 export function performLogout(dispatch) {

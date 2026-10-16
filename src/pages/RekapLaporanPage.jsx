@@ -1,8 +1,10 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useSimPres } from '../store/simPresStore.jsx'
-import { selectRekapTableData, selectRekapSummary, selectRekapChartData, selectRekapKepatuhanChart, selectRekapReportData, buildAttendance, initialsOf, selectActiveUnitId, selectCanSwitchUnit, selectUnitOptionsById, ALL_UNITS } from '../store/simPresStore.jsx'
+import { selectRekapTableData, selectRekapSummary, selectRekapChartData, selectRekapKepatuhanChart, selectRekapReportData, selectLeavesEnriched, buildAttendance, initialsOf, selectActiveUnitId, selectCanSwitchUnit, selectUnitOptionsById, ALL_UNITS } from '../store/simPresStore.jsx'
 import { calculateAttendanceStatus, jamKerjaRules, daftarJamKerja } from '../data/jamKerja.js'
 import { jamPendek } from '../data/presensiMobile.js'
+import { warnaJenis, warnaAvatarJenis, kelompokIzinCuti } from '../data/jenisIzinCuti.js'
+import LeaveDetailModal from '../components/LeaveDetailModal.jsx'
 import * as XLSX from 'xlsx'
 import { jsPDF } from 'jspdf'
 import autoTable from 'jspdf-autotable'
@@ -981,6 +983,16 @@ function RekapLaporanPage() {
   const [isExporting, setIsExporting] = useState(false)
   const [notification, setNotification] = useState(null)
 
+  // State untuk Tabel Laporan Rekap Izin/Cuti Guru dan Pegawai
+  const [cutiSearch, setCutiSearch] = useState('')
+  const [cutiStatusFilter, setCutiStatusFilter] = useState('Semua Status')
+  const [cutiJenisFilter, setCutiJenisFilter] = useState('Semua Jenis')
+  const [cutiSortConfig, setCutiSortConfig] = useState({ key: 'id', direction: 'desc' })
+  const [cutiCurrentPage, setCutiCurrentPage] = useState(1)
+  const [cutiPageSize, setCutiPageSize] = useState(10)
+  const [selectedLeave, setSelectedLeave] = useState(null)
+  const [showLeaveDetail, setShowLeaveDetail] = useState(false)
+
   const showNotification = (message, type = 'success') => {
     setNotification({ message, type })
     setTimeout(() => setNotification(null), 3000)
@@ -1020,6 +1032,74 @@ function RekapLaporanPage() {
   useEffect(() => {
     setCurrentPage(1)
   }, [search, selectedUnit, activePeriod])
+
+  // Data & Filter untuk Tabel Laporan Rekap Izin/Cuti Guru dan Pegawai
+  const allLeaves = useMemo(() => selectLeavesEnriched(state), [state])
+
+  const cutiSummary = useMemo(() => {
+    const total = allLeaves.length
+    const menunggu = allLeaves.filter((l) => l.status === 'Menunggu').length
+    const disetujui = allLeaves.filter((l) => l.status === 'Disetujui').length
+    const ditolak = allLeaves.filter((l) => l.status === 'Ditolak').length
+    return { total, menunggu, disetujui, ditolak }
+  }, [allLeaves])
+
+  const filteredCutiData = useMemo(() => {
+    let data = allLeaves.filter((item) => {
+      if (cutiSearch) {
+        const q = cutiSearch.toLowerCase()
+        const matchName = item.name?.toLowerCase().includes(q)
+        const matchNiy = item.niy?.toLowerCase().includes(q)
+        const matchUnit = item.unitName?.toLowerCase().includes(q)
+        const matchJenis = item.jenis?.toLowerCase().includes(q)
+        const matchAlasan = (item.keterangan || item.alasan || '').toLowerCase().includes(q)
+        if (!matchName && !matchNiy && !matchUnit && !matchJenis && !matchAlasan) return false
+      }
+      if (cutiStatusFilter !== 'Semua Status') {
+        if (item.status !== cutiStatusFilter) return false
+      }
+      if (cutiJenisFilter !== 'Semua Jenis') {
+        if (cutiJenisFilter === 'Semua Cuti') {
+          if (kelompokIzinCuti(item.jenis) !== 'Cuti') return false
+        } else if (cutiJenisFilter === 'Semua Izin') {
+          if (kelompokIzinCuti(item.jenis) !== 'Izin') return false
+        } else if (item.jenis !== cutiJenisFilter) {
+          return false
+        }
+      }
+      return true
+    })
+
+    data.sort((a, b) => {
+      let aVal = a[cutiSortConfig.key]
+      let bVal = b[cutiSortConfig.key]
+      if (typeof aVal === 'string') {
+        aVal = aVal.toLowerCase()
+        bVal = (bVal || '').toLowerCase()
+      }
+      if (aVal < bVal) return cutiSortConfig.direction === 'asc' ? -1 : 1
+      if (aVal > bVal) return cutiSortConfig.direction === 'asc' ? 1 : -1
+      return 0
+    })
+
+    return data
+  }, [allLeaves, cutiSearch, cutiStatusFilter, cutiJenisFilter, cutiSortConfig])
+
+  const totalCutiPages = Math.ceil(filteredCutiData.length / cutiPageSize) || 1
+  const paginatedCutiData = useMemo(() => {
+    return filteredCutiData.slice((cutiCurrentPage - 1) * cutiPageSize, cutiCurrentPage * cutiPageSize)
+  }, [filteredCutiData, cutiCurrentPage, cutiPageSize])
+
+  const handleCutiSort = (key) => {
+    setCutiSortConfig((prev) => ({
+      key,
+      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc',
+    }))
+  }
+
+  useEffect(() => {
+    setCutiCurrentPage(1)
+  }, [cutiSearch, cutiStatusFilter, cutiJenisFilter, selectedUnit])
 
   // ===== HELPER FUNCTIONS FOR GLOBAL SETTINGS INTEGRATION =====
   
@@ -2416,6 +2496,313 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
             </div>
           </div>
         </div>
+
+        {/* ================================================================= */}
+        {/* TABEL LAPORAN REKAP IZIN/CUTI GURU DAN PEGAWAI                    */}
+        {/* ================================================================= */}
+        <div className="bg-card rounded-xl border border-border shadow-xs overflow-hidden">
+          <div className="p-4 sm:p-5 border-b border-border flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="flex flex-col gap-1.5">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="text-sm font-bold text-foreground">Laporan Rekap Izin/Cuti Guru dan Pegawai</h3>
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-primary/10 text-primary border border-primary/20">
+                  {cutiSummary.total} Total
+                </span>
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200/80 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800">
+                  {cutiSummary.menunggu} Menunggu
+                </span>
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/80 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800">
+                  {cutiSummary.disetujui} Disetujui
+                </span>
+                {cutiSummary.ditolak > 0 && (
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-rose-50 text-rose-700 border border-rose-200/80 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800">
+                    {cutiSummary.ditolak} Ditolak
+                  </span>
+                )}
+              </div>
+              <span className="text-xs text-muted-foreground">
+                Menampilkan {paginatedCutiData.length} dari {filteredCutiData.length} data pengajuan izin &amp; cuti • {selectedUnit === ALL_UNITS ? 'Semua Unit Sekolah' : unitLabel}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2 flex-wrap">
+              {/* Search Cuti */}
+              <div className="relative w-full sm:w-56">
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-[18px]">search</span>
+                <input
+                  className="w-full h-9 pl-9 pr-3 bg-card border border-input rounded-lg text-xs text-foreground placeholder:text-muted-foreground focus:ring-1 focus:ring-ring"
+                  placeholder="Cari guru, NIY, izin/cuti..."
+                  type="text"
+                  value={cutiSearch}
+                  onChange={(e) => setCutiSearch(e.target.value)}
+                />
+              </div>
+
+              {/* Status Filter */}
+              <select
+                value={cutiStatusFilter}
+                onChange={(e) => setCutiStatusFilter(e.target.value)}
+                className="h-9 px-3 bg-card border border-input rounded-lg text-xs text-foreground focus:ring-1 focus:ring-ring"
+              >
+                <option value="Semua Status">Semua Status</option>
+                <option value="Menunggu">Menunggu</option>
+                <option value="Disetujui">Disetujui</option>
+                <option value="Ditolak">Ditolak</option>
+              </select>
+
+              {/* Jenis Filter */}
+              <select
+                value={cutiJenisFilter}
+                onChange={(e) => setCutiJenisFilter(e.target.value)}
+                className="h-9 px-3 bg-card border border-input rounded-lg text-xs text-foreground focus:ring-1 focus:ring-ring"
+              >
+                <option value="Semua Jenis">Semua Jenis</option>
+                <option value="Semua Cuti">Kelompok Cuti</option>
+                <option value="Semua Izin">Kelompok Izin</option>
+                <option value="Cuti Tahunan">Cuti Tahunan</option>
+                <option value="Cuti Sakit">Cuti Sakit</option>
+                <option value="Cuti Melahirkan">Cuti Melahirkan</option>
+                <option value="Izin Pribadi">Izin Pribadi</option>
+                <option value="Izin Dinas">Izin Dinas</option>
+              </select>
+
+              {/* Page Size */}
+              <select
+                value={cutiPageSize}
+                onChange={(e) => { setCutiPageSize(Number(e.target.value)); setCutiCurrentPage(1); }}
+                className="h-9 px-3 bg-card border border-input rounded-lg text-xs text-foreground focus:ring-1 focus:ring-ring"
+              >
+                <option value={10}>10 / hal</option>
+                <option value={25}>25 / hal</option>
+                <option value={50}>50 / hal</option>
+              </select>
+
+              {/* Tombol Export Rekap Cuti */}
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => handleDirectDownload('cuti', 'excel')}
+                  disabled={isExporting}
+                  className="h-9 px-2.5 rounded-lg bg-card border border-input hover:bg-muted text-foreground font-semibold text-xs inline-flex items-center gap-1 shadow-xs transition-colors cursor-pointer"
+                  title="Unduh Rekap Cuti Excel (.xlsx)"
+                >
+                  <span className="material-symbols-outlined text-[16px] text-emerald-600">table_view</span>
+                  <span className="hidden md:inline">Excel</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDirectDownload('cuti', 'pdf')}
+                  disabled={isExporting}
+                  className="h-9 px-2.5 rounded-lg bg-card border border-input hover:bg-muted text-foreground font-semibold text-xs inline-flex items-center gap-1 shadow-xs transition-colors cursor-pointer"
+                  title="Unduh Rekap Cuti PDF"
+                >
+                  <span className="material-symbols-outlined text-[16px] text-rose-600">picture_as_pdf</span>
+                  <span className="hidden md:inline">PDF</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="overflow-hidden">
+            <div className="sp-table-wrap">
+              <table className="w-full text-left text-xs">
+                <thead>
+                  <tr className="bg-muted border-b border-border text-[11px] font-bold text-muted-foreground uppercase tracking-wider leading-tight">
+                    <th className="py-3 px-3.5 text-center" scope="col" style={{ width: '40px' }}>No</th>
+                    <th className="py-3 px-3.5" scope="col" style={{ width: '220px', minWidth: '180px' }}>
+                      <button onClick={() => handleCutiSort('name')} className="flex items-center gap-1 hover:text-foreground transition-colors whitespace-nowrap cursor-pointer">
+                        Nama Guru / Pegawai {cutiSortConfig.key === 'name' && (cutiSortConfig.direction === 'asc' ? '↑' : '↓')}
+                      </button>
+                    </th>
+                    <th className="py-3 px-3.5" scope="col" style={{ width: '130px', minWidth: '110px' }}>
+                      <button onClick={() => handleCutiSort('unitName')} className="flex items-center gap-1 hover:text-foreground transition-colors whitespace-nowrap cursor-pointer">
+                        Unit {cutiSortConfig.key === 'unitName' && (cutiSortConfig.direction === 'asc' ? '↑' : '↓')}
+                      </button>
+                    </th>
+                    <th className="py-3 px-3.5" scope="col" style={{ width: '140px', minWidth: '120px' }}>
+                      <button onClick={() => handleCutiSort('jenis')} className="flex items-center gap-1 hover:text-foreground transition-colors whitespace-nowrap cursor-pointer">
+                        Jenis Izin/Cuti {cutiSortConfig.key === 'jenis' && (cutiSortConfig.direction === 'asc' ? '↑' : '↓')}
+                      </button>
+                    </th>
+                    <th className="py-3 px-3.5 text-center" scope="col" style={{ width: '130px', minWidth: '110px' }}>
+                      <button onClick={() => handleCutiSort('periode')} className="flex items-center justify-center gap-1 hover:text-foreground transition-colors whitespace-nowrap cursor-pointer">
+                        Periode / Tanggal {cutiSortConfig.key === 'periode' && (cutiSortConfig.direction === 'asc' ? '↑' : '↓')}
+                      </button>
+                    </th>
+                    <th className="py-3 px-3.5 text-center" scope="col" style={{ width: '80px' }}>
+                      <button onClick={() => handleCutiSort('durasi')} className="flex items-center justify-center gap-1 hover:text-foreground transition-colors whitespace-nowrap cursor-pointer">
+                        Durasi {cutiSortConfig.key === 'durasi' && (cutiSortConfig.direction === 'asc' ? '↑' : '↓')}
+                      </button>
+                    </th>
+                    <th className="py-3 px-3.5" scope="col" style={{ minWidth: '160px' }}>
+                      Keterangan / Alasan
+                    </th>
+                    <th className="py-3 px-3.5 text-center" scope="col" style={{ width: '120px' }}>Lampiran</th>
+                    <th className="py-3 px-3.5 text-center" scope="col" style={{ width: '110px' }}>Status</th>
+                    <th className="py-3 px-3.5 text-center" scope="col" style={{ width: '50px' }}>Detail</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/60">
+                  {paginatedCutiData.map((row, idx) => {
+                    const initials = initialsOf(row.name)
+                    const statusClass = row.status === 'Disetujui'
+                      ? 'bg-emerald-50 text-emerald-800 border-emerald-200/80 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800'
+                      : row.status === 'Ditolak'
+                        ? 'bg-rose-50 text-rose-800 border-rose-200/80 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800'
+                        : 'bg-amber-50 text-amber-800 border-amber-200/80 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800'
+                    const statusDot = row.status === 'Disetujui'
+                      ? 'bg-emerald-500'
+                      : row.status === 'Ditolak'
+                        ? 'bg-rose-500'
+                        : 'bg-amber-500 animate-pulse'
+                    const alasanTeks = row.keterangan || row.alasan || '-'
+
+                    return (
+                      <tr key={row.id || idx} className="hover:bg-muted/40 transition-colors">
+                        <td className="py-3 px-3.5 text-center font-mono text-[11px] text-muted-foreground">
+                          {(cutiCurrentPage - 1) * cutiPageSize + idx + 1}
+                        </td>
+                        <td className="py-3 px-3.5">
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs flex-shrink-0 ${warnaAvatarJenis(row.jenis)} border border-border/60`}>
+                              {initials}
+                            </div>
+                            <div className="flex flex-col min-w-0 overflow-hidden leading-tight">
+                              <span className="font-semibold text-foreground truncate block">{row.name}</span>
+                              <span className="text-[10.5px] text-muted-foreground font-mono truncate block mt-0.5">
+                                {row.niy} {row.role ? `• ${row.role}` : ''}
+                              </span>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-3 px-3.5">
+                          <span className="px-2 py-0.5 rounded-md bg-secondary border border-border/50 text-secondary-foreground font-medium text-[11px] whitespace-nowrap">
+                            {row.unitName || '-'}
+                          </span>
+                        </td>
+                        <td className="py-3 px-3.5">
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium ${warnaJenis(row.jenis)} border border-border/50 whitespace-nowrap`}>
+                            {row.jenis}
+                          </span>
+                        </td>
+                        <td className="py-3 px-3.5 text-center font-mono text-xs text-foreground/90 whitespace-nowrap">
+                          {row.periode || '-'}
+                        </td>
+                        <td className="py-3 px-3.5 text-center font-semibold text-primary whitespace-nowrap">
+                          {row.durasi || '-'}
+                        </td>
+                        <td className="py-3 px-3.5">
+                          <span className="text-muted-foreground line-clamp-1 max-w-[240px] block" title={alasanTeks}>
+                            {alasanTeks}
+                          </span>
+                        </td>
+                        <td className="py-3 px-3.5 text-center">
+                          {row.lampiran && row.lampiran !== '-' ? (
+                            <button
+                              type="button"
+                              onClick={() => { setSelectedLeave(row); setShowLeaveDetail(true); }}
+                              className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-secondary hover:bg-secondary/80 text-secondary-foreground border border-border/50 transition-colors text-[11px] font-medium cursor-pointer max-w-[110px] mx-auto"
+                              title={row.lampiran}
+                            >
+                              <span className="material-symbols-outlined text-[13px] flex-shrink-0">attach_file</span>
+                              <span className="truncate block">{row.lampiran}</span>
+                            </button>
+                          ) : (
+                            <span className="text-muted-foreground text-xs">-</span>
+                          )}
+                        </td>
+                        <td className="py-3 px-3.5 text-center">
+                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-semibold border ${statusClass} whitespace-nowrap`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${statusDot} flex-shrink-0`} />
+                            {row.status}
+                          </span>
+                        </td>
+                        <td className="py-3 px-3.5 text-center">
+                          <button
+                            type="button"
+                            onClick={() => { setSelectedLeave(row); setShowLeaveDetail(true); }}
+                            className="p-1 rounded-lg text-muted-foreground hover:text-primary hover:bg-muted border border-transparent hover:border-border transition-colors cursor-pointer"
+                            aria-label={`Detail ${row.name}`}
+                            title="Lihat Detail Izin/Cuti"
+                          >
+                            <span className="material-symbols-outlined text-[18px]">visibility</span>
+                          </button>
+                        </td>
+                      </tr>
+                    )
+                  })}
+
+                  {paginatedCutiData.length === 0 && (
+                    <tr>
+                      <td colSpan={10} className="py-12 text-center text-muted-foreground">
+                        Tidak ada data pengajuan izin/cuti yang sesuai dengan filter
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Pagination Footer */}
+          <div className="p-4 bg-card border-t border-border flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span>
+                Menampilkan <span className="font-semibold text-foreground">{filteredCutiData.length === 0 ? 0 : (cutiCurrentPage - 1) * cutiPageSize + 1}</span>–<span className="font-semibold text-foreground">{Math.min(cutiCurrentPage * cutiPageSize, filteredCutiData.length)}</span> dari <span className="font-semibold text-primary">{filteredCutiData.length}</span> pengajuan
+              </span>
+              <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-md bg-secondary border border-border/50 text-secondary-foreground text-[11px] font-medium">
+                {totalCutiPages} halaman
+              </span>
+            </div>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setCutiCurrentPage(p => Math.max(1, p - 1))}
+                disabled={cutiCurrentPage === 1}
+                className="w-8 h-8 rounded-lg bg-card hover:bg-muted border border-border text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                type="button"
+                aria-label="Halaman sebelumnya"
+              >
+                <span className="material-symbols-outlined text-[16px]">chevron_left</span>
+              </button>
+              {Array.from({ length: Math.min(5, totalCutiPages) }, (_, i) => {
+                let pageNum
+                if (totalCutiPages <= 5) pageNum = i + 1
+                else if (cutiCurrentPage <= 3) pageNum = i + 1
+                else if (cutiCurrentPage >= totalCutiPages - 2) pageNum = totalCutiPages - 4 + i
+                else pageNum = cutiCurrentPage - 2 + i
+                return (
+                  <button
+                    key={pageNum}
+                    onClick={() => setCutiCurrentPage(pageNum)}
+                    className={`w-8 h-8 rounded-lg text-xs font-semibold flex items-center justify-center transition-colors cursor-pointer ${
+                      cutiCurrentPage === pageNum
+                        ? 'bg-primary text-primary-foreground shadow-xs'
+                        : 'bg-card border border-border text-foreground hover:bg-muted'
+                    }`}
+                    type="button"
+                  >
+                    {pageNum}
+                  </button>
+                )
+              })}
+              {totalCutiPages > 5 && cutiCurrentPage > 3 && (
+                <span className="w-8 h-8 flex items-center justify-center text-muted-foreground">...</span>
+              )}
+              {totalCutiPages > 5 && cutiCurrentPage < totalCutiPages - 2 && (
+                <span className="w-8 h-8 flex items-center justify-center text-muted-foreground">...</span>
+              )}
+              <button
+                onClick={() => setCutiCurrentPage(p => Math.min(totalCutiPages, p + 1))}
+                disabled={cutiCurrentPage === totalCutiPages}
+                className="w-8 h-8 rounded-lg bg-card hover:bg-muted border border-border text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                type="button"
+                aria-label="Halaman berikutnya"
+              >
+                <span className="material-symbols-outlined text-[16px]">chevron_right</span>
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <DetailModal
@@ -2423,6 +2810,12 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
         isOpen={showDetail}
         onClose={() => { setShowDetail(false); setSelectedEmployee(null); }}
         state={state}
+      />
+
+      <LeaveDetailModal
+        isOpen={showLeaveDetail}
+        onClose={() => { setShowLeaveDetail(false); setSelectedLeave(null); }}
+        leave={selectedLeave}
       />
     </div>
   )

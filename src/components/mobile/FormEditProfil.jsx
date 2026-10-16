@@ -107,7 +107,7 @@ export function FormEditProfil({ staff, unit, onSimpan, onBatal }) {
           <div className="flex flex-col items-center gap-2">
             <label
               htmlFor="profil-foto"
-              className="sp-press sp-btn px-4 py-2.5 bg-secondary text-on-secondary font-label-md text-label-md flex items-center gap-1.5"
+              className="sp-press sp-btn px-4 py-2.5 bg-secondary text-secondary-foreground font-label-md text-label-md flex items-center gap-1.5"
             >
               <Icon name="photo_camera" className="text-[18px] shrink-0" />
               {foto ? 'Ganti foto' : 'Unggah foto'}
@@ -204,7 +204,7 @@ export function FormEditProfil({ staff, unit, onSimpan, onBatal }) {
           <button
             type="submit"
             disabled={sibuk}
-            className="sp-btn flex-1 py-3 bg-secondary text-on-secondary border-2 border-on-secondary font-label-md text-label-md flex items-center justify-center gap-2 active:scale-[0.99] transition-transform disabled:opacity-60"
+            className="sp-btn flex-1 py-3 bg-secondary text-secondary-foreground border-2 border-secondary-foreground font-label-md text-label-md flex items-center justify-center gap-2 active:scale-[0.99] transition-transform disabled:opacity-60"
           >
             {sibuk ? <Spinner /> : <Icon name="save" className="text-[18px] shrink-0" />}
             {sibuk ? 'Menyimpan...' : 'Simpan'}

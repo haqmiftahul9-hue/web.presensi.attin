@@ -358,10 +358,10 @@ function MobileIzinCutiPage() {
               setPesan('')
               setGalat('')
             }}
-            className="sp-btn w-full min-h-[60px] py-4 bg-secondary text-on-secondary border-[3px] border-on-secondary shadow-lg shadow-black/30 font-headline-sm text-headline-sm flex items-center justify-center gap-2.5 active:scale-[0.98] transition-transform"
+            className="sp-btn w-full min-h-[60px] py-4 bg-gradient-to-r from-[#1c2254] via-[#20275e] to-[#323d8f] text-white border-[3px] border-[#323d8f]/40 shadow-lg shadow-blue-950/20 font-headline-sm text-headline-sm flex items-center justify-center gap-2.5 active:scale-[0.98] transition-all hover:brightness-105"
           >
-            <Icon name="add" className="text-[26px] shrink-0" />
-            Buat Pengajuan
+            <Icon name="add" className="text-[26px] shrink-0 text-white" />
+            <span className="text-white font-semibold tracking-wide">Buat Pengajuan</span>
           </button>
         )}
 

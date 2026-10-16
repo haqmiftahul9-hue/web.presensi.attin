@@ -187,7 +187,7 @@ export function FaceEnrollmentModal({
               <Icon name="face_retouching_natural" className="text-white text-[18px]" />
             </span>
             <div className="flex flex-col min-w-0">
-              <span className="font-headline-sm text-sm font-bold truncate">Pendaftaran Wajah AI</span>
+              <span className="font-headline-sm text-sm font-bold truncate">Pendaftaran Scan Wajah</span>
               <span className="font-label-sm text-xs text-white/70 truncate">{staff?.name} ({staff?.niy})</span>
             </div>
           </div>

@@ -541,22 +541,6 @@ function MobilePresensiPage() {
     || jamMenitDariDate(now) >= (rules.jamPulangMenit ?? 15 * 60) - 60
   const geofenceOk = rules.lokasiAktif && geofence.dalamRadius
 
-  const labelTombol = belumTerdaftarWajah
-    ? 'Daftarkan Wajah Sekarang'
-    : belumMasuk
-      ? busy ? 'Memproses...'
-        : 'Ambil Presensi Sekarang'
-      : belumPulang
-        ? jendelaPulangTerbuka ? 'Absen Pulang Sekarang' : 'Menunggu Jam Pulang'
-        : 'Presensi Hari Ini Selesai'
-  const tombolDisabled =
-    busy || (!belumTerdaftarWajah && (belumPulang || (!belumMasuk && !jendelaPulangTerbuka) || !geofenceOk))
-  const onTombol = belumTerdaftarWajah
-    ? () => setModalDaftarWajah(true)
-    : belumMasuk
-      ? jalankanPresensi
-      : jalankanPresensiPulang
-
   return (
     <div className="sp-page">
       {/* Loading state: selama kamera belum selesai meminta izin, halaman
@@ -757,7 +741,7 @@ function MobilePresensiPage() {
               <div className="flex flex-col min-w-0 flex-1">
                 <span className="font-headline-sm text-sm font-bold text-amber-950">Wajah Belum Terdaftar</span>
                 <span className="font-body-sm text-xs text-amber-900/80 leading-relaxed mt-0.5">
-                  Untuk presensi biometrik Face Recognition, silakan daftarkan wajah Anda terlebih dahulu. Sistem AI akan mengekstrak vektor biometrik untuk pencocokan.
+                  Untuk presensi biometrik Face Recognition, silakan daftarkan wajah Anda terlebih dahulu. Sistem akan mengekstrak vektor biometrik untuk pencocokan.
                 </span>
               </div>
             </div>
@@ -885,21 +869,6 @@ function MobilePresensiPage() {
 
         {/* 6. Tombol presensi: validasi lokasi -> waktu -> biometrik -> simpan. */}
         <div className="flex flex-col gap-2">
-          <button
-            type="button"
-            onClick={onTombol}
-            disabled={tombolDisabled}
-            className={`sp-btn w-full py-4 font-headline-sm text-headline-sm flex items-center justify-center gap-2 shadow-lg transition-all active:scale-[0.99] disabled:opacity-60 disabled:active:scale-100 ${
-              belumMasuk
-                ? 'bg-gradient-to-r from-[#20275e] to-[#323d8f] text-white'
-                : belumPulang
-                  ? 'bg-gradient-to-r from-[#1c2254] to-[#323d8f] text-white'
-                  : 'bg-emerald-700 text-white'
-            }`}
-          >
-            <Icon name={busy ? 'progress_activity' : belumMasuk ? 'check_circle' : belumPulang ? 'logout' : 'task_alt'} className={`text-[20px] shrink-0 ${busy ? 'animate-spin' : ''}`} />
-            <span>{labelTombol}</span>
-          </button>
 
           {!geofenceOk && (
             <p className="text-center font-body-sm text-body-sm text-on-error-container leading-snug px-1">

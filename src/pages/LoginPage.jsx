@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import toast from 'react-hot-toast'
 import {
   useSimPres,
   performLogin,
@@ -18,6 +19,7 @@ import {
    - Skewed gradient backdrop layer menggunakan warna utama #323d8f.
    - Floating label inputs dengan class `peer placeholder-transparent`.
    - Bebas bloatware: tanpa tombol Google SSO dan tanpa akordion demo testing.
+   - Notifikasi sukses login dirender oleh <Toaster position="top-center" reverseOrder={true} /> di App.jsx.
    ============================================================================ */
 
 function useLoginController() {
@@ -35,10 +37,11 @@ function useLoginController() {
   const [remember, setRemember] = useState(true)
   const [fieldErrors, setFieldErrors] = useState({})
   const [forgotMsg, setForgotMsg] = useState(false)
+  const [isNavigating, setIsNavigating] = useState(false)
 
   const handleSubmit = async (event) => {
     event.preventDefault()
-    if (isAuthenticating) return
+    if (isAuthenticating || isNavigating) return
 
     const errors = {}
     if (!identifier.trim()) errors.identifier = AUTH_ERRORS.EMPTY_IDENTIFIER
@@ -55,7 +58,13 @@ function useLoginController() {
       requestedPath: location.state?.from?.pathname,
     })
 
-    if (result.ok) navigate(result.path, { replace: true })
+    if (result.ok) {
+      setIsNavigating(true)
+      toast.success('Login berhasil')
+      setTimeout(() => {
+        navigate(result.path, { replace: true })
+      }, 500)
+    }
   }
 
   const clearFieldError = (field) => {
@@ -79,6 +88,7 @@ function useLoginController() {
     clearFieldError,
     forgotMsg,
     setForgotMsg,
+    isNavigating,
   }
 }
 
@@ -144,6 +154,7 @@ function SimpegLoginCard(props) {
     clearFieldError,
     forgotMsg,
     setForgotMsg,
+    isNavigating,
   } = props
 
   return (
@@ -334,14 +345,14 @@ function SimpegLoginCard(props) {
             <div className="pt-2">
               <button
                 type="submit"
-                disabled={isAuthenticating}
+                disabled={isAuthenticating || isNavigating}
                 className="w-full text-white font-semibold rounded-xl px-4 py-2.5 text-sm shadow-md hover:shadow-lg transition-all duration-300 active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
                 style={{ backgroundColor: '#323d8f' }}
               >
-                {isAuthenticating ? (
+                {isAuthenticating || isNavigating ? (
                   <>
                     <Spinner className="h-4 w-4" />
-                    <span>Memverifikasi akun...</span>
+                    <span>{isNavigating ? 'Login berhasil, mengalihkan...' : 'Memverifikasi akun...'}</span>
                   </>
                 ) : (
                   <>

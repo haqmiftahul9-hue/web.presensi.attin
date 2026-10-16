@@ -28,6 +28,7 @@ import MobileLayout from './components/mobile/MobileLayout.jsx'
 import LoginPage from './pages/LoginPage.jsx'
 import AccessDeniedPage from './pages/AccessDeniedPage.jsx'
 import ProtectedRoute, { GuestOnlyRoute } from './components/ProtectedRoute.jsx'
+import { Toaster } from 'react-hot-toast'
 
 /**
  * Path lama tidak dihapus, hanya diarahkan ke path kanonik sesuai mode. Bookmark
@@ -36,6 +37,10 @@ import ProtectedRoute, { GuestOnlyRoute } from './components/ProtectedRoute.jsx'
 function App() {
   return (
     <BrowserRouter>
+      <Toaster
+        position="top-center"
+        reverseOrder={true}
+      />
       <Routes>
         <Route path="/login" element={<GuestOnlyRoute><LoginPage /></GuestOnlyRoute>} />
         {/* Bersihkan sesi lama lalu ke halaman login (bantu untuk pengujian). */}
