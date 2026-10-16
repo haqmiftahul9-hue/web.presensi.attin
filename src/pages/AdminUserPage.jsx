@@ -15,7 +15,7 @@ function AdminUserPage() {
   const [statusFilter, setStatusFilter] = useState('all')
   // Unit daftar akun mengikuti unit terpilih di store utama.
   const canSwitchUnit = selectCanSwitchUnit(state)
-  const unitFilter = selectCanSwitchUnit(state) ? 'all' : selectActiveUnitId(state)
+  const [unitFilter, setUnitFilter] = useState(() => (canSwitchUnit ? ALL_UNITS : selectActiveUnitId(state)))
 
   const [showForm, setShowForm] = useState(false)
   const [formMode, setFormMode] = useState('add')

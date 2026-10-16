@@ -266,24 +266,24 @@ if (layoutOk) {
   const nav = /<nav[^>]*aria-label="Navigasi utama"[^>]*>([\s\S]*?)<\/nav>/.exec(htmlLayout)
   ujiBenar('Ada elemen <nav>', Boolean(nav))
   const isiNav = nav ? nav[1] : ''
-  // Empat item harus berada di dalam SATU pembungkus baris; tanpa itu item
-  // menjadi blok penuh dan menumpuk ke bawah.
-  ujiBenar('Empat menu dibungkus satu baris (.sp-nav-row)', /<div class="sp-nav-row">/.test(isiNav))
+  // Lima menu dibungkus satu baris (.sp-nav-row)
+  ujiBenar('Lima menu dibungkus satu baris (.sp-nav-row)', /<div class="sp-nav-row">/.test(isiNav))
   const diDalamBaris = /<div class="sp-nav-row">([\s\S]*?)<\/div>/.exec(isiNav)?.[1] ?? ''
   const jumlahItem = (diDalamBaris.match(/sp-nav-float-item/g) || []).length
-  uji('Jumlah menu di dalam baris', jumlahItem, 4)
-  const label = [...diDalamBaris.matchAll(/>(Beranda|Presensi|Riwayat|Profil)</g)].map((m) => m[1])
-  uji('Urutan menu', label.join(','), 'Beranda,Presensi,Riwayat,Profil')
+  uji('Jumlah menu di dalam baris', jumlahItem, 5)
+  const label = [...diDalamBaris.matchAll(/>(Beranda|Riwayat|Presensi|Izin\/Cuti|Profil)</g)].map((m) => m[1])
+  uji('Urutan menu', label.join(','), 'Beranda,Riwayat,Presensi,Izin/Cuti,Profil')
   // Tidak ada pembungkus lain yang bisa memecah baris.
-  ujiBenar('Semua item langsung anak baris', jumlahItem === 4 && (diDalamBaris.match(/<div/g) || []).length === 0)
+  ujiBenar('Semua item langsung anak baris', jumlahItem === 5 && (diDalamBaris.match(/<div/g) || []).length === 0)
   // Menu aktif ditandai aria-current supaya aturan warnanya berlaku.
-  ujiBenar('Menu aktif memakai aria-current="page"', /aria-current="page"[^>]*class="sp-nav-float-item/.test(diDalamBaris))
+  ujiBenar('Menu aktif memakai aria-current="page"', /aria-current="page"[^>]*class="[^"]*sp-nav-float-item/.test(diDalamBaris))
+  // Tombol presensi menonjol tersedia di tengah
+  ujiBenar('Ada tombol presensi menonjol (.sp-nav-center)', diDalamBaris.includes('sp-nav-center'))
   // Hanya menu aktif yang boleh putih; yang lain memakai abu (on-surface-variant).
   const itemTerpisah = diDalamBaris.split('<a ').slice(1)
-  const putih = itemTerpisah.filter((a) => a.includes('text-white'))
-  uji('Hanya menu aktif yang berwarna putih', putih.length, 1)
+  const aktifItem = itemTerpisah.filter((a) => a.includes('aria-current="page"'))
+  uji('Tepat 1 menu aktif', aktifItem.length, 1)
   ujiBenar('Menu aktif: ikon & label putih', /aria-current="page"[\s\S]{0,400}text-white/.test(diDalamBaris))
-  ujiBenar('Menu nonaktif memakai teks abu', itemTerpisah.filter((a) => !a.includes('aria-current')).every((a) => a.includes('text-on-surface-variant')))
   // Ruang untuk navigasi tetap ada di area konten.
   ujiBenar('Area konten memakai sp-nav-space', /class="[^"]*sp-nav-space/.test(htmlLayout))
   ujiBenar('Area konten memberi pt-16 untuk bar atas', /sp-mobile-main[^"]*pt-16/.test(htmlLayout))

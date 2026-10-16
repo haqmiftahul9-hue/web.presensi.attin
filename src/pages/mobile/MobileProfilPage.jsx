@@ -142,40 +142,24 @@ function MobileProfilPage() {
 
   return (
     <div className="sp-page">
-      {/* 1. PROFILE CARD — foto, nama, NIY, unit, jabatan. */}
-      <section className="sp-hero sp-page-container pt-5 pb-24">
+      {/* 1. HERO TOP BAR — branding dan judul halaman */}
+      <section className="sp-hero sp-page-container pt-4 pb-6">
         <span className="sp-pattern-dots" aria-hidden="true" />
         <span className="sp-blob sp-blob-a" aria-hidden="true" />
-        <span className="sp-blob sp-blob-b" aria-hidden="true" />
-
-        <div className="relative z-[1] flex flex-col items-center gap-2 text-center">
-          <div className="relative">
-            <StaffAvatar
-              staff={staff}
-              size="w-24 h-24"
-              textClass="font-display-lg text-display-lg"
-              ring="ring-[3px] ring-white/20"
-              className="shadow-xl"
-            />
+        <div className="relative z-[1] flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <span className="w-9 h-9 rounded-xl bg-white/15 border border-white/20 flex items-center justify-center shrink-0 shadow-sm backdrop-blur-md">
+              <Icon name="badge" className="text-white text-[20px]" />
+            </span>
+            <div className="flex flex-col">
+              <h1 className="font-headline-sm text-headline-sm text-white font-bold tracking-tight">Profil Pegawai</h1>
+              <span className="font-label-sm text-label-sm text-white/75 text-[11px]">SIMPEG Attin Sumbar</span>
+            </div>
           </div>
-          <span className="font-headline-sm text-headline-sm text-white mt-1">{getEmployeeGreeting(staff, { unit })}</span>
-          <span className="font-label-sm text-label-sm text-white/70">
-            {staff.role} • {unit?.nama || '-'}
+          <span className="px-2.5 py-1 rounded-full bg-white/12 border border-white/20 font-label-sm text-label-sm text-white/95 font-medium flex items-center gap-1 backdrop-blur-md">
+            <Icon name="verified_user" className="text-[14px] text-emerald-300" />
+            Terverifikasi
           </span>
-          <div className="mt-1 flex flex-wrap items-center justify-center gap-1.5">
-            <span className="px-2.5 py-1 rounded-full bg-white/12 border border-white/20 font-label-sm text-label-sm text-white/95">
-              NIY {staff.niy}
-            </span>
-            <span className="px-2.5 py-1 rounded-full bg-white/12 border border-white/20 font-label-sm text-label-sm text-white/95">
-              {staff.statusPegawai || 'Pegawai'}
-            </span>
-            <span className="px-2.5 py-1 rounded-full bg-white/12 border border-white/20 font-label-sm text-label-sm text-white/95">
-              {staff.status}
-            </span>
-            <span className="px-2.5 py-1 rounded-full bg-white/12 border border-white/20 font-label-sm text-label-sm text-white/95">
-              Jam Kerja {rules.hari} {rules.jamKerja}
-            </span>
-          </div>
         </div>
       </section>
 
@@ -189,12 +173,85 @@ function MobileProfilPage() {
             <span>{pesan}</span>
           </p>
         )}
+
+        {/* KARTU IDENTITAS UTAMA PEGAWAI (Shadcn Card) */}
+        <section className="sp-card p-5 flex flex-col items-center gap-4 text-center sp-rise">
+          <div className="relative">
+            <StaffAvatar
+              staff={staff}
+              size="w-20 h-20"
+              textClass="font-headline-sm text-headline-sm"
+              ring="ring-[3px] ring-[#323d8f]/20"
+              className="shadow-md"
+            />
+            <span
+              className={`absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full ring-2 ring-white ${
+                staff.status === 'Aktif' ? 'bg-emerald-500' : 'bg-slate-400'
+              }`}
+              title={staff.status}
+            />
+          </div>
+
+          <div className="flex flex-col items-center min-w-0 max-w-full">
+            <span className="font-headline-sm text-headline-sm text-slate-900 font-bold tracking-tight truncate max-w-full">
+              {getEmployeeGreeting(staff, { unit })}
+            </span>
+            <span className="font-label-sm text-label-sm text-slate-500 font-medium truncate max-w-full mt-0.5 flex items-center justify-center gap-1">
+              <Icon name="domain" className="text-[14px] text-slate-400 shrink-0" />
+              <span className="truncate">{staff.role} • {unit?.nama || '-'}</span>
+            </span>
+          </div>
+
+          {/* Symmetrical 2x2 Bento Badges Grid */}
+          <div className="w-full grid grid-cols-2 gap-2 text-left pt-1">
+            <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-slate-50/90 border border-slate-200/80 min-w-0">
+              <span className="w-8 h-8 rounded-lg bg-white border border-slate-200/90 flex items-center justify-center shrink-0 shadow-2xs">
+                <Icon name="badge" className="text-[#323d8f] text-[17px]" />
+              </span>
+              <div className="flex flex-col min-w-0">
+                <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">NIY</span>
+                <span className="font-label-sm text-label-sm font-bold text-slate-900 truncate tabular-nums">{staff.niy}</span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-slate-50/90 border border-slate-200/80 min-w-0">
+              <span className="w-8 h-8 rounded-lg bg-white border border-slate-200/90 flex items-center justify-center shrink-0 shadow-2xs">
+                <Icon name="assignment_ind" className="text-blue-600 text-[17px]" />
+              </span>
+              <div className="flex flex-col min-w-0">
+                <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Kepegawaian</span>
+                <span className="font-label-sm text-label-sm font-bold text-slate-900 truncate">{staff.statusPegawai || 'Pegawai'}</span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-200/70 min-w-0">
+              <span className="w-8 h-8 rounded-lg bg-emerald-100/80 border border-emerald-200 flex items-center justify-center shrink-0 shadow-2xs">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 animate-pulse" />
+              </span>
+              <div className="flex flex-col min-w-0">
+                <span className="text-[10px] font-semibold text-emerald-600 uppercase tracking-wider">Status Akun</span>
+                <span className="font-label-sm text-label-sm font-bold text-emerald-800 truncate">{staff.status}</span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-indigo-50/60 border border-indigo-200/60 min-w-0">
+              <span className="w-8 h-8 rounded-lg bg-white border border-indigo-100 flex items-center justify-center shrink-0 shadow-2xs">
+                <Icon name="schedule" className="text-[#323d8f] text-[17px]" />
+              </span>
+              <div className="flex flex-col min-w-0">
+                <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">{rules.hari}</span>
+                <span className="font-label-sm text-label-sm font-bold text-[#323d8f] truncate tabular-nums">{rules.jamKerja}</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Informasi utama sesuai data kepegawaian. */}
         <section className="sp-card p-4 flex flex-col gap-3.5">
           <div className="sp-card-head">
             <div className="flex items-center gap-2 min-w-0">
-              <span className="w-8 h-8 rounded-xl bg-primary-container flex items-center justify-center shrink-0">
-                <Icon name="badge" className="text-on-primary text-[18px]" />
+              <span className="w-8 h-8 rounded-xl bg-[#323d8f]/10 flex items-center justify-center shrink-0">
+                <Icon name="badge" className="text-[#323d8f] text-[18px]" />
               </span>
               <span className="font-headline-sm text-headline-sm text-on-surface truncate">Informasi Kepegawaian</span>
             </div>
@@ -218,8 +275,8 @@ function MobileProfilPage() {
         <section className="sp-card p-4 flex flex-col gap-3.5">
           <div className="sp-card-head">
             <div className="flex items-center gap-2 min-w-0">
-              <span className="w-8 h-8 rounded-xl bg-primary-container flex items-center justify-center shrink-0">
-                <Icon name="schedule" className="text-on-primary text-[18px]" />
+              <span className="w-8 h-8 rounded-xl bg-[#323d8f]/10 flex items-center justify-center shrink-0">
+                <Icon name="schedule" className="text-[#323d8f] text-[18px]" />
               </span>
               <span className="font-headline-sm text-headline-sm text-on-surface truncate">Jam Kerja Global</span>
             </div>
@@ -278,7 +335,7 @@ function MobileProfilPage() {
 
             {bukaPribadi && (
               <div className="pb-4 -mt-1 animate-sp-rise">
-                <div className="rounded-2xl bg-surface-container-low p-4">
+                <div className="rounded-2xl bg-slate-50 border border-slate-100 p-4">
                   <Baris label="Tempat, tanggal lahir" nilai={[staff.tempatLahir, staff.tanggalLahir].filter(Boolean).join(', ')} />
                   <Baris label="Jenis kelamin" nilai={staff.jenisKelamin} />
                   <Baris label="Agama" nilai={staff.agama} />
@@ -333,37 +390,41 @@ function MobileProfilPage() {
         </section>
 
         {konfirmasiKeluar && (
-          <section className="sp-card p-4 flex flex-col gap-3.5 animate-sp-rise">
-            <div className="flex items-start gap-2.5">
-              <Icon name="logout" className="text-error text-[20px] shrink-0" />
-              <div className="flex flex-col gap-1 min-w-0">
-                <span className="font-body-md-medium text-body-md-medium text-on-surface">Keluar dari akun?</span>
-                <span className="font-body-sm text-body-sm text-on-surface-variant leading-snug">
-                  Sesi {staff.name} di perangkat ini akan diakhiri.
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+            <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-2xl border border-slate-200 flex flex-col gap-4 animate-sp-rise">
+              <div className="flex items-start gap-3">
+                <span className="w-10 h-10 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center shrink-0">
+                  <Icon name="logout" className="text-[22px]" />
                 </span>
+                <div className="flex flex-col min-w-0">
+                  <h3 className="font-headline-sm text-headline-sm text-slate-900 font-bold">Konfirmasi Keluar</h3>
+                  <p className="font-body-sm text-body-sm text-slate-500 mt-1 leading-snug">
+                    Apakah Anda yakin ingin keluar dari akun {staff.name}? Sesi di perangkat ini akan diakhiri.
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-2.5 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setKonfirmasiKeluar(false)}
+                  className="sp-btn flex-1 min-h-[44px] py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-label-md text-label-md font-semibold rounded-xl"
+                >
+                  Batal
+                </button>
+                <button
+                  type="button"
+                  onClick={keluar}
+                  className="sp-btn flex-1 min-h-[44px] py-2.5 bg-destructive hover:bg-destructive/90 text-white font-label-md text-label-md font-semibold rounded-xl shadow-sm"
+                >
+                  Ya, Keluar
+                </button>
               </div>
             </div>
-            <div className="flex gap-2.5">
-              <button
-                type="button"
-                onClick={() => setKonfirmasiKeluar(false)}
-                className="sp-btn flex-1 py-3 bg-surface-container-low text-on-surface font-label-md text-label-md active:scale-[0.99] transition-transform"
-              >
-                Batal
-              </button>
-              <button
-                type="button"
-                onClick={keluar}
-                className="sp-btn flex-1 py-3 bg-error text-on-error font-label-md text-label-md active:scale-[0.99] transition-transform"
-              >
-                Ya, Keluar
-              </button>
-            </div>
-          </section>
+          </div>
         )}
 
-        <p className="text-center font-label-sm text-label-sm text-on-surface-variant leading-snug">
-          SimPres Kepegawaian • {unit?.kode || '-'} • versi 1.0.0
+        <p className="text-center font-label-sm text-label-sm text-slate-400 leading-snug">
+          SIMPEG Kepegawaian • {unit?.kode || '-'} • versi 1.0.0
         </p>
       </div>
     </div>

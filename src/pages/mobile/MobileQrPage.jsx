@@ -85,8 +85,8 @@ function MobileQrPage() {
       <div className="px-4 relative z-[2] flex flex-col gap-4 pb-2">
         <section className="sp-card p-5 flex flex-col items-center gap-4">
           {/* QR sebesar mungkin supaya mudah dipindai dari layar. */}
-          <div className="w-full max-w-[300px] aspect-square rounded-3xl bg-white border-2 border-outline-variant/40 p-3 flex items-center justify-center">
-            <QRCodeSvg value={employeeQrPayload(staff)} className="h-full w-full text-primary" title="QR presensi pegawai" />
+          <div className="w-full max-w-[300px] aspect-square rounded-3xl bg-white border border-slate-200/80 p-4 shadow-sm flex items-center justify-center">
+            <QRCodeSvg value={employeeQrPayload(staff)} className="h-full w-full text-[#323d8f]" title="QR presensi pegawai" />
           </div>
 
           <div className="text-center flex flex-col gap-1">

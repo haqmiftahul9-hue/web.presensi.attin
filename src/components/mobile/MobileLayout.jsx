@@ -8,12 +8,13 @@ import MobileErrorBoundary from './MobileErrorBoundary.jsx'
 import InstallPrompt from './InstallPrompt.jsx'
 import { GlassTopBar, MobileAppShell } from './AppShell.jsx'
 
-// Bottom navigation modul mobile. Empat menu ini adalah seluruh navigasi
-// role Guru/Pegawai; tidak ada sidebar dan tidak ada tautan ke portal desktop.
+// Bottom navigation modul mobile. Lima menu ini adalah seluruh navigasi
+// role Guru/Pegawai: Beranda, Riwayat, Presensi (tengah, menonjol), Izin/Cuti, Profil.
 const NAV_ITEMS = [
   { to: '/mobile/home', label: 'Beranda', icon: 'home', end: true },
-  { to: '/mobile/presensi', label: 'Presensi', icon: 'face_retouch_natural' },
   { to: '/mobile/riwayat', label: 'Riwayat', icon: 'calendar_month' },
+  { to: '/mobile/presensi', label: 'Presensi', icon: 'face_retouch_natural', isCenter: true },
+  { to: '/mobile/izin-cuti', label: 'Izin/Cuti', icon: 'event_available' },
   { to: '/mobile/profil', label: 'Profil', icon: 'person' },
 ]
 
@@ -74,8 +75,8 @@ function MobileLayout() {
         </main>
 
         {/* Navigasi bawah: mengambang 16px dari tepi shell, tinggi 76px,
-            radius 24px. Isinya satu baris horizontal (sp-nav-row) berisi
-            empat menu — tidak pernah menumpuk ke bawah. */}
+            radius 26px. Isinya satu baris horizontal (sp-nav-row) berisi
+            lima menu dengan tombol presensi menonjol di tengah. */}
         <nav className="sp-mobile-nav sp-hide-print sp-nav-float" aria-label="Navigasi utama">
           <div className="sp-nav-row">
             {NAV_ITEMS.map((item) => (
@@ -84,23 +85,43 @@ function MobileLayout() {
                 to={item.to}
                 end={item.end}
                 data-path={item.to}
-                className="sp-nav-float-item"
+                className={({ isActive }) =>
+                  `sp-nav-float-item ${item.isCenter ? 'sp-nav-center' : ''}`
+                }
               >
-                {({ isActive }) => (
-                  <>
-                    <Icon
-                      name={item.icon}
-                      className={`text-[22px] ${isActive ? 'text-white' : 'text-on-surface-variant'}`}
-                    />
-                    <span
-                      className={`font-label-sm text-label-sm ${
-                        isActive ? 'text-white' : 'text-on-surface-variant'
-                      }`}
-                    >
-                      {item.label}
-                    </span>
-                  </>
-                )}
+                {({ isActive }) =>
+                  item.isCenter ? (
+                    <>
+                      <span className={`sp-nav-center-btn ${isActive ? 'sp-nav-center-active' : ''}`}>
+                        <Icon
+                          name={item.icon}
+                          className="text-white text-[26px]"
+                        />
+                      </span>
+                      <span
+                        className={`font-label-sm text-[10px] sm:text-[11px] font-bold ${
+                          isActive ? 'text-[#323d8f]' : 'text-slate-600'
+                        }`}
+                      >
+                        {item.label}
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <Icon
+                        name={item.icon}
+                        className={`text-[21px] ${isActive ? 'text-white' : 'text-on-surface-variant'}`}
+                      />
+                      <span
+                        className={`font-label-sm text-[10.5px] sm:text-[11.5px] leading-tight truncate max-w-full px-0.5 ${
+                          isActive ? 'text-white font-semibold' : 'text-on-surface-variant'
+                        }`}
+                      >
+                        {item.label}
+                      </span>
+                    </>
+                  )
+                }
               </NavLink>
             ))}
           </div>

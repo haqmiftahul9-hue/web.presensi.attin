@@ -52,31 +52,37 @@ export function GlassTopBar({ staff }) {
       <NavLink
         to="/mobile/home"
         className="sp-press flex items-center gap-2 min-w-0 h-11 px-1.5 rounded-xl"
-        aria-label="SimPres Kepegawaian"
+        aria-label="SIMPEG Kepegawaian"
       >
-        <span className="w-9 h-9 rounded-xl bg-white/15 border border-white/20 flex items-center justify-center shrink-0">
+        <span
+          className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-md text-white border border-white/25"
+          style={{ backgroundColor: '#323d8f' }}
+        >
           <Icon name="fingerprint" className="text-white text-[20px]" />
         </span>
         <span className="flex flex-col min-w-0">
-          <span className="font-headline-sm text-headline-sm text-white leading-tight truncate">SimPres</span>
+          <span className="font-headline-sm text-headline-sm text-white font-bold tracking-tight leading-tight truncate">
+            SIMPEG
+          </span>
           <span className="font-label-sm text-label-sm text-white/70 truncate">Kepegawaian</span>
         </span>
       </NavLink>
 
-      <div className="flex items-center gap-1 shrink-0">
+      <div className="flex items-center gap-1.5 shrink-0">
         <button
           type="button"
           aria-label="Notifikasi"
-          className="sp-press w-11 h-11 rounded-full flex items-center justify-center bg-white/10 border border-white/15"
+          className="sp-press w-10 h-10 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 border border-white/15 relative transition-colors"
         >
-          <Icon name="notifications" className="text-white text-[22px]" />
+          <Icon name="notifications" className="text-white text-[20px]" />
+          <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-emerald-400 ring-2 ring-[#1c2254]" />
         </button>
-        <NavLink to="/mobile/profil" aria-label="Profil saya" className="sp-press w-11 h-11 rounded-full flex items-center justify-center">
+        <NavLink to="/mobile/profil" aria-label="Profil saya" className="sp-press w-10 h-10 rounded-full flex items-center justify-center">
           <StaffAvatar
             staff={staff}
             size="w-9 h-9"
-            textClass="font-label-sm text-label-sm"
-            ring="ring-2 ring-white/25"
+            textClass="font-label-sm text-label-sm font-semibold"
+            ring="ring-2 ring-white/30"
           />
         </NavLink>
       </div>
@@ -84,7 +90,6 @@ export function GlassTopBar({ staff }) {
   )
 }
 
-/**
 /**
  * Grid shortcut 2x2. Tidak memakai list: tiap menu adalah kotak dengan ikon
  * lingkaran dan judul kecil, seperti aplikasi presensi pada umumnya.
@@ -99,14 +104,14 @@ export function ShortcutGrid({ items, columns = 2 }) {
         <NavLink
           key={item.to}
           to={item.to}
-          className={`sp-shortcut sp-rise sp-rise-${Math.min(i + 1, 4)}`}
+          className={`sp-shortcut sp-rise sp-rise-${Math.min(i + 1, 4)} hover:border-[#323d8f]/30 transition-all`}
         >
-          <span className={`sp-shortcut-icon ${item.warna || 'bg-surface-container'}`}>
-            <Icon name={item.ikon} className="text-[22px] text-on-surface" />
+          <span className={`sp-shortcut-icon ${item.warna || 'bg-slate-100 text-slate-800'}`}>
+            <Icon name={item.ikon} className="text-[22px]" />
           </span>
           <span className="text-center leading-tight">
-            <span className="block font-label-md text-label-md text-on-surface">{item.judul}</span>
-            {item.sub && <span className="block font-label-sm text-label-sm text-on-surface-variant">{item.sub}</span>}
+            <span className="block font-label-md text-label-md text-slate-900 font-semibold">{item.judul}</span>
+            {item.sub && <span className="block font-label-sm text-label-sm text-slate-500 mt-0.5">{item.sub}</span>}
           </span>
         </NavLink>
       ))}
@@ -120,35 +125,31 @@ export function SectionTitle({ ikon, judul, aksi }) {
     <div className="flex items-center justify-between gap-2">
       <span className="flex items-center gap-2 min-w-0">
         {ikon && (
-          <span className="w-8 h-8 rounded-xl bg-surface-container flex items-center justify-center shrink-0">
-            <Icon name={ikon} className="text-[18px] text-on-surface-variant" />
+          <span className="w-8 h-8 rounded-xl bg-[#323d8f]/10 border border-[#323d8f]/15 flex items-center justify-center shrink-0">
+            <Icon name={ikon} className="text-[17px] text-[#323d8f]" />
           </span>
         )}
-        <span className="font-headline-sm text-headline-sm text-on-surface truncate">{judul}</span>
+        <span className="font-headline-sm text-headline-sm text-slate-900 font-bold tracking-tight truncate">{judul}</span>
       </span>
       {aksi}
     </div>
   )
 }
 
-/** Satu sensor pada baris "Status Sensor" (lokasi / waktu / kamera).
- *
- *  Setiap kotak punya padding 12px dan radius 16px, dan jarak antar kotak
- *  diatur oleh `gap` grid di pemanggil (10px) — jadi tidak pernah saling
- *  menempel dan tidak pernah menyentuh sisi kartu. */
+/** Satu sensor pada baris "Status Sensor" (lokasi / waktu / kamera). */
 export function Sensor({ ikon, label, nilai, tone = 'netral' }) {
   const warna = {
-    baik: 'bg-emerald-50 text-emerald-700',
-    lambat: 'bg-amber-50 text-amber-800',
-    netral: 'bg-surface-container-low text-on-surface-variant',
-  }[tone] || 'bg-surface-container-low text-on-surface-variant'
+    baik: 'bg-emerald-50 text-emerald-700 border border-emerald-200/60',
+    lambat: 'bg-amber-50 text-amber-800 border border-amber-200/60',
+    netral: 'bg-slate-100 text-slate-700 border border-slate-200/60',
+  }[tone] || 'bg-slate-100 text-slate-700 border border-slate-200/60'
   return (
-    <div className="rounded-2xl bg-surface-container-low p-3 flex flex-col items-center gap-1.5 min-w-0">
+    <div className="rounded-2xl bg-white border border-slate-200/80 p-3 flex flex-col items-center gap-1.5 min-w-0 shadow-xs">
       <span className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${warna}`}>
         <Icon name={ikon} className="text-[18px]" />
       </span>
-      <span className="font-label-sm text-label-sm text-on-surface-variant">{label}</span>
-      <span className="font-label-md text-label-md text-on-surface text-center leading-snug break-words">
+      <span className="font-label-sm text-label-sm text-slate-500 font-medium">{label}</span>
+      <span className="font-label-md text-label-md text-slate-900 font-semibold text-center leading-snug break-words">
         {nilai}
       </span>
     </div>

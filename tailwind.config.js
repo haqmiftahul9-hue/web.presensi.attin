@@ -60,7 +60,7 @@ export default {
         "secondary-fixed": "#dbe1ff",
         "on-error": "#ffffff",
         "on-tertiary-container": "#7187b4",
-        "secondary-container": "#316bf3",
+        "secondary-container": "#323d8f",
         "on-primary-fixed": "#061b39",
         "on-tertiary-fixed-variant": "#304670",
         "inverse-primary": "#b5c7ed",

@@ -103,10 +103,10 @@ function MobileSlipPage() {
               type="button"
               onClick={() => setBulan(key)}
               aria-pressed={key === bulan}
-              className={`shrink-0 px-3.5 py-2.5 rounded-full font-label-md text-label-md transition-colors ${
+              className={`shrink-0 px-3.5 py-2.5 rounded-full font-label-md text-label-md transition-all ${
                 key === bulan
-                  ? 'bg-primary-container text-on-primary shadow-sm'
-                  : 'bg-surface-container text-on-surface-variant'
+                  ? 'bg-[#323d8f] text-white shadow-sm font-semibold'
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
               }`}
             >
               {BULAN_PENDEK[Number(key.split('-')[1]) - 1]} {key.split('-')[0].slice(2)}
@@ -118,11 +118,11 @@ function MobileSlipPage() {
         <section className="sp-card p-4 sp-print-slip flex flex-col gap-3.5">
           <div className="sp-card-head">
             <div className="flex items-center gap-2 min-w-0">
-              <span className="w-9 h-9 rounded-xl bg-primary-container flex items-center justify-center shrink-0">
-                <Icon name="fingerprint" className="text-on-primary text-[20px]" />
+              <span className="w-9 h-9 rounded-xl bg-[#323d8f]/10 flex items-center justify-center shrink-0">
+                <Icon name="fingerprint" className="text-[#323d8f] text-[20px]" />
               </span>
               <div className="flex flex-col min-w-0">
-                <span className="font-headline-sm text-headline-sm text-on-surface truncate">SimPres Kepegawaian</span>
+                <span className="font-headline-sm text-headline-sm text-on-surface font-semibold truncate">SIMPEG Kepegawaian</span>
                 <span className="font-label-sm text-label-sm text-on-surface-variant truncate">
                   {unit?.nama || '-'}
                 </span>
@@ -133,14 +133,18 @@ function MobileSlipPage() {
             </span>
           </div>
 
-          <div className="flex items-center gap-3">
-            <StaffAvatar staff={staff} size="w-14 h-14" textClass="font-headline-sm text-headline-sm" ring="ring-1 ring-outline-variant/40" />
-            <div className="flex flex-col min-w-0">
-              <span className="font-body-md-medium text-body-md-medium text-on-surface">{staff.name}</span>
-              <span className="font-label-sm text-label-sm text-on-surface-variant">NIY {staff.niy}</span>
-              <span className="font-label-sm text-label-sm text-on-surface-variant truncate">
-                {staff.role} • {unit?.nama}
-              </span>
+          <div className="flex items-center gap-3.5 p-3 rounded-2xl bg-slate-50 border border-slate-200/80">
+            <StaffAvatar staff={staff} size="w-12 h-12" textClass="font-headline-sm text-headline-sm" ring="ring-2 ring-white shadow-sm" />
+            <div className="flex flex-col min-w-0 flex-1">
+              <span className="font-headline-sm text-headline-sm text-slate-900 font-bold truncate">{staff.name}</span>
+              <div className="flex items-center gap-2 mt-0.5">
+                <span className="px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-700 font-label-sm text-label-sm font-semibold tabular-nums shrink-0">
+                  NIY {staff.niy}
+                </span>
+                <span className="font-label-sm text-label-sm text-slate-500 font-medium truncate">
+                  {staff.role} • {unit?.nama}
+                </span>
+              </div>
             </div>
           </div>
 

@@ -60,16 +60,18 @@ function PresensiHariIniCard({ presensi, zonaWaktu, tanggal }) {
     <section className="sp-card p-4 flex flex-col gap-3.5">
       <div className="sp-card-head">
         <div className="flex items-center gap-2 min-w-0">
-          <Icon name="history_toggle_off" className="text-secondary text-[20px] shrink-0" />
-          <span className="font-headline-sm text-headline-sm text-on-surface truncate">Presensi Hari Ini</span>
+          <span className="w-8 h-8 rounded-xl bg-[#323d8f]/10 border border-[#323d8f]/15 flex items-center justify-center shrink-0">
+            <Icon name="history_toggle_off" className="text-[#323d8f] text-[18px]" />
+          </span>
+          <span className="font-headline-sm text-headline-sm text-slate-900 font-bold tracking-tight truncate">Presensi Hari Ini</span>
         </div>
-        <span className="font-label-sm text-label-sm text-on-surface-variant shrink-0">{tanggalPendek(tanggal)}</span>
+        <span className="font-label-sm text-label-sm text-slate-500 font-medium shrink-0">{tanggalPendek(tanggal)}</span>
       </div>
 
       {baris(
         'Jam Masuk',
         masuk,
-        masuk ? (lateMinutes > 0 ? 'bg-amber-50 text-amber-800' : 'bg-emerald-50 text-emerald-700') : 'bg-surface-container text-on-surface-variant',
+        masuk ? (lateMinutes > 0 ? 'bg-amber-50 text-amber-800 border border-amber-200/60 font-semibold' : 'bg-emerald-50 text-emerald-700 border border-emerald-200/60 font-semibold') : 'bg-slate-100 text-slate-600',
         masuk ? (lateMinutes > 0 ? 'schedule' : 'task_alt') : 'hourglass_empty',
         masuk ? statusMasuk : 'Belum Masuk',
       )}
@@ -81,38 +83,38 @@ function PresensiHariIniCard({ presensi, zonaWaktu, tanggal }) {
       {baris(
         'Jam Pulang',
         pulang,
-        pulang ? 'bg-emerald-50 text-emerald-700' : 'bg-surface-container text-on-surface-variant',
+        pulang ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/60 font-semibold' : 'bg-slate-100 text-slate-600',
         pulang ? 'task_alt' : 'hourglass_empty',
         pulang ? 'Sudah Absen' : (rules.pulangBebas ? 'Bebas' : `Menunggu ${rules.jamPulang}`),
       )}
 
       {/* Informasi hari kerja — menggantikan informasi shift. */}
       <div className="grid grid-cols-2 gap-2.5">
-        <div className="p-3 rounded-xl bg-surface-container-low flex flex-col gap-1 min-w-0">
-          <span className="font-label-sm text-label-sm text-on-surface-variant">Hari kerja</span>
-          <span className="font-body-md-medium text-body-md-medium text-on-surface truncate">{hari}</span>
+        <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex flex-col gap-1 min-w-0">
+          <span className="font-label-sm text-label-sm text-slate-500 font-medium">Hari kerja</span>
+          <span className="font-body-md-medium text-body-md-medium text-slate-900 font-semibold truncate">{hari}</span>
         </div>
-        <div className="p-3 rounded-xl bg-surface-container-low flex flex-col gap-1 min-w-0">
-          <span className="font-label-sm text-label-sm text-on-surface-variant">Jam kerja</span>
-          <span className="font-body-md-medium text-body-md-medium text-on-surface tabular-nums truncate">
+        <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex flex-col gap-1 min-w-0">
+          <span className="font-label-sm text-label-sm text-slate-500 font-medium">Jam kerja</span>
+          <span className="font-body-md-medium text-body-md-medium text-slate-900 font-semibold tabular-nums truncate">
             {rules.jamKerja}
           </span>
         </div>
       </div>
 
-      <div className="p-3.5 rounded-2xl bg-surface-container-low flex items-start gap-2.5 text-on-surface-variant">
+      <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-start gap-2.5 text-amber-900">
         <Icon name="info" className="text-[17px] text-amber-600 shrink-0 mt-0.5" />
-        <div className="flex flex-col gap-1 min-w-0">
-          <span className="font-body-sm-medium text-body-sm-medium text-on-surface">
+        <div className="flex flex-col gap-0.5 min-w-0">
+          <span className="font-body-sm-medium text-body-sm-medium font-bold text-amber-950">
             Batas presensi: {batasMasuk} {zonaWaktu}
           </span>
-          <span className="font-body-sm text-body-sm text-on-surface-variant leading-snug">
+          <span className="font-body-sm text-body-sm text-amber-900/90 leading-snug">
             Masuk tepat pada batas atau sebelumnya berstatus Tepat Waktu; setelahnya Terlambat.
           </span>
         </div>
       </div>
 
-      <p className="font-label-sm text-label-sm text-on-surface-variant leading-snug">
+      <p className="font-label-sm text-label-sm text-slate-500 leading-snug">
         Jam kerja {rules.hari} {rules.jamKerja} {zonaWaktu}
         {method ? ` • metode ${method}` : ''}
       </p>
@@ -438,7 +440,7 @@ function MobilePresensiPage() {
                 ring="ring-[3px] ring-white/20"
               />
               <span
-                className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full ring-[3px] ring-[#12325f] ${
+                className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full ring-[3px] ring-[#1c2254] ${
                   state.currentUser?.status === 'Aktif' ? 'bg-emerald-400' : 'bg-outline'
                 }`}
                 title={state.currentUser?.status === 'Aktif' ? 'Online' : 'Offline'}
@@ -460,18 +462,20 @@ function MobilePresensiPage() {
             </span>
           </div>
 
-          <div className="mt-3 flex flex-wrap items-center gap-1.5">
-            <span className="px-2.5 py-1 rounded-full bg-white/10 border border-white/12 font-label-sm text-label-sm text-white/90 flex items-center gap-1 max-w-full">
-              <Icon name="domain" className="text-[14px]" />
-              <span className="truncate">{unit?.nama || '-'}</span>
-            </span>
-            <span className="px-2.5 py-1 rounded-full bg-white/10 border border-white/12 font-label-sm text-label-sm text-white/90 flex items-center gap-1">
-              <Icon name="work" className="text-[14px]" />
-              {staff.role}
-            </span>
-            <span className="px-2.5 py-1 rounded-full bg-white/10 border border-white/12 font-label-sm text-label-sm text-white/90 flex items-center gap-1">
-              <Icon name="schedule" className="text-[14px]" />
-              Jam Kerja {rules.hari} ({rules.jamKerja})
+          <div className="mt-3.5 grid grid-cols-2 gap-2">
+            <div className="flex items-center gap-2 rounded-xl bg-white/12 border border-white/20 px-2.5 py-2 backdrop-blur-md min-w-0">
+              <Icon name="domain" className="text-[15px] text-white/90 shrink-0" />
+              <span className="font-label-sm text-label-sm text-white font-medium truncate">{unit?.nama || '-'}</span>
+            </div>
+            <div className="flex items-center gap-2 rounded-xl bg-white/12 border border-white/20 px-2.5 py-2 backdrop-blur-md min-w-0">
+              <Icon name="work" className="text-[15px] text-white/90 shrink-0" />
+              <span className="font-label-sm text-label-sm text-white font-medium truncate">{staff.role}</span>
+            </div>
+          </div>
+          <div className="mt-2 flex items-center gap-2 rounded-xl bg-white/12 border border-white/20 px-3 py-2 backdrop-blur-md min-w-0">
+            <Icon name="schedule" className="text-[15px] text-white/90 shrink-0" />
+            <span className="font-label-sm text-label-sm text-white font-medium truncate">
+              Jam Kerja {rules.hari}: <span className="font-semibold">{rules.jamKerja}</span>
             </span>
           </div>
 
@@ -552,7 +556,7 @@ function MobilePresensiPage() {
             />
           )}
 
-          <div className="grid grid-cols-2 p-1.5 gap-1.5 bg-surface-container rounded-2xl">
+          <div className="grid grid-cols-2 p-1.5 gap-1.5 bg-slate-100/90 border border-slate-200/60 rounded-2xl">
             {TABS.map((tab) => (
               <button
                 key={tab.id}
@@ -565,8 +569,8 @@ function MobilePresensiPage() {
                 aria-pressed={mode === tab.id}
                 className={`flex items-center justify-center gap-1.5 min-h-[44px] px-3 py-2.5 rounded-xl font-label-md text-label-md transition-all ${
                   mode === tab.id
-                    ? 'bg-primary text-on-primary shadow-sm'
-                    : 'bg-transparent text-on-surface-variant'
+                    ? 'bg-[#323d8f] text-white shadow-sm font-semibold'
+                    : 'bg-transparent text-slate-600 hover:text-slate-900'
                 }`}
               >
                 <Icon name={tab.icon} className="text-[18px] shrink-0" />
@@ -612,11 +616,11 @@ function MobilePresensiPage() {
                 placeholder="NIY"
                 inputMode="numeric"
                 aria-label="Kode kartu ID"
-                className="sp-field flex-1 py-2.5 bg-surface-container-low border border-outline-variant/40 font-body-md text-body-md text-on-surface outline-none focus:border-secondary"
+                className="sp-field flex-1 py-2.5 bg-slate-50 border border-slate-200/80 rounded-xl font-body-md text-body-md text-on-surface outline-none focus:border-[#323d8f] focus:ring-1 focus:ring-[#323d8f]"
               />
               <button
                 type="submit"
-                className="sp-btn shrink-0 px-4 py-2.5 bg-secondary text-on-secondary font-label-md text-label-md active:scale-[0.98] transition-transform"
+                className="sp-btn shrink-0 px-4 py-2.5 bg-[#323d8f] text-white font-label-md text-label-md shadow-sm active:scale-[0.98] transition-transform hover:bg-[#252e6d]"
               >
                 Verifikasi
               </button>
@@ -649,9 +653,9 @@ function MobilePresensiPage() {
             disabled={tombolDisabled}
             className={`sp-btn w-full py-4 font-headline-sm text-headline-sm flex items-center justify-center gap-2 shadow-lg transition-all active:scale-[0.99] disabled:opacity-60 disabled:active:scale-100 ${
               belumMasuk
-                ? 'bg-gradient-to-br from-primary-container to-[#12325f] text-on-primary'
+                ? 'bg-gradient-to-r from-[#20275e] to-[#323d8f] text-white'
                 : belumPulang
-                  ? 'bg-secondary text-on-secondary'
+                  ? 'bg-gradient-to-r from-[#1c2254] to-[#323d8f] text-white'
                   : 'bg-emerald-700 text-white'
             }`}
           >

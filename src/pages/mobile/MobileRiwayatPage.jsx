@@ -25,8 +25,8 @@ function ChipFilter({ label, aktif, onClick }) {
       type="button"
       onClick={onClick}
       aria-pressed={aktif}
-      className={`shrink-0 px-3.5 py-2 rounded-full font-label-md text-label-md transition-colors ${
-        aktif ? 'bg-primary-container text-on-primary shadow-sm' : 'bg-surface-container text-on-surface-variant'
+      className={`shrink-0 px-3.5 py-2 rounded-full font-label-md text-label-md transition-all ${
+        aktif ? 'bg-[#323d8f] text-white shadow-sm font-semibold' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
       }`}
     >
       {label}
@@ -77,21 +77,21 @@ function KartuHari({ tanggal, masuk, pulang, lateMinutes, status, metode, titikL
             sendiri — karena itu label memakai `break-words`: kalau tidak, teksnya
             keluar dari kotaknya dan menabrak kotak sebelah. */}
         <div className="grid grid-cols-3 gap-2">
-          <div className="rounded-2xl bg-surface-container-low px-3 py-2.5 flex flex-col gap-1 min-w-0">
-            <span className="font-label-sm text-label-sm text-on-surface-variant break-words">Masuk</span>
-            <span className="font-body-md-medium text-body-md-medium text-on-surface tabular-nums">
+          <div className="rounded-xl bg-slate-50 border border-slate-100 px-3 py-2.5 flex flex-col gap-1 min-w-0">
+            <span className="font-label-sm text-label-sm text-slate-500 font-medium break-words">Masuk</span>
+            <span className="font-body-md-medium text-body-md-medium text-slate-900 font-semibold tabular-nums">
               {masuk ? jamPendek(masuk) : '--:--'}
             </span>
           </div>
-          <div className="rounded-2xl bg-surface-container-low px-3 py-2.5 flex flex-col gap-1 min-w-0">
-            <span className="font-label-sm text-label-sm text-on-surface-variant break-words">Pulang</span>
-            <span className="font-body-md-medium text-body-md-medium text-on-surface tabular-nums">
+          <div className="rounded-xl bg-slate-50 border border-slate-100 px-3 py-2.5 flex flex-col gap-1 min-w-0">
+            <span className="font-label-sm text-label-sm text-slate-500 font-medium break-words">Pulang</span>
+            <span className="font-body-md-medium text-body-md-medium text-slate-900 font-semibold tabular-nums">
               {pulang ? jamPendek(pulang) : '--:--'}
             </span>
           </div>
-          <div className="rounded-2xl bg-surface-container-low px-3 py-2.5 flex flex-col gap-1 min-w-0">
-            <span className="font-label-sm text-label-sm text-on-surface-variant break-words">Keterlambatan</span>
-            <span className={`font-body-md-medium text-body-md-medium tabular-nums truncate ${lateMinutes > 0 ? 'text-amber-700' : 'text-on-surface'}`}>
+          <div className="rounded-xl bg-slate-50 border border-slate-100 px-3 py-2.5 flex flex-col gap-1 min-w-0">
+            <span className="font-label-sm text-label-sm text-slate-500 font-medium break-words">Keterlambatan</span>
+            <span className={`font-body-md-medium text-body-md-medium font-semibold tabular-nums truncate ${lateMinutes > 0 ? 'text-amber-700' : 'text-slate-900'}`}>
               {lateMinutes} menit
             </span>
           </div>
@@ -106,7 +106,7 @@ function KartuHari({ tanggal, masuk, pulang, lateMinutes, status, metode, titikL
             type="button"
             onClick={() => setTerbuka((v) => !v)}
             aria-expanded={terbuka}
-            className="font-label-sm text-label-sm text-secondary flex items-center gap-1 shrink-0 px-3 py-2 -mr-1.5 rounded-lg"
+            className="font-label-sm text-label-sm text-[#323d8f] hover:text-[#242d6b] font-medium flex items-center gap-1 shrink-0 px-3 py-2 -mr-1.5 rounded-lg"
           >
             Detail presensi
             <Icon name={terbuka ? 'expand_less' : 'expand_more'} className="text-[14px]" />
@@ -115,8 +115,8 @@ function KartuHari({ tanggal, masuk, pulang, lateMinutes, status, metode, titikL
       </div>
 
       {terbuka && (
-        <div className="pt-3 border-t border-surface-container animate-sp-rise">
-          <div className="divide-y divide-surface-container">
+        <div className="pt-3 border-t border-slate-100 animate-sp-rise">
+          <div className="divide-y divide-slate-100">
             <BarisDetail label="Tanggal" nilai={tanggalLengkapISO(tanggal)} />
             <BarisDetail label="Status" nilai={status.label} />
             <BarisDetail label="Jam masuk" nilai={masuk ? `${jamPendek(masuk)} ${zonaWaktu}` : 'Tidak ada presensi'} />
@@ -167,13 +167,15 @@ function FilterPeriode({ mode, form, daftarTahun, tahunBerjalan, onUbahMode, onU
     <section className="sp-card p-4 flex flex-col gap-3.5">
       <div className="sp-card-head">
         <div className="flex items-center gap-2 min-w-0">
-          <Icon name="calendar_month" className="text-secondary text-[18px] shrink-0" />
-          <span className="font-headline-sm text-headline-sm text-on-surface truncate">Periode Presensi</span>
+          <span className="w-8 h-8 rounded-xl bg-[#323d8f]/10 border border-[#323d8f]/15 flex items-center justify-center shrink-0">
+            <Icon name="calendar_month" className="text-[#323d8f] text-[18px]" />
+          </span>
+          <span className="font-headline-sm text-headline-sm text-slate-900 font-bold tracking-tight truncate">Periode Presensi</span>
         </div>
       </div>
 
       {/* Pemilih mode: Bulanan atau Rentang Tanggal. */}
-      <div className="grid grid-cols-2 gap-1.5 p-1.5 rounded-2xl bg-surface-container">
+      <div className="grid grid-cols-2 gap-1.5 p-1 rounded-2xl bg-slate-100 border border-slate-200/60">
         {[
           { nilai: MODE_BULANAN, label: 'Bulanan', ikon: 'calendar_month' },
           { nilai: MODE_RENTANG, label: 'Rentang Tanggal', ikon: 'date_range' },
@@ -183,10 +185,10 @@ function FilterPeriode({ mode, form, daftarTahun, tahunBerjalan, onUbahMode, onU
             type="button"
             onClick={() => onUbahMode(opsi.nilai)}
             aria-pressed={mode === opsi.nilai}
-            className={`flex items-center justify-center gap-1.5 min-h-[44px] px-3 py-2.5 rounded-xl font-label-md text-label-md transition-colors ${
+            className={`flex items-center justify-center gap-1.5 min-h-[44px] px-3 py-2.5 rounded-xl font-label-md text-label-md transition-all ${
               mode === opsi.nilai
-                ? 'bg-primary text-on-primary shadow-sm'
-                : 'text-on-surface-variant'
+                ? 'bg-[#323d8f] text-white shadow-xs font-semibold'
+                : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             <Icon name={opsi.ikon} className="text-[16px] shrink-0" />
@@ -250,7 +252,7 @@ function FilterPeriode({ mode, form, daftarTahun, tahunBerjalan, onUbahMode, onU
         type="button"
         onClick={onTampilkan}
         disabled={!rentangValid}
-        className="sp-btn w-full py-3 bg-primary text-on-primary font-label-lg text-label-lg flex items-center justify-center gap-2 shadow-sm transition-opacity active:opacity-90 disabled:opacity-40 disabled:active:opacity-100"
+        className="sp-btn w-full py-3 bg-[#323d8f] hover:bg-[#252e6d] text-white font-label-lg text-label-lg font-semibold flex items-center justify-center gap-2 shadow-sm rounded-xl transition-all active:scale-[0.98] disabled:opacity-40 disabled:active:scale-100"
       >
         <Icon name="search" className="text-[18px] shrink-0" />
         Tampilkan
