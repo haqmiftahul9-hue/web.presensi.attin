@@ -10,8 +10,7 @@ const PANDUAN = [
 // Template dibuat dari EMPLOYEE_COLUMNS, jadi kolomnya selalu sama dengan form.
 // Kolom yang bisa kehilangan nol di depan bila Excel mengubahnya jadi angka.
 const TEXT_FORMAT_KEYS = new Set([
-  'niy', 'nomorIdentitas', 'kontak', 'npwp',
-  'bpjsKesehatan', 'bpjsKetenagakerjaan', 'rekeningBank',
+  'niy', 'pendidikanAsal', 'kontak',
   'tanggalLahir', 'tanggalMasuk', 'skPengangkatan',
 ])
 
@@ -22,27 +21,21 @@ export function buildTemplateSheet(state) {
       niy: '049001234',
       name: 'Budi Santoso, S.Pd',
       gelar: 'S.Pd',
-      nomorIdentitas: '3174012345678901',
+      pendidikanAsal: 'Universitas Negeri Padang',
       jenisKelamin: 'Laki-laki',
       tempatLahir: 'Jakarta',
       tanggalLahir: '1985-01-01',
-      agama: 'Islam',
       alamat: state.units[0]?.alamat || '',
       unitId: state.units[0]?.id,
       role: 'Guru Kelas',
       status: 'Aktif',
-      statusPegawai: 'GTT',
+      statusPegawai: 'Guru Tetap Yayasan',
       tanggalMasuk: '2015-07-01',
       skPengangkatan: 'SK-001/2015',
       pendTerakhir: 'S1 Pendidikan Guru Sekolah Dasar',
       jurusan: 'Pendidikan Guru Sekolah Dasar',
       kontak: '081234567890',
       email: 'budi.santoso@simpres.sch.id',
-      npwp: '12.345.678.9-012.000',
-      bpjsKesehatan: '1234567890',
-      bpjsKetenagakerjaan: '0987654321',
-      rekeningBank: 'BCA - 1234567890',
-      namaRekening: 'Budi Santoso, S.Pd',
     },
     state.units,
   )

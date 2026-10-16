@@ -6,6 +6,7 @@ import DetailEmployeeModal from './DetailEmployeeModal.jsx'
 import EditEmployeeModal from './EditEmployeeModal.jsx'
 import DeleteConfirmationModal from './DeleteConfirmationModal.jsx'
 import ConfirmDialog from './ConfirmDialog.jsx'
+import ResetStaffPasswordModal from './ResetStaffPasswordModal.jsx'
 import { getEmployeeGreeting } from '../data/sapaanPegawai.js'
 
 // Label jabatan ringkas untuk tampilan; data asli tetap di store.
@@ -148,18 +149,24 @@ function StaffTable({ unitFilter, searchTerm, statusFilter, currentPage, setCurr
     setToast(`Status ${getEmployeeGreeting(staff)} diubah menjadi ${nextStatus}.`)
   }
 
-  const handleResetPresensi = (staff) => {
+  const handleResetStaffPassword = ({ staff, password, resetAttendance }) => {
     dispatch({
-      type: 'UPDATE_STAFF',
-      payload: { ...staff, masuk: null, method: null, lateMinutes: 0, alpha: false, outsideRadius: false },
+      type: 'RESET_STAFF_PASSWORD',
+      payload: { staffId: staff.id, niy: staff.niy, password, mustChangePassword: false },
     })
+    if (resetAttendance) {
+      dispatch({
+        type: 'UPDATE_STAFF',
+        payload: { ...staff, masuk: null, method: null, lateMinutes: 0, alpha: false, outsideRadius: false },
+      })
+    }
     addActivityLog(
-      dispatch, state, 'Reset', `Presensi • ${staff.name}`,
-      `Reset data presensi hari ini & kata sandi presensi pegawai NIY ${staff.niy}`,
+      dispatch, state, 'Reset Sandi', `Pegawai • ${staff.name}`,
+      `Reset kata sandi mobile pegawai NIY ${staff.niy} menjadi ${password}${resetAttendance ? ' & reset presensi hari ini' : ''}`,
       null, null, staff.unitId,
     )
     closeAll()
-    setToast(`Presensi ${getEmployeeGreeting(staff)} berhasil direset.`)
+    setToast(`Kata sandi mobile ${getEmployeeGreeting(staff)} berhasil direset ke "${password}". Login NIY: ${staff.niy}.`)
   }
 
   const firstShown = filteredStaff.length === 0 ? 0 : (safePage - 1) * perPage + 1
@@ -344,7 +351,7 @@ function StaffTable({ unitFilter, searchTerm, statusFilter, currentPage, setCurr
               className={`w-8 h-8 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
                 safePage === page
                   ? 'bg-primary text-primary-foreground shadow-xs'
-                  : 'text-foreground hover:bg-muted'
+                  : 'bg-card border border-border text-foreground hover:bg-muted'
               }`}
               type="button"
               onClick={() => setCurrentPage(page)}
@@ -378,13 +385,10 @@ function StaffTable({ unitFilter, searchTerm, statusFilter, currentPage, setCurr
         />
       )}
       {modal === 'reset' && (
-        <ConfirmDialog
-          title="Reset Presensi & Sandi"
-          message={`Reset data presensi hari ini dan kata sandi presensi untuk ${modalStaff?.name} (NIY ${modalStaff?.niy})? Tindakan ini tercatat pada Log Aktivitas.`}
-          confirmLabel="Reset"
-          variant="warning"
+        <ResetStaffPasswordModal
+          staff={modalStaff}
           onClose={closeAll}
-          onConfirm={() => handleResetPresensi(modalStaff)}
+          onConfirm={handleResetStaffPassword}
         />
       )}
     </div>

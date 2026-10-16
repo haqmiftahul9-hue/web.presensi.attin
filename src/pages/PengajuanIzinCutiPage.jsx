@@ -573,13 +573,13 @@ function PengajuanIzinCutiPage() {
                             <button onClick={() => handleReject(row.id)} className="h-7 w-7 rounded-md bg-destructive/10 text-destructive hover:bg-destructive/20 border border-destructive/20 transition-colors flex items-center justify-center cursor-pointer flex-shrink-0" type="button" title="Tolak">
                               <span className="material-symbols-outlined text-[15px]">close</span>
                             </button>
-                            <button onClick={() => handleDetail(row)} className="h-7 w-7 rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 border border-border/50 transition-colors flex items-center justify-center cursor-pointer flex-shrink-0" type="button" title="Detail">
+                            <button onClick={() => handleDetail(row)} className="h-7 w-7 rounded-md bg-card text-foreground hover:bg-muted border border-border transition-colors flex items-center justify-center cursor-pointer flex-shrink-0" type="button" title="Detail">
                               <span className="material-symbols-outlined text-[16px]">visibility</span>
                             </button>
                           </div>
                         ) : (
                           <div className="flex items-center justify-end">
-                            <button onClick={() => handleDetail(row)} className="h-7 w-7 rounded-md bg-secondary hover:bg-secondary/80 text-secondary-foreground border border-border/50 flex items-center justify-center transition-colors cursor-pointer flex-shrink-0" type="button" title="Detail">
+                            <button onClick={() => handleDetail(row)} className="h-7 w-7 rounded-md bg-card hover:bg-muted text-foreground border border-border flex items-center justify-center transition-colors cursor-pointer flex-shrink-0" type="button" title="Detail">
                               <span className="material-symbols-outlined text-[16px]">visibility</span>
                             </button>
                           </div>
@@ -619,7 +619,7 @@ function PengajuanIzinCutiPage() {
                     className={`w-8 h-8 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
                       currentPage === pageNum
                         ? 'bg-primary text-primary-foreground shadow-xs'
-                        : 'text-foreground hover:bg-muted'
+                        : 'bg-card border border-border text-foreground hover:bg-muted'
                     }`}
                     type="button"
                   >

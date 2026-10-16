@@ -2019,7 +2019,7 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
                 </button>
               ))}
             </div>
-            <div className="relative flex items-center bg-muted/40 border border-border rounded-lg px-3 py-1.5 text-xs font-medium text-foreground">
+            <div className="relative flex items-center bg-card border border-border rounded-lg px-3 py-1.5 text-xs font-medium text-foreground shadow-2xs">
               <span className="material-symbols-outlined text-[16px] text-muted-foreground mr-1.5">calendar_today</span>
               <span>{getPeriodLabel(activePeriod)}</span>
             </div>
@@ -2027,7 +2027,7 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
               <div className="relative" onMouseLeave={() => setShowUnitDropdown(false)}>
                 <button
                   onClick={() => setShowUnitDropdown(!showUnitDropdown)}
-                  className="flex items-center gap-1.5 h-8.5 px-3 bg-muted/40 border border-border rounded-lg hover:bg-muted transition-colors cursor-pointer text-xs font-medium text-foreground"
+                  className="flex items-center gap-1.5 h-8.5 px-3 bg-card border border-border rounded-lg hover:bg-muted transition-colors cursor-pointer text-xs font-medium text-foreground shadow-2xs"
                   type="button"
                 >
                   <span className="material-symbols-outlined text-[16px] text-muted-foreground">domain</span>

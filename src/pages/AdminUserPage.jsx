@@ -236,15 +236,20 @@ function AdminUserPage() {
     confirmAction(
       'default',
       'Reset Password',
-      `Reset kata sandi akun "${row.name}"? Kata sandi baru akan disetel dan pengguna wajib menggantinya saat login berikutnya.`,
+      `Reset kata sandi akun "${row.name}"? Kata sandi baru akan disetel dan pengguna dapat login dengan kredensial baru.`,
       () => {
         const pwd = generatePassword()
-        // Kata sandi ikut ditulis ke akun agar kredensial di bawah benar-benar
-        // bisa dipakai, dan mustChangePassword mengarahkan pengguna ke form
-        // ganti kata sandi sebelum masuk ke sistem.
-        dispatch({ type: 'UPDATE_ADMIN_USER', payload: { id: row.id, password: pwd, mustChangePassword: true } })
+        const isMobileUser = normalisasiRole(row.role) === 'Guru'
+        dispatch({
+          type: 'UPDATE_ADMIN_USER',
+          payload: {
+            id: row.id,
+            password: pwd,
+            mustChangePassword: !isMobileUser,
+          },
+        })
         addActivityLog(dispatch, state, 'Reset Password', `Akun • ${row.name}`, `Reset kata sandi akun ${row.role} atas NIY ${row.niy}`, null, null, row.unitId)
-        setSuccessMessage(`Password akun "${row.name}" telah direset. Kredensial baru: ${pwd}`)
+        setSuccessMessage(`Password akun "${row.name}" telah direset. Kredensial baru: ${pwd}. ${isMobileUser ? 'Pengguna dapat langsung login ke aplikasi mobile.' : ''}`)
         setTimeout(() => setSuccessMessage(''), 6000)
       },
     )
@@ -447,7 +452,7 @@ function AdminUserPage() {
             <div className="relative flex-1 min-w-[200px]">
               <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-[17px]">search</span>
               <input
-                className="w-full h-9 pl-8 pr-3 bg-muted/40 border border-input rounded-lg text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:bg-card focus:ring-1 focus:ring-ring transition-colors"
+                className="w-full h-9 pl-8 pr-3 bg-card border border-input rounded-lg text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring transition-colors"
                 placeholder="Cari nama, email, atau NIY..."
                 type="text"
                 value={searchTerm}
@@ -456,7 +461,7 @@ function AdminUserPage() {
             </div>
             <div className="relative">
               <select
-                className="h-9 pl-2.5 pr-7 bg-muted/40 border border-input text-foreground rounded-lg text-xs font-medium focus:outline-none focus:ring-1 focus:ring-ring appearance-none cursor-pointer"
+                className="h-9 pl-2.5 pr-7 bg-card border border-input text-foreground rounded-lg text-xs font-medium focus:outline-none focus:ring-1 focus:ring-ring appearance-none cursor-pointer"
                 value={roleFilter}
                 onChange={(e) => setRoleFilter(e.target.value)}
               >
@@ -469,7 +474,7 @@ function AdminUserPage() {
             </div>
             <div className="relative">
               <select
-                className="h-9 pl-2.5 pr-7 bg-muted/40 border border-input text-foreground rounded-lg text-xs font-medium focus:outline-none focus:ring-1 focus:ring-ring appearance-none cursor-pointer"
+                className="h-9 pl-2.5 pr-7 bg-card border border-input text-foreground rounded-lg text-xs font-medium focus:outline-none focus:ring-1 focus:ring-ring appearance-none cursor-pointer"
                 value={unitFilter}
                 onChange={(e) => setUnitFilter(e.target.value)}
               >
@@ -482,7 +487,7 @@ function AdminUserPage() {
             </div>
             <div className="relative">
               <select
-                className="h-9 pl-2.5 pr-7 bg-muted/40 border border-input text-foreground rounded-lg text-xs font-medium focus:outline-none focus:ring-1 focus:ring-ring appearance-none cursor-pointer"
+                className="h-9 pl-2.5 pr-7 bg-card border border-input text-foreground rounded-lg text-xs font-medium focus:outline-none focus:ring-1 focus:ring-ring appearance-none cursor-pointer"
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
               >
@@ -574,7 +579,7 @@ function AdminUserPage() {
                       <div className="flex items-center justify-end gap-1">
                         <button
                           onClick={() => openDetail(user)}
-                          className="w-7 h-7 rounded-md bg-muted hover:bg-muted/80 text-foreground flex items-center justify-center transition-colors cursor-pointer"
+                          className="w-7 h-7 rounded-md bg-card hover:bg-muted border border-border text-foreground flex items-center justify-center transition-colors cursor-pointer"
                           title="Detail Pengguna"
                           type="button"
                         >
@@ -669,7 +674,7 @@ function AdminUserPage() {
                   className={`w-8 h-8 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
                     pNum === page
                       ? 'bg-primary text-primary-foreground shadow-xs'
-                      : 'text-foreground hover:bg-muted'
+                      : 'bg-card border border-border text-foreground hover:bg-muted'
                   }`}
                   type="button"
                 >
@@ -859,7 +864,7 @@ function AdminUserPage() {
                       <div className="relative flex-1">
                         <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-[18px] pointer-events-none">key</span>
                         <input
-                          className="w-full h-9 pl-9 pr-3 bg-muted/40 border border-input rounded-lg font-mono text-xs text-foreground focus:outline-none focus:bg-card focus:border-ring"
+                          className="w-full h-9 pl-9 pr-3 bg-card border border-input rounded-lg font-mono text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring"
                           id="tempPasswordInput"
                           type="text"
                           value={form.password}
@@ -868,7 +873,7 @@ function AdminUserPage() {
                       </div>
                       <button
                         onClick={() => updateField('password', generatePassword())}
-                        className="h-9 px-3 bg-muted hover:bg-muted/80 text-foreground font-semibold text-xs rounded-lg flex items-center gap-1.5 transition-colors whitespace-nowrap cursor-pointer"
+                        className="h-9 px-3 bg-card hover:bg-muted border border-border text-foreground font-semibold text-xs rounded-lg flex items-center gap-1.5 transition-colors whitespace-nowrap cursor-pointer shadow-xs"
                         type="button"
                       >
                         <span className="material-symbols-outlined text-[16px]">autorenew</span>

@@ -542,7 +542,7 @@ function UnitAdminSDPage() {
                           <div className="flex items-center justify-end gap-1">
                             <button
                               onClick={() => openDetail(unit)}
-                              className="w-7 h-7 rounded-md bg-secondary hover:bg-accent text-secondary-foreground flex items-center justify-center transition-colors cursor-pointer"
+                              className="w-7 h-7 rounded-md bg-card hover:bg-muted border border-border text-foreground flex items-center justify-center transition-colors cursor-pointer"
                               type="button"
                               title="Detail"
                             >

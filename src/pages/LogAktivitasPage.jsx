@@ -530,7 +530,7 @@ function LogAktivitasPage() {
             <div className="relative min-w-[200px]" ref={dateRangeDropdownRef}>
               <button
                 onClick={() => setShowDateRangeDropdown(prev => !prev)}
-                className="w-full h-9 px-3 bg-muted/40 hover:bg-muted border border-input rounded-lg text-foreground cursor-pointer transition-colors flex items-center justify-between text-xs font-medium"
+                className="w-full h-9 px-3 bg-card hover:bg-muted border border-input rounded-lg text-foreground cursor-pointer transition-colors flex items-center justify-between text-xs font-medium shadow-xs"
                 type="button"
               >
                 <div className="flex items-center gap-2">
@@ -593,7 +593,7 @@ function LogAktivitasPage() {
             </div>
             <div className="relative min-w-[180px]">
               <select
-                className="w-full h-9 pl-3 pr-8 bg-muted/40 border border-input text-foreground text-xs font-medium rounded-lg focus:bg-card focus:ring-1 focus:ring-ring cursor-pointer transition-colors"
+                className="w-full h-9 pl-3 pr-8 bg-card border border-input text-foreground text-xs font-medium rounded-lg focus:ring-1 focus:ring-ring cursor-pointer transition-colors"
                 value={selectedUser}
                 onChange={(e) => setSelectedUser(e.target.value)}
               >
@@ -605,7 +605,7 @@ function LogAktivitasPage() {
             </div>
             <div className="relative min-w-[150px]">
               <select
-                className="w-full h-9 pl-3 pr-8 bg-muted/40 border border-input text-foreground text-xs font-medium rounded-lg focus:bg-card focus:ring-1 focus:ring-ring cursor-pointer transition-colors"
+                className="w-full h-9 pl-3 pr-8 bg-card border border-input text-foreground text-xs font-medium rounded-lg focus:ring-1 focus:ring-ring cursor-pointer transition-colors"
                 value={selectedAction}
                 onChange={(e) => setSelectedAction(e.target.value)}
               >
@@ -622,7 +622,7 @@ function LogAktivitasPage() {
             <div className="relative flex-1">
               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-[16px]">search</span>
               <input
-                className="w-full h-9 pl-9 pr-3 bg-muted/40 border border-input text-foreground placeholder:text-muted-foreground text-xs rounded-lg focus:bg-card focus:ring-1 focus:ring-ring transition-colors"
+                className="w-full h-9 pl-9 pr-3 bg-card border border-input text-foreground placeholder:text-muted-foreground text-xs rounded-lg focus:ring-1 focus:ring-ring transition-colors"
                 placeholder="Cari target objek, user, atau keterangan..."
                 type="text"
                 value={search}
@@ -708,7 +708,7 @@ function LogAktivitasPage() {
                   <select
                     value={itemsPerPage}
                     onChange={(e) => { setItemsPerPage(parseInt(e.target.value)); setCurrentPage(1) }}
-                    className="h-7 px-2 bg-muted/40 border border-input text-foreground text-xs rounded-md focus:bg-card focus:border-ring cursor-pointer"
+                    className="h-7 px-2 bg-card border border-input text-foreground text-xs rounded-md focus:border-ring cursor-pointer"
                   >
                     {ITEMS_PER_PAGE_OPTIONS.map((opt) => (
                       <option key={opt} value={opt}>{opt}</option>

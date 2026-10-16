@@ -31,7 +31,7 @@ function Header({ onBukaMenu } = {}) {
           <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-[18px] pointer-events-none">search</span>
           <input
             aria-label="Cari pegawai, NIY, atau data presensi"
-            className="w-full h-9 pl-9 pr-12 bg-input/40 border border-input hover:border-input/80 focus:border-ring focus:bg-card focus:ring-1 focus:ring-ring rounded-lg text-xs md:text-sm text-foreground placeholder:text-muted-foreground outline-none transition-all shadow-2xs"
+            className="w-full h-9 pl-9 pr-12 bg-card border border-input hover:border-primary/60 focus:border-ring focus:ring-1 focus:ring-ring rounded-lg text-xs md:text-sm text-foreground placeholder:text-muted-foreground outline-none transition-all shadow-2xs"
             placeholder="Cari pegawai, NIY, atau data presensi..."
             type="search"
           />

@@ -326,7 +326,7 @@ function MobileProfilPage() {
             <BarisMenu
               ikon="person"
               judul="Data pribadi"
-              sub="Data diri, pendidikan, kontak, dan rekening"
+              sub="Data diri, pendidikan asal, dan kontak"
               onClick={() => {
                 setBukaEdit(false)
                 setBukaPribadi((v) => !v)
@@ -338,18 +338,13 @@ function MobileProfilPage() {
                 <div className="rounded-2xl bg-slate-50 border border-slate-100 p-4">
                   <Baris label="Tempat, tanggal lahir" nilai={[staff.tempatLahir, staff.tanggalLahir].filter(Boolean).join(', ')} />
                   <Baris label="Jenis kelamin" nilai={staff.jenisKelamin} />
-                  <Baris label="Agama" nilai={staff.agama} />
+                  <Baris label="Pendidikan asal" nilai={staff.pendidikanAsal} />
                   <Baris label="Alamat" nilai={staff.alamat} />
                   <Baris label="Telepon" nilai={staff.kontak} />
                   <Baris label="Email dinas" nilai={staff.email} />
                   <Baris label="Pendidikan" nilai={[staff.pendTerakhir, staff.jurusan].filter(Boolean).join(' - ')} />
                   <Baris label="SK pengangkatan" nilai={staff.skPengangkatan} />
                   <Baris label="Tanggal masuk" nilai={staff.tanggalMasuk} />
-                  <Baris label="NPWP" nilai={staff.npwp} />
-                  <Baris label="BPJS Kesehatan" nilai={staff.bpjsKesehatan} />
-                  <Baris label="BPJS Ketenagakerjaan" nilai={staff.bpjsKetenagakerjaan} />
-                  <Baris label="Rekening" nilai={staff.rekeningBank} />
-                  <Baris label="Nama pemilik rekening" nilai={staff.namaRekening} />
                 </div>
               </div>
             )}

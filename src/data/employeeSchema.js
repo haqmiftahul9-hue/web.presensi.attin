@@ -6,61 +6,49 @@ export const EMPLOYEE_COLUMNS = [
   { key: 'niy', label: 'NIY', required: true, group: 'Identitas', type: 'text', width: 14 },
   { key: 'name', label: 'Nama Lengkap', required: true, group: 'Identitas', type: 'text', width: 32 },
   { key: 'gelar', label: 'Gelar Akademik', required: false, group: 'Identitas', type: 'text', width: 18 },
-  { key: 'nomorIdentitas', label: 'Nomor Identitas (KTP)', required: false, group: 'Identitas', type: 'text', width: 22 },
+  { key: 'pendidikanAsal', label: 'Pendidikan Asal', required: false, group: 'Identitas', type: 'text', width: 26 },
   { key: 'jenisKelamin', label: 'Jenis Kelamin', required: false, group: 'Identitas', type: 'select', options: ['Laki-laki', 'Perempuan'], width: 16 },
   { key: 'tempatLahir', label: 'Tempat Lahir', required: false, group: 'Identitas', type: 'text', width: 16 },
   { key: 'tanggalLahir', label: 'Tanggal Lahir', required: false, group: 'Identitas', type: 'date', width: 16 },
-  { key: 'agama', label: 'Agama', required: false, group: 'Identitas', type: 'select', options: ['Islam', 'Kristen', 'Katolik', 'Hindu', 'Buddha', 'Konghucu'], width: 14 },
   { key: 'alamat', label: 'Alamat', required: false, group: 'Identitas', type: 'text', width: 34 },
   { key: 'unitId', label: 'Unit Sekolah', required: true, group: 'Kepegawaian', type: 'unit', width: 24 },
-  { key: 'role', label: 'Jabatan', required: true, group: 'Kepegawaian', type: 'jabatan', width: 26 },
+  { key: 'role', label: 'Jabatan', required: true, group: 'Kepegawaian', type: 'text', width: 26 },
   { key: 'status', label: 'Status Pegawai', required: true, group: 'Kepegawaian', type: 'select', options: ['Aktif', 'Nonaktif'], width: 16 },
-  { key: 'statusPegawai', label: 'Status Kepegawaian', required: false, group: 'Kepegawaian', type: 'select', options: ['PNS', 'GTT', 'Honorer', 'Guru Tetap Yayasan'], width: 20 },
+  { key: 'statusPegawai', label: 'Status Kepegawaian', required: false, group: 'Kepegawaian', type: 'select', options: ['Guru Magang', 'Guru Kontrak', 'Guru Tetap Yayasan', 'Pegawai Magang', 'Pegawai Kontrak', 'Pegawai Tetap Yayasan'], width: 24 },
   { key: 'tanggalMasuk', label: 'Tanggal Masuk', required: false, group: 'Kepegawaian', type: 'date', width: 16 },
   { key: 'skPengangkatan', label: 'SK Pengangkatan', required: false, group: 'Kepegawaian', type: 'text', width: 20 },
   { key: 'pendTerakhir', label: 'Pendidikan Terakhir', required: false, group: 'Pendidikan', type: 'text', width: 24 },
   { key: 'jurusan', label: 'Jurusan', required: false, group: 'Pendidikan', type: 'text', width: 28 },
   { key: 'kontak', label: 'Kontak / No. HP', required: false, group: 'Kontak', type: 'tel', width: 18 },
   { key: 'email', label: 'Email', required: false, group: 'Kontak', type: 'email', width: 28 },
-  { key: 'npwp', label: 'NPWP', required: false, group: 'Keuangan', type: 'text', width: 20 },
-  { key: 'bpjsKesehatan', label: 'BPJS Kesehatan', required: false, group: 'Keuangan', type: 'text', width: 18 },
-  { key: 'bpjsKetenagakerjaan', label: 'BPJS Ketenagakerjaan', required: false, group: 'Keuangan', type: 'text', width: 20 },
-  { key: 'rekeningBank', label: 'Rekening Bank', required: false, group: 'Keuangan', type: 'text', width: 22 },
-  { key: 'namaRekening', label: 'Nama Rekening', required: false, group: 'Keuangan', type: 'text', width: 28 },
 ]
 
-export const EMPLOYEE_GROUPS = ['Identitas', 'Kepegawaian', 'Pendidikan', 'Kontak', 'Keuangan']
+export const EMPLOYEE_GROUPS = ['Identitas', 'Kepegawaian', 'Pendidikan', 'Kontak']
 
 // Field yang ikut tersimpan di store, dipakai saat add/edit/import.
 export const EMPLOYEE_TEXT_KEYS = EMPLOYEE_COLUMNS
-  .filter((c) => !['unitId', 'role', 'status', 'jenisKelamin', 'agama', 'statusPegawai', 'tanggalLahir', 'tanggalMasuk'].includes(c.key))
+  .filter((c) => !['unitId', 'status', 'jenisKelamin', 'statusPegawai', 'tanggalLahir', 'tanggalMasuk'].includes(c.key))
   .map((c) => c.key)
 
 export const EMPTY_EMPLOYEE = {
   niy: '',
   name: '',
   gelar: '',
-  nomorIdentitas: '',
+  pendidikanAsal: '',
   jenisKelamin: '',
   tempatLahir: '',
   tanggalLahir: '',
-  agama: '',
   alamat: '',
   unitId: '',
   role: '',
   status: 'Aktif',
-  statusPegawai: 'GTT',
+  statusPegawai: 'Guru Tetap Yayasan',
   tanggalMasuk: '',
   skPengangkatan: '',
   pendTerakhir: '',
   jurusan: '',
   kontak: '',
   email: '',
-  npwp: '',
-  bpjsKesehatan: '',
-  bpjsKetenagakerjaan: '',
-  rekeningBank: '',
-  namaRekening: '',
 }
 
 export function toEmptyEmployee(state) {
@@ -92,27 +80,21 @@ const HEADER_ALIASES = {
   niy: ['niy', 'nomor induk yayasan'],
   name: ['nama', 'nama lengkap', 'nama lengkap & gelar', 'nama dan gelar'],
   gelar: ['gelar', 'gelar akademik', 'akademik'],
-  nomorIdentitas: ['nomor identitas', 'nomor identitas (ktp)', 'ktp', 'nik', 'no ktp', 'nomor ktp'],
+  pendidikanAsal: ['pendidikan asal', 'asal pendidikan', 'asal sekolah', 'asal kampus', 'universitas asal', 'sekolah asal', 'institusi asal', 'almamater', 'nomor identitas', 'ktp', 'nik', 'no ktp', 'nomor ktp'],
   jenisKelamin: ['jenis kelamin', 'jk', 'gender'],
   tempatLahir: ['tempat lahir', 'tempat'],
   tanggalLahir: ['tanggal lahir', 'tgl lahir', 'tanggal lahir (ttl)'],
-  agama: ['agama'],
   alamat: ['alamat', 'alamat domisili'],
   unitId: ['unit', 'unit sekolah', 'unit kerja', 'satuan pendidikan'],
   role: ['jabatan', 'penugasan', 'jabatan / penugasan'],
   status: ['status', 'status pegawai', 'status aktif'],
-  statusPegawai: ['status kepegawaian', 'jenis kepegawaian', 'status pegawai pns'],
+  statusPegawai: ['status kepegawaian', 'jenis kepegawaian', 'status pegawai', 'kepegawaian'],
   tanggalMasuk: ['tanggal masuk', 'tgl masuk', 'mulai tugas'],
   skPengangkatan: ['sk pengangkatan', 'sk', 'nomor sk'],
   pendTerakhir: ['pendidikan terakhir', 'pendidikan', 'jenjang pendidikan'],
   jurusan: ['jurusan', 'prodi', 'program studi', 'fakultas'],
   kontak: ['kontak', 'no hp', 'nomor hp', 'kontak / no. hp', 'telepon', 'wa'],
   email: ['email', 'e-mail', 'surel'],
-  npwp: ['npwp'],
-  bpjsKesehatan: ['bpjs kesehatan', 'bpjs'],
-  bpjsKetenagakerjaan: ['bpjs ketenagakerjaan', 'bpjs ketenagakerjaan', 'bpjs tk'],
-  rekeningBank: ['rekening bank', 'rekening', 'no rekening', 'nomor rekening'],
-  namaRekening: ['nama rekening', 'pemilik rekening'],
 }
 
 const squashHeader = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '')
@@ -149,7 +131,6 @@ export function toExcelRow(employee, units) {
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-const NIK_RE = /^\d{16}$/
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
 
 // Validasi satu baris form/import. Mengembalikan { errors, staff }.
@@ -165,9 +146,6 @@ export function validateEmployee(draft, { staff = [], excludeId = null, units = 
 
   if (value('email') && !EMAIL_RE.test(value('email'))) {
     errors.email = 'Format email tidak valid'
-  }
-  if (value('nomorIdentitas') && !NIK_RE.test(value('nomorIdentitas'))) {
-    errors.nomorIdentitas = 'Nomor identitas harus 16 digit'
   }
   for (const key of ['tanggalLahir', 'tanggalMasuk']) {
     if (value(key) && !DATE_RE.test(value(key))) {

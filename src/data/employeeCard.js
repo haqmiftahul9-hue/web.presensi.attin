@@ -88,15 +88,16 @@ export const CARD_GEOMETRY = {
 export const DEFAULT_VALIDITY_YEARS = 2
 export const VALIDITY_YEAR_OPTIONS = [1, 2, 3, 5]
 
-// Nilai status kepegawaian yang dikelompokkan menjadi tiga label di kartu.
-const TETAP_LABELS = ['PNS', 'GTT', 'Guru Tetap Yayasan', 'Tetap', 'PNS/GTT', 'ASN']
-const KONTRAK_LABELS = ['Kontrak', 'PKWT', 'PKK', 'Kontrak / PKWT', 'CS']
+// Nilai status kepegawaian yang dikelompokkan menjadi label di kartu.
+const TETAP_LABELS = ['PNS', 'GTT', 'Guru Tetap Yayasan', 'Pegawai Tetap Yayasan', 'Tetap', 'PNS/GTT', 'ASN']
+const KONTRAK_LABELS = ['Guru Kontrak', 'Pegawai Kontrak', 'Kontrak', 'PKWT', 'PKK', 'Kontrak / PKWT', 'CS']
+const MAGANG_LABELS = ['Guru Magang', 'Pegawai Magang', 'Magang']
 const HONORER_LABELS = ['Honorer', 'Honorarium', 'Lembaga']
 
-export const CARD_STATUS_LABELS = ['Tetap', 'Kontrak', 'Honorer']
+export const CARD_STATUS_LABELS = ['Tetap', 'Kontrak', 'Magang', 'Honorer']
 
 /**
- * Petrolah kepegawaian -> label tiga kelompok yang dipakai di kartu.
+ * Petrolah kepegawaian -> label kelompok yang dipakai di kartu.
  * Nilai di luar daftar baku dikembalikan apa adanya supaya data baru dari
  * form/import tidak pernah hilang informasinya.
  */
@@ -104,6 +105,7 @@ export function statusKepegawaianGroup(value) {
   const raw = String(value ?? '').trim()
   if (!raw) return '-'
   const upper = raw.toUpperCase()
+  if (MAGANG_LABELS.some((l) => upper.includes(l.toUpperCase()))) return 'Magang'
   if (HONORER_LABELS.some((l) => upper.includes(l.toUpperCase()))) return 'Honorer'
   if (KONTRAK_LABELS.some((l) => upper.includes(l.toUpperCase()))) return 'Kontrak'
   if (TETAP_LABELS.some((l) => upper.includes(l.toUpperCase()))) return 'Tetap'
@@ -114,6 +116,7 @@ export function statusKepegawaianGroup(value) {
 export const CARD_STATUS_STYLES = {
   Tetap: 'bg-emerald-50 text-emerald-700 border-emerald-200',
   Kontrak: 'bg-sky-50 text-sky-700 border-sky-200',
+  Magang: 'bg-indigo-50 text-indigo-700 border-indigo-200',
   Honorer: 'bg-amber-50 text-amber-800 border-amber-200',
   '-': 'bg-surface-container text-on-surface-variant border-outline/30',
 }

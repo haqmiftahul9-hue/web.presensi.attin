@@ -237,10 +237,7 @@ function RankingKehadiranPage() {
         {/* PAGE HEADER */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight flex items-center gap-2.5">
-              <span className="p-2 rounded-lg bg-primary/10 text-primary border border-primary/20">
-                <span className="material-symbols-outlined text-[20px] leading-none">military_tech</span>
-              </span>
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
               Ranking Kehadiran
             </h1>
             <p className="text-xs sm:text-sm text-muted-foreground mt-1">
@@ -273,7 +270,7 @@ function RankingKehadiranPage() {
                   }}
                   className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${
                     activeTab === tab
-                      ? 'bg-card text-foreground shadow-xs'
+                      ? 'bg-card border border-border text-foreground shadow-xs'
                       : 'text-muted-foreground hover:text-foreground'
                   }`}
                   type="button"

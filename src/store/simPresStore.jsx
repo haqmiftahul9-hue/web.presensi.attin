@@ -1,4 +1,4 @@
-﻿import { createContext, useContext, useReducer, useMemo } from 'react'
+import { createContext, useContext, useReducer, useMemo } from 'react'
 import {
   UNITS, STAFF, LEAVES, ADMIN_USERS, INITIAL_LOGS,
   INITIAL_SETTINGS, WEEKLY_TREND, TREND_30, HOLIDAYS, buildFullStaff, buildAttendance, initialsOf,
@@ -173,7 +173,24 @@ const ROLE_ALIASES = {
 export function normalisasiRole(value) {
   const mentah = String(value ?? '').trim()
   if (!mentah) return ''
-  return ROLE_ALIASES[mentah.toLowerCase()] || ROLE_ALIASES[mentah.toLowerCase().replace(/\s+/g, ' ')] || mentah
+  const lower = mentah.toLowerCase().replace(/\s+/g, ' ')
+  if (ROLE_ALIASES[lower]) return ROLE_ALIASES[lower]
+  if (lower.includes('superadmin') || lower.includes('super admin')) return ROLE_SUPERADMIN
+  if (lower.includes('admin unit') || lower.includes('unit admin')) return ROLE_ADMIN_UNIT
+  if (lower.includes('petugas')) return ROLE_PETUGAS_PRESENSI
+  if (
+    lower.startsWith('guru') ||
+    lower.includes('guru') ||
+    lower.includes('pengajar') ||
+    lower.includes('wali kelas') ||
+    lower.includes('laboran') ||
+    lower.includes('staf') ||
+    lower.includes('tu') ||
+    lower.includes('pegawai')
+  ) {
+    return ROLE_GURU_PEGAWAI
+  }
+  return mentah
 }
 
 /** Kode role ada di daftar role aplikasi? Dipakai authenticateCredentials. */
@@ -195,25 +212,29 @@ export function roleDikenal(role) {
 // dan status akun semuanya membaca/menulis tabel ini.
 
 /** Bangun satu akun user dari baris pegawai. */
-export function buildUserAccount(staff, { credentials = null, role, password } = {}) {
+export function buildUserAccount(staff, { credentials = null, role, password, mustChangePassword } = {}) {
   const roleKanon = normalisasiRole(role || ROLE_GURU_PEGAWAI)
+  const finalPassword = password || credentials?.password || initialStaffPassword()
+  const finalMustChange = mustChangePassword !== undefined
+    ? Boolean(mustChangePassword)
+    : (credentials ? Boolean(credentials.mustChangePassword) : false)
   return {
     id: `USR-${staff.id}`,
     username: staff.niy,
     niy: staff.niy,
     email: staff.email || '',
-    password: credentials?.password || password || initialStaffPassword(),
+    password: finalPassword,
     role: roleKanon,
     unitId: staff.unitId ?? null,
     pegawaiId: staff.id,
     // Status akun mengikuti keaktifan pegawai: pegawai Nonaktif tidak login.
     status: staff.status === 'Aktif' ? 'Aktif' : 'Nonaktif',
     isStaffAccount: true,
-    //Akun pegawai TIDAK dipaksa mengganti kata sandi saat login pertama: guru
-// dan pegawai harus bisa langsung masuk ke aplikasi mobile setelah
-// kata sandi awal dipakai. Aturan wajib-ganti tetap berlaku untuk akun portal
-// (Superadmin/Admin Unit/Petugas) yang dibuat lewat Manajemen Admin & User.
-mustChangePassword: credentials ? Boolean(credentials.mustChangePassword) : false,
+    // Akun pegawai TIDAK dipaksa mengganti kata sandi saat login pertama: guru
+    // dan pegawai harus bisa langsung masuk ke aplikasi mobile setelah
+    // kata sandi awal dipakai. Aturan wajib-ganti tetap berlaku untuk akun portal
+    // (Superadmin/Admin Unit/Petugas) yang dibuat lewat Manajemen Admin & User.
+    mustChangePassword: finalMustChange,
   }
 }
 
@@ -224,17 +245,20 @@ export function buildUserAccounts(staffList, credentialsByStaffId = {}) {
 }
 
 /** Tambah/perbarui akun milik seorang pegawai (dipakai reducer). */
-function upsertUserAccount(accounts, staff, { action, role } = {}) {
+function upsertUserAccount(accounts, staff, { action, role, password, mustChangePassword } = {}) {
   if (!staff?.niy) return accounts
-  const tanpaIni = accounts.filter((a) => a.pegawaiId !== staff.id && a.niy !== staff.niy)
-  const lama = accounts.find((a) => a.pegawaiId === staff.id || a.niy === staff.niy)
+  const list = accounts || []
+  const tanpaIni = list.filter((a) => a.pegawaiId !== staff.id && a.niy !== staff.niy)
+  const lama = list.find((a) => a.pegawaiId === staff.id || a.niy === staff.niy)
   if (action === 'delete') return tanpaIni
+  const finalPassword = password !== undefined ? password : (lama?.password || initialStaffPassword())
+  const finalMustChange = mustChangePassword !== undefined
+    ? Boolean(mustChangePassword)
+    : (lama ? Boolean(lama.mustChangePassword) : false)
   const akun = buildUserAccount(staff, {
-    // Kata sandi yang sudah diganti pengguna tidak ditimpa saat data pegawai
-    // diperbarui (mis. ganti jabatan/unit).
-    credentials: lama
-      ? { password: lama.password, mustChangePassword: lama.mustChangePassword }
-      : null,
+    credentials: { password: finalPassword, mustChangePassword: finalMustChange },
+    password: finalPassword,
+    mustChangePassword: finalMustChange,
     role: role || lama?.role || ROLE_GURU_PEGAWAI,
   })
   return [...tanpaIni, akun]
@@ -566,13 +590,27 @@ export function simPresReducer(state, action) {
       const sebelum = state.staff.find((s) => s.id === id)
       const staffBaru = sebelum ? { ...sebelum, ...perubahan } : null
       if (!staffBaru) return state
+
+      const adminUsersUpdated = perubahan.password !== undefined
+        ? state.adminUsers.map((u) =>
+            u.niy === staffBaru.niy || u.staffId === staffBaru.id
+              ? { ...u, password: perubahan.password, ...(perubahan.mustChangePassword !== undefined ? { mustChangePassword: Boolean(perubahan.mustChangePassword) } : {}) }
+              : u,
+          )
+        : syncAdminUserFromStaff(state.adminUsers, staffBaru)
+
       return {
         ...state,
         staff: state.staff.map((s) => (s.id === id ? staffBaru : s)),
-        adminUsers: syncAdminUserFromStaff(state.adminUsers, staffBaru),
+        adminUsers: adminUsersUpdated,
         employeeCards: syncEmployeeCardsFromStaff(state.employeeCards, staffBaru, 'update'),
         // Status/unit/NIY akun ikut mengikuti data pegawai yang baru.
-        userAccounts: upsertUserAccount(state.userAccounts, staffBaru, { action: 'update' }),
+        userAccounts: upsertUserAccount(state.userAccounts, staffBaru, {
+          action: 'update',
+          role: staffBaru.role,
+          password: perubahan.password,
+          mustChangePassword: perubahan.mustChangePassword,
+        }),
       }
     }
     case 'UPDATE_STAFF_PROFILE': {
@@ -890,27 +928,79 @@ logs: [
         adminUsers: [...state.adminUsers, payload],
         staff: syncStaffFromAdminUser(state.staff, payload, 'add'),
         userAccounts: staffBaru
-          ? upsertUserAccount(state.userAccounts, staffBaru, { action: 'add', role: payload.role })
+          ? upsertUserAccount(state.userAccounts, staffBaru, {
+              action: 'add',
+              role: payload.role,
+              password: payload.password,
+              mustChangePassword: payload.mustChangePassword,
+            })
           : state.userAccounts,
       }
     }
     case 'UPDATE_ADMIN_USER': {
-      const payload = { ...action.payload, role: normalisasiRole(action.payload.role) }
+      const payload = { ...action.payload, ...(action.payload.role ? { role: normalisasiRole(action.payload.role) } : {}) }
       const staffSetelah = syncStaffFromAdminUser(state.staff, payload, 'update')
+      const targetUser = state.adminUsers.find((u) => u.id === payload.id)
+      const targetNiy = payload.niy || targetUser?.niy
+      const matchingStaff = staffSetelah.find((s) => (targetNiy && s.niy === targetNiy) || (payload.staffId && s.id === payload.staffId))
+      const shouldSyncUserAccount = (state.userAccounts || []).some((a) => (targetNiy && a.niy === targetNiy) || (payload.staffId && a.pegawaiId === payload.staffId)) || (matchingStaff && normalisasiRole(payload.role || targetUser?.role) === ROLE_GURU_PEGAWAI)
+
       return {
         ...state,
         adminUsers: state.adminUsers.map((u) =>
           u.id === payload.id ? { ...u, ...payload } : u,
         ),
         staff: staffSetelah,
-        // Akun mobile ikut diperbarui bila baris ini Manage sebuah pegawai.
-        userAccounts: (state.userAccounts || []).some((a) => a.niy === payload.niy)
+        // Akun mobile ikut diperbarui bila baris ini Manage sebuah pegawai / guru
+        userAccounts: shouldSyncUserAccount
           ? upsertUserAccount(
               state.userAccounts,
-              staffSetelah.find((s) => s.niy === payload.niy) || { ...payload, id: payload.staffId ?? 0 },
-              { action: 'update', role: payload.role },
+              matchingStaff || { ...targetUser, ...payload, niy: targetNiy, id: payload.staffId ?? targetUser?.staffId ?? 0 },
+              {
+                action: 'update',
+                role: payload.role || targetUser?.role,
+                password: payload.password,
+                mustChangePassword: payload.mustChangePassword,
+              },
             )
           : state.userAccounts,
+      }
+    }
+    case 'RESET_STAFF_PASSWORD': {
+      const { staffId, niy, password, mustChangePassword } = action.payload || {}
+      const targetStaff = state.staff.find((s) => (staffId && s.id === staffId) || (niy && s.niy === niy))
+      const targetNiy = niy || targetStaff?.niy
+      const targetId = staffId || targetStaff?.id
+      const newPassword = password !== undefined ? password : initialStaffPassword()
+      const newMustChange = mustChangePassword !== undefined ? Boolean(mustChangePassword) : false
+
+      if (!targetNiy && !targetId) return state
+
+      const nextUserAccounts = (state.userAccounts || []).map((a) =>
+        (targetId && a.pegawaiId === targetId) || (targetNiy && a.niy === targetNiy)
+          ? { ...a, password: newPassword, mustChangePassword: newMustChange }
+          : a
+      )
+      const nextAdminUsers = state.adminUsers.map((u) =>
+        (targetNiy && u.niy === targetNiy) || (targetId && u.staffId === targetId)
+          ? { ...u, password: newPassword, mustChangePassword: newMustChange }
+          : u
+      )
+      const existsInAccounts = nextUserAccounts.some((a) =>
+        (targetId && a.pegawaiId === targetId) || (targetNiy && a.niy === targetNiy)
+      )
+      const finalUserAccounts = (!existsInAccounts && targetStaff)
+        ? upsertUserAccount(nextUserAccounts, targetStaff, {
+            action: 'add',
+            password: newPassword,
+            mustChangePassword: newMustChange,
+          })
+        : nextUserAccounts
+
+      return {
+        ...state,
+        userAccounts: finalUserAccounts,
+        adminUsers: nextAdminUsers,
       }
     }
     case 'DELETE_ADMIN_USER':
@@ -1113,14 +1203,28 @@ export function findAccountByIdentifier(state, identifier) {
 
   const userAccount = (state.userAccounts || []).find((a) => identifierMatches(a, key))
   if (userAccount) {
-    return { ...userAccount, role: normalisasiRole(userAccount.role), staffId: userAccount.pegawaiId, isStaffAccount: true }
+    return {
+      ...userAccount,
+      role: normalisasiRole(userAccount.role || ROLE_GURU_PEGAWAI),
+      staffId: userAccount.pegawaiId,
+      isStaffAccount: true,
+    }
   }
 
   const adminUser = state.adminUsers.find((u) => identifierMatches(u, key))
-  if (adminUser) return { ...adminUser, role: normalisasiRole(adminUser.role), isStaffAccount: false }
+  if (adminUser) {
+    const isGuru = normalisasiRole(adminUser.role) === ROLE_GURU_PEGAWAI
+    const staffMatch = isGuru ? state.staff.find((s) => s.niy === adminUser.niy) : null
+    return {
+      ...adminUser,
+      role: normalisasiRole(adminUser.role),
+      staffId: staffMatch ? staffMatch.id : adminUser.staffId,
+      pegawaiId: staffMatch ? staffMatch.id : adminUser.staffId,
+      isStaffAccount: isGuru,
+    }
+  }
 
-  // Pegawai ada, tapi belum punya baris akun: kembalikan akun dengan penanda
-  // supaya authenticateCredentials bisa memberi tahu masalah yang sebenarnya.
+  // Pegawai ada di data master, langsung kembalikan akun pegawai aktif agar selalu bisa login
   const staff = state.staff.find((s) => identifierMatches(s, key))
   if (staff) return buildStaffAccount(state, staff)
 
@@ -1136,14 +1240,10 @@ export function accountLoginKey(account) {
 
 // Akun Guru/Pegawai dibuat otomatis oleh buildUserAccount(): username = NIY,
 // role GURU_PEGAWAI, unit mengikuti pegawai, kata sandi awal sama untuk semua
-// (lihat DEFAULT_STAFF_PASSWORD) dan wajib diganti saat login pertama.
+// (lihat DEFAULT_STAFF_PASSWORD) dan langsung bisa masuk ke mobile.
 function buildStaffAccount(state, staff) {
-  // Akun pegawai dibaca dari tabel userAccounts. Bila barisnya somehow hilang,
-  // akun tetap dibangun dari data pegawai (agar tidak ada pegawai yang benar
-  //-benar terkunci), tapi ditandai accountMissing supaya pesan login menyebut
-  // masalahnya dengan tepat.
   const userAccount = selectUserAccountByStaffId(state, staff.id)
-  const dasar = {
+  return {
     id: userAccount?.id || `USR-${staff.id}`,
     staffId: staff.id,
     pegawaiId: staff.id,
@@ -1156,12 +1256,8 @@ function buildStaffAccount(state, staff) {
     status: staff.status,
     isStaffAccount: true,
     password: userAccount?.password || initialStaffPassword(),
-    // Sama seperti buildUserAccount: akun pegawai tidak ber-wajibGantiSandi.
-// Fallback tanpa baris akun juga mengikuti aturan yang sama agar tidak ada
-// pegawai yang tiba-tiba terkunci di halaman ganti sandi.
-mustChangePassword: userAccount ? Boolean(userAccount.mustChangePassword) : false,
+    mustChangePassword: userAccount ? Boolean(userAccount.mustChangePassword) : false,
   }
-  return userAccount ? dasar : { ...dasar, accountMissing: true }
 }
 
 export function roleCanViewMenu(state, role, menuKey) {
@@ -1252,11 +1348,11 @@ export function authenticateCredentials(state, identifier, password) {
 
   // Role terikat unit wajib punya unit yang benar-benar ada: tanpa ini akun
   // akan masuk ke aplikasi lalu berhenti di halaman yang salah.
-  if (role !== ROLE_SUPERADMIN && (!account.unitId || !state.units.some((u) => u.id === account.unitId))) {
+  if (role !== ROLE_SUPERADMIN && (!account.unitId || !(state.units || []).some((u) => u.id === account.unitId))) {
     return { ok: false, error: AUTH_ERRORS.UNIT_NOT_FOUND, code: 'UNIT_TIDAK_DITEMUKAN' }
   }
 
-  const expectedPassword = account.password || INITIAL_ACCOUNT_PASSWORD
+  const expectedPassword = account.password || (account.isStaffAccount ? initialStaffPassword() : INITIAL_ACCOUNT_PASSWORD)
   if (password !== expectedPassword) return { ok: false, error: AUTH_ERRORS.WRONG_PASSWORD, code: 'PASSWORD_SALAH' }
 
   return { ok: true, user: { ...account, role, status } }
@@ -1693,7 +1789,12 @@ function syncStaffFromAdminUser(staff, adminUser, action) {
     if (existingStaffIndex >= 0) {
       return staff.map((s, i) =>
         i === existingStaffIndex
-          ? { ...s, unitId: adminUser.unitId, status: adminUser.status, role }
+          ? {
+              ...s,
+              ...(adminUser.unitId ? { unitId: adminUser.unitId } : {}),
+              ...(adminUser.status ? { status: adminUser.status } : {}),
+              ...(role ? { role } : {}),
+            }
           : s,
       )
     }
@@ -1701,10 +1802,10 @@ function syncStaffFromAdminUser(staff, adminUser, action) {
       const newStaff = {
         id: staff.length > 0 ? Math.max(...staff.map((s) => s.id)) + 1 : 1,
         niy: adminUser.niy,
-        name: adminUser.name,
-        role,
-        unitId: adminUser.unitId,
-        status: adminUser.status,
+        name: adminUser.name || 'Pegawai',
+        role: role || 'Guru',
+        unitId: adminUser.unitId || null,
+        status: adminUser.status || 'Aktif',
         masuk: null,
         method: null,
         lateMinutes: 0,
@@ -1718,7 +1819,12 @@ function syncStaffFromAdminUser(staff, adminUser, action) {
     if (existingStaffIndex >= 0 && isGuruOrStaff) {
       return staff.map((s, i) =>
         i === existingStaffIndex
-          ? { ...s, unitId: adminUser.unitId, status: adminUser.status, role }
+          ? {
+              ...s,
+              ...(adminUser.unitId ? { unitId: adminUser.unitId } : {}),
+              ...(adminUser.status ? { status: adminUser.status } : {}),
+              ...(role ? { role } : {}),
+            }
           : s,
       )
     }
@@ -1726,10 +1832,10 @@ function syncStaffFromAdminUser(staff, adminUser, action) {
       const newStaff = {
         id: staff.length > 0 ? Math.max(...staff.map((s) => s.id)) + 1 : 1,
         niy: adminUser.niy,
-        name: adminUser.name,
-        role,
-        unitId: adminUser.unitId,
-        status: adminUser.status,
+        name: adminUser.name || 'Pegawai',
+        role: role || 'Guru',
+        unitId: adminUser.unitId || null,
+        status: adminUser.status || 'Aktif',
         masuk: null,
         method: null,
         lateMinutes: 0,
@@ -2707,7 +2813,8 @@ export function selectSelfStaffId(state) {
   const user = state.currentUser
   if (!user) return null
   if (user.staffId != null) return user.staffId
-  const niy = normalizeIdentifier(user.niy)
+  if (user.pegawaiId != null) return user.pegawaiId
+  const niy = normalizeIdentifier(user.niy || user.username)
   if (!niy) return null
   const match = state.staff.find((s) => normalizeIdentifier(s.niy) === niy)
   return match ? match.id : null

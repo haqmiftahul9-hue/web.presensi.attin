@@ -1,22 +1,18 @@
-import { useMemo } from 'react'
-import { useSimPres, selectJabatanOptions } from '../store/simPresStore.jsx'
+import { useSimPres } from '../store/simPresStore.jsx'
 import { EMPLOYEE_COLUMNS, EMPLOYEE_GROUPS } from '../data/employeeSchema.js'
 
 const INPUT_CLASS =
-  'w-full h-9 px-3 rounded-lg bg-card border border-input focus:outline-none focus:border-ring focus:ring-1 focus:ring-ring/20 text-xs text-foreground placeholder:text-muted-foreground transition-all'
-const ERROR_INPUT_CLASS = 'border-destructive focus:border-destructive focus:ring-destructive/20'
+  'w-full h-9 px-3 rounded-lg bg-card border border-slate-300 dark:border-slate-600 hover:border-slate-400 dark:hover:border-slate-500 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 text-xs text-foreground placeholder:text-muted-foreground shadow-xs transition-all'
+const ERROR_INPUT_CLASS = '!border-destructive focus:!border-destructive focus:!ring-destructive/20'
 const LABEL_CLASS = 'text-xs font-semibold text-foreground/90'
 const HELP_CLASS = 'text-[11px] text-muted-foreground'
 
 // Form bersama untuk Tambah & Edit: satu definisi kolom, satu tampilan.
 function EmployeeFormFields({ form, setForm, errors }) {
   const { state } = useSimPres()
-  const jabatanOptions = useMemo(() => selectJabatanOptions(state), [state])
 
   const setValue = (key, value) => setForm((prev) => ({ ...prev, [key]: value }))
   const errorOf = (key) => errors?.[key]
-  const listed = useMemo(() => new Set(jabatanOptions.map((r) => r.toLowerCase())), [jabatanOptions])
-  const isCustomJabatan = form.role ? !listed.has(form.role.toLowerCase()) : false
 
   return (
     <div className="flex flex-col gap-5">
@@ -50,24 +46,6 @@ function EmployeeFormFields({ form, setForm, errors }) {
                           <option key={u.id} value={u.id}>{u.nama}</option>
                         ))}
                       </select>
-                    ) : col.type === 'jabatan' ? (
-                      <>
-                        <input
-                          className={`${INPUT_CLASS} ${err ? ERROR_INPUT_CLASS : ''}`}
-                          id={`emp-${col.key}`}
-                          list="emp-jabatan-options"
-                          placeholder="Pilih atau ketik jabatan"
-                          type="text"
-                          value={form.role || ''}
-                          onChange={(e) => setValue('role', e.target.value)}
-                        />
-                        <datalist id="emp-jabatan-options">
-                          {jabatanOptions.map((r) => <option key={r} value={r} />)}
-                        </datalist>
-                        {isCustomJabatan && (
-                          <span className={HELP_CLASS}>Jabatan baru: &quot;{form.role}&quot; akan disimpan apa adanya.</span>
-                        )}
-                      </>
                     ) : col.type === 'select' ? (
                       <select
                         className={`${INPUT_CLASS} ${err ? ERROR_INPUT_CLASS : ''}`}
@@ -83,7 +61,13 @@ function EmployeeFormFields({ form, setForm, errors }) {
                         className={`${INPUT_CLASS} ${err ? ERROR_INPUT_CLASS : ''}`}
                         id={`emp-${col.key}`}
                         type={col.type === 'date' ? 'text' : col.type}
-                        placeholder={col.type === 'date' ? 'YYYY-MM-DD' : col.label}
+                        placeholder={
+                          col.type === 'date'
+                            ? 'YYYY-MM-DD'
+                            : col.key === 'role'
+                            ? 'Ketik nama jabatan'
+                            : col.label
+                        }
                         value={form[col.key] || ''}
                         onChange={(e) => setValue(col.key, e.target.value)}
                       />

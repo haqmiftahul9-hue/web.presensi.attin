@@ -183,13 +183,13 @@ function PengaturanGlobalPage() {
 
   const ToggleSwitch = ({ checked, onChange }) => (
     <div
-      className={`w-10 h-5 rounded-full relative cursor-pointer shrink-0 transition-colors ${
-        checked ? 'bg-primary' : 'bg-muted'
+      className={`w-10 h-5 rounded-full relative cursor-pointer shrink-0 transition-colors border ${
+        checked ? 'bg-primary border-primary' : 'bg-muted border-border'
       }`}
       onClick={onChange}
     >
       <div
-        className={`w-4 h-4 bg-card rounded-full absolute shadow-xs top-0.5 transition-all ${
+        className={`w-3.5 h-3.5 bg-card rounded-full absolute shadow-xs top-0.5 transition-all ${
           checked ? 'right-0.5' : 'left-0.5'
         }`}
       />

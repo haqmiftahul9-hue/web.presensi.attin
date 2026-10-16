@@ -7,6 +7,8 @@ function EditEmployeeModal({ staff, onClose, onSave }) {
   const { state } = useSimPres()
   const [form, setForm] = useState(() => toEmployeeForm(staff, state))
   const [errors, setErrors] = useState({})
+  const [newPassword, setNewPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
 
   const handleSave = () => {
     const found = validateEmployee(form, {
@@ -29,6 +31,7 @@ function EditEmployeeModal({ staff, onClose, onSave }) {
     onSave({
       ...trimmed,
       id: staff.id,
+      ...(newPassword.trim() ? { password: newPassword.trim() } : {}),
       // Field presensi bukan milik form ini dan harus tetap terjaga.
       masuk: staff.masuk,
       method: staff.method,
@@ -67,8 +70,46 @@ function EditEmployeeModal({ staff, onClose, onSave }) {
           </button>
         </div>
 
-        <div className="p-6 overflow-y-auto">
+        <div className="p-6 overflow-y-auto space-y-5">
           <EmployeeFormFields form={form} setForm={setForm} errors={errors} />
+
+          {/* Opsi Kata Sandi Login Mobile */}
+          <div className="pt-4 border-t border-border flex flex-col gap-2.5">
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-[18px] text-primary">lock</span>
+              <span className="text-xs font-bold text-foreground">Kredensial Login Aplikasi Mobile</span>
+            </div>
+            <p className="text-[11px] text-muted-foreground">
+              Guru/pegawai login menggunakan NIY ({staff?.niy}). Isi kolom di bawah jika ingin mengganti kata sandi login pengguna ini.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-2.5 items-start sm:items-center">
+              <div className="relative w-full sm:w-2/3">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  className="w-full h-9 px-3 pr-10 rounded-lg bg-card border border-input focus:outline-none focus:border-ring focus:ring-1 focus:ring-ring/20 text-xs text-foreground placeholder:text-muted-foreground font-mono"
+                  placeholder="Kosongkan jika tidak ingin mengubah kata sandi"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-xs"
+                >
+                  <span className="material-symbols-outlined text-[16px]">
+                    {showPassword ? 'visibility_off' : 'visibility'}
+                  </span>
+                </button>
+              </div>
+              <button
+                type="button"
+                onClick={() => setNewPassword('Attin123!')}
+                className="h-9 px-3 rounded-lg border border-border bg-card hover:bg-muted text-foreground text-xs font-medium whitespace-nowrap cursor-pointer shadow-xs"
+              >
+                Reset ke Attin123!
+              </button>
+            </div>
+          </div>
         </div>
 
         <div className="px-6 py-3.5 bg-muted/30 border-t border-border flex items-center justify-between gap-3">

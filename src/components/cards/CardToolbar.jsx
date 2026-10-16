@@ -233,7 +233,7 @@ function CardToolbar({
           type="button"
           onClick={onApplyValidity}
           disabled={selectedCount === 0}
-          className={`${BTN_BASE} flex-1 sm:flex-none px-3.5 bg-secondary hover:bg-secondary/80 border border-border/50 text-secondary-foreground disabled:opacity-40 disabled:cursor-not-allowed`}
+          className={`${BTN_BASE} flex-1 sm:flex-none px-3.5 bg-secondary hover:bg-secondary/80 border border-border text-secondary-foreground disabled:opacity-40 disabled:cursor-not-allowed`}
           title="Terapkan masa berlaku ke kartu yang sedang dipilih"
         >
           <span className="material-symbols-outlined text-[16px] leading-none text-muted-foreground">published_with_changes</span>

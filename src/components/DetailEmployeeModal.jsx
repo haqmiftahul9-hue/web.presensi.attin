@@ -135,7 +135,7 @@ function DetailEmployeeModal({ staff, onClose }) {
         <div className="px-6 py-3.5 bg-muted/30 border-t border-border flex items-center justify-end">
           <button
             onClick={onClose}
-            className="h-9 px-4 rounded-lg bg-secondary hover:bg-secondary/80 text-secondary-foreground border border-border/50 text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+            className="h-9 px-4 rounded-lg bg-card hover:bg-muted text-foreground border border-border text-xs font-semibold shadow-xs transition-colors cursor-pointer"
             type="button"
           >
             Tutup

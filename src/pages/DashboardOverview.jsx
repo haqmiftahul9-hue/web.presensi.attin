@@ -45,7 +45,7 @@ function TopBar({ onBukaMenu }) {
           <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-[18px] pointer-events-none">search</span>
           <input
             aria-label="Cari pegawai, NIY, atau data presensi"
-            className="w-full h-9 pl-9 pr-12 bg-input/40 border border-input hover:border-border focus:border-ring focus:bg-card focus:ring-2 focus:ring-ring/20 rounded-lg text-xs md:text-sm text-foreground placeholder:text-muted-foreground outline-none transition-all"
+            className="w-full h-9 pl-9 pr-12 bg-card border border-input hover:border-primary/60 focus:border-ring focus:bg-card focus:ring-2 focus:ring-ring/20 rounded-lg text-xs md:text-sm text-foreground placeholder:text-muted-foreground outline-none transition-all"
             placeholder="Cari pegawai, NIY, atau data presensi..."
             type="search"
           />
