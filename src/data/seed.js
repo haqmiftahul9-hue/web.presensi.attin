@@ -103,6 +103,12 @@ export const INITIAL_SETTINGS = {
   namaAplikasi: 'SIMPEG',
   tagline: 'Sistem Presensi Kepegawaian Terpadu',
   logo: null,
+  logoPerUnit: {
+    tk: null,
+    sd: null,
+    smp: null,
+    sma: null,
+  },
   namaYayasan: 'Yayasan Islam Attin Indonesia',
   emailSekretariat: 'sekretariat@attinsumbar.sch.id',
   alamatYayasan: 'Jl. Raya Cendekia No. 45, Jakarta Selatan',

@@ -1026,7 +1026,17 @@ logs: [
         staff: syncStaffFromAdminUser(state.staff, { id: action.payload }, 'delete'),
       }
     case 'UPDATE_SETTINGS':
-      return { ...state, settings: { ...state.settings, ...action.payload } }
+      return {
+        ...state,
+        settings: {
+          ...state.settings,
+          ...action.payload,
+          logoPerUnit: {
+            ...(state.settings?.logoPerUnit || {}),
+            ...(action.payload?.logoPerUnit || {}),
+          },
+        },
+      }
     // Riwayat cetak kartu: printed_count naik satu kali per proses cetak,
     // last_printed_at diisi waktu yang benar-benar dicetak.
     case 'MARK_CARDS_PRINTED': {

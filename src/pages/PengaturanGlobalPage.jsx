@@ -22,6 +22,7 @@ function PengaturanGlobalPage() {
     namaAplikasi: settings.namaAplikasi || '',
     tagline: settings.tagline || '',
     logo: settings.logo || null,
+    logoPerUnit: settings.logoPerUnit || { tk: null, sd: null, smp: null, sma: null },
     namaYayasan: settings.namaYayasan || '',
     skYayasan: settings.skYayasan || '',
     emailSekretariat: settings.emailSekretariat || '',
@@ -145,6 +146,41 @@ function PengaturanGlobalPage() {
     setLogoPreview(null)
     setLogoFile(null)
     setFormData({ ...formData, logo: null })
+  }
+
+  const handleUnitLogoUpload = (unitId, e) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      const error = validateLogoFile(file)
+      if (error) {
+        showNotification(error, 'error')
+        return
+      }
+      const reader = new FileReader()
+      reader.onload = (event) => {
+        const dataUrl = event.target.result
+        setFormData((prev) => ({
+          ...prev,
+          logoPerUnit: {
+            ...(prev.logoPerUnit || {}),
+            [unitId]: dataUrl,
+          },
+        }))
+        showNotification(`Logo unit ${unitId.toUpperCase()} berhasil diunggah`, 'success')
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const handleRemoveUnitLogo = (unitId) => {
+    setFormData((prev) => ({
+      ...prev,
+      logoPerUnit: {
+        ...(prev.logoPerUnit || {}),
+        [unitId]: null,
+      },
+    }))
+    showNotification(`Logo unit ${unitId.toUpperCase()} dihapus (menggunakan logo yayasan)`, 'info')
   }
 
   const showNotification = (message, type = 'success') => {
@@ -322,6 +358,100 @@ function PengaturanGlobalPage() {
                         Ganti Logo
                       </button>
                     )}
+                  </div>
+                </div>
+
+                <div className="pt-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-2.5">
+                    <div>
+                      <label className="block text-xs font-semibold text-foreground">
+                        Logo Khusus Per Unit Sekolah (TKIT, SDIT, SMPIT, SMAIT)
+                      </label>
+                      <span className="text-[11px] text-muted-foreground">
+                        Logo masing-masing unit sekolah akan tercetak pada kop surat berkas cetak dan unduhan rekap presensi serta cuti/izin (PDF & Excel). Jika belum diunggah, sistem otomatis menggunakan logo resmi yayasan di atas.
+                      </span>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+                    {[
+                      { id: 'tk', kode: 'UNT-TK-01', kodeSingkat: 'TKIT', nama: 'TKIT Attin Sumbar' },
+                      { id: 'sd', kode: 'UNT-SD-02', kodeSingkat: 'SDIT', nama: 'SDIT Attin Sumbar' },
+                      { id: 'smp', kode: 'UNT-SMP-03', kodeSingkat: 'SMPIT', nama: 'SMPIT Attin Sumbar' },
+                      { id: 'sma', kode: 'UNT-SMA-04', kodeSingkat: 'SMAIT', nama: 'SMAIT Attin Sumbar' },
+                    ].map((unit) => {
+                      const customLogo = formData.logoPerUnit?.[unit.id]
+                      const displayLogo = customLogo || formData.logo
+                      return (
+                        <div
+                          key={unit.id}
+                          className="bg-card border border-border hover:border-primary/40 rounded-xl p-3.5 flex flex-col justify-between shadow-xs transition-colors"
+                        >
+                          <div>
+                            <div className="flex items-center justify-between gap-2 mb-2.5">
+                              <span className="text-xs font-bold text-foreground truncate">{unit.nama}</span>
+                              <span
+                                className={`text-[10px] px-2 py-0.5 rounded-full font-semibold border ${
+                                  customLogo
+                                    ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+                                    : 'bg-muted text-muted-foreground border-border'
+                                }`}
+                              >
+                                {customLogo ? 'Kustom' : 'Bawaan'}
+                              </span>
+                            </div>
+
+                            <div className="flex items-center gap-3 mb-3">
+                              <div className="w-14 h-14 rounded-lg bg-muted/80 border border-border flex flex-col items-center justify-center shrink-0 overflow-hidden p-1 shadow-inner">
+                                {displayLogo ? (
+                                  <img
+                                    src={displayLogo}
+                                    alt={`Logo ${unit.nama}`}
+                                    className="w-full h-full object-contain"
+                                  />
+                                ) : (
+                                  <div className="flex flex-col items-center justify-center text-center">
+                                    <span className="text-xs font-bold text-primary">{unit.kodeSingkat}</span>
+                                    <span className="text-[7px] text-muted-foreground uppercase font-bold">ATTIN</span>
+                                  </div>
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-[11px] font-medium text-foreground truncate">{unit.kode}</p>
+                                <p className="text-[10px] text-muted-foreground mt-0.5">
+                                  {customLogo ? 'Logo unit aktif' : 'Mengikuti logo yayasan'}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 pt-2 border-t border-border/60">
+                            <input
+                              type="file"
+                              id={`upload-logo-unit-${unit.id}`}
+                              accept="image/png,image/jpeg,image/svg+xml"
+                              className="hidden"
+                              onChange={(e) => handleUnitLogoUpload(unit.id, e)}
+                            />
+                            <label
+                              htmlFor={`upload-logo-unit-${unit.id}`}
+                              className="flex-1 text-center py-1.5 px-2 bg-muted hover:bg-muted/80 text-foreground border border-border rounded-lg text-[11px] font-semibold cursor-pointer transition-colors shadow-2xs truncate"
+                            >
+                              {customLogo ? 'Ganti Logo' : 'Unggah Logo'}
+                            </label>
+                            {customLogo && (
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveUnitLogo(unit.id)}
+                                className="py-1.5 px-2 text-destructive hover:bg-destructive/10 border border-destructive/20 rounded-lg text-[11px] font-semibold cursor-pointer transition-colors shadow-2xs"
+                                title="Hapus logo unit (kembali ke bawaan yayasan)"
+                              >
+                                Hapus
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      )
+                    })}
                   </div>
                 </div>
 
@@ -1312,6 +1442,21 @@ function PengaturanGlobalPage() {
             logoPreview ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' : 'bg-muted text-muted-foreground border-border'
           }`}>
             {logoPreview ? 'Aktif' : 'Bawaan'}
+          </span>
+        </div>
+        <div className="flex items-center justify-between gap-4 pt-2.5 border-t border-border">
+          <div className="min-w-0">
+            <p className="text-xs font-semibold text-foreground">Logo Unit Sekolah</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">
+              {Object.values(formData.logoPerUnit || {}).filter(Boolean).length} dari 4 unit kustom
+            </p>
+          </div>
+          <span className={`px-2 py-0.5 text-[11px] font-semibold rounded-full border shrink-0 ${
+            Object.values(formData.logoPerUnit || {}).some(Boolean)
+              ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+              : 'bg-muted text-muted-foreground border-border'
+          }`}>
+            {Object.values(formData.logoPerUnit || {}).filter(Boolean).length > 0 ? `${Object.values(formData.logoPerUnit || {}).filter(Boolean).length} Unit` : 'Bawaan'}
           </span>
         </div>
         <div className="flex items-center justify-between gap-4 pt-2.5 border-t border-border">

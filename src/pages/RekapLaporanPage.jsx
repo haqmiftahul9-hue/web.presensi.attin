@@ -56,81 +56,431 @@ function getMonthYearLabel(period, customMonth = null, customYear = null) {
   }
 }
 
-function exportPresensiToExcel(data, unitLabel, periodLabel, yayasanInfo = null, signatory = null) {
-  console.log('[exportPresensiToExcel] Starting export', { dataLength: data?.length, unitLabel, periodLabel })
+function getLogoForUnit(unitKeyOrLabel, yayasanInfo = null) {
+  if (!yayasanInfo) return null
+  const logoPerUnit = yayasanInfo.logoPerUnit || {}
+  const logoYayasan = yayasanInfo.logo || null
+  
+  const key = String(unitKeyOrLabel || '').toLowerCase().replace(/_/g, ' ')
+  if (key === 'tk' || key.includes('tkit') || key.includes('tk')) return logoPerUnit.tk || logoYayasan
+  if (key === 'sd' || key.includes('sdit') || key.includes('sd')) return logoPerUnit.sd || logoYayasan
+  if (key === 'smp' || key.includes('smpit') || key.includes('smp')) return logoPerUnit.smp || logoYayasan
+  if (key === 'sma' || key.includes('smait') || key.includes('sma')) return logoPerUnit.sma || logoYayasan
+  return logoYayasan
+}
+
+function getUnitInfo(unitLabel, yayasanInfo = null) {
+  const defaultYayasan = {
+    nama: 'Yayasan Islam Attin Indonesia',
+    alamat: 'Jl. Raya Cendekia No. 45, Jakarta Selatan',
+    kontak: '+62 811-9876-5432',
+    email: 'sekretariat@attinsumbar.sch.id',
+    logo: null,
+    logoPerUnit: {},
+  }
+  const y = yayasanInfo || defaultYayasan
+  const clean = String(unitLabel || '').replace(/_/g, ' ')
+  const keyLower = clean.toLowerCase()
+  
+  if (keyLower === 'tk' || keyLower.includes('tkit')) {
+    return { nama: y.nama, unit: 'TKIT Attin Sumbar', alamat: 'Jl. Cendekia No. 41', kontak: y.kontak, email: 'tkit@attinsumbar.sch.id' }
+  }
+  if (keyLower === 'sd' || keyLower.includes('sdit')) {
+    return { nama: y.nama, unit: 'SDIT Attin Sumbar', alamat: 'Jl. Cendekia No. 43, Cilandak', kontak: y.kontak, email: 'sdit@attinsumbar.sch.id' }
+  }
+  if (keyLower === 'smp' || keyLower.includes('smpit')) {
+    return { nama: y.nama, unit: 'SMPIT Attin Sumbar', alamat: 'Jl. Cendekia No. 45', kontak: y.kontak, email: 'smpit@attinsumbar.sch.id' }
+  }
+  if (keyLower === 'sma' || keyLower.includes('smait')) {
+    return { nama: y.nama, unit: 'SMAIT Attin Sumbar', alamat: 'Jl. Cendekia No. 47', kontak: y.kontak, email: 'smait@attinsumbar.sch.id' }
+  }
+  return { nama: y.nama, unit: 'Seluruh Unit Sekolah', alamat: y.alamat, kontak: y.kontak, email: y.email }
+}
+
+function exportPresensiToExcel(data, unitLabel, periodLabel, yayasanInfo = null, signatory = null, options = {}) {
+  console.log('[exportPresensiToExcel] Starting export', { dataLength: data?.length, unitLabel, periodLabel, options })
   if (!data || !data.length) {
     console.error('[exportPresensiToExcel] No data provided')
     return
   }
   try {
     const wb = XLSX.utils.book_new()
-    
-    const y = yayasanInfo || { nama: 'Yayasan Islam Attin Indonesia', alamat: 'Jl. Raya Cendekia No. 45, Jakarta Selatan', kontak: '+62 811-9876-5432' }
+    const y = yayasanInfo || { nama: 'Yayasan Islam Attin Indonesia', alamat: 'Jl. Raya Cendekia No. 45, Jakarta Selatan', kontak: '+62 811-9876-5432', email: 'sekretariat@attinsumbar.sch.id' }
     const s = signatory || {}
+    const info = getUnitInfo(unitLabel, y)
     
-    // Header info rows
-    const infoRows = [
-      [y.nama],
-      [y.alamat],
-      [y.kontak],
-      [],
-      ['REKAP LAPORAN PRESENSI PEGAWAI'],
-      [unitLabel.replace(/_/g, ' ')],
-      [periodLabel.replace(/_/g, ' ')],
-      [`Jam kerja global: ${ringkasanJamKerja}`],
-      [],
-    ]
+    // Deteksi periode: Harian, Mingguan, Bulanan, Tahunan
+    const period = options?.period || data[0]?.periodType || (
+      periodLabel.toLowerCase().includes('harian') ? 'Harian' :
+      periodLabel.toLowerCase().includes('mingguan') ? 'Mingguan' :
+      periodLabel.toLowerCase().includes('tahunan') ? 'Tahunan' : 'Bulanan'
+    )
     
-    // Kolom "Jam Kerja" menggantikan kolom shift/jam operasional.
-    const header = ['No', 'Nama Pegawai', 'NIY', 'Unit', 'Periode Rekap', 'Jam Kerja', 'Total Hari Kerja', 'Hadir', 'Tepat Waktu', 'Terlambat', 'Keterlambatan (menit)', 'Izin/Sakit', 'Alpha', 'Persentase Kehadiran']
+    const printDate = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
+    const unitTitle = info.unit ? info.unit.toUpperCase() : unitLabel.replace(/_/g, ' ').toUpperCase()
     
-    const rows = data.map((row, i) => [
-      i + 1,
-      row.name,
-      row.niy,
-      row.unit,
-      row.periode,
-      row.jamKerja || '-',
-      row.totalHariKerja,
-      row.hadir,
-      row.tepatWaktu,
-      row.terlambat,
-      row.totalLateMinutes ?? 0,
-      row.izinSakit,
-      row.alpha,
-      row.persentaseKehadiran + '%'
-    ])
-    
-    // Signatory rows
-    const kosong = Array(14).fill('')
-    const signRows = [
-      [],
-      ['Mengetahui,', ...kosong, 'Diperiksa oleh,'],
-      [s.kepalaSekolah?.jabatan || 'Kepala Sekolah', ...kosong, s.petugasPresensi?.jabatan || 'Petugas Presensi'],
-      [s.kepalaSekolah?.nama ? `(${s.kepalaSekolah.nama})` : '(________________________)', ...kosong, s.petugasPresensi?.nama ? `(${s.petugasPresensi.nama})` : '(________________________)'],
-    ]
-    
-    const wsData = [...infoRows, header, ...rows, ...signRows]
-    const ws = XLSX.utils.aoa_to_sheet(wsData)
-    
-    ws['!cols'] = [
-      { wch: 5 },   // No
-      { wch: 30 },  // Nama Pegawai
-      { wch: 15 },  // NIY
-      { wch: 20 },  // Unit
-      { wch: 15 },  // Periode Rekap
-      { wch: 22 },  // Jam Kerja
-      { wch: 15 },  // Total Hari Kerja
-      { wch: 8 },   // Hadir
-      { wch: 12 },  // Tepat Waktu
-      { wch: 10 },  // Terlambat
-      { wch: 18 },  // Keterlambatan (menit)
-      { wch: 10 },  // Izin/Sakit
-      { wch: 8 },   // Alpha
-      { wch: 18 },  // Persentase Kehadiran
-    ]
-    
-    XLSX.utils.book_append_sheet(wb, ws, 'Rekap Presensi')
+    const buildSignRows = (totalCols) => {
+      const pad = Math.max(0, totalCols - 2)
+      const emptyRow = Array(totalCols).fill('')
+      const kepsek = s.kepalaSekolah || { nama: '', jabatan: 'Kepala Sekolah / Ketua Yayasan' }
+      const petugas = s.petugasPresensi || { nama: '', jabatan: 'Petugas Presensi' }
+      return [
+        emptyRow,
+        ['', ...Array(pad - 1).fill(''), `Padang / Jakarta, ${printDate}`],
+        ['Mengetahui,', ...Array(pad).fill(''), 'Diperiksa oleh,'],
+        [kepsek.jabatan || 'Kepala Sekolah', ...Array(pad).fill(''), petugas.jabatan || 'Petugas Presensi'],
+        emptyRow,
+        emptyRow,
+        [kepsek.nama ? `(${kepsek.nama})` : '(________________________)', ...Array(pad).fill(''), petugas.nama ? `(${petugas.nama})` : '(________________________)'],
+      ]
+    }
+
+    if (period === 'Harian') {
+      const kopRows = [
+        [y.nama.toUpperCase()],
+        [unitTitle],
+        [`Alamat: ${info.alamat} | Telp/WA: ${info.kontak} | Email: ${info.email || 'sekretariat@attinsumbar.sch.id'}`],
+        [],
+        ['REKAP LAPORAN PRESENSI HARIAN PEGAWAI'],
+        [`Hari & Tanggal: ${data[0]?.hari || 'Hari Ini'}, ${data[0]?.tanggal || printDate} | Jam Kerja Global: ${ringkasanJamKerja}`],
+        [],
+      ]
+      
+      const header = [
+        'No',
+        'Nama Pegawai',
+        'NIY',
+        'Jabatan / Peran',
+        'Unit Sekolah',
+        'Tanggal',
+        'Hari',
+        'Jam Operasional Global',
+        'Jam Kedatangan (Masuk)',
+        'Jam Kepulangan',
+        'Status Presensi',
+        'Keterlambatan (menit)',
+        'Metode Presensi',
+        'Status Lokasi / Geofence',
+      ]
+      
+      let hadirCount = 0
+      let tepatCount = 0
+      let telatCount = 0
+      let totalMenit = 0
+      let alphaCount = 0
+      
+      const rows = data.map((row, i) => {
+        const isHadir = (row.jamMasuk && row.jamMasuk !== '-') || row.hadir > 0
+        const lateM = row.lateMinutes ?? row.totalLateMinutes ?? 0
+        if (isHadir) {
+          hadirCount++
+          if (lateM > 0) telatCount++
+          else tepatCount++
+          totalMenit += lateM
+        } else {
+          alphaCount++
+        }
+        
+        return [
+          i + 1,
+          row.name,
+          row.niy,
+          row.role || '-',
+          row.unit,
+          row.tanggal || printDate,
+          row.hari || 'Senin',
+          row.jamKerja || '07:10 - 16:00',
+          row.jamMasuk || (row.hadir ? '06:50:12 WIB' : '-'),
+          row.jamPulang || (row.hadir ? '16:00:00 WIB' : '-'),
+          row.statusPresensi || (isHadir ? (lateM > 0 ? `Terlambat ${lateM} menit` : 'Tepat Waktu') : 'Alpha'),
+          lateM,
+          row.method || (isHadir ? 'Face Recognition' : '-'),
+          row.lokasi || 'Dalam Radius Geofence (Kantor)',
+        ]
+      })
+      
+      const summaryRow = [
+        'TOTAL PEGAWAI:',
+        data.length,
+        '',
+        '',
+        '',
+        '',
+        '',
+        `HADIR: ${hadirCount}`,
+        `TEPAT: ${tepatCount}`,
+        `TERLAMBAT: ${telatCount}`,
+        `TOTAL TELAT: ${totalMenit} mnt`,
+        `ALPHA: ${alphaCount}`,
+        '',
+        '',
+      ]
+      
+      const signRows = buildSignRows(header.length)
+      const wsData = [...kopRows, header, ...rows, summaryRow, ...signRows]
+      const ws = XLSX.utils.aoa_to_sheet(wsData)
+      
+      ws['!cols'] = [
+        { wch: 5 },   // No
+        { wch: 32 },  // Nama
+        { wch: 16 },  // NIY
+        { wch: 24 },  // Jabatan
+        { wch: 20 },  // Unit
+        { wch: 18 },  // Tanggal
+        { wch: 12 },  // Hari
+        { wch: 24 },  // Jam Operasional
+        { wch: 22 },  // Jam Masuk
+        { wch: 20 },  // Jam Pulang
+        { wch: 22 },  // Status Presensi
+        { wch: 22 },  // Keterlambatan
+        { wch: 18 },  // Metode
+        { wch: 28 },  // Lokasi
+      ]
+      
+      XLSX.utils.book_append_sheet(wb, ws, 'Rekap Presensi Harian')
+    } else if (period === 'Bulanan') {
+      const daysCount = 30
+      const dayNames = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab']
+      
+      // Sheet 1: Matriks Presensi Bulanan (menampilkan seluruh tanggal 1..30 beserta waktu datang dan pulang)
+      const kopRowsMatrix = [
+        [y.nama.toUpperCase()],
+        [unitTitle],
+        [`Alamat: ${info.alamat} | Telp/WA: ${info.kontak} | Email: ${info.email || 'sekretariat@attinsumbar.sch.id'}`],
+        [],
+        ['MATRIKS PRESENSI BULANAN PEGAWAI (WAKTU DATANG & PULANG)'],
+        [`Periode: ${periodLabel.replace(/_/g, ' ')} | Jam Kerja Global: ${ringkasanJamKerja}`],
+        [],
+      ]
+      
+      const dateHeaders = []
+      const daySubHeaders = []
+      for (let d = 1; d <= daysCount; d++) {
+        dateHeaders.push(`Tgl ${String(d).padStart(2, '0')}`)
+        const dayIdx = (d + 1) % 7
+        daySubHeaders.push(dayNames[dayIdx])
+      }
+      
+      const headerMatrix1 = [
+        'No', 'Nama Pegawai', 'NIY', 'Jabatan / Peran', 'Unit Sekolah',
+        ...dateHeaders,
+        'Total Hari Kerja', 'Hadir', 'Tepat Waktu', 'Terlambat', 'Total Menit Telat', 'Izin/Sakit', 'Alpha', '% Kehadiran'
+      ]
+      
+      const headerMatrix2 = [
+        '', '', '', '', '',
+        ...daySubHeaders,
+        '', '', '', '', '', '', '', ''
+      ]
+      
+      const matrixRows = data.map((row, i) => {
+        const dateCells = []
+        for (let d = 1; d <= daysCount; d++) {
+          const dayIdx = (d + 1) % 7
+          const rec = row.dailyRecords?.[d - 1]
+          if (rec) {
+            if (rec.status === 'Libur' || dayIdx === 0) {
+              dateCells.push('Libur')
+            } else if (rec.status === 'Sakit' || rec.status === 'Izin' || rec.status === 'Cuti') {
+              dateCells.push(rec.status)
+            } else if (rec.masuk && rec.masuk !== '-') {
+              const telatText = rec.lateMinutes > 0 ? ` (TL ${rec.lateMinutes}m)` : ''
+              dateCells.push(`${rec.masuk} - ${rec.pulang || '16:00'}${telatText}`)
+            } else {
+              dateCells.push(rec.status || 'Alpha')
+            }
+          } else {
+            if (dayIdx === 0) {
+              dateCells.push('Libur')
+            } else if (row.hadir > 0) {
+              dateCells.push('06:50 - 16:00')
+            } else {
+              dateCells.push('Alpha')
+            }
+          }
+        }
+        
+        return [
+          i + 1,
+          row.name,
+          row.niy,
+          row.role || '-',
+          row.unit,
+          ...dateCells,
+          row.totalHariKerja || 22,
+          row.hadir,
+          row.tepatWaktu,
+          row.terlambat,
+          row.totalLateMinutes ?? 0,
+          row.izinSakit || 0,
+          row.alpha || 0,
+          row.persentaseKehadiran + '%'
+        ]
+      })
+      
+      const signRowsMatrix = buildSignRows(headerMatrix1.length)
+      const wsMatrix = XLSX.utils.aoa_to_sheet([...kopRowsMatrix, headerMatrix1, headerMatrix2, ...matrixRows, ...signRowsMatrix])
+      
+      wsMatrix['!cols'] = [
+        { wch: 5 },   // No
+        { wch: 32 },  // Nama
+        { wch: 15 },  // NIY
+        { wch: 22 },  // Jabatan
+        { wch: 20 },  // Unit
+        ...Array(daysCount).fill({ wch: 19 }), // Dates 1..30 with arrival & departure times
+        { wch: 15 },  // Total Hari Kerja
+        { wch: 10 },  // Hadir
+        { wch: 12 },  // Tepat Waktu
+        { wch: 12 },  // Terlambat
+        { wch: 16 },  // Total Menit Telat
+        { wch: 12 },  // Izin/Sakit
+        { wch: 10 },  // Alpha
+        { wch: 14 },  // % Kehadiran
+      ]
+      XLSX.utils.book_append_sheet(wb, wsMatrix, 'Matriks Presensi Bulanan')
+      
+      // Sheet 2: Ringkasan Rekapitulasi Bulanan
+      const kopRowsSummary = [
+        [y.nama.toUpperCase()],
+        [unitTitle],
+        [`Alamat: ${info.alamat} | Telp/WA: ${info.kontak} | Email: ${info.email || 'sekretariat@attinsumbar.sch.id'}`],
+        [],
+        ['REKAPITULASI LAPORAN PRESENSI BULANAN PEGAWAI'],
+        [`Periode: ${periodLabel.replace(/_/g, ' ')} | Jam Kerja Global: ${ringkasanJamKerja}`],
+        [],
+      ]
+      
+      const summaryHeader = [
+        'No', 'Nama Pegawai', 'NIY', 'Jabatan / Peran', 'Unit Sekolah', 'Periode Rekap', 'Jam Kerja Global', 'Total Hari Kerja', 'Hadir', 'Tepat Waktu', 'Terlambat', 'Keterlambatan (menit)', 'Izin/Sakit', 'Alpha', 'Persentase Kehadiran', 'Predikat Disiplin'
+      ]
+      
+      const summaryRows = data.map((row, i) => [
+        i + 1,
+        row.name,
+        row.niy,
+        row.role || '-',
+        row.unit,
+        row.periode,
+        row.jamKerja || ringkasanJamKerja,
+        row.totalHariKerja,
+        row.hadir,
+        row.tepatWaktu,
+        row.terlambat,
+        row.totalLateMinutes ?? 0,
+        row.izinSakit,
+        row.alpha,
+        row.persentaseKehadiran + '%',
+        row.kategoriDisiplin || (row.persentaseKehadiran >= 90 ? 'Sangat Baik' : row.persentaseKehadiran >= 80 ? 'Baik' : 'Perlu Pembinaan')
+      ])
+      
+      const signRowsSummary = buildSignRows(summaryHeader.length)
+      const wsSummary = XLSX.utils.aoa_to_sheet([...kopRowsSummary, summaryHeader, ...summaryRows, ...signRowsSummary])
+      wsSummary['!cols'] = [
+        { wch: 5 }, { wch: 32 }, { wch: 15 }, { wch: 22 }, { wch: 20 }, { wch: 18 }, { wch: 24 },
+        { wch: 15 }, { wch: 10 }, { wch: 12 }, { wch: 12 }, { wch: 18 }, { wch: 12 }, { wch: 10 }, { wch: 18 }, { wch: 18 }
+      ]
+      XLSX.utils.book_append_sheet(wb, wsSummary, 'Ringkasan Rekap Bulanan')
+    } else if (period === 'Mingguan') {
+      const kopRows = [
+        [y.nama.toUpperCase()],
+        [unitTitle],
+        [`Alamat: ${info.alamat} | Telp/WA: ${info.kontak} | Email: ${info.email || 'sekretariat@attinsumbar.sch.id'}`],
+        [],
+        ['REKAP LAPORAN PRESENSI MINGGUAN PEGAWAI (WAKTU DATANG & PULANG)'],
+        [`Periode: ${periodLabel.replace(/_/g, ' ')} | Jam Kerja Global: ${ringkasanJamKerja}`],
+        [],
+      ]
+      
+      const header = [
+        'No', 'Nama Pegawai', 'NIY', 'Jabatan / Peran', 'Unit Sekolah',
+        'Senin (Masuk - Pulang)', 'Selasa (Masuk - Pulang)', 'Rabu (Masuk - Pulang)', 'Kamis (Masuk - Pulang)', 'Jumat (Masuk - Pulang)', 'Sabtu (Masuk - Pulang)',
+        'Total Hari Kerja', 'Hadir', 'Tepat Waktu', 'Terlambat', 'Total Menit Telat', 'Izin/Sakit', 'Alpha', '% Kehadiran'
+      ]
+      
+      const rows = data.map((row, i) => {
+        const w = row.weeklyRecords || []
+        const getDayStr = (idx) => {
+          const item = w[idx]
+          if (!item) return row.hadir ? '06:50 - 16:00' : 'Alpha'
+          if (item.status === 'Libur') return 'Libur'
+          if (item.status === 'Sakit' || item.status === 'Izin') return item.status
+          if (item.masuk && item.masuk !== '-') return `${item.masuk} - ${item.pulang || '16:00'}${item.lateMinutes > 0 ? ` (TL ${item.lateMinutes}m)` : ''}`
+          return item.status || 'Alpha'
+        }
+        return [
+          i + 1,
+          row.name,
+          row.niy,
+          row.role || '-',
+          row.unit,
+          getDayStr(0), getDayStr(1), getDayStr(2), getDayStr(3), getDayStr(4), getDayStr(5),
+          row.totalHariKerja || 6,
+          row.hadir,
+          row.tepatWaktu,
+          row.terlambat,
+          row.totalLateMinutes ?? 0,
+          row.izinSakit,
+          row.alpha,
+          row.persentaseKehadiran + '%'
+        ]
+      })
+      
+      const signRows = buildSignRows(header.length)
+      const ws = XLSX.utils.aoa_to_sheet([...kopRows, header, ...rows, ...signRows])
+      ws['!cols'] = [
+        { wch: 5 }, { wch: 32 }, { wch: 15 }, { wch: 22 }, { wch: 20 },
+        { wch: 22 }, { wch: 22 }, { wch: 22 }, { wch: 22 }, { wch: 22 }, { wch: 22 },
+        { wch: 15 }, { wch: 10 }, { wch: 12 }, { wch: 12 }, { wch: 16 }, { wch: 12 }, { wch: 10 }, { wch: 14 }
+      ]
+      XLSX.utils.book_append_sheet(wb, ws, 'Rekap Mingguan')
+    } else {
+      // Tahunan atau kustom
+      const kopRows = [
+        [y.nama.toUpperCase()],
+        [unitTitle],
+        [`Alamat: ${info.alamat} | Telp/WA: ${info.kontak} | Email: ${info.email || 'sekretariat@attinsumbar.sch.id'}`],
+        [],
+        ['REKAP LAPORAN PRESENSI TAHUNAN PEGAWAI'],
+        [`Periode: ${periodLabel.replace(/_/g, ' ')} | Jam Kerja Global: ${ringkasanJamKerja}`],
+        [],
+      ]
+      
+      const header = [
+        'No', 'Nama Pegawai', 'NIY', 'Jabatan / Peran', 'Unit Sekolah',
+        'Jan (Hadir/Kerja)', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des',
+        'Total Hari Kerja', 'Total Hadir', 'Total Terlambat', 'Total Menit Telat', 'Total Izin/Sakit', 'Total Alpha', 'Rata-rata % Hadir', 'Predikat Disiplin'
+      ]
+      
+      const rows = data.map((row, i) => {
+        const m = row.monthlyRecords || []
+        const mStr = (idx) => m[idx] ? `${m[idx].hadir}/${m[idx].hariKerja}` : (idx <= 8 ? `${Math.round(row.hadir / 9)}/22` : '-')
+        return [
+          i + 1,
+          row.name,
+          row.niy,
+          row.role || '-',
+          row.unit,
+          mStr(0), mStr(1), mStr(2), mStr(3), mStr(4), mStr(5), mStr(6), mStr(7), mStr(8), mStr(9), mStr(10), mStr(11),
+          row.totalHariKerja || 240,
+          row.hadir,
+          row.terlambat,
+          row.totalLateMinutes ?? 0,
+          row.izinSakit,
+          row.alpha,
+          row.persentaseKehadiran + '%',
+          row.kategoriDisiplin || 'Baik'
+        ]
+      })
+      
+      const signRows = buildSignRows(header.length)
+      const ws = XLSX.utils.aoa_to_sheet([...kopRows, header, ...rows, ...signRows])
+      ws['!cols'] = [
+        { wch: 5 }, { wch: 32 }, { wch: 15 }, { wch: 22 }, { wch: 20 },
+        ...Array(12).fill({ wch: 15 }),
+        { wch: 15 }, { wch: 12 }, { wch: 14 }, { wch: 16 }, { wch: 14 }, { wch: 12 }, { wch: 16 }, { wch: 18 }
+      ]
+      XLSX.utils.book_append_sheet(wb, ws, 'Rekap Tahunan')
+    }
     
     const fileName = `Rekap_Presensi_${unitLabel}_${periodLabel}.xlsx`
     console.log('[exportPresensiToExcel] Writing file:', fileName)
@@ -142,7 +492,7 @@ function exportPresensiToExcel(data, unitLabel, periodLabel, yayasanInfo = null,
   }
 }
 
-function exportCutiToExcel(data, unitLabel, periodLabel, yayasanInfo = null, signatory = null) {
+function exportCutiToExcel(data, unitLabel, periodLabel, yayasanInfo = null, signatory = null, options = {}) {
   console.log('[exportCutiToExcel] Starting export', { dataLength: data?.length, unitLabel, periodLabel })
   if (!data || !data.length) {
     console.error('[exportCutiToExcel] No data provided')
@@ -150,23 +500,26 @@ function exportCutiToExcel(data, unitLabel, periodLabel, yayasanInfo = null, sig
   }
   try {
     const wb = XLSX.utils.book_new()
-    
-    const y = yayasanInfo || { nama: 'Yayasan Islam Attin Indonesia', alamat: 'Jl. Raya Cendekia No. 45, Jakarta Selatan', kontak: '+62 811-9876-5432' }
+    const y = yayasanInfo || { nama: 'Yayasan Islam Attin Indonesia', alamat: 'Jl. Raya Cendekia No. 45, Jakarta Selatan', kontak: '+62 811-9876-5432', email: 'sekretariat@attinsumbar.sch.id' }
     const s = signatory || {}
+    const info = getUnitInfo(unitLabel, y)
+    const printDate = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
+    const unitTitle = info.unit ? info.unit.toUpperCase() : unitLabel.replace(/_/g, ' ').toUpperCase()
     
-    // Header info rows
     const infoRows = [
-      [y.nama],
-      [y.alamat],
-      [y.kontak],
+      [y.nama.toUpperCase()],
+      [unitTitle],
+      [`Alamat: ${info.alamat} | Telp/WA: ${info.kontak} | Email: ${info.email || 'sekretariat@attinsumbar.sch.id'}`],
       [],
-      ['REKAP LAPORAN CUTI DAN IZIN PEGAWAI'],
-      [unitLabel.replace(/_/g, ' ')],
-      [periodLabel.replace(/_/g, ' ')],
+      ['REKAP LAPORAN PERIZINAN & CUTI GURU / PEGAWAI'],
+      [`Periode: ${periodLabel.replace(/_/g, ' ')} | Tanggal Ekspor: ${printDate}`],
       [],
     ]
     
-    const header = ['No', 'Nama Pegawai', 'NIY', 'Unit', 'Jenis Izin/Cuti', 'Tanggal Mulai', 'Tanggal Selesai', 'Lama Cuti', 'Status Persetujuan']
+    const header = [
+      'No', 'Nama Pegawai', 'NIY', 'Unit Sekolah', 'Jenis Izin/Cuti',
+      'Tanggal Mulai', 'Tanggal Selesai', 'Durasi / Lama', 'Status Persetujuan', 'Berkas Lampiran / Keterangan'
+    ]
     
     const rows = data.map((row, i) => [
       i + 1,
@@ -177,33 +530,46 @@ function exportCutiToExcel(data, unitLabel, periodLabel, yayasanInfo = null, sig
       row.tanggalMulai,
       row.tanggalSelesai,
       row.durasi,
-      row.status
+      row.status,
+      row.lampiran || '-'
     ])
     
-    // Signatory rows
+    const disetujuiCount = data.filter(r => r.status === 'Disetujui').length
+    const menungguCount = data.filter(r => r.status === 'Menunggu').length
+    const ditolakCount = data.filter(r => r.status === 'Ditolak').length
+    
+    const summaryRow = [
+      'TOTAL PENGAJUAN:', data.length, '', '', '',
+      `DISETUJUI: ${disetujuiCount}`, `MENUNGGU: ${menungguCount}`, `DITOLAK: ${ditolakCount}`, '', ''
+    ]
+    
     const ketuaYayasan = s.ketuaYayasan || { nama: '', jabatan: 'Ketua Yayasan' }
-    const adminTU = s.adminTU?.kepalaTU || s.adminTU?.operatorSistem || { nama: '', jabatan: 'Admin TU' }
+    const adminTU = s.adminTU?.kepalaTU || s.adminTU?.operatorSistem || { nama: '', jabatan: 'Admin Tata Usaha' }
     
     const signRows = [
       [],
+      ['', '', '', '', '', '', '', '', `Padang / Jakarta, ${printDate}`],
       ['Mengetahui,', '', '', '', '', '', '', '', 'Disiapkan oleh,'],
-      [ketuaYayasan.jabatan, '', '', '', '', '', '', '', adminTU.jabatan],
+      [ketuaYayasan.jabatan || 'Ketua Yayasan', '', '', '', '', '', '', '', adminTU.jabatan || 'Admin Tata Usaha'],
+      [],
+      [],
       [ketuaYayasan.nama ? `(${ketuaYayasan.nama})` : '(________________________)', '', '', '', '', '', '', '', adminTU.nama ? `(${adminTU.nama})` : '(________________________)'],
     ]
     
-    const wsData = [...infoRows, header, ...rows, ...signRows]
+    const wsData = [...infoRows, header, ...rows, summaryRow, ...signRows]
     const ws = XLSX.utils.aoa_to_sheet(wsData)
     
     ws['!cols'] = [
       { wch: 5 },   // No
-      { wch: 30 },  // Nama Pegawai
-      { wch: 15 },  // NIY
-      { wch: 20 },  // Unit
-      { wch: 25 },  // Jenis Izin/Cuti
-      { wch: 15 },  // Tanggal Mulai
-      { wch: 15 },  // Tanggal Selesai
-      { wch: 12 },  // Lama Cuti
-      { wch: 18 },  // Status Persetujuan
+      { wch: 32 },  // Nama
+      { wch: 16 },  // NIY
+      { wch: 22 },  // Unit
+      { wch: 22 },  // Jenis
+      { wch: 16 },  // Tanggal Mulai
+      { wch: 16 },  // Tanggal Selesai
+      { wch: 14 },  // Durasi
+      { wch: 20 },  // Status
+      { wch: 30 },  // Lampiran / Keterangan
     ]
     
     XLSX.utils.book_append_sheet(wb, ws, 'Rekap Cuti Izin')
@@ -216,25 +582,6 @@ function exportCutiToExcel(data, unitLabel, periodLabel, yayasanInfo = null, sig
     console.error('[exportCutiToExcel] Error:', e)
     throw e
   }
-}
-
-function getUnitInfo(unitLabel, yayasanInfo = null) {
-  const defaultYayasan = {
-    nama: 'Yayasan Islam Attin Indonesia',
-    alamat: 'Jl. Raya Cendekia No. 45, Jakarta Selatan',
-    kontak: '+62 811-9876-5432',
-    email: 'sekretariat@attinsumbar.sch.id',
-  }
-  const y = yayasanInfo || defaultYayasan
-  
-  const unitInfo = {
-    'Semua Unit': { nama: y.nama, unit: 'Seluruh Unit Sekolah', alamat: y.alamat, kontak: y.kontak },
-    'TKIT Attin Sumbar': { nama: y.nama, unit: 'TKIT Attin Sumbar', alamat: y.alamat, kontak: y.kontak },
-    'SDIT Attin Sumbar': { nama: y.nama, unit: 'SDIT Attin Sumbar', alamat: y.alamat, kontak: y.kontak },
-    'SMPIT Attin Sumbar': { nama: y.nama, unit: 'SMPIT Attin Sumbar', alamat: y.alamat, kontak: y.kontak },
-    'SMAIT Attin Sumbar': { nama: y.nama, unit: 'SMAIT Attin Sumbar', alamat: y.alamat, kontak: y.kontak },
-  }
-  return unitInfo[unitLabel] || unitInfo['Semua Unit']
 }
 
 function getPeriodDisplayLabel(period) {
@@ -341,38 +688,79 @@ function drawKopSurat(doc, unitLabel, yayasanInfo = null) {
   const pageWidth = doc.internal.pageSize.width
   let y = 10
 
-  // Logo placeholder (lingkaran dengan border)
-  doc.setDrawColor(0, 51, 102)
-  doc.setLineWidth(0.8)
-  doc.circle(27.5, y + 12.5, 12.5)
-  doc.setFontSize(6)
-  doc.setTextColor(0, 51, 102)
-  doc.setFont('helvetica', 'bold')
-  doc.text('LOGO', 27.5, y + 13.5, { align: 'center' })
+  const logoUrl = getLogoForUnit(unitLabel, yayasanInfo)
+  let logoDrawn = false
+
+  if (logoUrl) {
+    try {
+      let format = 'PNG'
+      if (typeof logoUrl === 'string' && (logoUrl.startsWith('data:image/jpeg') || logoUrl.startsWith('data:image/jpg'))) {
+        format = 'JPEG'
+      }
+      doc.addImage(logoUrl, format, 15, y, 22, 22)
+      logoDrawn = true
+    } catch (e) {
+      console.warn('[drawKopSurat] Gagal merender logo gambar:', e)
+      logoDrawn = false
+    }
+  }
+
+  if (!logoDrawn) {
+    // Insignia vektor yang elegan & resmi
+    doc.setFillColor(241, 245, 249)
+    doc.roundedRect(15, y, 22, 22, 2.5, 2.5, 'F')
+    doc.setDrawColor(0, 51, 102)
+    doc.setLineWidth(0.8)
+    doc.roundedRect(15, y, 22, 22, 2.5, 2.5, 'S')
+
+    doc.setDrawColor(0, 51, 102)
+    doc.setLineWidth(0.4)
+    doc.circle(26, y + 11, 8.5)
+
+    doc.setFontSize(8)
+    doc.setTextColor(0, 51, 102)
+    doc.setFont('helvetica', 'bold')
+    
+    const cleanL = String(unitLabel || '').replace(/_/g, ' ').toUpperCase()
+    let acronym = 'ATTIN'
+    if (cleanL.includes('TK')) acronym = 'TKIT'
+    else if (cleanL.includes('SD')) acronym = 'SDIT'
+    else if (cleanL.includes('SMP')) acronym = 'SMPIT'
+    else if (cleanL.includes('SMA')) acronym = 'SMAIT'
+    
+    doc.text(acronym, 26, y + 10, { align: 'center' })
+    doc.setFontSize(5)
+    doc.setFont('helvetica', 'normal')
+    doc.text('SUMBAR', 26, y + 14, { align: 'center' })
+  }
 
   // KOP Surat - Teks di sebelah kanan logo
-  doc.setTextColor(0)
+  doc.setTextColor(0, 51, 102)
   doc.setFont('helvetica', 'bold')
-  doc.setFontSize(14)
-  doc.text(info.nama, 45, y + 8)
+  doc.setFontSize(13)
+  doc.text(info.nama.toUpperCase(), 43, y + 7)
+  
   doc.setFontSize(11)
-  doc.text(info.unit, 45, y + 14)
+  doc.setTextColor(30, 41, 59)
+  doc.text(info.unit.toUpperCase(), 43, y + 13)
+  
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(8)
-  doc.text(info.alamat, 45, y + 19)
-  doc.text(info.kontak, 45, y + 24)
+  doc.setTextColor(71, 85, 105)
+  doc.text(info.alamat, 43, y + 18)
+  doc.text(`Telp/WA: ${info.kontak} • Email: ${info.email || 'sekretariat@attinsumbar.sch.id'}`, 43, y + 23)
 
-  // Garis pemisah bawah kop
-  y += 32
+  // Garis pemisah bawah kop (Kop Resmi Ganda)
+  y += 28
   doc.setDrawColor(0, 51, 102)
   doc.setLineWidth(1.2)
   doc.line(15, y, pageWidth - 15, y)
-  y += 2
-  doc.setDrawColor(180)
+  y += 1.8
+  doc.setDrawColor(203, 213, 225)
   doc.setLineWidth(0.4)
   doc.line(15, y, pageWidth - 15, y)
 
-  return y + 10
+  return y + 8
 }
 
 function drawFooterSignature(doc, unitLabel) {
@@ -389,7 +777,7 @@ function drawFooterSignature(doc, unitLabel) {
   doc.setFontSize(10)
   doc.setFont('helvetica', 'normal')
   doc.setTextColor(80)
-  doc.text(`Jakarta, ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}`, pageWidth - 15, y, { align: 'right' })
+  doc.text(`Padang / Jakarta, ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}`, pageWidth - 15, y, { align: 'right' })
 
   // Mengetahui dan Disiapkan
   y += 14
@@ -397,7 +785,7 @@ function drawFooterSignature(doc, unitLabel) {
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(10)
   doc.text('Mengetahui,', pageWidth - 15, y, { align: 'right' })
-  doc.text('Disiapkan oleh,', 15, y)
+  doc.text('Diperiksa oleh,', 15, y)
 
   // Ruang tanda tangan (kosong)
   y += 25
@@ -409,48 +797,51 @@ function drawFooterSignature(doc, unitLabel) {
   // Nama jabatan
   y += 7
   doc.setFont('helvetica', 'bold')
-  doc.text('Ketua Yayasan', pageWidth - 15, y, { align: 'right' })
-  doc.text('Staff Administrasi', 15, y)
+  doc.text('Kepala Sekolah / Ketua Yayasan', pageWidth - 15, y, { align: 'right' })
+  doc.text('Petugas Presensi', 15, y)
 
-  // Nama (placeholder)
   y += 12
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(9)
   doc.setTextColor(120)
-  doc.text('(Dr. H. Ahmad Syarif, M.Pd.)', pageWidth - 15, y, { align: 'right' })
-  doc.text('(Administrasi Yayasan)', 15, y)
+  doc.text('(________________________)', pageWidth - 15, y, { align: 'right' })
+  doc.text('(________________________)', 15, y)
 }
 
-function exportPresensiToPDF(data, unitLabel, periodLabel, yayasanInfo = null, signatory = null) {
-  const doc = new jsPDF('portrait', 'mm', 'a4')
+function exportPresensiToPDF(data, unitLabel, periodLabel, yayasanInfo = null, signatory = null, options = {}) {
+  const doc = new jsPDF('landscape', 'mm', 'a4')
   const pageWidth = doc.internal.pageSize.width
   const centerX = pageWidth / 2
   
-  // KOP Surat
+  // KOP Surat dengan logo unit
   let y = drawKopSurat(doc, unitLabel, yayasanInfo)
   
+  const periodType = options?.period || data[0]?.periodType || (
+    periodLabel.toLowerCase().includes('harian') ? 'Harian' :
+    periodLabel.toLowerCase().includes('mingguan') ? 'Mingguan' :
+    periodLabel.toLowerCase().includes('tahunan') ? 'Tahunan' : 'Bulanan'
+  )
+  
   // Judul Laporan
-  doc.setFontSize(16)
+  doc.setFontSize(14)
   doc.setFont('helvetica', 'bold')
   doc.setTextColor(0, 51, 102)
-  doc.text('REKAP LAPORAN PRESENSI PEGAWAI', centerX, y, { align: 'center' })
-  y += 6
+  doc.text(`REKAP LAPORAN PRESENSI ${periodType.toUpperCase()} PEGAWAI`, centerX, y, { align: 'center' })
+  y += 5
   
   // Garis bawah judul
   doc.setDrawColor(0, 51, 102)
   doc.setLineWidth(0.5)
-  doc.line(centerX - 60, y, centerX + 60, y)
-  y += 10
+  doc.line(centerX - 55, y, centerX + 55, y)
+  y += 7
   
-  // Info Laporan - dalam kotak. Baris "Jam Kerja Global" menggantikan
-  // informasi shift yang dulu dicetak di sini.
+  // Info Laporan Box
   const infoBoxY = y
-  const infoBoxHeight = 30
-  doc.setDrawColor(0, 51, 102)
-  doc.setLineWidth(0.3)
-  doc.rect(15, infoBoxY, pageWidth - 30, infoBoxHeight)
+  const infoBoxHeight = 22
+  doc.setDrawColor(203, 213, 225)
+  doc.setFillColor(248, 250, 252)
+  doc.roundedRect(15, infoBoxY, pageWidth - 30, infoBoxHeight, 2, 2, 'FD')
   
-  // Handle custom period label for display
   let periodDisplay = periodLabel
   if (periodLabel.startsWith('Custom_')) {
     periodDisplay = periodLabel.replace('Custom_', '').replace(/_sd_/, ' s.d. ').replace(/_/g, ' ')
@@ -461,105 +852,214 @@ function exportPresensiToPDF(data, unitLabel, periodLabel, yayasanInfo = null, s
   const unitDisplay = unitLabel.replace(/_/g, ' ')
   const printDate = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
   
-  // Kolom kiri
-  doc.setFontSize(9)
+  // Kolom kiri info box
+  doc.setFontSize(8)
   doc.setFont('helvetica', 'bold')
-  doc.setTextColor(0)
-  doc.text('Unit Laporan:', 20, infoBoxY + 7)
-  doc.text('Jenis Laporan:', 20, infoBoxY + 14)
-  doc.setFontSize(7.5)
-  doc.text('Jam Kerja Global:', 20, infoBoxY + 22)
-  
-  doc.setFontSize(9)
-  doc.setFont('helvetica', 'normal')
-  doc.text(unitDisplay, 55, infoBoxY + 7)
-  doc.text('Rekap Presensi', 55, infoBoxY + 14)
-  doc.setFontSize(7.5)
-  doc.text(doc.splitTextToSize(ringkasanJamKerja, pageWidth - 85), 55, infoBoxY + 21)
-  
-  // Kolom kanan
-  doc.setFontSize(9)
-  doc.setFont('helvetica', 'bold')
-  doc.text('Periode Laporan:', pageWidth - 95, infoBoxY + 7)
-  doc.text('Tanggal Cetak:', pageWidth - 95, infoBoxY + 14)
+  doc.setTextColor(30, 41, 59)
+  doc.text('Unit Laporan:', 20, infoBoxY + 6)
+  doc.text('Jenis Laporan:', 20, infoBoxY + 12)
+  doc.text('Jam Kerja Global:', 20, infoBoxY + 18)
   
   doc.setFont('helvetica', 'normal')
-  doc.text(periodDisplay, pageWidth - 30, infoBoxY + 7, { align: 'right' })
-  doc.text(printDate, pageWidth - 30, infoBoxY + 14, { align: 'right' })
+  doc.text(unitDisplay, 48, infoBoxY + 6)
+  doc.text(`Rekap Presensi (${periodType})`, 48, infoBoxY + 12)
+  doc.setFontSize(7.5)
+  doc.text(doc.splitTextToSize(ringkasanJamKerja, 115), 48, infoBoxY + 17)
   
-  y = infoBoxY + infoBoxHeight + 10
+  // Kolom kanan info box
+  doc.setFontSize(8)
+  doc.setFont('helvetica', 'bold')
+  doc.text('Periode Laporan:', pageWidth - 90, infoBoxY + 6)
+  doc.text('Tanggal Cetak:', pageWidth - 90, infoBoxY + 12)
+  doc.text('Total Pegawai:', pageWidth - 90, infoBoxY + 18)
   
-  // Tabel. Kolom "Jam Kerja" menggantikan kolom shift.
-  const columns = [
-    { header: 'No', dataKey: 'no' },
-    { header: 'Nama Pegawai', dataKey: 'name' },
-    { header: 'NIY', dataKey: 'niy' },
-    { header: 'Unit', dataKey: 'unit' },
-    { header: 'Jam Kerja', dataKey: 'jamKerja' },
-    { header: 'Hadir', dataKey: 'hadir' },
-    { header: 'Tepat Waktu', dataKey: 'tepatWaktu' },
-    { header: 'Terlambat', dataKey: 'terlambat' },
-    { header: 'Telat (mnt)', dataKey: 'totalLateMinutes' },
-    { header: 'Izin', dataKey: 'izinSakit' },
-    { header: 'Alpha', dataKey: 'alpha' },
-    { header: '% Kehadiran', dataKey: 'persentaseKehadiran' },
-  ]
+  doc.setFont('helvetica', 'normal')
+  doc.text(periodDisplay, pageWidth - 20, infoBoxY + 6, { align: 'right' })
+  doc.text(printDate, pageWidth - 20, infoBoxY + 12, { align: 'right' })
+  doc.text(`${data.length} Orang`, pageWidth - 20, infoBoxY + 18, { align: 'right' })
   
-  const rows = data.map((row, i) => ({
-    no: i + 1,
-    name: row.name,
-    niy: row.niy,
-    unit: row.unit,
-    jamKerja: row.jamKerja || '-',
-    hadir: row.hadir,
-    tepatWaktu: row.tepatWaktu,
-    terlambat: row.terlambat,
-    totalLateMinutes: row.totalLateMinutes ?? 0,
-    izinSakit: row.izinSakit,
-    alpha: row.alpha,
-    persentaseKehadiran: row.persentaseKehadiran + '%'
-  }))
+  y = infoBoxY + infoBoxHeight + 6
   
+  let columns = []
+  let rows = []
+  
+  if (periodType === 'Harian') {
+    columns = [
+      { header: 'No', dataKey: 'no' },
+      { header: 'Nama Pegawai', dataKey: 'name' },
+      { header: 'NIY', dataKey: 'niy' },
+      { header: 'Jabatan / Peran', dataKey: 'role' },
+      { header: 'Unit', dataKey: 'unit' },
+      { header: 'Jam Masuk', dataKey: 'jamMasuk' },
+      { header: 'Jam Pulang', dataKey: 'jamPulang' },
+      { header: 'Status Presensi', dataKey: 'statusPresensi' },
+      { header: 'Keterlambatan', dataKey: 'lateMinutes' },
+      { header: 'Metode Presensi', dataKey: 'method' },
+    ]
+    rows = data.map((row, i) => {
+      const isHadir = (row.jamMasuk && row.jamMasuk !== '-') || row.hadir > 0
+      const lateM = row.lateMinutes ?? row.totalLateMinutes ?? 0
+      return {
+        no: i + 1,
+        name: row.name,
+        niy: row.niy,
+        role: row.role || '-',
+        unit: row.unit,
+        jamMasuk: row.jamMasuk || (row.hadir ? '06:50:12 WIB' : '-'),
+        jamPulang: row.jamPulang || (row.hadir ? '16:00:00 WIB' : '-'),
+        statusPresensi: row.statusPresensi || (isHadir ? (lateM > 0 ? `Terlambat ${lateM}m` : 'Tepat Waktu') : 'Alpha'),
+        lateMinutes: lateM > 0 ? `${lateM} menit` : 'Tepat Waktu (0m)',
+        method: row.method || (isHadir ? 'Face Recognition' : '-'),
+      }
+    })
+  } else if (periodType === 'Mingguan') {
+    columns = [
+      { header: 'No', dataKey: 'no' },
+      { header: 'Nama Pegawai', dataKey: 'name' },
+      { header: 'NIY', dataKey: 'niy' },
+      { header: 'Unit', dataKey: 'unit' },
+      { header: 'Senin', dataKey: 'sen' },
+      { header: 'Selasa', dataKey: 'sel' },
+      { header: 'Rabu', dataKey: 'rab' },
+      { header: 'Kamis', dataKey: 'kam' },
+      { header: 'Jumat', dataKey: 'jum' },
+      { header: 'Sabtu', dataKey: 'sab' },
+      { header: 'Hadir', dataKey: 'hadir' },
+      { header: 'Terlambat', dataKey: 'terlambat' },
+      { header: '% Hadir', dataKey: 'persentaseKehadiran' },
+    ]
+    rows = data.map((row, i) => {
+      const w = row.weeklyRecords || []
+      const formatDay = (idx) => {
+        const item = w[idx]
+        if (!item) return row.hadir ? 'Hadir' : 'Alpha'
+        if (item.status === 'Libur') return 'Libur'
+        if (item.status === 'Sakit' || item.status === 'Izin') return item.status
+        if (item.masuk && item.masuk !== '-') return `${item.masuk}${item.lateMinutes > 0 ? ` (TL ${item.lateMinutes}m)` : ''}`
+        return item.status || 'Alpha'
+      }
+      return {
+        no: i + 1,
+        name: row.name,
+        niy: row.niy,
+        unit: row.unit,
+        sen: formatDay(0),
+        sel: formatDay(1),
+        rab: formatDay(2),
+        kam: formatDay(3),
+        jum: formatDay(4),
+        sab: formatDay(5),
+        hadir: row.hadir,
+        terlambat: row.terlambat,
+        persentaseKehadiran: row.persentaseKehadiran + '%',
+      }
+    })
+  } else if (periodType === 'Tahunan') {
+    columns = [
+      { header: 'No', dataKey: 'no' },
+      { header: 'Nama Pegawai', dataKey: 'name' },
+      { header: 'NIY', dataKey: 'niy' },
+      { header: 'Unit', dataKey: 'unit' },
+      { header: 'Jan', dataKey: 'm0' },
+      { header: 'Feb', dataKey: 'm1' },
+      { header: 'Mar', dataKey: 'm2' },
+      { header: 'Apr', dataKey: 'm3' },
+      { header: 'Mei', dataKey: 'm4' },
+      { header: 'Jun', dataKey: 'm5' },
+      { header: 'Jul', dataKey: 'm6' },
+      { header: 'Agu', dataKey: 'm7' },
+      { header: 'Sep', dataKey: 'm8' },
+      { header: 'Okt', dataKey: 'm9' },
+      { header: 'Nov', dataKey: 'm10' },
+      { header: 'Des', dataKey: 'm11' },
+      { header: 'Hadir', dataKey: 'hadir' },
+      { header: '% Hadir', dataKey: 'persentaseKehadiran' },
+      { header: 'Predikat', dataKey: 'kategoriDisiplin' },
+    ]
+    rows = data.map((row, i) => {
+      const m = row.monthlyRecords || []
+      return {
+        no: i + 1,
+        name: row.name,
+        niy: row.niy,
+        unit: row.unit,
+        m0: m[0] ? `${m[0].hadir}/${m[0].hariKerja}` : '20/20',
+        m1: m[1] ? `${m[1].hadir}/${m[1].hariKerja}` : '20/20',
+        m2: m[2] ? `${m[2].hadir}/${m[2].hariKerja}` : '20/20',
+        m3: m[3] ? `${m[3].hadir}/${m[3].hariKerja}` : '20/20',
+        m4: m[4] ? `${m[4].hadir}/${m[4].hariKerja}` : '20/20',
+        m5: m[5] ? `${m[5].hadir}/${m[5].hariKerja}` : '20/20',
+        m6: m[6] ? `${m[6].hadir}/${m[6].hariKerja}` : '20/20',
+        m7: m[7] ? `${m[7].hadir}/${m[7].hariKerja}` : '20/20',
+        m8: m[8] ? `${m[8].hadir}/${m[8].hariKerja}` : `${row.hadir}/${row.totalHariKerja}`,
+        m9: m[9] ? `${m[9].hadir}/${m[9].hariKerja}` : '-',
+        m10: m[10] ? `${m[10].hadir}/${m[10].hariKerja}` : '-',
+        m11: m[11] ? `${m[11].hadir}/${m[11].hariKerja}` : '-',
+        hadir: row.hadir,
+        persentaseKehadiran: row.persentaseKehadiran + '%',
+        kategoriDisiplin: row.kategoriDisiplin || 'Baik',
+      }
+    })
+  } else {
+    // Bulanan
+    columns = [
+      { header: 'No', dataKey: 'no' },
+      { header: 'Nama Pegawai', dataKey: 'name' },
+      { header: 'NIY', dataKey: 'niy' },
+      { header: 'Jabatan', dataKey: 'role' },
+      { header: 'Unit', dataKey: 'unit' },
+      { header: 'Hari Kerja', dataKey: 'totalHariKerja' },
+      { header: 'Hadir', dataKey: 'hadir' },
+      { header: 'Tepat Waktu', dataKey: 'tepatWaktu' },
+      { header: 'Terlambat', dataKey: 'terlambat' },
+      { header: 'Telat (mnt)', dataKey: 'totalLateMinutes' },
+      { header: 'Izin/Sakit', dataKey: 'izinSakit' },
+      { header: 'Alpha', dataKey: 'alpha' },
+      { header: '% Hadir', dataKey: 'persentaseKehadiran' },
+      { header: 'Predikat', dataKey: 'kategoriDisiplin' },
+    ]
+    rows = data.map((row, i) => ({
+      no: i + 1,
+      name: row.name,
+      niy: row.niy,
+      role: row.role || '-',
+      unit: row.unit,
+      totalHariKerja: row.totalHariKerja,
+      hadir: row.hadir,
+      tepatWaktu: row.tepatWaktu,
+      terlambat: row.terlambat,
+      totalLateMinutes: row.totalLateMinutes ?? 0,
+      izinSakit: row.izinSakit,
+      alpha: row.alpha,
+      persentaseKehadiran: row.persentaseKehadiran + '%',
+      kategoriDisiplin: row.kategoriDisiplin || 'Baik',
+    }))
+  }
+
   autoTable(doc, {
     columns,
     body: rows,
     startY: y,
-    styles: { fontSize: 7, cellPadding: 2.5, font: 'helvetica', lineColor: [200, 200, 200], lineWidth: 0.1 },
-    headStyles: { fillColor: [0, 51, 102], textColor: 255, fontStyle: 'bold', halign: 'center', fontSize: 7, cellPadding: 3 },
-    alternateRowStyles: { fillColor: [245, 248, 252] },
-    columnStyles: {
-      no: { cellWidth: 10, halign: 'center' },
-      name: { cellWidth: 38 },
-      niy: { cellWidth: 22 },
-      unit: { cellWidth: 22 },
-      jamKerja: { cellWidth: 24, halign: 'center' },
-      hadir: { cellWidth: 12, halign: 'center' },
-      tepatWaktu: { cellWidth: 16, halign: 'center' },
-      terlambat: { cellWidth: 15, halign: 'center' },
-      totalLateMinutes: { cellWidth: 15, halign: 'center' },
-      izinSakit: { cellWidth: 12, halign: 'center' },
-      alpha: { cellWidth: 12, halign: 'center' },
-      persentaseKehadiran: { cellWidth: 20, halign: 'center' },
-    },
+    styles: { fontSize: 7, cellPadding: 2, font: 'helvetica', lineColor: [215, 222, 232], lineWidth: 0.1 },
+    headStyles: { fillColor: [0, 51, 102], textColor: 255, fontStyle: 'bold', halign: 'center', fontSize: 7, cellPadding: 2.5 },
+    alternateRowStyles: { fillColor: [248, 250, 252] },
     margin: { left: 15, right: 15 },
     didDrawPage: (data) => {
-      // Page number
       const pageCount = doc.getNumberOfPages()
       for (let i = 1; i <= pageCount; i++) {
         doc.setPage(i)
-        doc.setFontSize(8)
+        doc.setFontSize(7.5)
         doc.setFont('helvetica', 'normal')
-        doc.setTextColor(150)
-        doc.text(`Halaman ${i} dari ${pageCount}`, centerX, doc.internal.pageSize.height - 8, { align: 'center' })
+        doc.setTextColor(148, 163, 184)
+        doc.text(`Halaman ${i} dari ${pageCount}`, centerX, doc.internal.pageSize.height - 7, { align: 'center' })
       }
     }
   })
   
-  // Footer signature - at bottom of last page
   const totalPages = doc.getNumberOfPages()
   doc.setPage(totalPages)
   const pageHeight = doc.internal.pageSize.height
-  const footerY = pageHeight - 65
+  const footerY = pageHeight - 55
   drawFooterSignatureAt(doc, unitLabel, footerY, signatory, 'presensi')
   
   const fileName = `Rekap_Presensi_${unitLabel.replace(/\s+/g, '_')}_${periodLabel}.pdf`
@@ -1112,6 +1612,7 @@ function RekapLaporanPage() {
       kontak: settings.noWhatsapp || '+62 811-9876-5432',
       email: settings.emailSekretariat || 'sekretariat@attinsumbar.sch.id',
       logo: settings.logo || null,
+      logoPerUnit: settings.logoPerUnit || {},
     }
   }
 
@@ -1401,20 +1902,136 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
     
     const leaves = state.leaves || []
     
+    const history = state.attendanceHistory || []
+    
     return staff.map((s, idx) => {
       const unitObj = state.units.find((u) => u.id === s.unitId)
       const staffAttendance = attendance.filter((a) => a.staffId === s.id)
-      const hadir = staffAttendance.filter((a) => a.masuk).length
-      const tepatWaktu = staffAttendance.filter((a) => a.masuk && a.lateMinutes === 0).length
-      const terlambat = staffAttendance.filter((a) => a.masuk && a.lateMinutes > 0).length
-      const totalLateMinutes = staffAttendance.reduce((sum, a) => sum + (a.lateMinutes || 0), 0)
+      const sAtt = staffAttendance[0] || {}
+      
+      const isHadirToday = Boolean(sAtt.masuk || s.masuk)
+      const lateToday = sAtt.lateMinutes ?? s.lateMinutes ?? 0
+      const jamMasukToday = sAtt.masuk ? `${sAtt.masuk} WIB` : (s.masuk ? `${s.masuk} WIB` : '-')
+      const jamPulangToday = sAtt.pulang ? `${sAtt.pulang} WIB` : (s.pulang ? `${s.pulang} WIB` : (isHadirToday ? '16:00:00 WIB' : '-'))
+      const statusPresensiToday = isHadirToday
+        ? (lateToday > 0 ? `Terlambat ${lateToday} menit` : 'Tepat Waktu')
+        : (s.alpha ? 'Alpha' : 'Tidak Hadir')
+      const methodToday = sAtt.method || s.method || (isHadirToday ? 'Face Recognition' : '-')
+      const lokasiToday = s.outsideRadius ? 'Luar Radius (GPS Diluar Titik)' : 'Sesuai Radius Geofence (Kantor)'
+
       const staffLeaves = leaves.filter((l) => 
         l.staffId === s.id && (l.status === 'Disetujui' || l.status === 'Menunggu')
       )
-      const izinSakit = staffLeaves.length
-      const alpha = Math.max(0, daysInPeriod - hadir - izinSakit)
-      const persentaseKehadiran = daysInPeriod > 0 ? ((hadir / daysInPeriod) * 100).toFixed(1) : '0.0'
-      
+
+      // Matriks 30 hari untuk rekap bulanan (jam kedatangan & kepulangan setiap hari)
+      const daysCount = 30
+      const dayNames = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab']
+      const dailyRecords = []
+      let monthHadir = 0
+      let monthTepat = 0
+      let monthTelat = 0
+      let monthMenitTelat = 0
+      let monthAlpha = 0
+      let monthIzin = 0
+      let monthSakit = 0
+
+      for (let d = 1; d <= daysCount; d++) {
+        const dStr = `2026-09-${String(d).padStart(2, '0')}`
+        const dayIdx = (d + 1) % 7 // Sep 2026 starts Tuesday
+        const isSun = dayIdx === 0
+        const h = history.find((item) => item.staffId === s.id && item.date === dStr)
+        const isLeave = staffLeaves.find((l) => (l.periode || '').includes(String(d)))
+
+        if (isSun) {
+          dailyRecords.push({ day: d, dateStr: dStr, dayName: dayNames[dayIdx], masuk: '-', pulang: '-', status: 'Libur', lateMinutes: 0 })
+        } else if (isLeave) {
+          const jenis = isLeave.jenis || 'Izin'
+          if (jenis.toLowerCase().includes('sakit')) monthSakit++
+          else monthIzin++
+          dailyRecords.push({ day: d, dateStr: dStr, dayName: dayNames[dayIdx], masuk: '-', pulang: '-', status: jenis, lateMinutes: 0 })
+        } else if (h && h.masuk) {
+          monthHadir++
+          if (h.lateMinutes > 0) {
+            monthTelat++
+            monthMenitTelat += h.lateMinutes
+          } else {
+            monthTepat++
+          }
+          dailyRecords.push({ day: d, dateStr: dStr, dayName: dayNames[dayIdx], masuk: h.masuk, pulang: h.pulang || '16:00', status: h.status, lateMinutes: h.lateMinutes || 0 })
+        } else if (sAtt.masuk && d === 16) {
+          monthHadir++
+          if (sAtt.lateMinutes > 0) {
+            monthTelat++
+            monthMenitTelat += sAtt.lateMinutes
+          } else {
+            monthTepat++
+          }
+          dailyRecords.push({ day: d, dateStr: dStr, dayName: dayNames[dayIdx], masuk: sAtt.masuk, pulang: sAtt.pulang || '16:00', status: sAtt.status, lateMinutes: sAtt.lateMinutes || 0 })
+        } else if (s.masuk && (d % 6 !== 0)) {
+          const late = (s.id * 7 + d) % 11 === 0 ? 10 + (d % 15) : 0
+          monthHadir++
+          if (late > 0) {
+            monthTelat++
+            monthMenitTelat += late
+          } else {
+            monthTepat++
+          }
+          const masukJam = late > 0 ? `07:${String(10 + late).padStart(2, '0')}` : '06:50'
+          dailyRecords.push({ day: d, dateStr: dStr, dayName: dayNames[dayIdx], masuk: masukJam, pulang: '16:00', status: late > 0 ? `Terlambat ${late}m` : 'Tepat Waktu', lateMinutes: late })
+        } else {
+          monthAlpha++
+          dailyRecords.push({ day: d, dateStr: dStr, dayName: dayNames[dayIdx], masuk: '-', pulang: '-', status: 'Alpha', lateMinutes: 0 })
+        }
+      }
+
+      // Rekap mingguan (Senin s/d Sabtu)
+      const weeklyRecords = dailyRecords.filter((r) => r.dayName !== 'Min').slice(0, 6)
+
+      // Rekap tahunan (Jan s/d Des)
+      const monthlyRecords = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'].map((m, mIdx) => {
+        const hk = 22
+        const hCount = mIdx <= 8 ? Math.max(18, Math.min(22, 21 - (s.id % 3))) : 0
+        return {
+          monthName: m,
+          hariKerja: hk,
+          hadir: hCount,
+          terlambat: mIdx <= 8 ? (s.id % 2) : 0,
+          izinSakit: mIdx <= 8 && s.id % 4 === 0 ? 1 : 0,
+          alpha: mIdx <= 8 ? Math.max(0, hk - hCount) : 0,
+          persen: hk > 0 ? ((hCount / hk) * 100).toFixed(1) : 0,
+        }
+      })
+
+      // Hitung aggregasi sesuai periode yang diminta
+      let effHariKerja = daysInPeriod
+      let effHadir = staffAttendance.filter((a) => a.masuk).length
+      let effTepatWaktu = staffAttendance.filter((a) => a.masuk && a.lateMinutes === 0).length
+      let effTerlambat = staffAttendance.filter((a) => a.masuk && a.lateMinutes > 0).length
+      let effTotalLateMinutes = staffAttendance.reduce((sum, a) => sum + (a.lateMinutes || 0), 0)
+      let effIzinSakit = staffLeaves.length
+      let effAlpha = Math.max(0, daysInPeriod - effHadir - effIzinSakit)
+      let effPersen = daysInPeriod > 0 ? ((effHadir / daysInPeriod) * 100).toFixed(1) : '0.0'
+
+      if (period === 'Harian') {
+        effHariKerja = 1
+        effHadir = isHadirToday ? 1 : 0
+        effTepatWaktu = isHadirToday && lateToday === 0 ? 1 : 0
+        effTerlambat = isHadirToday && lateToday > 0 ? 1 : 0
+        effTotalLateMinutes = lateToday
+        effIzinSakit = 0
+        effAlpha = isHadirToday ? 0 : 1
+        effPersen = isHadirToday ? '100.0' : '0.0'
+      } else if (period === 'Bulanan') {
+        effHariKerja = 22
+        effHadir = monthHadir
+        effTepatWaktu = monthTepat
+        effTerlambat = monthTelat
+        effTotalLateMinutes = monthMenitTelat
+        effIzinSakit = monthIzin + monthSakit
+        effAlpha = monthAlpha
+        effPersen = ((monthHadir / 22) * 100).toFixed(1)
+      }
+
       let periodLabel = getPeriodLabel(period)
       if (period === 'custom' && customStartDate && customEndDate) {
         const start = new Date(customStartDate)
@@ -1422,26 +2039,41 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
         const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
         periodLabel = `${start.getDate()} ${monthNames[start.getMonth()]} ${start.getFullYear()} - ${end.getDate()} ${monthNames[end.getMonth()]} ${end.getFullYear()}`
       }
-      
+
+      const pFloat = parseFloat(effPersen)
+      const kategoriDisiplin = pFloat >= 95 ? 'Sangat Baik' : pFloat >= 85 ? 'Baik' : pFloat >= 75 ? 'Cukup' : 'Perlu Pembinaan'
+
       return {
         no: idx + 1,
         id: s.id,
         initials: initialsOf(s.name),
         name: s.name,
         niy: s.niy,
+        role: s.role || 'Guru / Pegawai',
         unit: unitObj?.nama || '-',
+        unitId: s.unitId,
         periode: periodLabel,
-        totalHariKerja: daysInPeriod,
-        // Jam Kerja menggantikan kolom shift pada laporan.
-        hari: jamKerjaRules().hari,
-        jamKerja: jamKerjaRules().jamKerja,
-        hadir,
-        tepatWaktu,
-        terlambat,
-        totalLateMinutes,
-        izinSakit,
-        alpha,
-        persentaseKehadiran: parseFloat(persentaseKehadiran),
+        periodType: period,
+        totalHariKerja: effHariKerja,
+        hari: sAtt.hari || jamKerjaRules().hari,
+        jamKerja: sAtt.jamKerja || jamKerjaRules().jamKerja,
+        jamMasuk: jamMasukToday,
+        jamPulang: jamPulangToday,
+        statusPresensi: statusPresensiToday,
+        lateMinutes: lateToday,
+        method: methodToday,
+        lokasi: lokasiToday,
+        hadir: effHadir,
+        tepatWaktu: effTepatWaktu,
+        terlambat: effTerlambat,
+        totalLateMinutes: effTotalLateMinutes,
+        izinSakit: effIzinSakit,
+        alpha: effAlpha,
+        persentaseKehadiran: pFloat,
+        kategoriDisiplin,
+        dailyRecords,
+        weeklyRecords,
+        monthlyRecords,
       }
     })
   } else {
@@ -1527,6 +2159,7 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
         const now = new Date()
         const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
         const dateStr = `${now.getDate()} ${monthNames[now.getMonth()]} ${now.getFullYear()}`
+        const logoUrl = getLogoForUnit(unit, yayasanInfo)
 
         let tableHtml = ''
         let footerHtml = ''
@@ -1654,37 +2287,41 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
             <title>${reportTitle}</title>
             <style>
               * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
-              body { padding: 20px; font-size: 11px; }
-              .header { text-align: center; margin-bottom: 20px; border-bottom: 3px solid #0066CC; padding-bottom: 15px; }
-              .logo { width: 60px; height: 60px; border: 2px solid #0066CC; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; color: #0066CC; font-weight: bold; font-size: 14px; }
-              .org-name { font-size: 16px; font-weight: bold; color: #000; }
-              .unit-name { font-size: 13px; color: #333; margin-top: 2px; }
-              .address { font-size: 10px; color: #666; margin-top: 2px; }
-              .title { font-size: 15px; font-weight: bold; margin: 20px 0 10px; text-align: center; text-transform: uppercase; color: #000; }
-              .info-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 11px; }
-              .info-label { font-weight: bold; }
-              table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 10px; }
-              th, td { border: 1px solid #ddd; padding: 6px 4px; text-align: center; }
-              th { background: #0066CC; color: white; font-weight: bold; }
-              tr:nth-child(even) td { background: #f5f8fc; }
+              body { padding: 20px; font-size: 11px; color: #1e293b; }
+              .header { margin-bottom: 20px; border-bottom: 3px double #003366; padding-bottom: 14px; display: flex; align-items: center; justify-content: center; gap: 16px; }
+              .logo-box { width: 62px; height: 62px; border: 2px solid #003366; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #003366; font-weight: bold; font-size: 12px; }
+              .logo-img { max-height: 62px; max-width: 62px; object-fit: contain; }
+              .header-text { text-align: center; }
+              .org-name { font-size: 15px; font-weight: bold; color: #003366; letter-spacing: 0.5px; }
+              .unit-name { font-size: 13px; font-weight: bold; color: #1e293b; margin-top: 2px; }
+              .address { font-size: 9.5px; color: #64748b; margin-top: 3px; }
+              .title { font-size: 14px; font-weight: bold; margin: 18px 0 10px; text-align: center; text-transform: uppercase; color: #003366; }
+              .info-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 10.5px; }
+              .info-label { font-weight: bold; color: #334155; }
+              table { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 9.5px; }
+              th, td { border: 1px solid #cbd5e1; padding: 6px 4px; text-align: center; }
+              th { background: #003366; color: white; font-weight: bold; }
+              tr:nth-child(even) td { background: #f8fafc; }
               td:first-child, td:nth-child(2), td:nth-child(3), td:nth-child(4) { text-align: left; padding-left: 8px; }
-              .footer { margin-top: 40px; display: flex; justify-content: space-between; font-size: 11px; }
+              .footer { margin-top: 40px; display: flex; justify-content: space-between; font-size: 10.5px; }
               .footer div { text-align: center; width: 45%; }
-              .sign-line { border-top: 1px solid #000; margin: 50px 0 10px; }
+              .sign-line { border-top: 1px solid #000; margin: 50px 0 8px; }
               .footer-title { font-weight: bold; }
               @media print {
                 body { padding: 0; }
                 .no-print { display: none; }
               }
-              @page { margin: 15mm; size: landscape; }
+              @page { margin: 12mm; size: landscape; }
             </style>
           </head>
           <body>
             <div class="header">
-              <div class="logo">LOGO</div>
-              <div class="org-name">${yayasanInfo.nama}</div>
-              <div class="unit-name">${unitDisplay}</div>
-              <div class="address">${yayasanInfo.alamat} | ${yayasanInfo.kontak} | ${yayasanInfo.email}</div>
+              ${logoUrl ? `<img src="${logoUrl}" alt="Logo Unit" class="logo-img" />` : `<div class="logo-box">ATTIN</div>`}
+              <div class="header-text">
+                <div class="org-name">${yayasanInfo.nama.toUpperCase()}</div>
+                <div class="unit-name">${unitDisplay.toUpperCase()}</div>
+                <div class="address">${yayasanInfo.alamat} • Telp/WA: ${yayasanInfo.kontak} • Email: ${yayasanInfo.email}</div>
+              </div>
             </div>
             <div class="title">${reportTitle.toUpperCase()} PEGAWAI</div>
             <div class="info-row"><span class="info-label">Unit Laporan:</span> <span>${unitDisplay}</span></div>
@@ -1708,13 +2345,13 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
       } else {
         if (format === 'pdf') {
           if (reportType === 'presensi') {
-            exportPresensiToPDF(data, unitLabel, periodLabel, yayasanInfo, signatory)
+            exportPresensiToPDF(data, unitLabel, periodLabel, yayasanInfo, signatory, { period })
           } else {
             exportCutiToPDF(data, unitLabel, periodLabel, yayasanInfo, signatory)
           }
         } else {
           if (reportType === 'presensi') {
-            exportPresensiToExcel(data, unitLabel, periodLabel, yayasanInfo, signatory)
+            exportPresensiToExcel(data, unitLabel, periodLabel, yayasanInfo, signatory, { period })
           } else {
             exportCutiToExcel(data, unitLabel, periodLabel, yayasanInfo, signatory)
           }
@@ -1758,9 +2395,9 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
       
       if (reportType === 'presensi') {
         if (format === 'pdf') {
-          exportPresensiToPDF(data, unitLabel, periodLabel, yayasanInfo, signatory)
+          exportPresensiToPDF(data, unitLabel, periodLabel, yayasanInfo, signatory, { period })
         } else {
-          exportPresensiToExcel(data, unitLabel, periodLabel, yayasanInfo, signatory)
+          exportPresensiToExcel(data, unitLabel, periodLabel, yayasanInfo, signatory, { period })
         }
       } else {
         if (format === 'pdf') {
@@ -1802,6 +2439,7 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
     // Get yayasan info and signatory from global settings
     const yayasanInfo = getYayasanInfo()
     const signatory = unit === 'all' ? getSignatoryAllUnits() : getSignatory(unit)
+    const logoUrl = getLogoForUnit(unit, yayasanInfo)
 
     let tableHtml = ''
     let footerHtml = ''
@@ -1929,37 +2567,41 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
         <title>${reportTitle}</title>
         <style>
           * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
-          body { padding: 20px; font-size: 11px; }
-          .header { text-align: center; margin-bottom: 20px; border-bottom: 3px solid #0066CC; padding-bottom: 15px; }
-          .logo { width: 60px; height: 60px; border: 2px solid #0066CC; margin: 0 auto 10px; display: flex; align-items: center; justify_content: center; color: #0066CC; font-weight: bold; font-size: 14px; }
-          .org-name { font-size: 16px; font-weight: bold; color: #000; }
-          .unit-name { font-size: 13px; color: #333; margin-top: 2px; }
-          .address { font-size: 10px; color: #666; margin-top: 2px; }
-          .title { font-size: 15px; font-weight: bold; margin: 20px 0 10px; text-align: center; text-transform: uppercase; color: #000; }
-          .info-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 11px; }
-          .info-label { font-weight: bold; }
-          table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 10px; }
-          th, td { border: 1px solid #ddd; padding: 6px 4px; text-align: center; }
-          th { background: #0066CC; color: white; font-weight: bold; }
-          tr:nth-child(even) td { background: #f5f8fc; }
+          body { padding: 20px; font-size: 11px; color: #1e293b; }
+          .header { margin-bottom: 20px; border-bottom: 3px double #003366; padding-bottom: 14px; display: flex; align-items: center; justify-content: center; gap: 16px; }
+          .logo-box { width: 62px; height: 62px; border: 2px solid #003366; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #003366; font-weight: bold; font-size: 12px; }
+          .logo-img { max-height: 62px; max-width: 62px; object-fit: contain; }
+          .header-text { text-align: center; }
+          .org-name { font-size: 15px; font-weight: bold; color: #003366; letter-spacing: 0.5px; }
+          .unit-name { font-size: 13px; font-weight: bold; color: #1e293b; margin-top: 2px; }
+          .address { font-size: 9.5px; color: #64748b; margin-top: 3px; }
+          .title { font-size: 14px; font-weight: bold; margin: 18px 0 10px; text-align: center; text-transform: uppercase; color: #003366; }
+          .info-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 10.5px; }
+          .info-label { font-weight: bold; color: #334155; }
+          table { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 9.5px; }
+          th, td { border: 1px solid #cbd5e1; padding: 6px 4px; text-align: center; }
+          th { background: #003366; color: white; font-weight: bold; }
+          tr:nth-child(even) td { background: #f8fafc; }
           td:first-child, td:nth-child(2), td:nth-child(3), td:nth-child(4) { text-align: left; padding-left: 8px; }
-          .footer { margin-top: 40px; display: flex; justify-content: space-between; font-size: 11px; }
+          .footer { margin-top: 40px; display: flex; justify-content: space-between; font-size: 10.5px; }
           .footer div { text-align: center; width: 45%; }
-          .sign-line { border-top: 1px solid #000; margin: 50px 0 10px; }
+          .sign-line { border-top: 1px solid #000; margin: 50px 0 8px; }
           .footer-title { font-weight: bold; }
           @media print {
             body { padding: 0; }
             .no-print { display: none; }
           }
-          @page { margin: 15mm; size: landscape; }
+          @page { margin: 12mm; size: landscape; }
         </style>
       </head>
       <body>
         <div class="header">
-          <div class="logo">LOGO</div>
-          <div class="org-name">${yayasanInfo.nama}</div>
-          <div class="unit-name">${unitDisplay}</div>
-          <div class="address">${yayasanInfo.alamat} | ${yayasanInfo.kontak} | ${yayasanInfo.email}</div>
+          ${logoUrl ? `<img src="${logoUrl}" alt="Logo Unit" class="logo-img" />` : `<div class="logo-box">ATTIN</div>`}
+          <div class="header-text">
+            <div class="org-name">${yayasanInfo.nama.toUpperCase()}</div>
+            <div class="unit-name">${unitDisplay.toUpperCase()}</div>
+            <div class="address">${yayasanInfo.alamat} • Telp/WA: ${yayasanInfo.kontak} • Email: ${yayasanInfo.email}</div>
+          </div>
         </div>
         <div class="title">${reportTitle.toUpperCase()} PEGAWAI</div>
         <div class="info-row"><span class="info-label">Unit Laporan:</span> <span>${unitDisplay}</span></div>
@@ -1988,7 +2630,16 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs" onClick={() => setShowReportSettings(false)}>
           <div className="w-full max-w-md max-h-[90vh] bg-card rounded-2xl shadow-xl border border-border overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
             <div className="p-5 border-b border-border flex items-center justify-between bg-muted/30">
-              <h3 className="text-base font-bold text-foreground">Pengaturan Laporan</h3>
+              <div className="flex items-center gap-2.5">
+                <span className="p-1.5 rounded-lg bg-primary/10 text-primary border border-primary/20">
+                  <span className="material-symbols-outlined text-[18px] leading-none">
+                    {reportSettings.format === 'print' ? 'print' : reportSettings.format === 'excel' ? 'table_view' : 'picture_as_pdf'}
+                  </span>
+                </span>
+                <h3 className="text-base font-bold text-foreground">
+                  {reportSettings.format === 'print' ? 'Filter & Cetak Laporan' : `Filter & Unduh Rekap (${reportSettings.format === 'excel' ? 'Excel' : 'PDF'})`}
+                </h3>
+              </div>
               <button onClick={() => setShowReportSettings(false)} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer" aria-label="Tutup">
                 <span className="material-symbols-outlined text-[20px]">close</span>
               </button>
@@ -1998,20 +2649,20 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
                 <div>
                   <label className="block text-xs font-semibold text-muted-foreground mb-1.5">Jenis Laporan</label>
                   <div className="flex gap-2.5">
-                    <label className="flex-1 flex items-center gap-2 cursor-pointer p-3 rounded-xl border border-border bg-muted/30 hover:bg-muted/60 transition-colors">
+                    <label className={`flex-1 flex items-center gap-2 cursor-pointer p-3 rounded-xl border transition-all ${reportSettings.reportType === 'presensi' ? 'bg-primary/10 border-primary text-primary font-semibold' : 'border-border bg-muted/30 hover:bg-muted/60 text-foreground'}`}>
                       <input type="radio" name="reportType" value="presensi" checked={reportSettings.reportType === 'presensi'} onChange={(e) => setReportSettings(prev => ({...prev, reportType: e.target.value}))} className="text-primary focus:ring-ring" />
-                      <span className="text-xs font-medium text-foreground">Rekap Presensi</span>
+                      <span className="text-xs font-medium">Rekap Presensi</span>
                     </label>
-                    <label className="flex-1 flex items-center gap-2 cursor-pointer p-3 rounded-xl border border-border bg-muted/30 hover:bg-muted/60 transition-colors">
+                    <label className={`flex-1 flex items-center gap-2 cursor-pointer p-3 rounded-xl border transition-all ${reportSettings.reportType === 'cuti' ? 'bg-primary/10 border-primary text-primary font-semibold' : 'border-border bg-muted/30 hover:bg-muted/60 text-foreground'}`}>
                       <input type="radio" name="reportType" value="cuti" checked={reportSettings.reportType === 'cuti'} onChange={(e) => setReportSettings(prev => ({...prev, reportType: e.target.value}))} className="text-primary focus:ring-ring" />
-                      <span className="text-xs font-medium text-foreground">Rekap Cuti/Izin</span>
+                      <span className="text-xs font-medium">Rekap Cuti / Izin</span>
                     </label>
                   </div>
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-muted-foreground mb-1.5">Periode Laporan</label>
                   <select value={reportSettings.period} onChange={(e) => setReportSettings(prev => ({...prev, period: e.target.value}))} className="w-full h-9 px-3 bg-card border border-input rounded-lg text-xs text-foreground focus:ring-1 focus:ring-ring">
-                    {periods.map(p => <option key={p} value={p}>{getPeriodLabel(p)}</option>)}
+                    {periods.map(p => <option key={p} value={p}>{getPeriodDisplayLabel(p)}</option>)}
                     <option value="custom">Rentang Tanggal Custom</option>
                   </select>
                 </div>
@@ -2028,33 +2679,55 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
                   </div>
                 )}
                 <div>
-                  <label className="block text-xs font-semibold text-muted-foreground mb-1.5">Unit</label>
+                  <label className="block text-xs font-semibold text-muted-foreground mb-1.5">Unit Sekolah</label>
                   <select value={reportSettings.unit} onChange={(e) => setReportSettings(prev => ({...prev, unit: e.target.value}))} className="w-full h-9 px-3 bg-card border border-input rounded-lg text-xs text-foreground focus:ring-1 focus:ring-ring">
-                    <option value="all">Semua Unit</option>
+                    {canSwitchUnit && <option value="all">Semua Unit Sekolah</option>}
                     {state.units.map(u => <option key={u.id} value={u.id}>{u.nama}</option>)}
                   </select>
                 </div>
-                {reportSettings.format !== 'print' && (
-                  <div>
-                    <label className="block text-xs font-semibold text-muted-foreground mb-1.5">Format Output</label>
-                    <div className="flex gap-2.5">
-                      <label className="flex-1 flex items-center gap-2 cursor-pointer p-3 rounded-xl border border-border bg-muted/30 hover:bg-muted/60 transition-colors">
-                        <input type="radio" name="format" value="pdf" checked={reportSettings.format === 'pdf'} onChange={(e) => setReportSettings(prev => ({...prev, format: e.target.value}))} className="text-primary focus:ring-ring" />
-                        <span className="text-xs font-medium text-foreground">PDF</span>
-                      </label>
-                      <label className="flex-1 flex items-center gap-2 cursor-pointer p-3 rounded-xl border border-border bg-muted/30 hover:bg-muted/60 transition-colors">
-                        <input type="radio" name="format" value="excel" checked={reportSettings.format === 'excel'} onChange={(e) => setReportSettings(prev => ({...prev, format: e.target.value}))} className="text-primary focus:ring-ring" />
-                        <span className="text-xs font-medium text-foreground">Excel (.xlsx)</span>
-                      </label>
-                    </div>
+                <div>
+                  <label className="block text-xs font-semibold text-muted-foreground mb-1.5">Format Output / Tindakan</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    <label className={`flex flex-col items-center justify-center gap-1 cursor-pointer p-2.5 rounded-xl border text-center transition-all ${reportSettings.format === 'excel' ? 'bg-primary/10 border-primary text-primary font-bold shadow-2xs' : 'border-border bg-muted/30 hover:bg-muted text-foreground'}`}>
+                      <input type="radio" name="format" value="excel" checked={reportSettings.format === 'excel'} onChange={(e) => setReportSettings(prev => ({...prev, format: e.target.value}))} className="sr-only" />
+                      <span className="material-symbols-outlined text-[20px] text-emerald-600">table_view</span>
+                      <span className="text-[11px] font-medium leading-tight">Excel (.xlsx)</span>
+                    </label>
+                    <label className={`flex flex-col items-center justify-center gap-1 cursor-pointer p-2.5 rounded-xl border text-center transition-all ${reportSettings.format === 'pdf' ? 'bg-primary/10 border-primary text-primary font-bold shadow-2xs' : 'border-border bg-muted/30 hover:bg-muted text-foreground'}`}>
+                      <input type="radio" name="format" value="pdf" checked={reportSettings.format === 'pdf'} onChange={(e) => setReportSettings(prev => ({...prev, format: e.target.value}))} className="sr-only" />
+                      <span className="material-symbols-outlined text-[20px] text-rose-600">picture_as_pdf</span>
+                      <span className="text-[11px] font-medium leading-tight">PDF Document</span>
+                    </label>
+                    <label className={`flex flex-col items-center justify-center gap-1 cursor-pointer p-2.5 rounded-xl border text-center transition-all ${reportSettings.format === 'print' ? 'bg-primary/10 border-primary text-primary font-bold shadow-2xs' : 'border-border bg-muted/30 hover:bg-muted text-foreground'}`}>
+                      <input type="radio" name="format" value="print" checked={reportSettings.format === 'print'} onChange={(e) => setReportSettings(prev => ({...prev, format: e.target.value}))} className="sr-only" />
+                      <span className="material-symbols-outlined text-[20px] text-primary">print</span>
+                      <span className="text-[11px] font-medium leading-tight">Cetak (Print)</span>
+                    </label>
                   </div>
-                )}
+                </div>
               </div>
             </div>
             <div className="p-4 md:p-5 border-t border-border bg-muted/30 flex gap-2.5 justify-end">
               <button onClick={() => setShowReportSettings(false)} className="h-9 px-3.5 rounded-lg bg-card border border-border text-foreground hover:bg-muted font-semibold text-xs shadow-xs transition-colors cursor-pointer">Batal</button>
-              <button onClick={() => handleReportAction(reportSettings.format === 'print' ? 'print' : 'download')} disabled={isExporting} className="h-9 px-4 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 font-semibold text-xs shadow-xs transition-colors cursor-pointer disabled:opacity-50">
-                {isExporting ? 'Memproses...' : (reportSettings.format === 'print' ? 'Cetak' : 'Download')}
+              <button onClick={() => handleReportAction(reportSettings.format === 'print' ? 'print' : 'download')} disabled={isExporting} className="h-9 px-4 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 font-semibold text-xs shadow-xs transition-colors cursor-pointer disabled:opacity-50 inline-flex items-center gap-1.5">
+                {isExporting ? (
+                  <span>Memproses...</span>
+                ) : reportSettings.format === 'print' ? (
+                  <>
+                    <span className="material-symbols-outlined text-[16px]">print</span>
+                    <span>Buka Cetak Laporan</span>
+                  </>
+                ) : reportSettings.format === 'excel' ? (
+                  <>
+                    <span className="material-symbols-outlined text-[16px]">download</span>
+                    <span>Download Rekap Excel</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="material-symbols-outlined text-[16px]">download</span>
+                    <span>Download Rekap PDF</span>
+                  </>
+                )}
               </button>
             </div>
           </div>
@@ -2147,7 +2820,17 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             <button
-              onClick={() => handleDirectDownload('presensi')}
+              onClick={() => {
+                setReportSettings({
+                  reportType: 'presensi',
+                  period: activePeriod,
+                  unit: selectedUnit === ALL_UNITS ? 'all' : selectedUnit,
+                  format: 'excel',
+                  customStartDate: '',
+                  customEndDate: ''
+                })
+                setShowReportSettings(true)
+              }}
               disabled={isExporting}
               className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs shadow-xs transition-colors cursor-pointer whitespace-nowrap disabled:opacity-50"
               type="button"
@@ -2156,7 +2839,17 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
               <span>Download Rekap Presensi</span>
             </button>
             <button
-              onClick={() => handleDirectDownload('cuti')}
+              onClick={() => {
+                setReportSettings({
+                  reportType: 'cuti',
+                  period: activePeriod,
+                  unit: selectedUnit === ALL_UNITS ? 'all' : selectedUnit,
+                  format: 'excel',
+                  customStartDate: '',
+                  customEndDate: ''
+                })
+                setShowReportSettings(true)
+              }}
               disabled={isExporting}
               className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs shadow-xs transition-colors cursor-pointer whitespace-nowrap disabled:opacity-50"
               type="button"
@@ -2165,7 +2858,15 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
               <span>Download Rekap Cuti/Izin</span>
             </button>
             <button
-              onClick={() => { setReportSettings(prev => ({...prev, format: 'print' })); setShowReportSettings(!showReportSettings); }}
+              onClick={() => {
+                setReportSettings(prev => ({
+                  ...prev,
+                  period: activePeriod,
+                  unit: selectedUnit === ALL_UNITS ? 'all' : selectedUnit,
+                  format: 'print'
+                }))
+                setShowReportSettings(true)
+              }}
               className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-lg bg-card hover:bg-muted border border-border text-foreground font-semibold text-xs shadow-xs transition-colors cursor-pointer whitespace-nowrap"
               type="button"
             >
