@@ -148,7 +148,7 @@ function RankingKehadiranPage() {
     const exportData = sortedStaff.map((item, index) => ({
       'No': index + 1,
       'Nama Pegawai': item.name,
-      'NIY/NIP': item.niy || '-',
+      'NIY': item.niy || '-',
       'Unit': item.unit,
       'Jabatan': item.role,
       'Jumlah Hadir': item.hadirCount || 0,
@@ -171,7 +171,7 @@ function RankingKehadiranPage() {
       [] // empty row
     ]
     // Headers
-    const headers = [['No', 'Nama Pegawai', 'NIY/NIP', 'Unit', 'Jabatan', 'Jumlah Hadir', 'Tepat Waktu', 'Terlambat', 'Persentase Kehadiran', 'Rata-rata Keterlambatan']]
+    const headers = [['No', 'Nama Pegawai', 'NIY', 'Unit', 'Jabatan', 'Jumlah Hadir', 'Tepat Waktu', 'Terlambat', 'Persentase Kehadiran', 'Rata-rata Keterlambatan']]
     // Data rows
     const dataRows = exportData.map(row => Object.values(row))
     
@@ -185,7 +185,7 @@ function RankingKehadiranPage() {
     const colWidths = [
       { wch: 5 },   // No
       { wch: 30 },  // Nama Pegawai
-      { wch: 15 },  // NIY/NIP
+      { wch: 15 },  // NIY
       { wch: 25 },  // Unit
       { wch: 25 },  // Jabatan
       { wch: 12 },  // Jumlah Hadir
@@ -237,33 +237,33 @@ function RankingKehadiranPage() {
         {/* PAGE HEADER */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
-              <span className="p-2 rounded-lg bg-blue-50 text-blue-600 border border-blue-100">
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight flex items-center gap-2.5">
+              <span className="p-2 rounded-lg bg-primary/10 text-primary border border-primary/20">
                 <span className="material-symbols-outlined text-[20px] leading-none">military_tech</span>
               </span>
               Ranking Kehadiran
             </h1>
-            <p className="text-xs sm:text-sm text-slate-500 mt-1">
+            <p className="text-xs sm:text-sm text-muted-foreground mt-1">
               Pemantauan reputasi dan analisis kepatuhan ketepatan waktu pegawai antar-unit sekolah secara berkala.
             </p>
           </div>
-          <div className="flex items-center self-start md:self-auto bg-slate-50 border border-slate-200/80 px-3 py-1.5 rounded-lg shadow-xs">
-            <div className="flex items-center gap-1.5 text-xs text-slate-500">
-              <span className="material-symbols-outlined text-[15px] text-slate-400">home</span>
+          <div className="flex items-center self-start md:self-auto bg-muted/40 border border-border px-3 py-1.5 rounded-lg shadow-xs">
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <span className="material-symbols-outlined text-[15px] text-muted-foreground">home</span>
               <span>Home</span>
-              <span className="text-slate-300">/</span>
+              <span className="text-muted-foreground/40">/</span>
               <span>Presensi</span>
-              <span className="text-slate-300">/</span>
-              <span className="text-blue-600 font-semibold">Ranking Kehadiran</span>
+              <span className="text-muted-foreground/40">/</span>
+              <span className="text-primary font-semibold">Ranking Kehadiran</span>
             </div>
           </div>
         </div>
 
         {/* CONTROL TOOLBAR */}
-        <div className="bg-white rounded-xl border border-slate-200/80 p-3.5 shadow-xs flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+        <div className="bg-card rounded-xl border border-border p-3.5 shadow-xs flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-2.5">
             {/* Segmented Toggle Periode */}
-            <div className="inline-flex p-1 bg-slate-100 rounded-lg gap-1 border border-slate-200/60">
+            <div className="inline-flex p-1 bg-muted rounded-lg gap-1 border border-border/60">
               {tabs.map((tab) => (
                 <button
                   key={tab}
@@ -273,8 +273,8 @@ function RankingKehadiranPage() {
                   }}
                   className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${
                     activeTab === tab
-                      ? 'bg-white text-slate-900 shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900'
+                      ? 'bg-card text-foreground shadow-xs'
+                      : 'text-muted-foreground hover:text-foreground'
                   }`}
                   type="button"
                 >
@@ -291,15 +291,15 @@ function RankingKehadiranPage() {
                     setOpenUnitMenu(!openUnitMenu)
                     setOpenDateMenu(false)
                   }}
-                  className="h-9 px-3 flex items-center gap-2 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 font-medium text-xs transition-colors shadow-xs cursor-pointer"
+                  className="h-9 px-3 flex items-center gap-2 rounded-lg bg-card hover:bg-muted border border-border text-foreground font-medium text-xs transition-colors shadow-xs cursor-pointer"
                   type="button"
                 >
-                  <span className="material-symbols-outlined text-slate-400 text-[16px]">apartment</span>
+                  <span className="material-symbols-outlined text-muted-foreground text-[16px]">apartment</span>
                   <span>{selectedUnitOption.label}</span>
-                  <span className="material-symbols-outlined text-slate-400 text-[16px]">{openUnitMenu ? 'expand_less' : 'expand_more'}</span>
+                  <span className="material-symbols-outlined text-muted-foreground text-[16px]">{openUnitMenu ? 'expand_less' : 'expand_more'}</span>
                 </button>
                 {openUnitMenu && (
-                  <div className="absolute left-0 top-full mt-1.5 w-64 bg-white rounded-xl shadow-lg border border-slate-200 py-1.5 z-20 animate-fade-in">
+                  <div className="absolute left-0 top-full mt-1.5 w-64 bg-popover text-popover-foreground rounded-xl shadow-lg border border-border py-1.5 z-20 animate-fade-in">
                     {unitOptions.map((opt) => (
                       <button
                         key={opt.id}
@@ -307,10 +307,10 @@ function RankingKehadiranPage() {
                           dispatch({ type: 'SET_SELECTED_UNIT', payload: opt.id })
                           setOpenUnitMenu(false)
                         }}
-                        className={`w-full px-3.5 py-2 text-left text-xs transition-colors ${
+                        className={`w-full px-3.5 py-2 text-left text-xs transition-colors cursor-pointer ${
                           selectedUnit === opt.id
-                            ? 'bg-blue-50 text-blue-700 font-semibold'
-                            : 'text-slate-700 hover:bg-slate-50'
+                            ? 'bg-primary/10 text-primary font-semibold'
+                            : 'text-foreground hover:bg-muted'
                         }`}
                         type="button"
                       >
@@ -329,17 +329,17 @@ function RankingKehadiranPage() {
                   setOpenDateMenu(!openDateMenu)
                   setOpenUnitMenu(false)
                 }}
-                className="h-9 px-3 flex items-center gap-2 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 font-medium text-xs transition-colors shadow-xs cursor-pointer"
+                className="h-9 px-3 flex items-center gap-2 rounded-lg bg-card hover:bg-muted border border-border text-foreground font-medium text-xs transition-colors shadow-xs cursor-pointer"
                 type="button"
               >
-                <span className="material-symbols-outlined text-slate-400 text-[16px]">calendar_today</span>
+                <span className="material-symbols-outlined text-muted-foreground text-[16px]">calendar_today</span>
                 <span>{formatDateRange(dateRange)}</span>
-                <span className="material-symbols-outlined text-slate-400 text-[16px]">{openDateMenu ? 'expand_less' : 'expand_more'}</span>
+                <span className="material-symbols-outlined text-muted-foreground text-[16px]">{openDateMenu ? 'expand_less' : 'expand_more'}</span>
               </button>
               {openDateMenu && (
-                <div className="absolute left-0 sm:right-0 sm:left-auto top-full mt-1.5 w-64 bg-white rounded-xl shadow-lg border border-slate-200 p-3 z-20 animate-fade-in space-y-3">
+                <div className="absolute left-0 sm:right-0 sm:left-auto top-full mt-1.5 w-64 bg-popover text-popover-foreground rounded-xl shadow-lg border border-border p-3 z-20 animate-fade-in space-y-3">
                   <div>
-                    <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Preset Cepat</div>
+                    <div className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5">Preset Cepat</div>
                     <div className="grid grid-cols-2 gap-1">
                       {['Harian', 'Mingguan', 'Bulanan', 'Tahunan'].map((preset) => (
                         <button
@@ -349,10 +349,10 @@ function RankingKehadiranPage() {
                             setSelectedDateRange(null)
                             setOpenDateMenu(false)
                           }}
-                          className={`px-2.5 py-1.5 text-left text-xs rounded-lg transition-colors ${
+                          className={`px-2.5 py-1.5 text-left text-xs rounded-lg transition-colors cursor-pointer ${
                             activeTab === preset && !selectedDateRange
-                              ? 'bg-blue-50 text-blue-700 font-semibold'
-                              : 'text-slate-700 hover:bg-slate-50'
+                              ? 'bg-primary/10 text-primary font-semibold'
+                              : 'text-foreground hover:bg-muted'
                           }`}
                           type="button"
                         >
@@ -361,30 +361,30 @@ function RankingKehadiranPage() {
                       ))}
                     </div>
                   </div>
-                  <div className="border-t border-slate-100 pt-2">
-                    <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Rentang Kustom</div>
+                  <div className="border-t border-border pt-2">
+                    <div className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-2">Rentang Kustom</div>
                     <div className="space-y-2">
                       <div>
-                        <label className="block text-[11px] font-medium text-slate-500 mb-1">Tanggal Mulai</label>
+                        <label className="block text-[11px] font-medium text-muted-foreground mb-1">Tanggal Mulai</label>
                         <input
                           type="date"
                           value={dateRange.start}
                           onChange={(e) => setSelectedDateRange({ ...dateRange, start: e.target.value })}
-                          className="w-full h-8 px-2.5 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-800 focus:bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20"
+                          className="w-full h-8 px-2.5 rounded-lg bg-card border border-input text-xs text-foreground focus:ring-1 focus:ring-ring"
                         />
                       </div>
                       <div>
-                        <label className="block text-[11px] font-medium text-slate-500 mb-1">Tanggal Akhir</label>
+                        <label className="block text-[11px] font-medium text-muted-foreground mb-1">Tanggal Akhir</label>
                         <input
                           type="date"
                           value={dateRange.end}
                           onChange={(e) => setSelectedDateRange({ ...dateRange, end: e.target.value })}
-                          className="w-full h-8 px-2.5 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-800 focus:bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20"
+                          className="w-full h-8 px-2.5 rounded-lg bg-card border border-input text-xs text-foreground focus:ring-1 focus:ring-ring"
                         />
                       </div>
                       <button
                         onClick={() => setOpenDateMenu(false)}
-                        className="w-full h-8 flex items-center justify-center gap-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-xs transition-colors cursor-pointer"
+                        className="w-full h-8 flex items-center justify-center gap-1.5 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs shadow-xs transition-colors cursor-pointer"
                         type="button"
                       >
                         <span className="material-symbols-outlined text-[15px]">check</span>
@@ -404,12 +404,12 @@ function RankingKehadiranPage() {
               disabled={!ranking.hasAttendanceData || ranking.totalStaffWithAttendance === 0}
               className={`h-9 px-3.5 flex items-center justify-center gap-2 rounded-lg border transition-all text-xs font-semibold shadow-xs ${
                 !ranking.hasAttendanceData || ranking.totalStaffWithAttendance === 0
-                  ? 'bg-slate-50 border-slate-200 text-slate-400 cursor-not-allowed opacity-60'
-                  : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700 cursor-pointer'
+                  ? 'bg-muted/40 border-border text-muted-foreground/50 cursor-not-allowed opacity-60'
+                  : 'bg-card hover:bg-muted border-border text-foreground cursor-pointer'
               }`}
               type="button"
             >
-              <span className="material-symbols-outlined text-slate-500 text-[16px]">file_download</span>
+              <span className="material-symbols-outlined text-muted-foreground text-[16px]">file_download</span>
               <span>Export Peringkat (.XLSX)</span>
             </button>
           </div>
@@ -418,62 +418,62 @@ function RankingKehadiranPage() {
         {/* MAIN LEADERBOARD SECTION */}
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           {/* LEFT COLUMN: TOP 10 ON-TIME */}
-          <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden flex flex-col">
-            <div className="p-4 sm:p-5 border-b border-slate-100 bg-slate-50/50 flex flex-col gap-1">
+          <div className="bg-card rounded-xl border border-border shadow-xs overflow-hidden flex flex-col">
+            <div className="p-4 sm:p-5 border-b border-border bg-muted/30 flex flex-col gap-1">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
                     <span className="material-symbols-outlined text-[18px]">military_tech</span>
                   </div>
-                  <h2 className="text-sm sm:text-base font-bold text-slate-900">Top 10 Paling Tepat Waktu</h2>
+                  <h2 className="text-sm sm:text-base font-bold text-foreground">Top 10 Paling Tepat Waktu</h2>
                 </div>
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
                   {ranking.topOnTime.length > 0 && ranking.topOnTime[0].terlambatCount === 0 ? '100% On-Time' : `${ranking.topOnTime.length} Pegawai`}
                 </span>
               </div>
-              <p className="text-xs text-slate-500 mt-0.5">
+              <p className="text-xs text-muted-foreground mt-0.5">
                 Pegawai dengan tingkat kedisiplinan dan kepatuhan jam masuk tertinggi
               </p>
             </div>
-            <div className="flex flex-col divide-y divide-slate-100">
+            <div className="flex flex-col divide-y divide-border/60">
               {ranking.topOnTime.length === 0 ? (
-                <div className="p-8 text-center text-xs text-slate-400">
+                <div className="p-8 text-center text-xs text-muted-foreground">
                   {emptyMessage}
                 </div>
               ) : (
                 ranking.topOnTime.map((item) => (
                   <div
                     key={item.rank}
-                    className="p-3.5 sm:px-4 flex items-center justify-between gap-3 hover:bg-slate-50/60 transition-colors"
+                    className="p-3.5 sm:px-4 flex items-center justify-between gap-3 hover:bg-muted/40 transition-colors"
                   >
                     <div className="flex items-center gap-3 min-w-0">
                       <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 font-bold text-xs ${
                         item.rank === 1
-                          ? 'bg-amber-50 border border-amber-200 text-amber-700'
-                          : 'bg-slate-100 border border-slate-200 text-slate-600'
+                          ? 'bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-400'
+                          : 'bg-muted border border-border text-muted-foreground'
                       }`}>
                         {item.rank === 1 ? (
-                          <span className="material-symbols-outlined text-[16px] text-amber-600">workspace_premium</span>
+                          <span className="material-symbols-outlined text-[16px] text-amber-600 dark:text-amber-400">workspace_premium</span>
                         ) : (
                           item.rank
                         )}
                       </div>
-                      <div className="w-9 h-9 rounded-lg bg-blue-50 border border-blue-100 text-blue-700 font-bold text-xs flex items-center justify-center flex-shrink-0">
+                      <div className="w-9 h-9 rounded-lg bg-primary/10 border border-primary/20 text-primary font-bold text-xs flex items-center justify-center flex-shrink-0">
                         {item.initials}
                       </div>
                       <div className="flex flex-col min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-xs font-bold text-slate-900 truncate">{item.name}</span>
-                          <span className="px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200 text-slate-600 font-medium text-[10px]">
+                          <span className="text-xs font-bold text-foreground truncate">{item.name}</span>
+                          <span className="px-2 py-0.5 rounded-md bg-secondary border border-border/50 text-secondary-foreground font-medium text-[10px]">
                             {item.unit}
                           </span>
                         </div>
-                        <span className="text-[11px] text-slate-500 truncate mt-0.5">{item.role}</span>
+                        <span className="text-[11px] text-muted-foreground truncate mt-0.5">{item.role}</span>
                       </div>
                     </div>
                     <div className="flex flex-col items-end flex-shrink-0 text-right">
-                      <span className="text-xs font-bold text-emerald-600">{item.late}</span>
-                      <span className="text-[11px] text-slate-400">
+                      <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">{item.late}</span>
+                      <span className="text-[11px] text-muted-foreground">
                         {item.stat}{item.statSub ? ` (${item.statSub})` : ''}
                       </span>
                     </div>
@@ -484,63 +484,63 @@ function RankingKehadiranPage() {
           </div>
 
           {/* RIGHT COLUMN: TOP 10 FREQUENTLY LATE */}
-          <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden flex flex-col">
-            <div className="p-4 sm:p-5 border-b border-slate-100 bg-slate-50/50 flex flex-col gap-1">
+          <div className="bg-card rounded-xl border border-border shadow-xs overflow-hidden flex flex-col">
+            <div className="p-4 sm:p-5 border-b border-border bg-muted/30 flex flex-col gap-1">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600">
+                  <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-600 dark:text-amber-400">
                     <span className="material-symbols-outlined text-[18px]">hourglass_empty</span>
                   </div>
-                  <h2 className="text-sm sm:text-base font-bold text-slate-900">Top 10 Paling Sering Terlambat</h2>
+                  <h2 className="text-sm sm:text-base font-bold text-foreground">Top 10 Paling Sering Terlambat</h2>
                 </div>
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200/80">
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-destructive/10 text-destructive border border-destructive/20">
                   Perlu Evaluasi
                 </span>
               </div>
-              <p className="text-xs text-slate-500 mt-0.5">
+              <p className="text-xs text-muted-foreground mt-0.5">
                 Daftar pegawai dengan akumulasi keterlambatan tertinggi periode ini
               </p>
             </div>
-            <div className="flex flex-col divide-y divide-slate-100">
+            <div className="flex flex-col divide-y divide-border/60">
               {ranking.topLate.length === 0 ? (
-                <div className="p-8 text-center text-xs text-slate-400">
+                <div className="p-8 text-center text-xs text-muted-foreground">
                   {emptyMessage}
                 </div>
               ) : (
                 ranking.topLate.map((item) => (
                   <div
                     key={item.rank}
-                    className="p-3.5 sm:px-4 flex items-center justify-between gap-3 hover:bg-slate-50/60 transition-colors"
+                    className="p-3.5 sm:px-4 flex items-center justify-between gap-3 hover:bg-muted/40 transition-colors"
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-7 h-7 rounded-lg bg-slate-100 border border-slate-200 text-slate-600 font-bold text-xs flex items-center justify-center flex-shrink-0">
+                      <div className="w-7 h-7 rounded-lg bg-muted border border-border text-muted-foreground font-bold text-xs flex items-center justify-center flex-shrink-0">
                         {item.rank}
                       </div>
-                      <div className="w-9 h-9 rounded-lg bg-blue-50 border border-blue-100 text-blue-700 font-bold text-xs flex items-center justify-center flex-shrink-0">
+                      <div className="w-9 h-9 rounded-lg bg-primary/10 border border-primary/20 text-primary font-bold text-xs flex items-center justify-center flex-shrink-0">
                         {item.initials}
                       </div>
                       <div className="flex flex-col min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-xs font-bold text-slate-900 truncate">{item.name}</span>
-                          <span className="px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200 text-slate-600 font-medium text-[10px]">
+                          <span className="text-xs font-bold text-foreground truncate">{item.name}</span>
+                          <span className="px-2 py-0.5 rounded-md bg-secondary border border-border/50 text-secondary-foreground font-medium text-[10px]">
                             {item.unit}
                           </span>
                         </div>
-                        <span className="text-[11px] text-slate-500 truncate mt-0.5">{item.role}</span>
+                        <span className="text-[11px] text-muted-foreground truncate mt-0.5">{item.role}</span>
                       </div>
                     </div>
                     <div className="flex items-center gap-2.5 flex-shrink-0">
                       <div className="flex flex-col items-end text-right">
-                        <span className={`text-xs font-bold ${item.rank === 1 ? 'text-rose-600' : 'text-slate-800'}`}>
+                        <span className={`text-xs font-bold ${item.rank === 1 ? 'text-destructive' : 'text-foreground'}`}>
                           {item.count}
                         </span>
-                        <span className="text-[11px] text-slate-400">{item.avg}</span>
+                        <span className="text-[11px] text-muted-foreground">{item.avg}</span>
                       </div>
                       <button
                         className={`h-7 px-2.5 rounded-lg text-xs font-semibold cursor-pointer transition-colors border ${
                           item.rank === 1
-                            ? 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100'
-                            : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                            ? 'bg-destructive/10 text-destructive border-destructive/20 hover:bg-destructive/20'
+                            : 'bg-secondary text-secondary-foreground border-border/50 hover:bg-secondary/80'
                         }`}
                         type="button"
                       >

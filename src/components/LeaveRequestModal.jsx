@@ -160,37 +160,37 @@ function LeaveRequestModal({ isOpen, onClose, onSave, staffList, units }) {
   }
 
   const getInputClass = (field) => {
-    const base = 'w-full h-9 text-xs text-slate-800 bg-white border rounded-lg px-3 focus:outline-none transition-all'
+    const base = 'w-full h-9 text-xs text-foreground bg-card border rounded-lg px-3 focus:outline-none transition-all'
     const error = errors[field] && touched[field]
-    return `${base} ${error ? 'border-rose-300 focus:border-rose-500 focus:ring-1 focus:ring-rose-500/20' : 'border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20'}`
+    return `${base} ${error ? 'border-destructive focus:border-destructive focus:ring-1 focus:ring-destructive/20' : 'border-input focus:border-ring focus:ring-1 focus:ring-ring/20'}`
   }
 
   const getTextareaClass = (field) => {
-    const base = 'w-full p-3 text-xs text-slate-800 bg-white border rounded-lg focus:outline-none transition-all resize-none leading-relaxed'
+    const base = 'w-full p-3 text-xs text-foreground bg-card border rounded-lg focus:outline-none transition-all resize-none leading-relaxed'
     const error = errors[field] && touched[field]
-    return `${base} ${error ? 'border-rose-300 focus:border-rose-500 focus:ring-1 focus:ring-rose-500/20' : 'border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20'}`
+    return `${base} ${error ? 'border-destructive focus:border-destructive focus:ring-1 focus:ring-destructive/20' : 'border-input focus:border-ring focus:ring-1 focus:ring-ring/20'}`
   }
 
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs" onClick={onClose}>
       <div
-        className="relative w-full max-w-xl bg-white rounded-2xl shadow-2xl border border-slate-200/80 overflow-hidden flex flex-col max-h-[90vh]"
+        className="relative w-full max-w-xl bg-card rounded-2xl shadow-xl border border-border overflow-hidden flex flex-col max-h-[90vh]"
         onClick={e => e.stopPropagation()}
       >
-        <div className="px-6 py-4 border-b border-slate-100 flex items-start justify-between bg-slate-50/50">
+        <div className="px-6 py-4 border-b border-border flex items-start justify-between bg-muted/30">
           <div>
-            <h2 className="text-base font-bold text-slate-900 tracking-tight">
+            <h2 className="text-base font-bold text-foreground tracking-tight">
               Ajukan Izin Staf (Manual TU)
             </h2>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs text-muted-foreground mt-0.5">
               Isi formulir pengajuan izin/cuti untuk pegawai.
             </p>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
             title="Tutup dialog"
             type="button"
           >
@@ -200,8 +200,8 @@ function LeaveRequestModal({ isOpen, onClose, onSave, staffList, units }) {
 
         <div className="p-6 overflow-y-auto space-y-4">
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-slate-700" htmlFor="selectPegawai">
-              Nama Pegawai <span className="text-rose-500">*</span>
+            <label className="text-xs font-semibold text-foreground/90" htmlFor="selectPegawai">
+              Nama Pegawai <span className="text-destructive">*</span>
             </label>
             <div className="relative">
               <select
@@ -218,20 +218,20 @@ function LeaveRequestModal({ isOpen, onClose, onSave, staffList, units }) {
                   </option>
                 ))}
               </select>
-              <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px] pointer-events-none">expand_more</span>
+              <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-[18px] pointer-events-none">expand_more</span>
             </div>
             {errors.selectedStaffId && touched.selectedStaffId && (
-              <span className="text-xs text-rose-500 mt-0.5">{errors.selectedStaffId}</span>
+              <span className="text-xs text-destructive mt-0.5">{errors.selectedStaffId}</span>
             )}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-slate-700" htmlFor="inputNIY">
-                NIY/NIP
+              <label className="text-xs font-semibold text-foreground/90" htmlFor="inputNIY">
+                NIY
               </label>
               <input
-                className="w-full h-9 px-3 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-600 focus:outline-none"
+                className="w-full h-9 px-3 rounded-lg bg-muted/50 border border-input text-xs text-muted-foreground focus:outline-none"
                 id="inputNIY"
                 type="text"
                 value={selectedStaff?.niy || ''}
@@ -239,11 +239,11 @@ function LeaveRequestModal({ isOpen, onClose, onSave, staffList, units }) {
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-slate-700" htmlFor="inputUnit">
+              <label className="text-xs font-semibold text-foreground/90" htmlFor="inputUnit">
                 Unit
               </label>
               <input
-                className="w-full h-9 px-3 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-600 focus:outline-none"
+                className="w-full h-9 px-3 rounded-lg bg-muted/50 border border-input text-xs text-muted-foreground focus:outline-none"
                 id="inputUnit"
                 type="text"
                 value={selectedUnit?.nama || ''}
@@ -253,8 +253,8 @@ function LeaveRequestModal({ isOpen, onClose, onSave, staffList, units }) {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-slate-700" htmlFor="selectJenis">
-              Jenis Izin/Cuti <span className="text-rose-500">*</span>
+            <label className="text-xs font-semibold text-foreground/90" htmlFor="selectJenis">
+              Jenis Izin/Cuti <span className="text-destructive">*</span>
             </label>
             <div className="relative">
               <select
@@ -269,18 +269,18 @@ function LeaveRequestModal({ isOpen, onClose, onSave, staffList, units }) {
                   <option key={opt} value={opt}>{opt}</option>
                 ))}
               </select>
-              <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px] pointer-events-none">expand_more</span>
+              <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-[18px] pointer-events-none">expand_more</span>
             </div>
-            {errors.jenis && touched.jenis && <span className="text-xs text-rose-500 mt-0.5">{errors.jenis}</span>}
+            {errors.jenis && touched.jenis && <span className="text-xs text-destructive mt-0.5">{errors.jenis}</span>}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-slate-700" htmlFor="inputTanggalMulai">
-                Tanggal Mulai <span className="text-rose-500">*</span>
+              <label className="text-xs font-semibold text-foreground/90" htmlFor="inputTanggalMulai">
+                Tanggal Mulai <span className="text-destructive">*</span>
               </label>
               <div className="relative flex items-center">
-                <span className="material-symbols-outlined absolute left-2.5 text-slate-400 text-[18px] pointer-events-none">calendar_month</span>
+                <span className="material-symbols-outlined absolute left-2.5 text-muted-foreground text-[18px] pointer-events-none">calendar_month</span>
                 <input
                   className={getInputClass('tanggalMulai') + ' pl-9'}
                   id="inputTanggalMulai"
@@ -292,15 +292,15 @@ function LeaveRequestModal({ isOpen, onClose, onSave, staffList, units }) {
                 />
               </div>
               {errors.tanggalMulai && touched.tanggalMulai && (
-                <span className="text-xs text-rose-500 mt-0.5">{errors.tanggalMulai}</span>
+                <span className="text-xs text-destructive mt-0.5">{errors.tanggalMulai}</span>
               )}
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-slate-700" htmlFor="inputTanggalSelesai">
-                Tanggal Selesai <span className="text-rose-500">*</span>
+              <label className="text-xs font-semibold text-foreground/90" htmlFor="inputTanggalSelesai">
+                Tanggal Selesai <span className="text-destructive">*</span>
               </label>
               <div className="relative flex items-center">
-                <span className="material-symbols-outlined absolute left-2.5 text-slate-400 text-[18px] pointer-events-none">calendar_month</span>
+                <span className="material-symbols-outlined absolute left-2.5 text-muted-foreground text-[18px] pointer-events-none">calendar_month</span>
                 <input
                   className={getInputClass('tanggalSelesai') + ' pl-9'}
                   id="inputTanggalSelesai"
@@ -312,28 +312,28 @@ function LeaveRequestModal({ isOpen, onClose, onSave, staffList, units }) {
                 />
               </div>
               {errors.tanggalSelesai && touched.tanggalSelesai && (
-                <span className="text-xs text-rose-500 mt-0.5">{errors.tanggalSelesai}</span>
+                <span className="text-xs text-destructive mt-0.5">{errors.tanggalSelesai}</span>
               )}
             </div>
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-slate-700" htmlFor="inputDurasi">
+            <label className="text-xs font-semibold text-foreground/90" htmlFor="inputDurasi">
               Durasi (Otomatis)
             </label>
             <input
-              className="w-full h-9 px-3 rounded-lg bg-slate-50 border border-slate-200 text-xs font-semibold text-blue-700 focus:outline-none"
+              className="w-full h-9 px-3 rounded-lg bg-muted/50 border border-input text-xs font-semibold text-primary focus:outline-none"
               id="inputDurasi"
               type="text"
               value={durasi}
               readOnly
             />
-            <span className="text-[11px] text-slate-400">Dihitung otomatis dari tanggal mulai dan selesai</span>
+            <span className="text-[11px] text-muted-foreground">Dihitung otomatis dari tanggal mulai dan selesai</span>
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-slate-700" htmlFor="inputKeterangan">
-              Keterangan / Alasan <span className="text-rose-500">*</span>
+            <label className="text-xs font-semibold text-foreground/90" htmlFor="inputKeterangan">
+              Keterangan / Alasan <span className="text-destructive">*</span>
             </label>
             <textarea
               className={getTextareaClass('keterangan')}
@@ -345,13 +345,13 @@ function LeaveRequestModal({ isOpen, onClose, onSave, staffList, units }) {
               onBlur={e => handleBlur('keterangan', e.target.value)}
             />
             {errors.keterangan && touched.keterangan && (
-              <span className="text-xs text-rose-500 mt-0.5">{errors.keterangan}</span>
+              <span className="text-xs text-destructive mt-0.5">{errors.keterangan}</span>
             )}
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-slate-700">
-              Upload Lampiran {aturanLampiran(jenis) === 'wajib' && <span className="text-rose-500">*</span>}
+            <label className="text-xs font-semibold text-foreground/90">
+              Upload Lampiran {aturanLampiran(jenis) === 'wajib' && <span className="text-destructive">*</span>}
             </label>
             <div className="relative">
               <input
@@ -363,26 +363,26 @@ function LeaveRequestModal({ isOpen, onClose, onSave, staffList, units }) {
               />
               <div
                 className={`w-full py-4 px-4 border-2 border-dashed rounded-xl flex flex-col items-center justify-center gap-1.5 cursor-pointer transition-all ${
-                  lampiran ? 'border-emerald-400 bg-emerald-50/50' : 'border-slate-200 hover:border-blue-400 hover:bg-slate-50/80 bg-slate-50/40'
+                  lampiran ? 'border-emerald-500/50 bg-emerald-500/10' : 'border-border hover:border-primary hover:bg-muted/40 bg-muted/20'
                 }`}
               >
                 {lampiran ? (
                   <>
-                    <span className="material-symbols-outlined text-emerald-600 text-[26px]">check_circle</span>
-                    <span className="text-xs font-medium text-emerald-800">{lampiran.name}</span>
-                    <span className="text-[11px] text-slate-400">
+                    <span className="material-symbols-outlined text-emerald-600 dark:text-emerald-400 text-[26px]">check_circle</span>
+                    <span className="text-xs font-medium text-emerald-800 dark:text-emerald-300">{lampiran.name}</span>
+                    <span className="text-[11px] text-muted-foreground">
                       {(lampiran.size / 1024).toFixed(1)} KB
                     </span>
                   </>
                 ) : (
                   <>
-                    <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 mb-0.5">
+                    <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center text-muted-foreground mb-0.5">
                       <span className="material-symbols-outlined text-[20px]">cloud_upload</span>
                     </div>
-                    <span className="text-xs font-medium text-slate-700">
+                    <span className="text-xs font-medium text-foreground">
                       Pilih berkas atau seret ke sini
                     </span>
-                    <span className="text-[11px] text-slate-400">
+                    <span className="text-[11px] text-muted-foreground">
                       PDF, DOC, DOCX, JPG, PNG (Maks 5MB)
                     </span>
                   </>
@@ -390,22 +390,22 @@ function LeaveRequestModal({ isOpen, onClose, onSave, staffList, units }) {
               </div>
             </div>
             {errors.lampiran && touched.lampiran && (
-              <span className="text-xs text-rose-500 mt-0.5">{errors.lampiran}</span>
+              <span className="text-xs text-destructive mt-0.5">{errors.lampiran}</span>
             )}
           </div>
         </div>
 
-        <div className="px-6 py-3.5 bg-slate-50/80 border-t border-slate-100 flex items-center justify-end gap-2.5">
+        <div className="px-6 py-3.5 bg-muted/30 border-t border-border flex items-center justify-end gap-2.5">
           <button
             onClick={onClose}
-            className="h-9 px-4 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs transition-colors cursor-pointer"
+            className="h-9 px-4 rounded-lg border border-border bg-card hover:bg-muted text-foreground font-semibold text-xs transition-colors cursor-pointer"
             type="button"
           >
             Batal
           </button>
           <button
             onClick={handleSubmit}
-            className="h-9 px-4 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+            className="h-9 px-4 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
             type="button"
           >
             <span className="material-symbols-outlined text-[16px]">save</span>

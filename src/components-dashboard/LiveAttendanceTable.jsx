@@ -21,16 +21,16 @@ function LiveAttendanceTable() {
   const totalHadir = selectRecentActivity(state).length
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 sm:p-5 border-b border-slate-100">
+    <div className="bg-card rounded-xl border border-border shadow-xs overflow-hidden">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 sm:p-5 border-b border-border">
         <div className="flex flex-col">
-          <h2 className="text-base font-bold text-slate-900 font-headline-sm">Presensi Terbaru</h2>
-          <span className="text-xs text-slate-500 mt-0.5">Catatan presensi masuk hari ini secara real-time</span>
+          <h2 className="text-base font-bold text-foreground font-headline-sm">Presensi Terbaru</h2>
+          <span className="text-xs text-muted-foreground mt-0.5">Catatan presensi masuk hari ini secara real-time</span>
         </div>
-        <span className="self-start sm:self-auto inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200/60 font-semibold text-xs">
+        <span className="self-start sm:self-auto inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary border border-primary/20 font-semibold text-xs">
           <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-500 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-600"></span>
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
           </span>
           Live Feed
         </span>
@@ -39,7 +39,7 @@ function LiveAttendanceTable() {
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="bg-slate-50/80 border-b border-slate-200/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+            <tr className="bg-muted border-b border-border text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
               <th className="py-3 px-4">Pegawai</th>
               <th className="py-3 px-4">Unit</th>
               <th className="py-3 px-4">Jam Masuk</th>
@@ -47,31 +47,31 @@ function LiveAttendanceTable() {
               <th className="py-3 px-4">Status</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100 text-xs text-slate-700">
+          <tbody className="divide-y divide-border text-xs text-foreground">
             {rows.map((s) => {
               const hasil = calculateAttendanceStatus(new Date(), s.masuk)
               const terlambat = hasil.terlambat
               return (
-                <tr key={s.id} className="hover:bg-slate-50/70 transition-colors">
+                <tr key={s.id} className="hover:bg-muted/40 transition-colors">
                   <td className="py-3 px-4">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-lg bg-blue-50 border border-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
+                      <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 text-primary flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
                         {initialsOf(s.name)}
                       </div>
                       <div className="flex flex-col min-w-0">
-                        <span className="font-semibold text-slate-900 truncate leading-snug">{s.name}</span>
-                        <span className="text-[11px] text-slate-400 font-mono">NIY: {s.niy}</span>
+                        <span className="font-semibold text-foreground truncate leading-snug">{s.name}</span>
+                        <span className="text-[11px] text-muted-foreground font-mono">NIY: {s.niy}</span>
                       </div>
                     </div>
                   </td>
                   <td className="py-3 px-4">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-slate-100 border border-slate-200/60 text-slate-700">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-secondary border border-border text-secondary-foreground">
                       {selectUnitName(state, s.unitId)}
                     </span>
                   </td>
-                  <td className="py-3 px-4 font-mono font-medium text-slate-800 whitespace-nowrap">{s.masuk}</td>
+                  <td className="py-3 px-4 font-mono font-medium text-foreground whitespace-nowrap">{s.masuk}</td>
                   <td className="py-3 px-4">
-                    <div className="flex items-center gap-1.5 text-slate-600 whitespace-nowrap">
+                    <div className="flex items-center gap-1.5 text-muted-foreground whitespace-nowrap">
                       <span className="material-symbols-outlined text-[15px]">{s.method === 'QR Code' ? 'qr_code_2' : 'face'}</span>
                       <span>{s.method || '-'}</span>
                     </div>
@@ -79,8 +79,8 @@ function LiveAttendanceTable() {
                   <td className="py-3 px-4">
                     <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold border ${
                       terlambat
-                        ? 'bg-amber-50 text-amber-700 border-amber-200/60'
-                        : 'bg-emerald-50 text-emerald-700 border-emerald-200/60'
+                        ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
+                        : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
                     }`}>
                       <span className={`w-1.5 h-1.5 rounded-full ${terlambat ? 'bg-amber-500' : 'bg-emerald-500'}`}></span>
                       {terlambat ? `Terlambat ${hasil.lateMinutes}m` : 'Tepat Waktu'}
@@ -93,9 +93,9 @@ function LiveAttendanceTable() {
         </table>
       </div>
 
-      <div className="p-3.5 bg-slate-50/70 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+      <div className="p-3.5 bg-muted/30 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
         <span>
-          Menampilkan <strong className="font-semibold text-slate-800">{rows.length}</strong> dari <strong className="font-semibold text-slate-800">{totalHadir}</strong> presensi masuk hari ini
+          Menampilkan <strong className="font-semibold text-foreground">{rows.length}</strong> dari <strong className="font-semibold text-foreground">{totalHadir}</strong> presensi masuk hari ini
         </span>
       </div>
     </div>

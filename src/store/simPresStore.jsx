@@ -583,7 +583,7 @@ export function simPresReducer(state, action) {
        *   - Id pegawai diambil dari SESI, bukan dari payload. Aksi yang mencoba
        *     mengedit pegawai lain diabaikan.
        *   - `ambilPerubahanProfil` membuang semua field di luar daftar yang
-       *     boleh diedit, sehingga NIY/NIP/jabatan/unit/status tidak bisa
+       *     boleh diedit, sehingga NIY/jabatan/unit/status tidak bisa
        *     berubah walau dikirimDiam-diam di payload.
        *   - Perubahan ditulis ke `state.staff` — data master yang sama dibaca
        *     Superadmin, jadi tidak ada salinan profil terpisah.
@@ -1610,7 +1610,7 @@ export function selectJabatanOptions(state) {
 }
 
 // Satu-satunya sumber filtering tabel Data Guru/Pegawai: unit, status, dan
-// pencarian (nama, NIY/NIP, jabatan, nama unit).
+// pencarian (nama, NIY, jabatan, nama unit).
 export function selectFilteredStaff(state, { unitId = ALL_UNITS, searchTerm = '', status = 'all' } = {}) {
   const q = String(searchTerm || '').trim().toLowerCase()
   const effUnit = resolveUnitFilter(state, unitId)
@@ -1622,7 +1622,6 @@ export function selectFilteredStaff(state, { unitId = ALL_UNITS, searchTerm = ''
     return (
       String(s.name || '').toLowerCase().includes(q) ||
       String(s.niy || '').toLowerCase().includes(q) ||
-      String(s.nip || '').toLowerCase().includes(q) ||
       String(s.role || '').toLowerCase().includes(q) ||
       String(unit ? unit.nama : '').toLowerCase().includes(q)
     )
@@ -1852,7 +1851,7 @@ export function selectStatusKepegawaianOptions(state) {
 /**
  * Satu-satunya sumber filtering halaman Cetak Kartu ID: pembatasan unit
  * (Superadmin = semua unit, role lain = unitnya sendiri) lalu pencarian
- * nama/NIY/NIP/jabatan dan filter status kepegawaian + status aktif.
+ * nama/NIY/jabatan dan filter status kepegawaian + status aktif.
  */
 export function selectFilteredCardStaff(state, {
   unitId = ALL_UNITS,
@@ -1874,7 +1873,6 @@ export function selectFilteredCardStaff(state, {
       String(s.name || '').toLowerCase().includes(q) ||
       String(s.gelar || '').toLowerCase().includes(q) ||
       String(s.niy || '').toLowerCase().includes(q) ||
-      String(s.nip || '').toLowerCase().includes(q) ||
       String(s.role || '').toLowerCase().includes(q) ||
       String(unit ? unit.nama : '').toLowerCase().includes(q)
     )

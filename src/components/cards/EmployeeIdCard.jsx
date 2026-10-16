@@ -15,10 +15,10 @@ import { getEmployeeGreeting } from '../../data/sapaanPegawai.js'
  *
  * Tata letak (tinggi kartu 53.98 mm):
  *   header  8.9 mm  navy: logo + nama yayasan (kiri), logo + unit (kanan)
- *   body   29.9 mm  foto + status | nama, jabatan, NIY/NIP, masa berlaku | QR 22 mm
+ *   body   29.9 mm  foto + status | nama, jabatan, NIY, masa berlaku | QR 22 mm
  *   footer 15.0 mm  barcode NIY 43 mm x 7.2 mm + nomor, masa berlaku & ID kartu
  *
- * Tidak ada data dummy: foto, nama, jabatan, NIY/NIP, unit, dan masa berlaku
+ * Tidak ada data dummy: foto, nama, jabatan, NIY, unit, dan masa berlaku
  * semuanya berasal dari data pegawai + tabel employee_card.
  */
 function CardFace({ row, settings, unit, className = '' }) {
@@ -126,12 +126,6 @@ function CardFace({ row, settings, unit, className = '' }) {
               <dt className="w-[3.2em] shrink-0 text-[length:var(--sp-niy)] font-semibold uppercase tracking-[0.04em] text-outline">NIY</dt>
               <dd className="truncate font-mono text-[length:var(--sp-niy)] font-medium text-on-surface">{staff.niy || '-'}</dd>
             </div>
-            {staff.nip ? (
-              <div className="flex gap-[0.3em]">
-                <dt className="w-[3.2em] shrink-0 text-[length:var(--sp-nip)] font-semibold uppercase tracking-[0.04em] text-outline">NIP</dt>
-                <dd className="truncate font-mono text-[length:var(--sp-nip)] text-on-surface">{staff.nip}</dd>
-              </div>
-            ) : null}
           </dl>
           <p className="mt-[0.3em] truncate text-[length:var(--sp-meta)] font-semibold text-amber-700">
             Berlaku s/d {formatDateID(card.expired_date)}

@@ -28,7 +28,7 @@ function buildActivities(state) {
         id: s.id,
         initials: initialsOf(s.name),
         name: s.name,
-        nip: s.niy,
+        niy: s.niy,
         unit: selectUnitName(state, s.unitId),
         unitColor: UNIT_COLOR_CYCLE[idx % UNIT_COLOR_CYCLE.length],
         unitTextColor: '',
@@ -60,16 +60,17 @@ function RecentActivity() {
     a.click()
     notify('Rekap CSV diunduh.')
   }
+
   return (
-    <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs flex flex-col overflow-hidden">
-      <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100">
+    <div className="bg-card rounded-xl border border-border shadow-xs flex flex-col overflow-hidden">
+      <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border">
         <div className="flex items-center gap-2.5">
           <span className="relative flex h-2.5 w-2.5">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
           </span>
-          <h2 className="text-base font-bold text-slate-900 font-headline-sm">Aktivitas Presensi Terbaru</h2>
-          <span className="text-[11px] font-semibold text-slate-500 bg-slate-100 border border-slate-200/60 px-2 py-0.5 rounded-full">
+          <h2 className="text-base font-bold text-foreground font-headline-sm">Aktivitas Presensi Terbaru</h2>
+          <span className="text-[11px] font-semibold text-muted-foreground bg-secondary border border-border px-2 py-0.5 rounded-full">
             Live Feed
           </span>
         </div>
@@ -79,14 +80,14 @@ function RecentActivity() {
             <select
               value={unit}
               onChange={(e) => setUnit(e.target.value)}
-              className="w-full h-8.5 pl-3 pr-8 bg-slate-50 hover:bg-slate-100/80 border border-slate-200 text-slate-800 text-xs font-medium rounded-lg appearance-none outline-none focus:border-blue-500 transition-colors cursor-pointer"
+              className="w-full h-8.5 pl-3 pr-8 bg-card hover:bg-accent/40 border border-input text-foreground text-xs font-medium rounded-lg appearance-none outline-none focus:ring-1 focus:ring-ring transition-colors cursor-pointer"
             >
               <option value="all">Semua Unit Sekolah</option>
               {state.units.map((u) => (
                 <option key={u.id} value={u.id}>{u.nama}</option>
               ))}
             </select>
-            <span className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[16px]">
+            <span className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none text-[16px]">
               expand_more
             </span>
           </div>
@@ -94,9 +95,9 @@ function RecentActivity() {
           <button
             onClick={exportCsv}
             type="button"
-            className="h-8.5 px-3 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+            className="h-8.5 px-3 rounded-lg bg-card hover:bg-accent border border-input text-foreground text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
           >
-            <span className="material-symbols-outlined text-[16px] text-slate-500">download</span>
+            <span className="material-symbols-outlined text-[16px] text-muted-foreground">download</span>
             <span>Export CSV</span>
           </button>
         </div>
@@ -104,7 +105,7 @@ function RecentActivity() {
 
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
-          <thead className="bg-slate-50/80 border-b border-slate-200/80 text-slate-500 text-[11px] font-bold tracking-wider uppercase">
+          <thead className="bg-muted border-b border-border text-muted-foreground text-[11px] font-bold tracking-wider uppercase">
             <tr>
               <th className="py-3 px-4" scope="col">Pegawai</th>
               <th className="py-3 px-4" scope="col">Unit</th>
@@ -114,37 +115,37 @@ function RecentActivity() {
               <th className="py-3 px-4 text-right" scope="col">Aksi</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100 text-xs text-slate-700">
+          <tbody className="divide-y divide-border text-xs text-foreground">
             {activities.length === 0 ? (
               <tr>
-                <td colSpan={6} className="py-8 text-center text-slate-400">
+                <td colSpan={6} className="py-8 text-center text-muted-foreground">
                   Belum ada aktivitas presensi hari ini
                 </td>
               </tr>
             ) : (
               activities.map((activity) => (
-                <tr key={activity.id} className="hover:bg-slate-50/70 transition-colors">
+                <tr key={activity.id} className="hover:bg-muted/40 transition-colors">
                   <td className="py-3 px-4">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-lg bg-blue-50 border border-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
+                      <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 text-primary flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
                         {activity.initials}
                       </div>
                       <div className="flex flex-col min-w-0">
-                        <span className="font-semibold text-slate-900 truncate leading-snug">{activity.name}</span>
-                        <span className="text-[11px] text-slate-400 font-mono">NIY: {activity.nip}</span>
+                        <span className="font-semibold text-foreground truncate leading-snug">{activity.name}</span>
+                        <span className="text-[11px] text-muted-foreground font-mono">NIY: {activity.niy}</span>
                       </div>
                     </div>
                   </td>
                   <td className="py-3 px-4">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-slate-100 border border-slate-200/60 text-slate-700">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-secondary border border-border text-secondary-foreground">
                       {activity.unit}
                     </span>
                   </td>
-                  <td className="py-3 px-4 font-mono font-medium text-slate-800">
+                  <td className="py-3 px-4 font-mono font-medium text-foreground">
                     {activity.time}
                   </td>
                   <td className="py-3 px-4">
-                    <div className="flex items-center gap-1.5 text-slate-600">
+                    <div className="flex items-center gap-1.5 text-muted-foreground">
                       <span className={`material-symbols-outlined text-[15px] ${activity.geofenceIcon}`}>pin_drop</span>
                       <span>{activity.geofence}</span>
                     </div>
@@ -152,8 +153,8 @@ function RecentActivity() {
                   <td className="py-3 px-4">
                     <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold border ${
                       activity.status === 'Tepat Waktu'
-                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60'
-                        : 'bg-amber-50 text-amber-700 border-amber-200/60'
+                        ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+                        : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
                     }`}>
                       <span className={`w-1.5 h-1.5 rounded-full ${
                         activity.status === 'Tepat Waktu' ? 'bg-emerald-500' : 'bg-amber-500'
@@ -164,7 +165,7 @@ function RecentActivity() {
                   <td className="py-3 px-4 text-right">
                     <Link
                       to="/presensi"
-                      className="font-semibold text-blue-600 hover:text-blue-700 hover:underline transition-colors"
+                      className="font-semibold text-primary hover:text-primary/80 hover:underline transition-colors"
                     >
                       Detail
                     </Link>
@@ -176,14 +177,14 @@ function RecentActivity() {
         </table>
       </div>
 
-      <div className="p-3.5 bg-slate-50/70 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-500">
+      <div className="p-3.5 bg-muted/30 border-t border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-muted-foreground">
         <div>
-          <span>Menampilkan <strong className="font-semibold text-slate-800">{activities.length}</strong> dari <strong className="font-semibold text-slate-800">{totalHadir}</strong> pegawai presensi hari ini</span>
+          <span>Menampilkan <strong className="font-semibold text-foreground">{activities.length}</strong> dari <strong className="font-semibold text-foreground">{totalHadir}</strong> pegawai presensi hari ini</span>
         </div>
         <div className="flex items-center gap-1 self-end sm:self-auto">
           <Link
             to="/presensi"
-            className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 font-medium transition-colors"
+            className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-card border border-input text-foreground hover:bg-accent font-medium transition-colors"
           >
             <span>Buka Monitoring Lengkap</span>
             <span className="material-symbols-outlined text-[14px]">arrow_forward</span>

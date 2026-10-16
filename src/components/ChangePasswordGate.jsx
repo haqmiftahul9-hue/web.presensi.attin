@@ -14,15 +14,13 @@ import { useNavigate } from 'react-router-dom'
 import Icon from './Icon.jsx'
 
 const INPUT_CLASS =
-  'w-full bg-transparent px-3.5 py-2.5 text-[16px] leading-6 text-on-surface placeholder:text-outline outline-none'
+  'w-full bg-transparent px-3.5 py-2.5 text-xs text-foreground placeholder:text-muted-foreground outline-none'
 const FIELD_WRAP =
-  'group relative rounded-xl border border-[color:var(--sp-line)] bg-white transition-all duration-200 ease-out ' +
-  '[--sp-line:#E2E8F1] [--sp-line-hover:#CBD5E4] [--sp-focus:#2563EB] [--sp-ring:rgba(37,99,235,0.12)] ' +
-  'hover:border-[color:var(--sp-line-hover)] focus-within:border-[color:var(--sp-focus)] ' +
-  'focus-within:ring-4 focus-within:ring-[color:var(--sp-ring)]'
-const FIELD_WRAP_ERROR = '[--sp-line:#F2C3CD] [--sp-line-hover:#EDA9B6] [--sp-focus:#E11D48]'
-const LABEL_CLASS = 'text-[11px] font-semibold uppercase tracking-[0.07em] text-on-surface-variant'
-const ERROR_CLASS = 'animate-sp-rise text-[11px] font-medium text-rose-600'
+  'group relative rounded-lg border border-input bg-card transition-all duration-200 ' +
+  'hover:border-border focus-within:border-ring focus-within:ring-1 focus-within:ring-ring'
+const FIELD_WRAP_ERROR = 'border-destructive focus-within:border-destructive focus-within:ring-destructive/30'
+const LABEL_CLASS = 'text-[11px] font-semibold text-foreground'
+const ERROR_CLASS = 'animate-sp-rise text-[11px] font-medium text-destructive'
 
 /**
  * Modal ganti kata sandi.
@@ -145,7 +143,7 @@ function ChangePasswordGate() {
     <div
       // Area di luar kartu = menutup modal (hanya yang memang boleh ditutup).
       onClick={tutup}
-      className="fixed inset-0 z-[100] flex items-end justify-center overflow-y-auto overscroll-contain bg-primary/60 px-3 pt-6 backdrop-blur-sm sm:items-center sm:px-5 sm:py-8"
+      className="fixed inset-0 z-[100] flex items-end justify-center overflow-y-auto overscroll-contain bg-black/60 px-3 pt-6 backdrop-blur-xs sm:items-center sm:px-5 sm:py-8"
       style={{ paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px))' }}
     >
       <div
@@ -154,17 +152,17 @@ function ChangePasswordGate() {
         aria-labelledby="ubah-sandi-judul"
         // Klik di dalam kartu tidak boleh menutup modal.
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-[430px] sm:max-w-[480px] max-h-[90dvh] overflow-y-auto overscroll-contain animate-sp-rise rounded-t-3xl sm:rounded-2xl bg-surface-container-lowest p-5 pb-6 shadow-[0_40px_80px_-32px_rgba(11,31,61,0.7)] sm:p-7"
+        className="w-full max-w-[430px] sm:max-w-[480px] max-h-[90dvh] overflow-y-auto overscroll-contain animate-sp-rise rounded-t-3xl sm:rounded-2xl bg-card border border-border p-5 pb-6 shadow-xl sm:p-7 text-card-foreground"
       >
         <div className="flex items-start gap-3">
-          <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-amber-50">
-            <Icon name="lock_reset" className="text-[22px] text-amber-600" />
+          <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-amber-500/10 border border-amber-500/20">
+            <Icon name="lock_reset" className="text-[22px] text-amber-600 dark:text-amber-400" />
           </div>
           <div className="min-w-0 flex-1">
-            <h2 id="ubah-sandi-judul" className="font-headline-sm text-headline-sm text-on-surface">
+            <h2 id="ubah-sandi-judul" className="text-base font-bold text-foreground">
               {dipaksa ? 'Ganti Kata Sandi Anda' : 'Ganti Kata Sandi'}
             </h2>
-            <p className="mt-1 font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+            <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
               {dipaksa
                 ? 'Demi keamanan, kata sandi bawaan hanya berlaku sekali. Buat kata sandi baru untuk melanjutkan.'
                 : 'Masukkan kata sandi lama lalu pilih kata sandi baru untuk akun ini.'}
@@ -175,30 +173,30 @@ function ChangePasswordGate() {
               type="button"
               onClick={tutup}
               aria-label="Tutup modal ganti kata sandi"
-              className="sp-press -mt-1 -mr-1 flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors"
+              className="sp-press -mt-1 -mr-1 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer"
             >
-              <Icon name="close" className="text-[20px]" />
+              <Icon name="close" className="text-[18px]" />
             </button>
           )}
         </div>
 
-        <div className="mt-4 rounded-xl bg-surface-container-low px-3.5 py-3">
+        <div className="mt-4 rounded-xl bg-muted/40 border border-border px-3.5 py-3">
           <div className="flex items-center justify-between gap-3">
-            <span className="font-label-sm text-label-sm text-on-surface-variant uppercase">Akun</span>
-            <span className="font-body-md-medium text-body-md-medium text-on-surface truncate">
+            <span className="text-[10.5px] uppercase font-bold text-muted-foreground tracking-wider">Akun</span>
+            <span className="text-xs font-semibold text-foreground truncate">
               {currentUser?.username || currentUser?.niy || currentUser?.email || '-'}
             </span>
           </div>
           <div className="mt-1.5 flex items-center justify-between gap-3">
-            <span className="font-label-sm text-label-sm text-on-surface-variant uppercase">Role &amp; Unit</span>
-            <span className="font-body-sm text-body-sm text-on-surface truncate">{currentRole} &middot; {unitLabel}</span>
+            <span className="text-[10.5px] uppercase font-bold text-muted-foreground tracking-wider">Role &amp; Unit</span>
+            <span className="text-xs font-semibold text-foreground truncate">{currentRole} &middot; {unitLabel}</span>
           </div>
         </div>
 
         {error ? (
           <div
             role="alert"
-            className="mt-4 flex animate-sp-rise items-start gap-2.5 rounded-xl border border-rose-200 bg-rose-50/80 px-3.5 py-2.5 font-body-sm text-body-sm leading-relaxed text-rose-700"
+            className="mt-4 flex animate-sp-rise items-start gap-2.5 rounded-xl border border-destructive/20 bg-destructive/10 px-3.5 py-2.5 text-xs leading-relaxed text-destructive"
           >
             <Icon name="error" className="mt-px text-[18px]" />
             <span>{error}</span>
@@ -208,7 +206,7 @@ function ChangePasswordGate() {
         {notice ? (
           <div
             role="status"
-            className="mt-4 flex animate-sp-rise items-start gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50/80 px-3.5 py-2.5 font-body-sm text-body-sm leading-relaxed text-emerald-700"
+            className="mt-4 flex animate-sp-rise items-start gap-2.5 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3.5 py-2.5 text-xs leading-relaxed text-emerald-600 dark:text-emerald-400"
           >
             <Icon name="check_circle" className="mt-px text-[18px]" />
             <span>{notice}</span>
@@ -221,7 +219,7 @@ function ChangePasswordGate() {
           <button
             type="button"
             onClick={tutup}
-            className="mt-5 w-full rounded-xl bg-primary px-4 py-3.5 font-body-md-medium text-body-md-medium text-on-primary transition-colors duration-200 active:scale-[0.99]"
+            className="mt-5 w-full h-10 rounded-lg bg-primary hover:bg-primary/90 px-4 text-xs font-semibold text-primary-foreground shadow-xs transition-colors cursor-pointer"
           >
             Selesai
           </button>
@@ -303,14 +301,14 @@ function ChangePasswordGate() {
               </div>
             </div>
 
-            <p className="font-label-sm text-label-sm text-on-surface-variant">
+            <p className="text-[11px] text-muted-foreground">
               Syarat: minimal {minLength} karakter dan berbeda dari kata sandi lama.
             </p>
 
             <div className="flex items-center gap-2.5 pt-1">
               <button
                 type="submit"
-                className="flex-1 rounded-xl bg-primary px-4 py-3.5 font-body-md-medium text-body-md-medium text-on-primary transition-colors duration-200 hover:bg-primary-container active:scale-[0.99]"
+                className="flex-1 h-10 rounded-lg bg-primary hover:bg-primary/90 px-4 text-xs font-semibold text-primary-foreground shadow-xs transition-colors cursor-pointer"
               >
                 Simpan Kata Sandi
               </button>
@@ -318,7 +316,7 @@ function ChangePasswordGate() {
                 <button
                   type="button"
                   onClick={handleLogout}
-                  className="rounded-xl border border-outline/30 px-4 py-3.5 font-body-md-medium text-body-md-medium text-on-surface-variant transition-colors duration-200 hover:bg-surface-container-low"
+                  className="h-10 rounded-lg border border-border bg-card hover:bg-muted px-4 text-xs font-semibold text-foreground transition-colors cursor-pointer shadow-xs"
                 >
                   Keluar
                 </button>
@@ -326,7 +324,7 @@ function ChangePasswordGate() {
                 <button
                   type="button"
                   onClick={tutup}
-                  className="rounded-xl border border-outline/30 px-4 py-3.5 font-body-md-medium text-body-md-medium text-on-surface-variant transition-colors duration-200 hover:bg-surface-container-low active:scale-[0.99]"
+                  className="h-10 rounded-lg border border-border bg-card hover:bg-muted px-4 text-xs font-semibold text-foreground transition-colors cursor-pointer shadow-xs"
                 >
                   Batal
                 </button>

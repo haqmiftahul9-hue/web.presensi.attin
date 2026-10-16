@@ -276,8 +276,8 @@ function CetakKartuIdPage() {
       />
 
       {toast && (
-        <div className="px-4 py-3 bg-white text-emerald-800 text-xs flex items-center gap-2 rounded-xl border border-emerald-200 shadow-lg shadow-emerald-500/10">
-          <span className="material-symbols-outlined text-emerald-600 text-[18px]">check_circle</span>
+        <div className="px-4 py-3 bg-card text-emerald-700 dark:text-emerald-400 text-xs flex items-center gap-2 rounded-xl border border-emerald-500/30 shadow-md">
+          <span className="material-symbols-outlined text-emerald-600 dark:text-emerald-400 text-[18px]">check_circle</span>
           <span className="font-semibold">{toast}</span>
         </div>
       )}
@@ -297,16 +297,16 @@ function CetakKartuIdPage() {
           ))}
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs flex flex-col items-center justify-center gap-2 py-14 px-6 text-center">
-          <div className="w-12 h-12 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-400 mb-1">
+        <div className="bg-card rounded-xl border border-border shadow-xs flex flex-col items-center justify-center gap-2 py-14 px-6 text-center">
+          <div className="w-12 h-12 rounded-xl bg-muted border border-border flex items-center justify-center text-muted-foreground mb-1">
             <span className="material-symbols-outlined text-[28px]">badge</span>
           </div>
-          <p className="text-sm font-bold text-slate-900">
+          <p className="text-sm font-bold text-foreground">
             {scopedTotal === 0
               ? 'Belum ada pegawai pada cakupan unit ini.'
               : 'Tidak ada kartu yang sesuai dengan filter pencarian.'}
           </p>
-          <p className="text-xs text-slate-500 max-w-md">
+          <p className="text-xs text-muted-foreground max-w-md">
             {scopedTotal === 0
               ? `Data pegawai unit ${allUnitLabel} belum tersedia. Tambahkan pegawai lewat menu Data Guru/Pegawai.`
               : 'Ubah kata kunci pencarian atau atur ulang filter status kepegawaian.'}
@@ -315,9 +315,9 @@ function CetakKartuIdPage() {
             <button
               type="button"
               onClick={handleResetFilters}
-              className="mt-3 h-9 px-4 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold inline-flex items-center gap-2 transition-colors shadow-xs cursor-pointer"
+              className="mt-3 h-9 px-4 rounded-lg bg-card border border-border hover:bg-muted text-foreground text-xs font-semibold inline-flex items-center gap-2 transition-colors shadow-xs cursor-pointer"
             >
-              <span className="material-symbols-outlined text-[16px] text-slate-400">restore</span>
+              <span className="material-symbols-outlined text-[16px] text-muted-foreground">restore</span>
               <span>Reset Filter</span>
             </button>
           )}
@@ -325,10 +325,10 @@ function CetakKartuIdPage() {
       )}
 
       {/* Paginasi + ringkasan pilihan */}
-      <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3 p-4 text-xs text-slate-500">
+      <div className="bg-card rounded-xl border border-border shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3 p-4 text-xs text-muted-foreground">
         <div>
-          Menampilkan <strong className="font-semibold text-slate-800">{firstShown}&ndash;{lastShown}</strong>{' '}
-          dari <strong className="font-semibold text-blue-600">{cardRows.length}</strong> kartu
+          Menampilkan <strong className="font-semibold text-foreground">{firstShown}&ndash;{lastShown}</strong>{' '}
+          dari <strong className="font-semibold text-primary">{cardRows.length}</strong> kartu
           ({scopedTotal} pegawai pada {allUnitLabel})
         </div>
         <div className="flex items-center gap-1">
@@ -336,14 +336,14 @@ function CetakKartuIdPage() {
             type="button"
             disabled={safePage === 1}
             onClick={() => setCurrentPage(safePage - 1)}
-            className="w-8 h-8 rounded-lg flex items-center justify-center bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+            className="w-8 h-8 rounded-lg flex items-center justify-center bg-card hover:bg-muted border border-border text-muted-foreground hover:text-foreground transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
             aria-label="Halaman sebelumnya"
           >
             <span className="material-symbols-outlined text-[16px]">chevron_left</span>
           </button>
           {pageWindow.map((page, index) =>
             page === 'gap' ? (
-              <span key={`gap-${index}`} className="w-8 h-8 flex items-center justify-center text-slate-400 text-xs">…</span>
+              <span key={`gap-${index}`} className="w-8 h-8 flex items-center justify-center text-muted-foreground text-xs">…</span>
             ) : (
               <button
                 key={page}
@@ -352,8 +352,8 @@ function CetakKartuIdPage() {
                 aria-current={safePage === page ? 'page' : undefined}
                 className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-semibold transition-colors cursor-pointer ${
                   safePage === page
-                    ? 'bg-blue-600 text-white shadow-xs'
-                    : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
+                    ? 'bg-primary text-primary-foreground shadow-xs'
+                    : 'bg-card border border-border text-foreground hover:bg-muted'
                 }`}
               >
                 {page}
@@ -364,7 +364,7 @@ function CetakKartuIdPage() {
             type="button"
             disabled={safePage === totalPages}
             onClick={() => setCurrentPage(safePage + 1)}
-            className="w-8 h-8 rounded-lg flex items-center justify-center bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+            className="w-8 h-8 rounded-lg flex items-center justify-center bg-card hover:bg-muted border border-border text-muted-foreground hover:text-foreground transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
             aria-label="Halaman berikutnya"
           >
             <span className="material-symbols-outlined text-[16px]">chevron_right</span>
@@ -373,23 +373,23 @@ function CetakKartuIdPage() {
       </div>
 
       {/* Petunjuk teknis cetak — sesuai layout CR80 yang dipilih */}
-      <div className="p-4 rounded-xl bg-slate-50/80 border border-slate-200/60 flex items-start gap-3">
-        <div className="w-8 h-8 rounded-lg bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center shrink-0 mt-0.5">
+      <div className="p-4 rounded-xl bg-muted/40 border border-border/60 flex items-start gap-3">
+        <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 text-primary flex items-center justify-center shrink-0 mt-0.5">
           <span className="material-symbols-outlined text-[18px]">info</span>
         </div>
         <div className="flex flex-col gap-0.5 min-w-0">
-          <span className="text-xs font-bold text-slate-800">Pedoman Percetakan Kartu ID:</span>
-          <p className="text-xs text-slate-600 leading-relaxed">
+          <span className="text-xs font-bold text-foreground">Pedoman Percetakan Kartu ID:</span>
+          <p className="text-xs text-muted-foreground leading-relaxed">
             Gunakan kertas PVC Card standar ID-1 (85.60 &times; 53.98 mm) untuk printer kartu direct-to-card. Untuk
             {' '}
             layout lembar A4, atur skala pencetakan ke
             {' '}
-            <span className="font-mono text-slate-800 font-semibold">100% (Actual Size)</span> dengan margin
+            <span className="font-mono text-foreground font-semibold">100% (Actual Size)</span> dengan margin
             {' '}
-            <span className="font-mono text-slate-800 font-semibold">0 mm</span> agar barcode dan QR Code dapat
+            <span className="font-mono text-foreground font-semibold">0 mm</span> agar barcode dan QR Code dapat
             dipindai oleh sensor kiosk presensi unit. Cetak dengan orientasi
             {' '}
-            <span className="font-mono text-slate-800 font-semibold">landscape</span> untuk kartu CR80.
+            <span className="font-mono text-foreground font-semibold">landscape</span> untuk kartu CR80.
           </p>
         </div>
       </div>

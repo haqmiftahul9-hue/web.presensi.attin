@@ -6,7 +6,7 @@
 // modul ini tidak punya tabel sendiri — semuanya menulis ke `state.staff`.
 //
 // PEMBATASAN WAJIB ADA DI LAPIS DATA, BUKAN CUMA DI TOMBOL
-// Field terkunci (NIY, NIP, jabatan, unit, status kepegawaian) hanya boleh
+// Field terkunci (NIY, jabatan, unit, status kepegawaian) hanya boleh
 // diubah Superadmin. Kalau batas itu hanya disembunyikan di form mobile, aksi
 // yang dikirim langsung ke store masih bisa mengubahnya. `ambilPerubahanProfil`
 // karena itu membuang field apa pun di luar daftar yang diizinkan, dan reducer

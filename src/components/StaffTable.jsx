@@ -1,7 +1,6 @@
 import { useState, useMemo, useEffect } from 'react'
 import {
   useSimPres, selectUnitName, addActivityLog, selectFilteredStaff, initialsOf,
-  selectUserAccountByStaffId,
 } from '../store/simPresStore.jsx'
 import DetailEmployeeModal from './DetailEmployeeModal.jsx'
 import EditEmployeeModal from './EditEmployeeModal.jsx'
@@ -35,15 +34,6 @@ const ROW_OPTIONS = [
   { value: 'all', label: 'Semua' },
 ]
 
-// Gelar diambil dari field dedicated; bila kosong, dari bagian setelah koma
-// terakhir pada nama (mis. "Erianto, S.Ag, M.Pd.I").
-function gelarOf(staff) {
-  if (staff.gelar) return staff.gelar
-  const parts = String(staff.name || '').split(',')
-  if (parts.length < 2) return ''
-  return parts.slice(1).join(',').trim()
-}
-
 function StaffTable({ unitFilter, searchTerm, statusFilter, currentPage, setCurrentPage, focusStaffId }) {
   const { state, dispatch } = useSimPres()
   const [rowsPerPage, setRowsPerPage] = useState('20')
@@ -69,25 +59,14 @@ function StaffTable({ unitFilter, searchTerm, statusFilter, currentPage, setCurr
       staff: s,
       no: (safePage - 1) * perPage + idx + 1,
       niy: s.niy,
-      nip: s.nip,
       initials: initialsOf(s.name).charAt(0),
       name: s.name,
-      gelar: gelarOf(s),
       extraRole: roleDisplayMap[s.role] || s.role,
       unit: selectUnitName(state, s.unitId),
       unitIcon: s.unitId === 'tk' ? 'child_care' : 'school',
       assignment: s.role,
       status: s.status,
       statusActive: s.status === 'Aktif',
-      // Info akun login: username (NIY), role kanonik, dan status akun. Dibaca
-      // dari tabel userAccounts, jadi kolom ini selalu sama dengan yang dipakai
-      // saat login — sumber diagnostik ketika ada pegawai yang gagal masuk.
-      akun: (() => {
-        const a = selectUserAccountByStaffId(state, s.id)
-        return a
-          ? { username: a.username, role: a.role, status: a.status, wajibGanti: Boolean(a.mustChangePassword) }
-          : null
-      })(),
       rowBg: idx % 2 === 0 ? 'bg-surface-container-lowest' : 'bg-surface-container-low',
       avatar: avatarClasses[idx % avatarClasses.length],
       isInactive: s.status !== 'Aktif',
@@ -188,9 +167,9 @@ function StaffTable({ unitFilter, searchTerm, statusFilter, currentPage, setCurr
   const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1)
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs flex flex-col overflow-hidden">
+    <div className="bg-card rounded-xl border border-border shadow-xs flex flex-col overflow-hidden">
       <div className="w-full sp-table-wrap is-sticky">
-        <table className="w-full table-fixed border-collapse text-left text-xs text-slate-800">
+        <table className="w-full table-fixed border-collapse text-left text-xs text-foreground">
           <colgroup>
             <col className="w-[4%] xl:w-[4%]" />
             <col className="w-[11%] xl:w-[10%]" />
@@ -201,9 +180,9 @@ function StaffTable({ unitFilter, searchTerm, statusFilter, currentPage, setCurr
             <col className="w-[20%] xl:w-[25%] 2xl:w-[26%]" />
           </colgroup>
           <thead>
-            <tr className="bg-slate-50/80 border-b border-slate-200/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+            <tr className="bg-muted border-b border-border text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
               <th className="h-10 px-3.5 text-center align-middle whitespace-nowrap" scope="col">#</th>
-              <th className="h-10 px-3.5 align-middle whitespace-nowrap" scope="col">NIY/NIP</th>
+              <th className="h-10 px-3.5 align-middle whitespace-nowrap" scope="col">NIY</th>
               <th className="h-10 px-3.5 align-middle whitespace-nowrap" scope="col">Nama Lengkap &amp; Gelar</th>
               <th className="h-10 px-3.5 align-middle whitespace-nowrap" scope="col">Unit Sekolah</th>
               <th className="h-10 px-3.5 align-middle whitespace-nowrap" scope="col">Jabatan / Penugasan</th>
@@ -211,72 +190,52 @@ function StaffTable({ unitFilter, searchTerm, statusFilter, currentPage, setCurr
               <th className="h-10 px-3.5 text-right align-middle whitespace-nowrap" scope="col">Aksi Manajemen</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-border">
             {paginatedStaff.map((row) => (
               <tr
                 key={row.key}
-                className={`${focusedId === row.key ? 'bg-amber-50/80 ring-1 ring-inset ring-amber-200' : 'hover:bg-slate-50/60'} transition-colors`}
+                className={`${focusedId === row.key ? 'bg-amber-500/10 ring-1 ring-inset ring-amber-500/20' : 'hover:bg-muted/40'} transition-colors`}
               >
-                <td className="h-14 px-3.5 text-center align-middle text-xs text-slate-400 font-mono tabular-nums">{row.no}</td>
+                <td className="h-14 px-3.5 text-center align-middle text-xs text-muted-foreground font-mono tabular-nums">{row.no}</td>
                 <td className="h-14 px-3.5 align-middle">
-                  <span className="block truncate font-mono text-xs font-semibold text-slate-800" title={`NIY ${row.niy}`}>{row.niy}</span>
-                  {row.nip ? (
-                    <span className="block truncate font-mono text-[10.5px] text-slate-400 mt-0.5" title={`NIP ${row.nip}`}>{row.nip}</span>
-                  ) : null}
+                  <span className="block truncate font-mono text-xs font-semibold text-foreground" title={`NIY ${row.niy}`}>{row.niy}</span>
                 </td>
                 <td className="h-14 px-3.5 align-middle">
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="w-8 h-8 rounded-lg bg-blue-50/80 border border-blue-100 text-blue-700 font-bold text-xs flex items-center justify-center flex-shrink-0">
+                    <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 text-primary font-bold text-xs flex items-center justify-center flex-shrink-0">
                       {row.initials}
                     </div>
                     <div className="flex flex-col min-w-0 leading-tight">
                       <span
-                        className={`block truncate text-xs font-semibold text-slate-900 ${row.isInactive ? 'opacity-60' : ''}`}
+                        className={`block truncate text-xs font-semibold text-foreground ${row.isInactive ? 'opacity-60' : ''}`}
                         title={row.name}
                       >
                         {row.name}
                       </span>
-                      <span className="block truncate text-[11px] text-slate-400 mt-0.5" title={row.gelar}>{row.gelar || '-'}</span>
-                      <span className="block truncate text-[11px] text-blue-600 font-medium mt-0.5" title={row.extraRole}>{row.extraRole}</span>
+                      <span className="block truncate text-[11px] text-primary font-medium mt-0.5" title={row.extraRole}>{row.extraRole}</span>
                     </div>
                   </div>
                 </td>
                 <td className="h-14 px-3.5 align-middle">
                   <div className="flex items-center gap-1.5 min-w-0">
-                    <span className="material-symbols-outlined text-blue-600 text-[16px] flex-shrink-0 leading-none">{row.unitIcon}</span>
-                    <span className="block truncate text-xs font-medium text-slate-800" title={row.unit}>{row.unit}</span>
+                    <span className="material-symbols-outlined text-primary text-[16px] flex-shrink-0 leading-none">{row.unitIcon}</span>
+                    <span className="block truncate text-xs font-medium text-foreground" title={row.unit}>{row.unit}</span>
                   </div>
-                  {/* Info akun login */}
-                  {row.akun ? (
-                    <span
-                      className="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-slate-100/80 border border-slate-200/60 text-[10.5px] font-mono text-slate-600"
-                      title={`Akun ${row.akun.username} • role ${row.akun.role}${row.akun.wajibGanti ? ' • wajib ganti sandi' : ''}`}
-                    >
-                      <span className="material-symbols-outlined text-[12px] leading-none text-slate-400">account_circle</span>
-                      {row.akun.username}
-                      {row.akun.wajibGanti && <span className="text-amber-600 font-semibold">• ganti sandi</span>}
-                    </span>
-                  ) : (
-                    <span className="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-rose-50 border border-rose-100 text-[10.5px] text-rose-600">
-                      <span className="material-symbols-outlined text-[12px] leading-none">person_off</span>
-                      Belum ada akun
-                    </span>
-                  )}
                 </td>
                 <td className="h-14 px-3.5 align-middle">
-                  <span className="block text-xs text-slate-700 leading-snug line-clamp-2 break-words" title={row.assignment}>
+                  <span className="block text-xs text-muted-foreground leading-snug line-clamp-2 break-words" title={row.assignment}>
                     {row.assignment}
                   </span>
                 </td>
                 <td className="h-14 px-3.5 text-center align-middle">
                   {row.statusActive ? (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60 whitespace-nowrap">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 whitespace-nowrap">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                       Aktif
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-600 border border-slate-200 whitespace-nowrap">
-                      <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-muted text-muted-foreground border border-border whitespace-nowrap">
+                      <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground"></span>
                       Nonaktif
                     </span>
                   )}
@@ -285,7 +244,7 @@ function StaffTable({ unitFilter, searchTerm, statusFilter, currentPage, setCurr
                   <div className="flex items-center justify-end gap-1.5">
                     <button
                       onClick={() => openModal('detail', row.staff)}
-                      className="h-7 shrink-0 whitespace-nowrap px-2 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium inline-flex items-center gap-1 transition-colors cursor-pointer"
+                      className="h-7 shrink-0 whitespace-nowrap px-2 rounded-md bg-card border border-border hover:bg-muted text-foreground text-xs font-medium inline-flex items-center gap-1 transition-colors cursor-pointer"
                       title="Detail Pegawai"
                       aria-label="Detail Pegawai"
                       type="button"
@@ -295,7 +254,7 @@ function StaffTable({ unitFilter, searchTerm, statusFilter, currentPage, setCurr
                     </button>
                     <button
                       onClick={() => openModal('edit', row.staff)}
-                      className="h-7 shrink-0 whitespace-nowrap px-2 rounded-md bg-blue-50 hover:bg-blue-100 border border-blue-100 text-blue-700 text-xs font-medium inline-flex items-center gap-1 transition-colors cursor-pointer"
+                      className="h-7 shrink-0 whitespace-nowrap px-2 rounded-md bg-primary/10 hover:bg-primary/20 border border-primary/20 text-primary text-xs font-medium inline-flex items-center gap-1 transition-colors cursor-pointer"
                       title="Edit Pegawai"
                       aria-label="Edit Pegawai"
                       type="button"
@@ -305,7 +264,7 @@ function StaffTable({ unitFilter, searchTerm, statusFilter, currentPage, setCurr
                     </button>
                     <button
                       onClick={() => openModal('reset', row.staff)}
-                      className="h-7 shrink-0 whitespace-nowrap px-2 rounded-md bg-amber-50 hover:bg-amber-100 border border-amber-100 text-amber-700 text-xs font-medium inline-flex items-center gap-1 transition-colors cursor-pointer"
+                      className="h-7 shrink-0 whitespace-nowrap px-2 rounded-md bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-xs font-medium inline-flex items-center gap-1 transition-colors cursor-pointer"
                       title="Reset Sandi Presensi"
                       aria-label="Reset Sandi Presensi"
                       type="button"
@@ -317,8 +276,8 @@ function StaffTable({ unitFilter, searchTerm, statusFilter, currentPage, setCurr
                       onClick={() => openModal('delete', row.staff)}
                       className={`h-7 shrink-0 whitespace-nowrap px-2 rounded-md text-xs font-medium inline-flex items-center gap-1 transition-colors cursor-pointer border ${
                         row.statusActive
-                          ? 'bg-rose-50 hover:bg-rose-100 border-rose-200/80 text-rose-700'
-                          : 'bg-emerald-50 hover:bg-emerald-100 border-emerald-200/80 text-emerald-700'
+                          ? 'bg-destructive/10 hover:bg-destructive/20 border-destructive/20 text-destructive'
+                          : 'bg-emerald-500/10 hover:bg-emerald-500/20 border-emerald-500/20 text-emerald-600 dark:text-emerald-400'
                       }`}
                       title={row.statusActive ? 'Nonaktifkan / Hapus Pegawai' : 'Aktifkan Kembali / Hapus Pegawai'}
                       aria-label={row.statusActive ? 'Nonaktifkan atau Hapus Pegawai' : 'Aktifkan atau Hapus Pegawai'}
@@ -333,7 +292,7 @@ function StaffTable({ unitFilter, searchTerm, statusFilter, currentPage, setCurr
             ))}
             {filteredStaff.length === 0 && (
               <tr>
-                <td colSpan="7" className="py-12 text-center text-slate-400 text-xs">
+                <td colSpan="7" className="py-12 text-center text-muted-foreground text-xs">
                   Tidak ada data pegawai yang sesuai dengan filter.
                 </td>
               </tr>
@@ -343,23 +302,23 @@ function StaffTable({ unitFilter, searchTerm, statusFilter, currentPage, setCurr
       </div>
 
       {toast && (
-        <div className="px-3.5 py-2 bg-emerald-50 text-emerald-800 border-t border-emerald-200 text-xs flex items-center gap-2">
-          <span className="material-symbols-outlined text-[16px] text-emerald-600">check_circle</span>
+        <div className="px-3.5 py-2 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-t border-emerald-500/20 text-xs flex items-center gap-2">
+          <span className="material-symbols-outlined text-[16px] text-emerald-500">check_circle</span>
           <span>{toast}</span>
         </div>
       )}
 
-      <div className="px-4 py-3 bg-white border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+      <div className="px-4 py-3 bg-card border-t border-border flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
         <div className="flex items-center gap-2 flex-wrap">
           <span>
-            Menampilkan <strong className="font-semibold text-slate-800">{firstShown}–{lastShown}</strong> dari{' '}
-            <strong className="font-semibold text-slate-800">{filteredStaff.length}</strong> pegawai
+            Menampilkan <strong className="font-semibold text-foreground">{firstShown}–{lastShown}</strong> dari{' '}
+            <strong className="font-semibold text-foreground">{filteredStaff.length}</strong> pegawai
           </span>
-          <span className="text-slate-300">•</span>
+          <span className="text-muted-foreground/40">•</span>
           <div className="flex items-center gap-1.5">
             <span>Baris per halaman:</span>
             <select
-              className="h-7 px-2 bg-slate-50 border border-slate-200 text-slate-800 rounded font-medium focus:outline-none cursor-pointer"
+              className="h-7 px-2 bg-card border border-input text-foreground rounded font-medium focus:outline-none cursor-pointer"
               value={rowsPerPage}
               onChange={(e) => {
                 setRowsPerPage(e.target.value)
@@ -373,7 +332,7 @@ function StaffTable({ unitFilter, searchTerm, statusFilter, currentPage, setCurr
         <div className="flex items-center gap-1">
           <button
             disabled={safePage === 1}
-            className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-100 transition-colors disabled:opacity-40 disabled:hover:bg-transparent disabled:cursor-not-allowed cursor-pointer"
+            className="w-8 h-8 rounded-lg border border-border flex items-center justify-center text-foreground hover:bg-muted transition-colors disabled:opacity-40 disabled:hover:bg-transparent disabled:cursor-not-allowed cursor-pointer"
             type="button"
             onClick={() => setCurrentPage(safePage - 1)}
           >
@@ -384,8 +343,8 @@ function StaffTable({ unitFilter, searchTerm, statusFilter, currentPage, setCurr
               key={page}
               className={`w-8 h-8 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
                 safePage === page
-                  ? 'bg-blue-600 text-white shadow-xs'
-                  : 'text-slate-700 hover:bg-slate-100'
+                  ? 'bg-primary text-primary-foreground shadow-xs'
+                  : 'text-foreground hover:bg-muted'
               }`}
               type="button"
               onClick={() => setCurrentPage(page)}
@@ -395,7 +354,7 @@ function StaffTable({ unitFilter, searchTerm, statusFilter, currentPage, setCurr
           ))}
           <button
             disabled={safePage === totalPages}
-            className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-100 transition-colors disabled:opacity-40 disabled:hover:bg-transparent disabled:cursor-not-allowed cursor-pointer"
+            className="w-8 h-8 rounded-lg border border-border flex items-center justify-center text-foreground hover:bg-muted transition-colors disabled:opacity-40 disabled:hover:bg-transparent disabled:cursor-not-allowed cursor-pointer"
             type="button"
             onClick={() => setCurrentPage(safePage + 1)}
           >

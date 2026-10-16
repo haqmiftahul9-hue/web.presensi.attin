@@ -19,7 +19,7 @@ import { ErrorState, LoadingState, Spinner } from '../../components/mobile/Feedb
  * kartu PVC CR80 yang sama persis dengan halaman Cetak Kartu ID Superadmin:
  * komponen `EmployeeIdCardPrint` dipakai ulang, begitu juga baris datanya
  * (`selectCardRows`) dan utilitas unduhnya (`exportCardsToPdf`). Jadi foto,
- * nama, gelar, jabatan, NIY/NIP, unit, logo yayasan, barcode, dan QR di sini
+ * nama, gelar, jabatan, NIY, unit, logo yayasan, barcode, dan QR di sini
  * dijamin sama dengan yang dicetak Superadmin — bukan tiruan.
  *
  * QR-nya pun sama: kartu ini memakai `employeeQrInfo().value`, yang juga

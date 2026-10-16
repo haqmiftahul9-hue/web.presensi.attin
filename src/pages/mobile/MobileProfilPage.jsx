@@ -206,7 +206,6 @@ function MobileProfilPage() {
             <Baris label="Sapaan" nilai={getEmployeeGreeting(staff, { unit })} />
             <Baris label="Nama lengkap" nilai={getEmployeeFormalName(staff)} />
             <Baris label="NIY" nilai={staff.niy} />
-            <Baris label="NIP" nilai={staff.nip} />
             <Baris label="Jabatan" nilai={staff.role} />
             <Baris label="Unit sekolah" nilai={unit?.nama} />
             <Baris label="Status kepegawaian" nilai={`${staff.statusPegawai || '-'} (${kelompok})`} />

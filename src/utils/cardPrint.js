@@ -242,7 +242,7 @@ function drawCard(doc, row, settings, unit, { x, y, width, photoDataUrl }) {
     size: em * G.badge, color: statusTextColor(row.statusGroup), style: 'bold', align: 'center',
   })
 
-  // ---- Blok teks: nama (dominan) > jabatan > NIY/NIP > masa berlaku ----
+  // ---- Blok teks: nama (dominan) > jabatan > NIY > masa berlaku ----
   const textX = photoX + photoW + gap
   let cursor = bodyTop + bodyPadY
 
@@ -259,7 +259,6 @@ function drawCard(doc, row, settings, unit, { x, y, width, photoDataUrl }) {
   const labelW = em * 3.5
   const idRows = [
     ['NIY', row.staff.niy || '-', em * G.niy],
-    ...(row.staff.nip ? [['NIP', row.staff.nip, em * G.nip]] : []),
   ]
   for (const [label, value, size] of idRows) {
     drawText(doc, label, textX, cursor, { size, color: COLORS.outline, style: 'bold' })

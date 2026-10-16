@@ -12,7 +12,7 @@ import {
 import { rentangPengajuan } from '../data/presensiMobile.js'
 
 const statusTabs = [
-  { id: 'semua', label: 'Semua', count: 0, color: 'bg-slate-100 text-slate-700' },
+  { id: 'semua', label: 'Semua', count: 0, color: 'bg-muted text-muted-foreground' },
   { id: 'menunggu', label: 'Menunggu', count: 0, color: 'bg-amber-100 text-amber-800' },
   { id: 'disetujui', label: 'Disetujui', count: 0, color: 'bg-emerald-100 text-emerald-800' },
   { id: 'ditolak', label: 'Ditolak', count: 0, color: 'bg-red-100 text-red-800' },
@@ -175,10 +175,10 @@ function PengajuanIzinCutiPage() {
     status: leave.status,
     keterangan: leave.keterangan,
     unitName: leave.unitName,
-    avatarClass: avatarClassMap[leave.jenis] || 'bg-slate-200 text-slate-700',
-    jenisClass: jenisClassMap[leave.jenis] || 'bg-slate-100 text-slate-700',
-    statusClass: statusClassMap[leave.status] || 'bg-slate-100 text-slate-700',
-    statusDot: statusDotMap[leave.status] || 'bg-slate-400',
+    avatarClass: avatarClassMap[leave.jenis] || 'bg-muted text-muted-foreground',
+    jenisClass: jenisClassMap[leave.jenis] || 'bg-muted text-muted-foreground',
+    statusClass: statusClassMap[leave.status] || 'bg-muted text-muted-foreground',
+    statusDot: statusDotMap[leave.status] || 'bg-muted-foreground',
   }))
 
   const handleOpenModal = () => setIsModalOpen(true)
@@ -268,7 +268,7 @@ function PengajuanIzinCutiPage() {
       return {
         No: index + 1,
         'Nama Pegawai': leave.name,
-        'NIY/NIP': leave.niy,
+        'NIY': leave.niy,
         Unit: leave.unitName || '-',
         'Jenis Izin/Cuti': leave.jenis,
         'Tanggal Mulai': tanggalMulai,
@@ -293,7 +293,7 @@ function PengajuanIzinCutiPage() {
     const colWidths = [
       { wch: 5 },   // No
       { wch: 30 },  // Nama Pegawai
-      { wch: 18 },  // NIY/NIP
+      { wch: 18 },  // NIY
       { wch: 25 },  // Unit
       { wch: 25 },  // Jenis Izin/Cuti
       { wch: 18 },  // Tanggal Mulai
@@ -320,30 +320,30 @@ function PengajuanIzinCutiPage() {
           {/* Header & Actions */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex flex-col gap-1.5">
-              <div className="flex items-center gap-1.5 text-xs text-slate-400">
-                <span className="hover:text-slate-700 cursor-pointer transition-colors">Home</span>
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <span className="hover:text-foreground cursor-pointer transition-colors">Home</span>
                 <span className="material-symbols-outlined text-[14px]">chevron_right</span>
-                <span className="hover:text-slate-700 cursor-pointer transition-colors">Presensi</span>
+                <span className="hover:text-foreground cursor-pointer transition-colors">Presensi</span>
                 <span className="material-symbols-outlined text-[14px]">chevron_right</span>
-                <span className="font-semibold text-slate-800">Pengajuan Izin/Cuti</span>
+                <span className="font-semibold text-foreground">Pengajuan Izin/Cuti</span>
               </div>
-              <h1 className="text-2xl font-bold tracking-tight text-slate-900">Pengajuan Izin &amp; Cuti</h1>
-              <p className="text-xs text-slate-500">
+              <h1 className="text-2xl font-bold tracking-tight text-foreground">Pengajuan Izin &amp; Cuti</h1>
+              <p className="text-xs text-muted-foreground">
                 Kelola, tinjau berkas lampiran, dan proses verifikasi persetujuan dispensasi izin sakit dan cuti pegawai.
               </p>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               <button
                 onClick={handleExportExcel}
-                className="h-9 px-3.5 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 font-medium text-xs inline-flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+                className="h-9 px-3.5 rounded-lg bg-card hover:bg-accent border border-input text-foreground font-medium text-xs inline-flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
                 type="button"
               >
-                <span className="material-symbols-outlined text-[17px] text-slate-500">file_download</span>
+                <span className="material-symbols-outlined text-[17px] text-muted-foreground">file_download</span>
                 <span>Export Laporan (.XLSX)</span>
               </button>
               <button
                 onClick={handleOpenModal}
-                className="h-9 px-4 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs inline-flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+                className="h-9 px-4 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs inline-flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
                 type="button"
               >
                 <span className="material-symbols-outlined text-[17px]">add</span>
@@ -354,41 +354,41 @@ function PengajuanIzinCutiPage() {
 
           {/* 3 Metric Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-white rounded-xl border border-slate-200/80 p-5 shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all">
+            <div className="bg-card rounded-xl border border-border p-5 shadow-xs flex flex-col justify-between hover:border-border/80 transition-all">
               <div className="flex items-start justify-between">
                 <div className="flex flex-col">
-                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Menunggu Persetujuan</span>
+                  <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Menunggu Persetujuan</span>
                   <div className="flex items-baseline gap-1.5 mt-1.5">
-                    <span className="text-3xl font-bold tracking-tight text-slate-900">{filteredPending}</span>
-                    <span className="text-xs font-medium text-slate-500">Pengajuan</span>
+                    <span className="text-3xl font-bold tracking-tight text-foreground">{filteredPending}</span>
+                    <span className="text-xs font-medium text-muted-foreground">Pengajuan</span>
                   </div>
                 </div>
-                <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-100 text-amber-600 flex items-center justify-center shrink-0">
+                <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 flex items-center justify-center shrink-0">
                   <span className="material-symbols-outlined text-[20px]">hourglass_top</span>
                 </div>
               </div>
-              <div className="mt-4 pt-3 border-t border-slate-100 flex items-center gap-2 text-xs">
+              <div className="mt-4 pt-3 border-t border-border flex items-center gap-2 text-xs">
                 <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-                <span className="text-amber-700 font-medium">Perlu tindakan verifikasi hari ini</span>
+                <span className="text-amber-600 dark:text-amber-400 font-medium">Perlu tindakan verifikasi hari ini</span>
               </div>
             </div>
 
-            <div className="bg-white rounded-xl border border-slate-200/80 p-5 shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all">
+            <div className="bg-card rounded-xl border border-border p-5 shadow-xs flex flex-col justify-between hover:border-border/80 transition-all">
               <div className="flex items-start justify-between">
                 <div className="flex flex-col">
-                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Disetujui Bulan Ini</span>
+                  <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Disetujui Bulan Ini</span>
                   <div className="flex items-baseline gap-1.5 mt-1.5">
-                    <span className="text-3xl font-bold tracking-tight text-slate-900">{filteredApproved}</span>
-                    <span className="text-xs font-medium text-slate-500">Pegawai</span>
+                    <span className="text-3xl font-bold tracking-tight text-foreground">{filteredApproved}</span>
+                    <span className="text-xs font-medium text-muted-foreground">Pegawai</span>
                   </div>
                 </div>
-                <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 flex items-center justify-center shrink-0">
                   <span className="material-symbols-outlined text-[20px]">check_circle</span>
                 </div>
               </div>
-              <div className="mt-4 pt-3 border-t border-slate-100 flex items-center gap-2 text-xs">
-                <span className="text-slate-400">Unit:</span>
-                <span className="font-semibold text-emerald-700">
+              <div className="mt-4 pt-3 border-t border-border flex items-center gap-2 text-xs">
+                <span className="text-muted-foreground">Unit:</span>
+                <span className="font-semibold text-emerald-600 dark:text-emerald-400">
                   {selectIsAllUnits(state)
                     ? `Semua Unit (${state.units.length} Unit)`
                     : `${filterUnit}`
@@ -397,50 +397,50 @@ function PengajuanIzinCutiPage() {
               </div>
             </div>
 
-            <div className="bg-white rounded-xl border border-slate-200/80 p-5 shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all">
+            <div className="bg-card rounded-xl border border-border p-5 shadow-xs flex flex-col justify-between hover:border-border/80 transition-all">
               <div className="flex items-start justify-between">
                 <div className="flex flex-col">
-                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Ditolak / Dibatalkan</span>
+                  <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Ditolak / Dibatalkan</span>
                   <div className="flex items-baseline gap-1.5 mt-1.5">
-                    <span className="text-3xl font-bold tracking-tight text-slate-900">{filteredRejected}</span>
-                    <span className="text-xs font-medium text-slate-500">Pengajuan</span>
+                    <span className="text-3xl font-bold tracking-tight text-foreground">{filteredRejected}</span>
+                    <span className="text-xs font-medium text-muted-foreground">Pengajuan</span>
                   </div>
                 </div>
-                <div className="w-10 h-10 rounded-xl bg-rose-50 border border-rose-100 text-rose-600 flex items-center justify-center shrink-0">
+                <div className="w-10 h-10 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive flex items-center justify-center shrink-0">
                   <span className="material-symbols-outlined text-[20px]">cancel</span>
                 </div>
               </div>
-              <div className="mt-4 pt-3 border-t border-slate-100 flex items-center gap-2 text-xs">
-                <span className="text-rose-600 font-medium">Dokumen tidak lengkap / kedaluwarsa</span>
+              <div className="mt-4 pt-3 border-t border-border flex items-center gap-2 text-xs">
+                <span className="text-destructive font-medium">Dokumen tidak lengkap / kedaluwarsa</span>
               </div>
             </div>
           </div>
 
           {/* Filter Bar */}
-          <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs p-3.5 space-y-3 flex flex-col">
+          <div className="bg-card rounded-xl border border-border shadow-xs p-3.5 space-y-3 flex flex-col">
             <div className="flex items-center justify-between flex-wrap gap-2">
-              <div className="flex items-center gap-1 bg-slate-100/80 p-1 rounded-lg">
+              <div className="flex items-center gap-1 bg-muted p-1 rounded-lg">
                 {updatedTabs.map((tab) => (
                   <button
                     key={tab.id}
                     onClick={() => { setActiveStatusTab(tab.id); setCurrentPage(1) }}
                     className={`px-3 py-1 rounded-md flex items-center gap-1.5 text-xs font-semibold transition-all cursor-pointer ${
                       activeStatusTab === tab.id
-                        ? 'bg-white text-slate-900 shadow-xs'
-                        : 'text-slate-600 hover:text-slate-900'
+                        ? 'bg-card text-foreground shadow-xs'
+                        : 'text-muted-foreground hover:text-foreground'
                     }`}
                     type="button"
                   >
                     <span>{tab.label}</span>
                     <span className={`px-1.5 py-0.2 rounded-full text-[10.5px] font-bold ${
-                      activeStatusTab === tab.id ? 'bg-blue-50 text-blue-700' : 'bg-slate-200 text-slate-600'
+                      activeStatusTab === tab.id ? 'bg-primary/10 text-primary' : 'bg-muted-foreground/20 text-muted-foreground'
                     }`}>
                       {tab.count}
                     </span>
                   </button>
                 ))}
               </div>
-              <div className="flex items-center gap-1.5 text-slate-400 text-xs">
+              <div className="flex items-center gap-1.5 text-muted-foreground text-xs">
                 <span className="material-symbols-outlined text-[16px]">tune</span>
                 <span>
                   {`Filter Scope: ${selectIsAllUnits(state) ? 'Semua Unit' : filterUnit}`}
@@ -448,11 +448,11 @@ function PengajuanIzinCutiPage() {
               </div>
             </div>
 
-            <div className="pt-2 border-t border-slate-100 grid grid-cols-1 md:grid-cols-12 gap-2 items-center">
+            <div className="pt-2 border-t border-border grid grid-cols-1 md:grid-cols-12 gap-2 items-center">
               <div className="md:col-span-5 relative">
-                <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[17px]">search</span>
+                <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-[17px]">search</span>
                 <input
-                  className="w-full h-9 pl-8 pr-3 bg-slate-50/80 border border-slate-200 rounded-lg text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-colors"
+                  className="w-full h-9 pl-8 pr-3 bg-card border border-input rounded-lg text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring transition-colors"
                   placeholder="Cari nama pegawai, NIY, atau keterangan..."
                   type="text"
                   value={searchTerm}
@@ -462,7 +462,7 @@ function PengajuanIzinCutiPage() {
               <div className="md:col-span-2">
                 <div className="relative">
                   <select
-                    className="w-full h-9 pl-2.5 pr-7 bg-slate-50/80 border border-slate-200 rounded-lg text-xs font-medium text-slate-800 appearance-none focus:outline-none focus:bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 cursor-pointer"
+                    className="w-full h-9 pl-2.5 pr-7 bg-card border border-input rounded-lg text-xs font-medium text-foreground appearance-none focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring cursor-pointer"
                     value={filterStatus}
                     onChange={(e) => { setFilterStatus(e.target.value); setCurrentPage(1) }}
                   >
@@ -471,13 +471,13 @@ function PengajuanIzinCutiPage() {
                     <option>Disetujui</option>
                     <option>Ditolak</option>
                   </select>
-                  <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 text-[16px] pointer-events-none">expand_more</span>
+                  <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground text-[16px] pointer-events-none">expand_more</span>
                 </div>
               </div>
               <div className="md:col-span-3">
                 <div className="relative">
                   <select
-                    className="w-full h-9 pl-2.5 pr-7 bg-slate-50/80 border border-slate-200 rounded-lg text-xs font-medium text-slate-800 appearance-none focus:outline-none focus:bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 cursor-pointer"
+                    className="w-full h-9 pl-2.5 pr-7 bg-card border border-input rounded-lg text-xs font-medium text-foreground appearance-none focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring cursor-pointer"
                     value={filterJenis}
                     onChange={(e) => { setFilterJenis(e.target.value); setCurrentPage(1) }}
                   >
@@ -485,14 +485,14 @@ function PengajuanIzinCutiPage() {
                       <option key={opt}>{opt}</option>
                     ))}
                   </select>
-                  <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 text-[16px] pointer-events-none">expand_more</span>
+                  <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground text-[16px] pointer-events-none">expand_more</span>
                 </div>
               </div>
               {canSwitchUnit && (
                 <div className="md:col-span-2">
                   <div className="relative">
                     <select
-                      className="w-full h-9 pl-2.5 pr-7 bg-slate-50/80 border border-slate-200 rounded-lg text-xs font-medium text-slate-800 appearance-none focus:outline-none focus:bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 cursor-pointer"
+                      className="w-full h-9 pl-2.5 pr-7 bg-card border border-input rounded-lg text-xs font-medium text-foreground appearance-none focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring cursor-pointer"
                       value={userUnitId}
                       onChange={(e) => { dispatch({ type: 'SET_SELECTED_UNIT', payload: e.target.value }); setCurrentPage(1) }}
                     >
@@ -501,7 +501,7 @@ function PengajuanIzinCutiPage() {
                         <option key={opt.id} value={opt.id}>{opt.nama}</option>
                       ))}
                     </select>
-                    <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 text-[16px] pointer-events-none">expand_more</span>
+                    <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground text-[16px] pointer-events-none">expand_more</span>
                   </div>
                 </div>
               )}
@@ -509,10 +509,10 @@ function PengajuanIzinCutiPage() {
           </div>
 
           {/* Table Container */}
-          <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden">
+          <div className="bg-card rounded-xl border border-border shadow-xs overflow-hidden">
             <div className="sp-table-wrap">
               <table className="w-full text-left table-fixed">
-                <thead className="bg-slate-50/80 border-b border-slate-200/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                <thead className="bg-muted border-b border-border text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
                   <tr>
                     <th className="py-2.5 px-3.5 w-[28%]">Pegawai</th>
                     <th className="py-2.5 px-2.5 w-[11%]">Unit</th>
@@ -524,36 +524,36 @@ function PengajuanIzinCutiPage() {
                     <th className="py-2.5 px-2.5 text-right w-[9%]">Aksi</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 text-xs">
+                <tbody className="divide-y divide-border/60 text-xs">
                   {tableData.map((row) => (
-                    <tr key={row.id} className="hover:bg-slate-50/60 transition-colors">
+                    <tr key={row.id} className="hover:bg-muted/40 transition-colors">
                       <td className="py-2.5 px-3.5">
                         <div className="flex items-center gap-2.5 min-w-0">
-                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs flex-shrink-0 bg-blue-50 text-blue-700 border border-blue-100`}>
+                          <div className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs flex-shrink-0 bg-primary/10 text-primary border border-primary/20">
                             {row.initials}
                           </div>
                           <div className="flex flex-col min-w-0 overflow-hidden leading-tight">
-                            <span className="text-xs font-semibold text-slate-900 truncate block">{row.name}</span>
-                            <span className="text-[10.5px] text-slate-400 font-mono truncate block mt-0.5">{row.niy} • {row.role}</span>
+                            <span className="text-xs font-semibold text-foreground truncate block">{row.name}</span>
+                            <span className="text-[10.5px] text-muted-foreground font-mono truncate block mt-0.5">{row.niy} • {row.role}</span>
                           </div>
                         </div>
                       </td>
-                      <td className="py-2.5 px-2.5 text-xs text-slate-600 whitespace-nowrap">
+                      <td className="py-2.5 px-2.5 text-xs text-foreground/80 whitespace-nowrap">
                         {row.unitName || '-'}
                       </td>
                       <td className="py-2.5 px-2.5">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium ${row.jenisClass} whitespace-nowrap border border-slate-200/60`}>
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium ${row.jenisClass} whitespace-nowrap border border-border/50`}>
                           {row.jenis}
                         </span>
                       </td>
-                      <td className="py-2.5 px-2.5 text-xs text-slate-700 font-mono whitespace-nowrap">
+                      <td className="py-2.5 px-2.5 text-xs text-foreground/90 font-mono whitespace-nowrap">
                         {row.periode}
                       </td>
-                      <td className="py-2.5 px-2.5 text-xs font-semibold text-blue-600 whitespace-nowrap">
+                      <td className="py-2.5 px-2.5 text-xs font-semibold text-primary whitespace-nowrap">
                         {row.durasi}
                       </td>
                       <td className="py-2.5 px-2.5">
-                        <button onClick={() => handleViewAttachment(row)} className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors text-[11px] font-medium cursor-pointer w-full justify-center" title={row.lampiran}>
+                        <button onClick={() => handleViewAttachment(row)} className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-secondary hover:bg-secondary/80 text-secondary-foreground border border-border/50 transition-colors text-[11px] font-medium cursor-pointer w-full justify-center" title={row.lampiran}>
                           <span className="material-symbols-outlined text-[13px] flex-shrink-0">attach_file</span>
                           <span className="truncate block max-w-[90px]">{row.lampiran}</span>
                         </button>
@@ -570,16 +570,16 @@ function PengajuanIzinCutiPage() {
                             <button onClick={() => handleApprove(row.id)} className="h-7 w-7 rounded-md bg-emerald-600 text-white hover:bg-emerald-700 transition-colors flex items-center justify-center shadow-xs cursor-pointer flex-shrink-0" type="button" title="Setujui">
                               <span className="material-symbols-outlined text-[15px]">check</span>
                             </button>
-                            <button onClick={() => handleReject(row.id)} className="h-7 w-7 rounded-md bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200 transition-colors flex items-center justify-center cursor-pointer flex-shrink-0" type="button" title="Tolak">
+                            <button onClick={() => handleReject(row.id)} className="h-7 w-7 rounded-md bg-destructive/10 text-destructive hover:bg-destructive/20 border border-destructive/20 transition-colors flex items-center justify-center cursor-pointer flex-shrink-0" type="button" title="Tolak">
                               <span className="material-symbols-outlined text-[15px]">close</span>
                             </button>
-                            <button onClick={() => handleDetail(row)} className="h-7 w-7 rounded-md bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors flex items-center justify-center cursor-pointer flex-shrink-0" type="button" title="Detail">
+                            <button onClick={() => handleDetail(row)} className="h-7 w-7 rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 border border-border/50 transition-colors flex items-center justify-center cursor-pointer flex-shrink-0" type="button" title="Detail">
                               <span className="material-symbols-outlined text-[16px]">visibility</span>
                             </button>
                           </div>
                         ) : (
                           <div className="flex items-center justify-end">
-                            <button onClick={() => handleDetail(row)} className="h-7 w-7 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors cursor-pointer flex-shrink-0" type="button" title="Detail">
+                            <button onClick={() => handleDetail(row)} className="h-7 w-7 rounded-md bg-secondary hover:bg-secondary/80 text-secondary-foreground border border-border/50 flex items-center justify-center transition-colors cursor-pointer flex-shrink-0" type="button" title="Detail">
                               <span className="material-symbols-outlined text-[16px]">visibility</span>
                             </button>
                           </div>
@@ -589,7 +589,7 @@ function PengajuanIzinCutiPage() {
                   ))}
                   {filtered.length === 0 && (
                     <tr>
-                      <td colSpan="8" className="py-12 text-center text-slate-400 text-xs">
+                      <td colSpan="8" className="py-12 text-center text-muted-foreground text-xs">
                         Tidak ada pengajuan izin &amp; cuti yang sesuai dengan filter.
                       </td>
                     </tr>
@@ -599,13 +599,13 @@ function PengajuanIzinCutiPage() {
             </div>
 
             {/* Pagination Footer */}
-            <div className="px-4 py-3 bg-white border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+            <div className="px-4 py-3 bg-card border-t border-border flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
               <div>
-                Menampilkan <span className="font-semibold text-slate-800">{startIndex + 1}</span>–{startIndex + paginatedData.length > filtered.length ? filtered.length : startIndex + paginatedData.length} dari <span className="font-semibold text-slate-800">{filtered.length}</span> pengajuan
+                Menampilkan <span className="font-semibold text-foreground">{startIndex + 1}</span>–{startIndex + paginatedData.length > filtered.length ? filtered.length : startIndex + paginatedData.length} dari <span className="font-semibold text-foreground">{filtered.length}</span> pengajuan
               </div>
               <div className="flex items-center gap-1">
                 <button
-                  className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-100 transition-colors disabled:opacity-40 disabled:hover:bg-transparent disabled:cursor-not-allowed cursor-pointer"
+                  className="w-8 h-8 rounded-lg border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-40 disabled:hover:bg-transparent disabled:cursor-not-allowed cursor-pointer"
                   disabled={currentPage === 1}
                   type="button"
                   onClick={() => setCurrentPage(currentPage - 1)}
@@ -618,8 +618,8 @@ function PengajuanIzinCutiPage() {
                     onClick={() => setCurrentPage(pageNum)}
                     className={`w-8 h-8 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
                       currentPage === pageNum
-                        ? 'bg-blue-600 text-white shadow-xs'
-                        : 'text-slate-700 hover:bg-slate-100'
+                        ? 'bg-primary text-primary-foreground shadow-xs'
+                        : 'text-foreground hover:bg-muted'
                     }`}
                     type="button"
                   >
@@ -627,7 +627,7 @@ function PengajuanIzinCutiPage() {
                   </button>
                 ))}
                 <button
-                  className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-100 transition-colors disabled:opacity-40 disabled:hover:bg-transparent disabled:cursor-not-allowed cursor-pointer"
+                  className="w-8 h-8 rounded-lg border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-40 disabled:hover:bg-transparent disabled:cursor-not-allowed cursor-pointer"
                   onClick={() => setCurrentPage(currentPage + 1)}
                   disabled={currentPage === totalPages}
                   type="button"
@@ -639,100 +639,100 @@ function PengajuanIzinCutiPage() {
           </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <div className="lg:col-span-2 bg-white rounded-xl border border-slate-200/80 shadow-xs p-5 flex flex-col justify-between">
+          <div className="lg:col-span-2 bg-card rounded-xl border border-border shadow-xs p-5 flex flex-col justify-between">
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <span className="material-symbols-outlined text-blue-600 text-[18px]">info</span>
-                <h3 className="text-sm font-bold text-slate-900 tracking-tight">Aturan &amp; Ketentuan Cuti Pegawai Yayasan</h3>
+                <span className="material-symbols-outlined text-primary text-[18px]">info</span>
+                <h3 className="text-sm font-bold text-foreground tracking-tight">Aturan &amp; Ketentuan Cuti Pegawai Yayasan</h3>
               </div>
-              <p className="text-xs text-slate-500 mb-4">
+              <p className="text-xs text-muted-foreground mb-4">
                 Pedoman verifikasi otomatis berdasarkan SK Direktur Yayasan Pendidikan No. 42/SK-DIR/2025.
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div className="p-3 rounded-lg bg-slate-50 border border-slate-100 flex flex-col gap-1">
-                  <span className="text-xs font-semibold text-slate-800">1. Izin Sakit &gt; 2 Hari</span>
-                  <p className="text-xs text-slate-500 leading-relaxed">
+                <div className="p-3 rounded-lg bg-muted/40 border border-border/60 flex flex-col gap-1">
+                  <span className="text-xs font-semibold text-foreground">1. Izin Sakit &gt; 2 Hari</span>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
                     Wajib melampirkan surat keterangan dokter atau klinik dengan cap stempel basah / QR barcode verifikasi digital faskes.
                   </p>
                 </div>
-                <div className="p-3 rounded-lg bg-slate-50 border border-slate-100 flex flex-col gap-1">
-                  <span className="text-xs font-semibold text-slate-800">2. Cuti Melahirkan &amp; Bersalin</span>
-                  <p className="text-xs text-slate-500 leading-relaxed">
+                <div className="p-3 rounded-lg bg-muted/40 border border-border/60 flex flex-col gap-1">
+                  <span className="text-xs font-semibold text-foreground">2. Cuti Melahirkan &amp; Bersalin</span>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
                     Maksimal 90 hari kalender, diajukan paling lambat 14 hari sebelum hari perkiraan lahir (HPL) dari dokter spesialis.
                   </p>
                 </div>
               </div>
             </div>
-            <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-              <span>Batas Waktu Validasi Unit: <strong className="text-slate-800">2 x 24 Jam Kerja</strong></span>
-              <a className="text-blue-600 hover:underline font-medium flex items-center gap-1 cursor-pointer">
+            <div className="mt-4 pt-3 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
+              <span>Batas Waktu Validasi Unit: <strong className="text-foreground">2 x 24 Jam Kerja</strong></span>
+              <a className="text-primary hover:underline font-medium flex items-center gap-1 cursor-pointer">
                 <span>Unduh Pedoman Lengkap (PDF)</span>
                 <span className="material-symbols-outlined text-[15px]">open_in_new</span>
               </a>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs p-5 flex flex-col justify-between">
+          <div className="bg-card rounded-xl border border-border shadow-xs p-5 flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between mb-1">
-                <h3 className="text-sm font-bold text-slate-900 tracking-tight">Statistik Kuota Cuti</h3>
-                <span className="text-[11px] font-bold text-blue-700 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded-full">T.A 2026/2027</span>
+                <h3 className="text-sm font-bold text-foreground tracking-tight">Statistik Kuota Cuti</h3>
+                <span className="text-[11px] font-bold text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-full">T.A 2026/2027</span>
               </div>
-              <p className="text-xs text-slate-500 mb-4">
+              <p className="text-xs text-muted-foreground mb-4">
                 Monitor utilisasi jatah tahunan staf dan guru tetap.
               </p>
               <div className="flex flex-col gap-3.5">
                 <div>
                   <div className="flex justify-between text-xs mb-1">
-                    <span className="text-slate-500">Cuti Tahunan Digunakan</span>
-                    <span className="font-semibold text-slate-800">64% (292 / 456 Hari)</span>
+                    <span className="text-muted-foreground">Cuti Tahunan Digunakan</span>
+                    <span className="font-semibold text-foreground">64% (292 / 456 Hari)</span>
                   </div>
-                  <div className="w-full h-1.5 rounded-full bg-slate-100 overflow-hidden">
-                    <div className="h-full bg-blue-600 rounded-full" style={{ width: '64%' }}></div>
+                  <div className="w-full h-1.5 rounded-full bg-muted overflow-hidden">
+                    <div className="h-full bg-primary rounded-full" style={{ width: '64%' }}></div>
                   </div>
                 </div>
                 <div>
                   <div className="flex justify-between text-xs mb-1">
-                    <span className="text-slate-500">Tingkat Ketidakhadiran Izin/Sakit</span>
-                    <span className="font-semibold text-emerald-700">1.8% (Sangat Sehat)</span>
+                    <span className="text-muted-foreground">Tingkat Ketidakhadiran Izin/Sakit</span>
+                    <span className="font-semibold text-emerald-600 dark:text-emerald-400">1.8% (Sangat Sehat)</span>
                   </div>
-                  <div className="w-full h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                  <div className="w-full h-1.5 rounded-full bg-muted overflow-hidden">
                     <div className="h-full bg-emerald-500 rounded-full" style={{ width: '18%' }}></div>
                   </div>
                 </div>
               </div>
             </div>
-            <div className="mt-4 p-2.5 rounded-lg bg-slate-50 border border-slate-100 flex items-center gap-2 text-xs text-slate-500">
-              <span className="material-symbols-outlined text-slate-400 text-[17px]">verified_user</span>
-              <span>Sinkronisasi Data SimPres Pusat: <strong className="text-slate-800">Realtime</strong></span>
+            <div className="mt-4 p-2.5 rounded-lg bg-muted/40 border border-border/60 flex items-center gap-2 text-xs text-muted-foreground">
+              <span className="material-symbols-outlined text-muted-foreground text-[17px]">verified_user</span>
+              <span>Sinkronisasi Data SimPres Pusat: <strong className="text-foreground">Realtime</strong></span>
             </div>
           </div>
-</div>
+        </div>
       </div>
       </div>
 
       {/* Confirm Reject Dialog */}
       {confirmRejectId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" onClick={handleCancelReject}>
-          <div className="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl border border-slate-200/80 overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
-            <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-              <h3 className="text-sm font-bold text-slate-900">Konfirmasi Tolak Pengajuan</h3>
-              <button onClick={handleCancelReject} className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer" type="button">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs" onClick={handleCancelReject}>
+          <div className="relative w-full max-w-sm bg-card rounded-2xl shadow-xl border border-border overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
+            <div className="px-5 py-4 border-b border-border flex items-center justify-between bg-muted/30">
+              <h3 className="text-sm font-bold text-foreground">Konfirmasi Tolak Pengajuan</h3>
+              <button onClick={handleCancelReject} className="w-7 h-7 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer" type="button">
                 <span className="material-symbols-outlined text-[18px]">close</span>
               </button>
             </div>
             <div className="p-5 text-center">
-              <div className="w-12 h-12 rounded-full bg-rose-50 border border-rose-100 text-rose-600 flex items-center justify-center mx-auto mb-3">
+              <div className="w-12 h-12 rounded-full bg-destructive/10 border border-destructive/20 text-destructive flex items-center justify-center mx-auto mb-3">
                 <span className="material-symbols-outlined text-[24px]">cancel</span>
               </div>
-              <p className="text-sm font-bold text-slate-900 mb-1">Tolak pengajuan izin/cuti ini?</p>
-              <p className="text-xs text-slate-500 leading-relaxed">Status akan diperbarui menjadi <strong className="text-rose-600 font-semibold">Ditolak</strong>. Keputusan ini akan dicatat dan dapat dilihat oleh pegawai.</p>
+              <p className="text-sm font-bold text-foreground mb-1">Tolak pengajuan izin/cuti ini?</p>
+              <p className="text-xs text-muted-foreground leading-relaxed">Status akan diperbarui menjadi <strong className="text-destructive font-semibold">Ditolak</strong>. Keputusan ini akan dicatat dan dapat dilihat oleh pegawai.</p>
             </div>
-            <div className="px-5 py-3.5 bg-slate-50/80 border-t border-slate-100 flex items-center justify-end gap-2.5">
-              <button onClick={handleCancelReject} className="h-8.5 px-3.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs transition-colors cursor-pointer" type="button">
+            <div className="px-5 py-3.5 bg-muted/30 border-t border-border flex items-center justify-end gap-2.5">
+              <button onClick={handleCancelReject} className="h-8.5 px-3.5 rounded-lg border border-border bg-card hover:bg-muted text-foreground font-semibold text-xs transition-colors cursor-pointer" type="button">
                 Batal
               </button>
-              <button onClick={handleConfirmReject} className="h-8.5 px-3.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer" type="button">
+              <button onClick={handleConfirmReject} className="h-8.5 px-3.5 rounded-lg bg-destructive hover:bg-destructive/90 text-destructive-foreground font-semibold text-xs flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer" type="button">
                 <span className="material-symbols-outlined text-[16px]">close</span>
                 <span>Tolak Pengajuan</span>
               </button>

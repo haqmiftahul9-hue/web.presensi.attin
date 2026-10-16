@@ -57,7 +57,7 @@ function PengaturanGlobalPage() {
       autoLogout: 30,
     },
     penandatangan: settings.penandatangan || {
-      kepalaYayasan: { nama: '', jabatan: 'Ketua Yayasan', nip: '' },
+      kepalaYayasan: { nama: '', jabatan: 'Ketua Yayasan' },
       kepalaSekolah: {
         tk: { nama: '', jabatan: 'Kepala TKIT Attin Sumbar' },
         sd: { nama: '', jabatan: 'Kepala SDIT Attin Sumbar' },
@@ -184,12 +184,12 @@ function PengaturanGlobalPage() {
   const ToggleSwitch = ({ checked, onChange }) => (
     <div
       className={`w-10 h-5 rounded-full relative cursor-pointer shrink-0 transition-colors ${
-        checked ? 'bg-blue-600' : 'bg-slate-300'
+        checked ? 'bg-primary' : 'bg-muted'
       }`}
       onClick={onChange}
     >
       <div
-        className={`w-4 h-4 bg-white rounded-full absolute shadow-xs top-0.5 transition-all ${
+        className={`w-4 h-4 bg-card rounded-full absolute shadow-xs top-0.5 transition-all ${
           checked ? 'right-0.5' : 'left-0.5'
         }`}
       />
@@ -199,14 +199,14 @@ function PengaturanGlobalPage() {
   const NotifToast = () => {
     if (!notification) return null
     const colors = {
-      success: 'bg-white border-emerald-200 text-emerald-800 shadow-emerald-500/10',
-      info: 'bg-white border-blue-200 text-blue-800 shadow-blue-500/10',
-      error: 'bg-white border-rose-200 text-rose-800 shadow-rose-500/10',
+      success: 'bg-card border-emerald-500/30 text-foreground',
+      info: 'bg-card border-border text-foreground',
+      error: 'bg-card border-destructive/30 text-foreground',
     }
     const iconColors = {
-      success: 'text-emerald-600',
-      info: 'text-blue-600',
-      error: 'text-rose-600',
+      success: 'text-emerald-600 dark:text-emerald-400',
+      info: 'text-primary',
+      error: 'text-destructive',
     }
     const icons = {
       success: 'check_circle',
@@ -232,10 +232,10 @@ function PengaturanGlobalPage() {
       case 'informasi':
         return (
           <>
-            <div className="bg-white rounded-xl border border-slate-200/80 p-6 shadow-xs">
-              <div className="border-b border-slate-100 pb-4 mb-6">
-                <h2 className="text-sm font-bold text-slate-900 tracking-tight">Identitas & Profil Yayasan</h2>
-                <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
+            <div className="bg-card rounded-xl border border-border p-6 shadow-xs">
+              <div className="border-b border-border pb-4 mb-6">
+                <h2 className="text-sm font-bold text-foreground tracking-tight">Identitas & Profil Yayasan</h2>
+                <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
                   Pengaturan nama aplikasi, logo resmi, dan kontak sekretariat yayasan untuk sinkronisasi multi-unit.
                 </p>
               </div>
@@ -243,48 +243,48 @@ function PengaturanGlobalPage() {
               <div className="space-y-5">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                      Nama Aplikasi <span className="text-rose-500">*</span>
+                    <label className="block text-xs font-semibold text-foreground mb-1.5">
+                      Nama Aplikasi <span className="text-destructive">*</span>
                     </label>
                     <input
-                      className="w-full h-9 text-xs text-slate-800 bg-white border border-slate-200 rounded-lg px-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all"
+                      className="w-full h-9 text-xs text-foreground bg-card border border-input rounded-lg px-3 focus:outline-none focus:ring-1 focus:ring-ring transition-all"
                       type="text"
                       value={formData.namaAplikasi || ''}
                       onChange={(e) => handleInputChange('namaAplikasi', e.target.value)}
                     />
-                    <span className="text-[11px] text-slate-400 mt-1 block">
+                    <span className="text-[11px] text-muted-foreground mt-1 block">
                       Muncul di header, email notifikasi, portal unit, & mobile app.
                     </span>
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">Tagline / Sub-nama</label>
+                    <label className="block text-xs font-semibold text-foreground mb-1.5">Tagline / Sub-nama</label>
                     <input
-                      className="w-full h-9 text-xs text-slate-800 bg-white border border-slate-200 rounded-lg px-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all"
+                      className="w-full h-9 text-xs text-foreground bg-card border border-input rounded-lg px-3 focus:outline-none focus:ring-1 focus:ring-ring transition-all"
                       type="text"
                       value={formData.tagline || ''}
                       onChange={(e) => handleInputChange('tagline', e.target.value)}
                     />
-                    <span className="text-[11px] text-slate-400 mt-1 block">
+                    <span className="text-[11px] text-muted-foreground mt-1 block">
                       Deskripsi modul resmi di portal autentikasi.
                     </span>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">Logo Resmi Aplikasi & Yayasan</label>
+                  <label className="block text-xs font-semibold text-foreground mb-1.5">Logo Resmi Aplikasi & Yayasan</label>
                   <div className="flex flex-col sm:flex-row items-center gap-4">
-                    <div className="w-20 h-20 rounded-xl bg-slate-900 border border-slate-800 flex flex-col items-center justify-center text-white shrink-0 shadow-inner">
+                    <div className="w-20 h-20 rounded-xl bg-muted/80 border border-border flex flex-col items-center justify-center text-foreground shrink-0 shadow-inner">
                       {logoPreview ? (
                         <img src={logoPreview} className="w-20 h-20 rounded-xl object-cover" alt="Logo Preview" />
                       ) : (
                         <>
-                          <span className="text-lg font-bold tracking-tight text-white">RJ</span>
-                          <span className="text-[9px] uppercase font-bold tracking-widest text-slate-400">YAYASAN</span>
+                          <span className="text-lg font-bold tracking-tight text-foreground">RJ</span>
+                          <span className="text-[9px] uppercase font-bold tracking-widest text-muted-foreground">YAYASAN</span>
                         </>
                       )}
                     </div>
                     <div
-                      className="flex-1 w-full border-2 border-dashed border-slate-200 hover:border-blue-400 rounded-xl p-4 text-center cursor-pointer transition-colors bg-slate-50/50 hover:bg-white"
+                      className="flex-1 w-full border-2 border-dashed border-border hover:border-primary/50 rounded-xl p-4 text-center cursor-pointer transition-colors bg-muted/30 hover:bg-card"
                       onClick={handleLogoClick}
                     >
                       <input
@@ -295,10 +295,10 @@ function PengaturanGlobalPage() {
                         onChange={handleLogoUpload}
                       />
                       <div className="flex items-center justify-center gap-3">
-                        <span className="material-symbols-outlined text-[28px] text-blue-600">upload</span>
+                        <span className="material-symbols-outlined text-[28px] text-primary">upload</span>
                         <div className="text-left">
-                          <p className="text-xs font-semibold text-slate-800">Klik untuk unggah atau seret berkas ke sini</p>
-                          <p className="text-[11px] text-slate-400 mt-0.5">
+                          <p className="text-xs font-semibold text-foreground">Klik untuk unggah atau seret berkas ke sini</p>
+                          <p className="text-[11px] text-muted-foreground mt-0.5">
                             Format PNG, SVG, atau JPG (Maksimal 2MB, Rasio 1:1 disarankan)
                           </p>
                         </div>
@@ -306,7 +306,7 @@ function PengaturanGlobalPage() {
                     </div>
                     {logoPreview && (
                       <button
-                        className="h-9 px-3.5 border border-slate-200 text-xs font-semibold rounded-lg text-slate-700 hover:bg-slate-50 transition-colors shrink-0 shadow-xs cursor-pointer"
+                        className="h-9 px-3.5 border border-border text-xs font-semibold rounded-lg text-foreground bg-card hover:bg-muted transition-colors shrink-0 shadow-xs cursor-pointer"
                         type="button"
                         onClick={removeLogo}
                       >
@@ -315,7 +315,7 @@ function PengaturanGlobalPage() {
                     )}
                     {!logoPreview && (
                       <button
-                        className="h-9 px-3.5 border border-slate-200 text-xs font-semibold rounded-lg text-slate-700 hover:bg-slate-50 transition-colors shrink-0 shadow-xs cursor-pointer"
+                        className="h-9 px-3.5 border border-border text-xs font-semibold rounded-lg text-foreground bg-card hover:bg-muted transition-colors shrink-0 shadow-xs cursor-pointer"
                         type="button"
                         onClick={handleLogoClick}
                       >
@@ -326,15 +326,15 @@ function PengaturanGlobalPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                    Nama Yayasan / Sekolah Induk <span className="text-rose-500">*</span>
+                  <label className="block text-xs font-semibold text-foreground mb-1.5">
+                    Nama Yayasan / Sekolah Induk <span className="text-destructive">*</span>
                   </label>
                   <div className="relative">
-                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
+                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-muted-foreground">
                       <span className="material-symbols-outlined text-[18px]">domain</span>
                     </span>
                     <input
-                      className="w-full h-9 text-xs text-slate-800 bg-white border border-slate-200 rounded-lg pl-9 pr-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all"
+                      className="w-full h-9 text-xs text-foreground bg-card border border-input rounded-lg pl-9 pr-3 focus:outline-none focus:ring-1 focus:ring-ring transition-all"
                       type="text"
                       value={formData.namaYayasan || ''}
                       onChange={(e) => handleInputChange('namaYayasan', e.target.value)}
@@ -344,13 +344,13 @@ function PengaturanGlobalPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">Nomor Registrasi / SK Yayasan</label>
+                    <label className="block text-xs font-semibold text-foreground mb-1.5">Nomor Registrasi / SK Yayasan</label>
                     <div className="relative">
-                      <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
+                      <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-muted-foreground">
                         <span className="material-symbols-outlined text-[18px]">description</span>
                       </span>
                       <input
-                        className="w-full h-9 text-xs text-slate-800 bg-white border border-slate-200 rounded-lg pl-9 pr-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all"
+                        className="w-full h-9 text-xs text-foreground bg-card border border-input rounded-lg pl-9 pr-3 focus:outline-none focus:ring-1 focus:ring-ring transition-all"
                         type="text"
                         value={formData.skYayasan || ''}
                         onChange={(e) => handleInputChange('skYayasan', e.target.value)}
@@ -358,13 +358,13 @@ function PengaturanGlobalPage() {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">Email Resmi Sekretariat</label>
+                    <label className="block text-xs font-semibold text-foreground mb-1.5">Email Resmi Sekretariat</label>
                     <div className="relative">
-                      <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
+                      <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-muted-foreground">
                         <span className="material-symbols-outlined text-[18px]">mail</span>
                       </span>
                       <input
-                        className="w-full h-9 text-xs text-slate-800 bg-white border border-slate-200 rounded-lg pl-9 pr-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all"
+                        className="w-full h-9 text-xs text-foreground bg-card border border-input rounded-lg pl-9 pr-3 focus:outline-none focus:ring-1 focus:ring-ring transition-all"
                         type="email"
                         value={formData.emailSekretariat || ''}
                         onChange={(e) => handleInputChange('emailSekretariat', e.target.value)}
@@ -374,15 +374,15 @@ function PengaturanGlobalPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                    Alamat Yayasan <span className="text-rose-500">*</span>
+                  <label className="block text-xs font-semibold text-foreground mb-1.5">
+                    Alamat Yayasan <span className="text-destructive">*</span>
                   </label>
                   <div className="relative">
-                    <span className="absolute top-2 left-0 flex items-start pl-3 pointer-events-none text-slate-400">
+                    <span className="absolute top-2 left-0 flex items-start pl-3 pointer-events-none text-muted-foreground">
                       <span className="material-symbols-outlined text-[18px]">place</span>
                     </span>
                     <textarea
-                      className="w-full text-xs text-slate-800 bg-white border border-slate-200 rounded-lg pl-9 pr-3 py-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all resize-none"
+                      className="w-full text-xs text-foreground bg-card border border-input rounded-lg pl-9 pr-3 py-2 focus:outline-none focus:ring-1 focus:ring-ring transition-all resize-none"
                       rows={2}
                       value={formData.alamatYayasan || ''}
                       onChange={(e) => handleInputChange('alamatYayasan', e.target.value)}
@@ -392,13 +392,13 @@ function PengaturanGlobalPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">No. Kontak / WhatsApp Helpdesk</label>
+                    <label className="block text-xs font-semibold text-foreground mb-1.5">No. Kontak / WhatsApp Helpdesk</label>
                     <div className="relative">
-                      <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
+                      <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-muted-foreground">
                         <span className="material-symbols-outlined text-[18px]">phone</span>
                       </span>
                       <input
-                        className="w-full h-9 text-xs text-slate-800 bg-white border border-slate-200 rounded-lg pl-9 pr-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all"
+                        className="w-full h-9 text-xs text-foreground bg-card border border-input rounded-lg pl-9 pr-3 focus:outline-none focus:ring-1 focus:ring-ring transition-all"
                         type="text"
                         value={formData.noWhatsapp || ''}
                         onChange={(e) => handleInputChange('noWhatsapp', e.target.value)}
@@ -406,9 +406,9 @@ function PengaturanGlobalPage() {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">Zona Waktu Default</label>
+                    <label className="block text-xs font-semibold text-foreground mb-1.5">Zona Waktu Default</label>
                     <select
-                      className="w-full h-9 text-xs text-slate-800 bg-white border border-slate-200 rounded-lg px-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all cursor-pointer"
+                      className="w-full h-9 text-xs text-foreground bg-card border border-input rounded-lg px-3 focus:outline-none focus:ring-1 focus:ring-ring transition-all cursor-pointer"
                       value={formData.zonaWaktu || 'WIB'}
                       onChange={(e) => handleInputChange('zonaWaktu', e.target.value)}
                     >
@@ -420,18 +420,18 @@ function PengaturanGlobalPage() {
                 </div>
 
                 <div>
-                  <div className="p-3.5 bg-slate-50/70 border border-slate-200/80 rounded-xl flex items-center justify-between">
+                  <div className="p-3.5 bg-muted/30 border border-border rounded-xl flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0 border border-emerald-100">
+                      <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0 border border-emerald-500/20">
                         <span className="material-symbols-outlined text-[18px]">check_circle</span>
                       </div>
                       <div>
-                        <p className="text-xs font-semibold text-slate-800">5 Unit Operasional Terkoneksi</p>
-                        <p className="text-[11px] text-slate-400">KB-TK, SDIT RJ, SMPIT RJ, SMAIT RJ, & Pesantren Boarding</p>
+                        <p className="text-xs font-semibold text-foreground">5 Unit Operasional Terkoneksi</p>
+                        <p className="text-[11px] text-muted-foreground">KB-TK, SDIT RJ, SMPIT RJ, SMAIT RJ, &amp; Pesantren Boarding</p>
                       </div>
                     </div>
                     <button
-                      className="h-8 px-3 bg-white border border-slate-200 text-slate-700 text-xs font-semibold rounded-lg hover:bg-slate-50 shadow-xs transition-colors cursor-pointer"
+                      className="h-8 px-3 bg-card border border-border text-foreground text-xs font-semibold rounded-lg hover:bg-muted shadow-xs transition-colors cursor-pointer"
                       type="button"
                       onClick={() => showNotification('Sinkronisasi dimulai...', 'info')}
                     >
@@ -446,88 +446,70 @@ function PengaturanGlobalPage() {
       case 'penandatangan':
         return (
           <>
-            <div className="bg-white rounded-xl border border-slate-200/80 p-6 shadow-xs">
-              <div className="border-b border-slate-100 pb-4 mb-6">
-                <h2 className="text-sm font-bold text-slate-900 tracking-tight">Informasi Penandatangan Dokumen</h2>
-                <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
+            <div className="bg-card rounded-xl border border-border p-6 shadow-xs">
+              <div className="border-b border-border pb-4 mb-6">
+                <h2 className="text-sm font-bold text-foreground tracking-tight">Informasi Penandatangan Dokumen</h2>
+                <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
                   Konfigurasi pejabat penandatangan untuk laporan presensi, izin/cuti, dan dokumen resmi yayasan.
                 </p>
               </div>
 
               {/* 1. Ketua Yayasan */}
               <div className="space-y-4">
-                <div className="p-4 bg-slate-50/70 rounded-xl border border-slate-200/80">
+                <div className="p-4 bg-muted/30 rounded-xl border border-border">
                   <div className="flex items-center gap-2 mb-3.5">
-                    <span className="material-symbols-outlined text-blue-600 text-[18px]">badge</span>
-                    <h3 className="text-xs font-bold text-slate-800">Ketua Yayasan</h3>
+                    <span className="material-symbols-outlined text-primary text-[18px]">badge</span>
+                    <h3 className="text-xs font-bold text-foreground">Ketua Yayasan</h3>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
                     <div>
-                      <label className="block text-[11px] font-semibold text-slate-700 mb-1">Nama Ketua Yayasan <span className="text-rose-500">*</span></label>
+                      <label className="block text-[11px] font-semibold text-foreground mb-1">Nama Ketua Yayasan <span className="text-destructive">*</span></label>
                       <input
-                        className="w-full h-9 text-xs text-slate-800 bg-white border border-slate-200 rounded-lg px-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all"
+                        className="w-full h-9 text-xs text-foreground bg-card border border-input rounded-lg px-3 focus:outline-none focus:ring-1 focus:ring-ring transition-all"
                         type="text"
                         value={formData.penandatangan?.kepalaYayasan?.nama || ''}
                         onChange={(e) => handleInputChange('penandatangan.kepalaYayasan.nama', e.target.value)}
                       />
                     </div>
                     <div>
-                      <label className="block text-[11px] font-semibold text-slate-700 mb-1">Jabatan</label>
+                      <label className="block text-[11px] font-semibold text-foreground mb-1">Jabatan</label>
                       <input
-                        className="w-full h-9 text-xs text-slate-800 bg-white border border-slate-200 rounded-lg px-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all"
+                        className="w-full h-9 text-xs text-foreground bg-card border border-input rounded-lg px-3 focus:outline-none focus:ring-1 focus:ring-ring transition-all"
                         type="text"
                         value={formData.penandatangan?.kepalaYayasan?.jabatan || 'Ketua Yayasan'}
                         onChange={(e) => handleInputChange('penandatangan.kepalaYayasan.jabatan', e.target.value)}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[11px] font-semibold text-slate-700 mb-1">Nomor Identitas (opsional)</label>
-                      <input
-                        className="w-full h-9 text-xs text-slate-800 bg-white border border-slate-200 rounded-lg px-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all"
-                        type="text"
-                        value={formData.penandatangan?.kepalaYayasan?.nip || ''}
-                        onChange={(e) => handleInputChange('penandatangan.kepalaYayasan.nip', e.target.value)}
                       />
                     </div>
                   </div>
                 </div>
 
                 {/* 2. Kepala Sekolah per Unit */}
-                <div className="p-4 bg-slate-50/70 rounded-xl border border-slate-200/80">
+                <div className="p-4 bg-muted/30 rounded-xl border border-border">
                   <div className="flex items-center gap-2 mb-3.5">
-                    <span className="material-symbols-outlined text-blue-600 text-[18px]">school</span>
-                    <h3 className="text-xs font-bold text-slate-800">Kepala Sekolah per Unit</h3>
+                    <span className="material-symbols-outlined text-primary text-[18px]">school</span>
+                    <h3 className="text-xs font-bold text-foreground">Kepala Sekolah per Unit</h3>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3.5">
                     {state.units.map((unit) => (
-                      <div key={unit.id} className="p-3.5 bg-white rounded-lg border border-slate-200/80 shadow-xs">
-                        <p className="text-xs font-bold text-blue-700 mb-2.5">{unit.nama}</p>
+                      <div key={unit.id} className="p-3.5 bg-card rounded-lg border border-border shadow-xs">
+                        <p className="text-xs font-bold text-primary mb-2.5">{unit.nama}</p>
                         <div className="space-y-2.5">
                           <div>
-                            <label className="block text-[11px] font-semibold text-slate-600 mb-1">Nama Kepala Sekolah</label>
+                            <label className="block text-[11px] font-semibold text-muted-foreground mb-1">Nama Kepala Sekolah</label>
                             <input
-                              className="w-full h-8 text-xs text-slate-800 bg-slate-50/50 border border-slate-200 rounded-lg px-2.5 focus:outline-none focus:bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all"
+                              className="w-full h-8 text-xs text-foreground bg-muted/40 border border-input rounded-lg px-2.5 focus:outline-none focus:bg-card focus:ring-1 focus:ring-ring transition-all"
                               type="text"
                               value={formData.penandatangan?.kepalaSekolah?.[unit.id]?.nama || ''}
                               onChange={(e) => handleInputChange(`penandatangan.kepalaSekolah.${unit.id}.nama`, e.target.value)}
                             />
                           </div>
                           <div>
-                            <label className="block text-[11px] font-semibold text-slate-600 mb-1">Jabatan</label>
+                            <label className="block text-[11px] font-semibold text-muted-foreground mb-1">Jabatan</label>
                             <input
-                              className="w-full h-8 text-xs text-slate-800 bg-slate-50/50 border border-slate-200 rounded-lg px-2.5 focus:outline-none focus:bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all"
+                              className="w-full h-8 text-xs text-foreground bg-muted/40 border border-input rounded-lg px-2.5 focus:outline-none focus:bg-card focus:ring-1 focus:ring-ring transition-all"
                               type="text"
                               value={formData.penandatangan?.kepalaSekolah?.[unit.id]?.jabatan || `Kepala ${unit.nama}`}
                               onChange={(e) => handleInputChange(`penandatangan.kepalaSekolah.${unit.id}.jabatan`, e.target.value)}
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-[11px] font-semibold text-slate-600 mb-1">Nomor Identitas</label>
-                            <input
-                              className="w-full h-8 text-xs text-slate-800 bg-slate-50/50 border border-slate-200 rounded-lg px-2.5 focus:outline-none focus:bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all"
-                              type="text"
-                              value={formData.penandatangan?.kepalaSekolah?.[unit.id]?.nip || ''}
-                              onChange={(e) => handleInputChange(`penandatangan.kepalaSekolah.${unit.id}.nip`, e.target.value)}
                             />
                           </div>
                         </div>
@@ -537,29 +519,29 @@ function PengaturanGlobalPage() {
                 </div>
 
                 {/* 3. Petugas Presensi */}
-                <div className="p-4 bg-slate-50/70 rounded-xl border border-slate-200/80">
+                <div className="p-4 bg-muted/30 rounded-xl border border-border">
                   <div className="flex items-center gap-2 mb-3.5">
-                    <span className="material-symbols-outlined text-blue-600 text-[18px]">how_to_reg</span>
-                    <h3 className="text-xs font-bold text-slate-800">Petugas Presensi</h3>
+                    <span className="material-symbols-outlined text-primary text-[18px]">how_to_reg</span>
+                    <h3 className="text-xs font-bold text-foreground">Petugas Presensi</h3>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3.5">
                     {/* Yayasan */}
-                    <div className="p-3.5 bg-white rounded-lg border border-slate-200/80 shadow-xs">
-                      <p className="text-xs font-bold text-blue-700 mb-2.5">Yayasan Pusat</p>
+                    <div className="p-3.5 bg-card rounded-lg border border-border shadow-xs">
+                      <p className="text-xs font-bold text-primary mb-2.5">Yayasan Pusat</p>
                       <div className="space-y-2.5">
                         <div>
-                          <label className="block text-[11px] font-semibold text-slate-600 mb-1">Nama Petugas</label>
+                          <label className="block text-[11px] font-semibold text-muted-foreground mb-1">Nama Petugas</label>
                           <input
-                            className="w-full h-8 text-xs text-slate-800 bg-slate-50/50 border border-slate-200 rounded-lg px-2.5 focus:outline-none focus:bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all"
+                            className="w-full h-8 text-xs text-foreground bg-muted/40 border border-input rounded-lg px-2.5 focus:outline-none focus:bg-card focus:ring-1 focus:ring-ring transition-all"
                             type="text"
                             value={formData.penandatangan?.petugasPresensi?.yayasan?.nama || ''}
                             onChange={(e) => handleInputChange('penandatangan.petugasPresensi.yayasan.nama', e.target.value)}
                           />
                         </div>
                         <div>
-                          <label className="block text-[11px] font-semibold text-slate-600 mb-1">Jabatan</label>
+                          <label className="block text-[11px] font-semibold text-muted-foreground mb-1">Jabatan</label>
                           <input
-                            className="w-full h-8 text-xs text-slate-800 bg-slate-50/50 border border-slate-200 rounded-lg px-2.5 focus:outline-none focus:bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all"
+                            className="w-full h-8 text-xs text-foreground bg-muted/40 border border-input rounded-lg px-2.5 focus:outline-none focus:bg-card focus:ring-1 focus:ring-ring transition-all"
                             type="text"
                             value={formData.penandatangan?.petugasPresensi?.yayasan?.jabatan || 'Petugas Presensi Yayasan'}
                             onChange={(e) => handleInputChange('penandatangan.petugasPresensi.yayasan.jabatan', e.target.value)}
@@ -569,22 +551,22 @@ function PengaturanGlobalPage() {
                     </div>
                     {/* Per Unit */}
                     {state.units.map((unit) => (
-                      <div key={`petugas-${unit.id}`} className="p-3.5 bg-white rounded-lg border border-slate-200/80 shadow-xs">
-                        <p className="text-xs font-bold text-blue-700 mb-2.5">{unit.nama}</p>
+                      <div key={`petugas-${unit.id}`} className="p-3.5 bg-card rounded-lg border border-border shadow-xs">
+                        <p className="text-xs font-bold text-primary mb-2.5">{unit.nama}</p>
                         <div className="space-y-2.5">
                           <div>
-                            <label className="block text-[11px] font-semibold text-slate-600 mb-1">Nama Petugas</label>
+                            <label className="block text-[11px] font-semibold text-muted-foreground mb-1">Nama Petugas</label>
                             <input
-                              className="w-full h-8 text-xs text-slate-800 bg-slate-50/50 border border-slate-200 rounded-lg px-2.5 focus:outline-none focus:bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all"
+                              className="w-full h-8 text-xs text-foreground bg-muted/40 border border-input rounded-lg px-2.5 focus:outline-none focus:bg-card focus:ring-1 focus:ring-ring transition-all"
                               type="text"
                               value={formData.penandatangan?.petugasPresensi?.[unit.id]?.nama || ''}
                               onChange={(e) => handleInputChange(`penandatangan.petugasPresensi.${unit.id}.nama`, e.target.value)}
                             />
                           </div>
                           <div>
-                            <label className="block text-[11px] font-semibold text-slate-600 mb-1">Jabatan</label>
+                            <label className="block text-[11px] font-semibold text-muted-foreground mb-1">Jabatan</label>
                             <input
-                              className="w-full h-8 text-xs text-slate-800 bg-slate-50/50 border border-slate-200 rounded-lg px-2.5 focus:outline-none focus:bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all"
+                              className="w-full h-8 text-xs text-foreground bg-muted/40 border border-input rounded-lg px-2.5 focus:outline-none focus:bg-card focus:ring-1 focus:ring-ring transition-all"
                               type="text"
                               value={formData.penandatangan?.petugasPresensi?.[unit.id]?.jabatan || `Petugas Presensi ${unit.nama}`}
                               onChange={(e) => handleInputChange(`penandatangan.petugasPresensi.${unit.id}.jabatan`, e.target.value)}
@@ -597,43 +579,43 @@ function PengaturanGlobalPage() {
                 </div>
 
                 {/* 4. Admin / TU */}
-                <div className="p-4 bg-slate-50/70 rounded-xl border border-slate-200/80">
+                <div className="p-4 bg-muted/30 rounded-xl border border-border">
                   <div className="flex items-center gap-2 mb-3.5">
-                    <span className="material-symbols-outlined text-blue-600 text-[18px]">admin_panel_settings</span>
-                    <h3 className="text-xs font-bold text-slate-800">Admin / Tata Usaha</h3>
+                    <span className="material-symbols-outlined text-primary text-[18px]">admin_panel_settings</span>
+                    <h3 className="text-xs font-bold text-foreground">Admin / Tata Usaha</h3>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
                     <div>
-                      <label className="block text-[11px] font-semibold text-slate-700 mb-1">Nama Kepala Tata Usaha</label>
+                      <label className="block text-[11px] font-semibold text-foreground mb-1">Nama Kepala Tata Usaha</label>
                       <input
-                        className="w-full h-9 text-xs text-slate-800 bg-white border border-slate-200 rounded-lg px-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all"
+                        className="w-full h-9 text-xs text-foreground bg-card border border-input rounded-lg px-3 focus:outline-none focus:ring-1 focus:ring-ring transition-all"
                         type="text"
                         value={formData.penandatangan?.adminTU?.kepalaTU?.nama || ''}
                         onChange={(e) => handleInputChange('penandatangan.adminTU.kepalaTU.nama', e.target.value)}
                       />
                     </div>
                     <div>
-                      <label className="block text-[11px] font-semibold text-slate-700 mb-1">Jabatan</label>
+                      <label className="block text-[11px] font-semibold text-foreground mb-1">Jabatan</label>
                       <input
-                        className="w-full h-9 text-xs text-slate-800 bg-white border border-slate-200 rounded-lg px-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all"
+                        className="w-full h-9 text-xs text-foreground bg-card border border-input rounded-lg px-3 focus:outline-none focus:ring-1 focus:ring-ring transition-all"
                         type="text"
                         value={formData.penandatangan?.adminTU?.kepalaTU?.jabatan || 'Kepala Tata Usaha'}
                         onChange={(e) => handleInputChange('penandatangan.adminTU.kepalaTU.jabatan', e.target.value)}
                       />
                     </div>
                     <div>
-                      <label className="block text-[11px] font-semibold text-slate-700 mb-1">Nama Operator Sistem</label>
+                      <label className="block text-[11px] font-semibold text-foreground mb-1">Nama Operator Sistem</label>
                       <input
-                        className="w-full h-9 text-xs text-slate-800 bg-white border border-slate-200 rounded-lg px-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all"
+                        className="w-full h-9 text-xs text-foreground bg-card border border-input rounded-lg px-3 focus:outline-none focus:ring-1 focus:ring-ring transition-all"
                         type="text"
                         value={formData.penandatangan?.adminTU?.operatorSistem?.nama || ''}
                         onChange={(e) => handleInputChange('penandatangan.adminTU.operatorSistem.nama', e.target.value)}
                       />
                     </div>
                     <div>
-                      <label className="block text-[11px] font-semibold text-slate-700 mb-1">Jabatan</label>
+                      <label className="block text-[11px] font-semibold text-foreground mb-1">Jabatan</label>
                       <input
-                        className="w-full h-9 text-xs text-slate-800 bg-white border border-slate-200 rounded-lg px-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all"
+                        className="w-full h-9 text-xs text-foreground bg-card border border-input rounded-lg px-3 focus:outline-none focus:ring-1 focus:ring-ring transition-all"
                         type="text"
                         value={formData.penandatangan?.adminTU?.operatorSistem?.jabatan || 'Operator Sistem'}
                         onChange={(e) => handleInputChange('penandatangan.adminTU.operatorSistem.jabatan', e.target.value)}
@@ -648,72 +630,72 @@ function PengaturanGlobalPage() {
       case 'operasional':
         return (
           <>
-            <div className="bg-white rounded-xl border border-slate-200/80 p-6 shadow-xs">
-              <div className="border-b border-slate-100 pb-4 mb-6">
-                <h2 className="text-sm font-bold text-slate-900 tracking-tight">Parameter Operasional</h2>
-                <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
+            <div className="bg-card rounded-xl border border-border p-6 shadow-xs">
+              <div className="border-b border-border pb-4 mb-6">
+                <h2 className="text-sm font-bold text-foreground tracking-tight">Parameter Operasional</h2>
+                <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
                   Aturan jam kerja global SimPres, radius geofence, dan validasi lokasi presensi.
                 </p>
               </div>
 
               {/* 1. Jam kerja global */}
               <div className="space-y-4">
-                <div className="p-4 bg-slate-50/70 rounded-xl border border-slate-200/80">
+                <div className="p-4 bg-muted/30 rounded-xl border border-border">
                   <div className="flex items-center gap-2 mb-3.5">
-                    <span className="material-symbols-outlined text-blue-600 text-[18px]">calendar_today</span>
-                    <h3 className="text-xs font-bold text-slate-800">Jam Kerja Global</h3>
+                    <span className="material-symbols-outlined text-primary text-[18px]">calendar_today</span>
+                    <h3 className="text-xs font-bold text-foreground">Jam Kerja Global</h3>
                   </div>
-                  <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+                  <div className="overflow-x-auto rounded-lg border border-border bg-card">
                     <table className="w-full text-xs">
                       <thead>
-                        <tr className="bg-slate-50/80 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200">
+                        <tr className="bg-muted text-left text-[11px] font-bold text-muted-foreground uppercase tracking-wider border-b border-border">
                           <th className="py-2.5 px-3.5">Hari</th>
                           <th className="py-2.5 px-3.5">Jam Masuk</th>
                           <th className="py-2.5 px-3.5">Jam Pulang</th>
                           <th className="py-2.5 px-3.5">Keterangan</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100">
+                      <tbody className="divide-y divide-border">
                         {daftarJamKerja().map((h) => (
-                          <tr key={h.hari} className="hover:bg-slate-50/60 transition-colors">
-                            <td className="py-2 px-3.5 font-semibold text-slate-800">{h.hari}</td>
-                            <td className="py-2 px-3.5 text-slate-700 font-mono">{h.jamMasuk}</td>
-                            <td className="py-2 px-3.5 text-slate-700 font-mono">
+                          <tr key={h.hari} className="hover:bg-muted/40 transition-colors">
+                            <td className="py-2 px-3.5 font-semibold text-foreground">{h.hari}</td>
+                            <td className="py-2 px-3.5 text-foreground font-mono">{h.jamMasuk}</td>
+                            <td className="py-2 px-3.5 text-foreground font-mono">
                               {h.jamPulang ?? 'Bebas'}
                             </td>
-                            <td className="py-2 px-3.5 text-slate-500">
+                            <td className="py-2 px-3.5 text-muted-foreground">
                               {h.hari === 'Jumat'
                                 ? 'Tidak memiliki batas minimal jam pulang'
                                 : 'Masuk tepat pada batas = Tepat Waktu'}
                             </td>
                           </tr>
                         ))}
-                        <tr className="hover:bg-slate-50/60 transition-colors">
-                          <td className="py-2 px-3.5 font-semibold text-slate-800">Minggu</td>
-                          <td className="py-2 px-3.5 text-slate-400 font-mono">-</td>
-                          <td className="py-2 px-3.5 text-slate-400 font-mono">-</td>
-                          <td className="py-2 px-3.5 text-slate-400">Bukan hari kerja</td>
+                        <tr className="hover:bg-muted/40 transition-colors">
+                          <td className="py-2 px-3.5 font-semibold text-foreground">Minggu</td>
+                          <td className="py-2 px-3.5 text-muted-foreground font-mono">-</td>
+                          <td className="py-2 px-3.5 text-muted-foreground font-mono">-</td>
+                          <td className="py-2 px-3.5 text-muted-foreground">Bukan hari kerja</td>
                         </tr>
                       </tbody>
                     </table>
                   </div>
-                  <p className="text-[11px] text-slate-500 mt-3 leading-relaxed">
+                  <p className="text-[11px] text-muted-foreground mt-3 leading-relaxed">
                     Aturan ini adalah satu-satunya acuan status presensi. Keterlambatan dihitung otomatis
                     dari selisih menit antara jam masuk dan batas jam masuk hari tersebut.
                   </p>
                 </div>
 
                 {/* 2. Geofence & validasi lokasi */}
-                <div className="p-4 bg-slate-50/70 rounded-xl border border-slate-200/80">
+                <div className="p-4 bg-muted/30 rounded-xl border border-border">
                   <div className="flex items-center gap-2 mb-3.5">
-                    <span className="material-symbols-outlined text-blue-600 text-[18px]">how_to_reg</span>
-                    <h3 className="text-xs font-bold text-slate-800">Presensi & Validasi Lokasi</h3>
+                    <span className="material-symbols-outlined text-primary text-[18px]">how_to_reg</span>
+                    <h3 className="text-xs font-bold text-foreground">Presensi & Validasi Lokasi</h3>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-[11px] font-semibold text-slate-700 mb-1.5">Radius Geofence Default (meter)</label>
+                      <label className="block text-[11px] font-semibold text-foreground mb-1.5">Radius Geofence Default (meter)</label>
                       <input
-                        className="w-full h-9 text-xs text-slate-800 bg-white border border-slate-200 rounded-lg px-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all"
+                        className="w-full h-9 text-xs text-foreground bg-card border border-input rounded-lg px-3 focus:outline-none focus:ring-1 focus:ring-ring transition-all"
                         type="number"
                         min="10"
                         max="500"
@@ -728,9 +710,9 @@ function PengaturanGlobalPage() {
                         type="checkbox"
                         checked={formData.presensi?.lokasiAktif !== false}
                         onChange={(e) => handleInputChange('presensi.lokasiAktif', e.target.checked)}
-                        className="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500/20 cursor-pointer"
+                        className="w-4 h-4 text-primary border-input rounded focus:ring-ring cursor-pointer accent-primary"
                       />
-                      <span className="text-xs font-medium text-slate-800">Aktifkan Validasi Lokasi Presensi (GPS / Geofence)</span>
+                      <span className="text-xs font-medium text-foreground">Aktifkan Validasi Lokasi Presensi (GPS / Geofence)</span>
                     </label>
                   </div>
                 </div>
@@ -741,54 +723,54 @@ function PengaturanGlobalPage() {
       case 'keamanan':
         return (
           <>
-            <div className="bg-white rounded-xl border border-slate-200/80 p-6 shadow-xs">
-              <div className="border-b border-slate-100 pb-4 mb-6">
-                <h2 className="text-sm font-bold text-slate-900 tracking-tight">Kebijakan Keamanan</h2>
-                <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
+            <div className="bg-card rounded-xl border border-border p-6 shadow-xs">
+              <div className="border-b border-border pb-4 mb-6">
+                <h2 className="text-sm font-bold text-foreground tracking-tight">Kebijakan Keamanan</h2>
+                <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
                   Atur kebijakan keamanan sistem untuk melindungi akses dan data pengguna.
                 </p>
               </div>
 
               <div className="space-y-4">
                 {/* Password Policy */}
-                <div className="p-4 bg-slate-50/70 rounded-xl border border-slate-200/80">
+                <div className="p-4 bg-muted/30 rounded-xl border border-border">
                   <div className="flex items-center gap-2 mb-3.5">
-                    <span className="material-symbols-outlined text-blue-600 text-[18px]">lock</span>
-                    <h3 className="text-xs font-bold text-slate-800">Kebijakan Password</h3>
+                    <span className="material-symbols-outlined text-primary text-[18px]">lock</span>
+                    <h3 className="text-xs font-bold text-foreground">Kebijakan Password</h3>
                   </div>
                   <div className="space-y-3.5">
                     <div className="flex items-start justify-between gap-4">
                       <div>
-                        <p className="text-xs font-semibold text-slate-800">Wajib ganti password saat login pertama</p>
-                        <p className="text-[11px] text-slate-400 mt-0.5">
+                        <p className="text-xs font-semibold text-foreground">Wajib ganti password saat login pertama</p>
+                        <p className="text-[11px] text-muted-foreground mt-0.5">
                           Untuk semua akun guru & staf baru yang dibuat admin.
                         </p>
                       </div>
                       <ToggleSwitch checked={toggles.gantiPassword} onChange={() => handleToggle('gantiPassword')} />
                     </div>
-                    <div className="flex items-center justify-between pt-3 border-t border-slate-200/60">
+                    <div className="flex items-center justify-between pt-3 border-t border-border">
                       <div>
-                        <p className="text-xs font-semibold text-slate-800">Panjang Minimum Password</p>
-                        <p className="text-[11px] text-slate-400 mt-0.5">
+                        <p className="text-xs font-semibold text-foreground">Panjang Minimum Password</p>
+                        <p className="text-[11px] text-muted-foreground mt-0.5">
                           Kombinasi Huruf Besar, Angka, & Simbol.
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
                         <input
-                          className="w-20 h-8 text-xs text-center text-slate-800 bg-white border border-slate-200 rounded-lg px-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all"
+                          className="w-20 h-8 text-xs text-center text-foreground bg-card border border-input rounded-lg px-2 focus:outline-none focus:ring-1 focus:ring-ring transition-all"
                           type="number"
                           min="6"
                           max="32"
                           value={formData.keamanan?.minimalPassword || 8}
                           onChange={(e) => handleInputChange('keamanan.minimalPassword', parseInt(e.target.value) || 0)}
                         />
-                        <span className="text-[11px] text-slate-500">karakter</span>
+                        <span className="text-[11px] text-muted-foreground">karakter</span>
                       </div>
                     </div>
-                    <div className="flex items-start justify-between gap-4 pt-3 border-t border-slate-200/60">
+                    <div className="flex items-start justify-between gap-4 pt-3 border-t border-border">
                       <div>
-                        <p className="text-xs font-semibold text-slate-800">Verifikasi Dua Langkah (2FA)</p>
-                        <p className="text-[11px] text-slate-400 mt-0.5">
+                        <p className="text-xs font-semibold text-foreground">Verifikasi Dua Langkah (2FA)</p>
+                        <p className="text-[11px] text-muted-foreground mt-0.5">
                           Wajib untuk akun Admin Unit & Superadmin Pusat.
                         </p>
                       </div>
@@ -798,74 +780,74 @@ function PengaturanGlobalPage() {
                 </div>
 
                 {/* Session Policy */}
-                <div className="p-4 bg-slate-50/70 rounded-xl border border-slate-200/80">
+                <div className="p-4 bg-muted/30 rounded-xl border border-border">
                   <div className="flex items-center gap-2 mb-3.5">
-                    <span className="material-symbols-outlined text-blue-600 text-[18px]">schedule</span>
-                    <h3 className="text-xs font-bold text-slate-800">Kebijakan Session</h3>
+                    <span className="material-symbols-outlined text-primary text-[18px]">schedule</span>
+                    <h3 className="text-xs font-bold text-foreground">Kebijakan Session</h3>
                   </div>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <div>
-                        <label className="text-xs font-semibold text-slate-800">Durasi Session Login</label>
-                        <p className="text-[11px] text-slate-400">Masa aktif token sesi</p>
+                        <label className="text-xs font-semibold text-foreground">Durasi Session Login</label>
+                        <p className="text-[11px] text-muted-foreground">Masa aktif token sesi</p>
                       </div>
                       <div className="flex items-center gap-2">
                         <input
-                          className="w-20 h-8 text-xs text-center text-slate-800 bg-white border border-slate-200 rounded-lg px-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all"
+                          className="w-20 h-8 text-xs text-center text-foreground bg-card border border-input rounded-lg px-2 focus:outline-none focus:ring-1 focus:ring-ring transition-all"
                           type="number"
                           min="1"
                           max="24"
                           value={formData.keamanan?.durasiSession || 8}
                           onChange={(e) => handleInputChange('keamanan.durasiSession', parseInt(e.target.value) || 0)}
                         />
-                        <span className="text-[11px] text-slate-500">jam</span>
+                        <span className="text-[11px] text-muted-foreground">jam</span>
                       </div>
                     </div>
-                    <div className="flex items-center justify-between pt-3 border-t border-slate-200/60">
+                    <div className="flex items-center justify-between pt-3 border-t border-border">
                       <div>
-                        <label className="text-xs font-semibold text-slate-800">Auto Logout</label>
-                        <p className="text-[11px] text-slate-400">Waktu tidak aktif sebelum logout otomatis</p>
+                        <label className="text-xs font-semibold text-foreground">Auto Logout</label>
+                        <p className="text-[11px] text-muted-foreground">Waktu tidak aktif sebelum logout otomatis</p>
                       </div>
                       <div className="flex items-center gap-2">
                         <input
-                          className="w-20 h-8 text-xs text-center text-slate-800 bg-white border border-slate-200 rounded-lg px-2 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all"
+                          className="w-20 h-8 text-xs text-center text-foreground bg-card border border-input rounded-lg px-2 focus:outline-none focus:ring-1 focus:ring-ring transition-all"
                           type="number"
                           min="5"
                           max="120"
                           value={formData.keamanan?.autoLogout || 30}
                           onChange={(e) => handleInputChange('keamanan.autoLogout', parseInt(e.target.value) || 0)}
                         />
-                        <span className="text-[11px] text-slate-500">menit</span>
+                        <span className="text-[11px] text-muted-foreground">menit</span>
                       </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Security Status */}
-                <div className="p-4 bg-slate-50/70 rounded-xl border border-slate-200/80">
-                  <div className="flex items-center justify-between pb-3 border-b border-slate-200/70">
+                <div className="p-4 bg-muted/30 rounded-xl border border-border">
+                  <div className="flex items-center justify-between pb-3 border-b border-border">
                     <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100">
+                      <div className="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-500/20">
                         <span className="material-symbols-outlined text-[17px]">shield_lock</span>
                       </div>
-                      <h3 className="text-xs font-bold text-slate-800">Ringkasan Status Keamanan</h3>
+                      <h3 className="text-xs font-bold text-foreground">Ringkasan Status Keamanan</h3>
                     </div>
-                    <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
                       Status: Aktif
                     </span>
                   </div>
                   <div className="py-3 space-y-3">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="text-slate-600">Ganti Password Pertama</span>
-                      <span className="font-semibold text-slate-800">{toggles.gantiPassword ? 'Diwajibkan' : 'Opsional'}</span>
+                      <span className="text-muted-foreground">Ganti Password Pertama</span>
+                      <span className="font-semibold text-foreground">{toggles.gantiPassword ? 'Diwajibkan' : 'Opsional'}</span>
                     </div>
-                    <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-200/60">
-                      <span className="text-slate-600">Panjang Minimum</span>
-                      <span className="font-semibold text-slate-800">{formData.keamanan?.minimalPassword || 8} Karakter</span>
+                    <div className="flex items-center justify-between text-xs pt-2 border-t border-border">
+                      <span className="text-muted-foreground">Panjang Minimum</span>
+                      <span className="font-semibold text-foreground">{formData.keamanan?.minimalPassword || 8} Karakter</span>
                     </div>
-                    <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-200/60">
-                      <span className="text-slate-600">Verifikasi 2-Langkah</span>
-                      <span className="font-semibold text-slate-800">{toggles.verifikasi2fa ? 'Diaktifkan' : 'Nonaktif'}</span>
+                    <div className="flex items-center justify-between text-xs pt-2 border-t border-border">
+                      <span className="text-muted-foreground">Verifikasi 2-Langkah</span>
+                      <span className="font-semibold text-foreground">{toggles.verifikasi2fa ? 'Diaktifkan' : 'Nonaktif'}</span>
                     </div>
                   </div>
                 </div>
@@ -876,44 +858,44 @@ function PengaturanGlobalPage() {
       case 'default':
         return (
           <>
-            <div className="bg-white rounded-xl border border-slate-200/80 p-6 shadow-xs">
-              <div className="border-b border-slate-100 pb-4 mb-6">
-                <h2 className="text-sm font-bold text-slate-900 tracking-tight">Default Sistem</h2>
-                <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
+            <div className="bg-card rounded-xl border border-border p-6 shadow-xs">
+              <div className="border-b border-border pb-4 mb-6">
+                <h2 className="text-sm font-bold text-foreground tracking-tight">Default Sistem</h2>
+                <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
                   Parameter master, konfigurasi default laporan &amp; notifikasi, serta hari libur nasional.
                 </p>
               </div>
 
               <div className="space-y-4">
                 {/* 1. Parameter Master */}
-                <div className="p-4 bg-slate-50/70 rounded-xl border border-slate-200/80">
+                <div className="p-4 bg-muted/30 rounded-xl border border-border">
                   <div className="flex items-center gap-2 mb-3.5">
-                    <span className="material-symbols-outlined text-blue-600 text-[18px]">tune</span>
-                    <h3 className="text-xs font-bold text-slate-800">Parameter Master</h3>
+                    <span className="material-symbols-outlined text-primary text-[18px]">tune</span>
+                    <h3 className="text-xs font-bold text-foreground">Parameter Master</h3>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-[11px] font-semibold text-slate-700 mb-1.5">Radius Geofence Default (meter)</label>
+                      <label className="block text-[11px] font-semibold text-foreground mb-1.5">Radius Geofence Default (meter)</label>
                       <input
-                        className="w-full h-9 text-xs text-slate-800 bg-white border border-slate-200 rounded-lg px-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all"
+                        className="w-full h-9 text-xs text-foreground bg-card border border-input rounded-lg px-3 focus:outline-none focus:ring-1 focus:ring-ring transition-all"
                         type="number"
                         min="10"
                         max="500"
                         value={formData.presensi?.radiusGeofenceDefault || 50}
                         onChange={(e) => handleInputChange('presensi.radiusGeofenceDefault', parseInt(e.target.value) || 0)}
                       />
-                      <span className="text-[11px] text-slate-400 mt-1 block">Digunakan sebagai radius default presensi unit baru.</span>
+                      <span className="text-[11px] text-muted-foreground mt-1 block">Digunakan sebagai radius default presensi unit baru.</span>
                     </div>
                     <div>
-                      <label className="block text-[11px] font-semibold text-slate-700 mb-1.5">Jam Kerja Global (read-only)</label>
-                      <div className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 space-y-1">
+                      <label className="block text-[11px] font-semibold text-foreground mb-1.5">Jam Kerja Global (read-only)</label>
+                      <div className="w-full rounded-lg border border-border bg-card px-3 py-2 space-y-1">
                         {daftarJamKerja().map((h) => (
-                          <p key={h.hari} className="text-xs text-slate-700 tabular-nums">
-                            <span className="font-semibold text-slate-800">{h.hari}</span>: {h.jamMasuk} - {h.jamPulang ?? 'bebas'}
+                          <p key={h.hari} className="text-xs text-foreground tabular-nums">
+                            <span className="font-semibold text-foreground">{h.hari}</span>: {h.jamMasuk} - {h.jamPulang ?? 'bebas'}
                           </p>
                         ))}
                       </div>
-                      <span className="text-[11px] text-slate-400 mt-1 block">
+                      <span className="text-[11px] text-muted-foreground mt-1 block">
                         Diperbaiki di data/jamKerja.js — berlaku seragam untuk seluruh unit.
                       </span>
                     </div>
@@ -921,35 +903,35 @@ function PengaturanGlobalPage() {
                 </div>
 
                 {/* 2. Konfigurasi Default */}
-                <div className="p-4 bg-slate-50/70 rounded-xl border border-slate-200/80">
+                <div className="p-4 bg-muted/30 rounded-xl border border-border">
                   <div className="flex items-center gap-2 mb-3.5">
-                    <span className="material-symbols-outlined text-blue-600 text-[18px]">settings</span>
-                    <h3 className="text-xs font-bold text-slate-800">Konfigurasi Default</h3>
+                    <span className="material-symbols-outlined text-primary text-[18px]">settings</span>
+                    <h3 className="text-xs font-bold text-foreground">Konfigurasi Default</h3>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
                     <div>
-                      <label className="block text-[11px] font-semibold text-slate-700 mb-1">Format Nomor Laporan</label>
+                      <label className="block text-[11px] font-semibold text-foreground mb-1">Format Nomor Laporan</label>
                       <input
-                        className="w-full h-9 text-xs text-slate-800 bg-white border border-slate-200 rounded-lg px-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all"
+                        className="w-full h-9 text-xs text-foreground bg-card border border-input rounded-lg px-3 focus:outline-none focus:ring-1 focus:ring-ring transition-all"
                         type="text"
                         value={formData.rekap?.formatNomorLaporan || String('LPR/{UNIT}/{TAHUN}/{BULAN}/{URUT:04d}')}
                         onChange={(e) => handleInputChange('rekap.formatNomorLaporan', e.target.value)}
                       />
-                      <span className="text-[11px] text-slate-400 mt-1 block">{'Placeholder: {UNIT}, {TAHUN}, {BULAN}, {URUT:04d}'}</span>
+                      <span className="text-[11px] text-muted-foreground mt-1 block">{'Placeholder: {UNIT}, {TAHUN}, {BULAN}, {URUT:04d}'}</span>
                     </div>
                     <div>
-                      <label className="block text-[11px] font-semibold text-slate-700 mb-1">Prefix Dokumen</label>
+                      <label className="block text-[11px] font-semibold text-foreground mb-1">Prefix Dokumen</label>
                       <input
-                        className="w-full h-9 text-xs text-slate-800 bg-white border border-slate-200 rounded-lg px-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all"
+                        className="w-full h-9 text-xs text-foreground bg-card border border-input rounded-lg px-3 focus:outline-none focus:ring-1 focus:ring-ring transition-all"
                         type="text"
                         value={formData.rekap?.prefixDokumen || 'SIMPRES'}
                         onChange={(e) => handleInputChange('rekap.prefixDokumen', e.target.value)}
                       />
                     </div>
                     <div>
-                      <label className="block text-[11px] font-semibold text-slate-700 mb-1">Default Periode Laporan</label>
+                      <label className="block text-[11px] font-semibold text-foreground mb-1">Default Periode Laporan</label>
                       <select
-                        className="w-full h-9 text-xs text-slate-800 bg-white border border-slate-200 rounded-lg px-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all cursor-pointer"
+                        className="w-full h-9 text-xs text-foreground bg-card border border-input rounded-lg px-3 focus:outline-none focus:ring-1 focus:ring-ring transition-all cursor-pointer"
                         value={formData.rekap?.defaultPeriodeLaporan || 'Bulanan'}
                         onChange={(e) => handleInputChange('rekap.defaultPeriodeLaporan', e.target.value)}
                       >
@@ -960,47 +942,47 @@ function PengaturanGlobalPage() {
                       </select>
                     </div>
                   </div>
-                  <div className="mt-4 pt-3.5 border-t border-slate-200/70 space-y-2.5">
-                    <p className="text-[11px] font-semibold text-slate-700">Notifikasi Default</p>
+                  <div className="mt-4 pt-3.5 border-t border-border space-y-2.5">
+                    <p className="text-[11px] font-semibold text-foreground">Notifikasi Default</p>
                     <label className="flex items-center gap-2.5 cursor-pointer">
                       <input
                         type="checkbox"
                         checked={formData.notifikasi?.emailAktif !== false}
                         onChange={(e) => handleInputChange('notifikasi.emailAktif', e.target.checked)}
-                        className="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500/20 cursor-pointer"
+                        className="w-4 h-4 text-primary border-input rounded focus:ring-ring cursor-pointer accent-primary"
                       />
-                      <span className="text-xs text-slate-700">Aktifkan Notifikasi Email</span>
+                      <span className="text-xs text-foreground">Aktifkan Notifikasi Email</span>
                     </label>
                     <label className="flex items-center gap-2.5 cursor-pointer">
                       <input
                         type="checkbox"
                         checked={formData.notifikasi?.whatsappAktif !== false}
                         onChange={(e) => handleInputChange('notifikasi.whatsappAktif', e.target.checked)}
-                        className="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500/20 cursor-pointer"
+                        className="w-4 h-4 text-primary border-input rounded focus:ring-ring cursor-pointer accent-primary"
                       />
-                      <span className="text-xs text-slate-700">Aktifkan Notifikasi WhatsApp</span>
+                      <span className="text-xs text-foreground">Aktifkan Notifikasi WhatsApp</span>
                     </label>
                     <label className="flex items-center gap-2.5 cursor-pointer">
                       <input
                         type="checkbox"
                         checked={formData.notifikasi?.approvalIzinAktif !== false}
                         onChange={(e) => handleInputChange('notifikasi.approvalIzinAktif', e.target.checked)}
-                        className="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500/20 cursor-pointer"
+                        className="w-4 h-4 text-primary border-input rounded focus:ring-ring cursor-pointer accent-primary"
                       />
-                      <span className="text-xs text-slate-700">Notifikasi Approval Izin/Cuti</span>
+                      <span className="text-xs text-foreground">Notifikasi Approval Izin/Cuti</span>
                     </label>
                   </div>
                 </div>
 
                 {/* 3. Hari Libur */}
-                <div className="p-4 bg-slate-50/70 rounded-xl border border-slate-200/80">
+                <div className="p-4 bg-muted/30 rounded-xl border border-border">
                   <div className="flex items-center justify-between mb-3.5">
                     <div className="flex items-center gap-2">
-                      <span className="material-symbols-outlined text-blue-600 text-[18px]">event</span>
-                      <h3 className="text-xs font-bold text-slate-800">Hari Libur Nasional (2026)</h3>
+                      <span className="material-symbols-outlined text-primary text-[18px]">event</span>
+                      <h3 className="text-xs font-bold text-foreground">Hari Libur Nasional (2026)</h3>
                     </div>
                     <button
-                      className="text-xs font-semibold text-blue-600 hover:text-blue-700 hover:underline cursor-pointer"
+                      className="text-xs font-semibold text-primary hover:underline cursor-pointer"
                       type="button"
                       onClick={() => showNotification('Fitur tambah libur', 'info')}
                     >
@@ -1009,9 +991,9 @@ function PengaturanGlobalPage() {
                   </div>
                   <div className="space-y-1.5">
                     {holidayData.map((holiday, idx) => (
-                      <div key={idx} className="flex items-center justify-between p-2.5 rounded-lg bg-white border border-slate-200/80 text-xs shadow-xs">
-                        <span className="font-semibold text-slate-800 font-mono">{holiday.date}</span>
-                        <span className="text-slate-500 truncate max-w-[240px]">{holiday.name}</span>
+                      <div key={idx} className="flex items-center justify-between p-2.5 rounded-lg bg-card border border-border text-xs shadow-xs">
+                        <span className="font-semibold text-foreground font-mono">{holiday.date}</span>
+                        <span className="text-muted-foreground truncate max-w-[240px]">{holiday.name}</span>
                       </div>
                     ))}
                   </div>
@@ -1026,65 +1008,65 @@ function PengaturanGlobalPage() {
   }
 
   const SideCardPenandatangan = () => (
-    <div className="bg-white rounded-xl border border-slate-200/80 p-5 shadow-xs">
-      <div className="flex items-center justify-between pb-3.5 border-b border-slate-100">
+    <div className="bg-card rounded-xl border border-border p-5 shadow-xs">
+      <div className="flex items-center justify-between pb-3.5 border-b border-border">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-100">
+          <div className="w-7 h-7 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center border border-amber-500/20">
             <span className="material-symbols-outlined text-[17px]">badge</span>
           </div>
-          <h3 className="text-xs font-bold text-slate-800">Penandatangan Dokumen</h3>
+          <h3 className="text-xs font-bold text-foreground">Penandatangan Dokumen</h3>
         </div>
-        <span className="text-[11px] font-medium text-slate-400">Pejabat Resmi</span>
+        <span className="text-[11px] font-medium text-muted-foreground">Pejabat Resmi</span>
       </div>
       <div className="py-3.5 space-y-3">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs font-semibold text-slate-800">Ketua Yayasan</p>
-            <p className="text-[11px] text-slate-400 mt-0.5">
+            <p className="text-xs font-semibold text-foreground">Ketua Yayasan</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">
               {formData.penandatangan?.kepalaYayasan?.nama ? 'Terisi' : 'Belum diisi'}
             </p>
           </div>
           <span className={`px-2 py-0.5 text-[11px] font-semibold rounded-full border ${
-            formData.penandatangan?.kepalaYayasan?.nama ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-500 border-slate-200'
+            formData.penandatangan?.kepalaYayasan?.nama ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' : 'bg-muted text-muted-foreground border-border'
           }`}>
             {formData.penandatangan?.kepalaYayasan?.nama ? 'Lengkap' : 'Kosong'}
           </span>
         </div>
-        <div className="flex items-center justify-between pt-2.5 border-t border-slate-100">
+        <div className="flex items-center justify-between pt-2.5 border-t border-border">
           <div>
-            <p className="text-xs font-semibold text-slate-800">Kepala Sekolah (4 Unit)</p>
-            <p className="text-[11px] text-slate-400 mt-0.5">
+            <p className="text-xs font-semibold text-foreground">Kepala Sekolah (4 Unit)</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">
               {Object.values(formData.penandatangan?.kepalaSekolah || {}).filter(u => u.nama).length}/4 terisi
             </p>
           </div>
           <span className={`px-2 py-0.5 text-[11px] font-semibold rounded-full border ${
-            Object.values(formData.penandatangan?.kepalaSekolah || {}).filter(u => u.nama).length === 4 ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-500 border-slate-200'
+            Object.values(formData.penandatangan?.kepalaSekolah || {}).filter(u => u.nama).length === 4 ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
           }`}>
             {Object.values(formData.penandatangan?.kepalaSekolah || {}).filter(u => u.nama).length === 4 ? 'Lengkap' : 'Sebagian'}
           </span>
         </div>
-        <div className="flex items-center justify-between pt-2.5 border-t border-slate-100">
+        <div className="flex items-center justify-between pt-2.5 border-t border-border">
           <div>
-            <p className="text-xs font-semibold text-slate-800">Petugas Presensi (Yayasan + 4 Unit)</p>
-            <p className="text-[11px] text-slate-400 mt-0.5">
+            <p className="text-xs font-semibold text-foreground">Petugas Presensi (Yayasan + 4 Unit)</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">
               {Object.values(formData.penandatangan?.petugasPresensi || {}).filter(u => u.nama).length}/5 terisi
             </p>
           </div>
           <span className={`px-2 py-0.5 text-[11px] font-semibold rounded-full border ${
-            Object.values(formData.penandatangan?.petugasPresensi || {}).filter(u => u.nama).length === 5 ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-500 border-slate-200'
+            Object.values(formData.penandatangan?.petugasPresensi || {}).filter(u => u.nama).length === 5 ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
           }`}>
             {Object.values(formData.penandatangan?.petugasPresensi || {}).filter(u => u.nama).length === 5 ? 'Lengkap' : 'Sebagian'}
           </span>
         </div>
-        <div className="flex items-center justify-between pt-2.5 border-t border-slate-100">
+        <div className="flex items-center justify-between pt-2.5 border-t border-border">
           <div>
-            <p className="text-xs font-semibold text-slate-800">Admin / TU</p>
-            <p className="text-[11px] text-slate-400 mt-0.5">
+            <p className="text-xs font-semibold text-foreground">Admin / TU</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">
               {(formData.penandatangan?.adminTU?.kepalaTU?.nama ? 1 : 0) + (formData.penandatangan?.adminTU?.operatorSistem?.nama ? 1 : 0)}/2 terisi
             </p>
           </div>
           <span className={`px-2 py-0.5 text-[11px] font-semibold rounded-full border ${
-            (formData.penandatangan?.adminTU?.kepalaTU?.nama ? 1 : 0) + (formData.penandatangan?.adminTU?.operatorSistem?.nama ? 1 : 0) === 2 ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-500 border-slate-200'
+            (formData.penandatangan?.adminTU?.kepalaTU?.nama ? 1 : 0) + (formData.penandatangan?.adminTU?.operatorSistem?.nama ? 1 : 0) === 2 ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
           }`}>
             {(formData.penandatangan?.adminTU?.kepalaTU?.nama ? 1 : 0) + (formData.penandatangan?.adminTU?.operatorSistem?.nama ? 1 : 0) === 2 ? 'Lengkap' : 'Sebagian'}
           </span>
@@ -1094,43 +1076,43 @@ function PengaturanGlobalPage() {
   )
 
   const SideCardKeamanan = () => (
-    <div className="bg-white rounded-xl border border-slate-200/80 p-5 shadow-xs">
-      <div className="flex items-center justify-between pb-3.5 border-b border-slate-100">
+    <div className="bg-card rounded-xl border border-border p-5 shadow-xs">
+      <div className="flex items-center justify-between pb-3.5 border-b border-border">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100">
+          <div className="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-500/20">
             <span className="material-symbols-outlined text-[17px]">shield_lock</span>
           </div>
-          <h3 className="text-xs font-bold text-slate-800">Kebijakan Keamanan</h3>
+          <h3 className="text-xs font-bold text-foreground">Kebijakan Keamanan</h3>
         </div>
-        <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+        <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
           Status: Aktif
         </span>
       </div>
       <div className="py-3.5 space-y-3.5">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-xs font-semibold text-slate-800">Wajib ganti password login pertama</p>
-            <p className="text-[11px] text-slate-400 mt-0.5">
+            <p className="text-xs font-semibold text-foreground">Wajib ganti password login pertama</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">
               Untuk semua akun guru & staf baru.
             </p>
           </div>
           <ToggleSwitch checked={toggles.gantiPassword} onChange={() => handleToggle('gantiPassword')} />
         </div>
-        <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between">
+        <div className="pt-2.5 border-t border-border flex items-center justify-between">
           <div>
-            <p className="text-xs font-semibold text-slate-800">Panjang Minimum Password</p>
-            <p className="text-[11px] text-slate-400 mt-0.5">
+            <p className="text-xs font-semibold text-foreground">Panjang Minimum Password</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">
               Kombinasi Karakter & Simbol.
             </p>
           </div>
-          <span className="px-2.5 py-0.5 text-xs font-semibold bg-slate-100 text-slate-700 rounded-md border border-slate-200">
+          <span className="px-2.5 py-0.5 text-xs font-semibold bg-muted text-muted-foreground rounded-md border border-border">
             {formData.keamanan?.minimalPassword || 8} Karakter
           </span>
         </div>
-        <div className="pt-2.5 border-t border-slate-100 flex items-start justify-between gap-4">
+        <div className="pt-2.5 border-t border-border flex items-start justify-between gap-4">
           <div>
-            <p className="text-xs font-semibold text-slate-800">Verifikasi Dua Langkah (2FA)</p>
-            <p className="text-[11px] text-slate-400 mt-0.5">
+            <p className="text-xs font-semibold text-foreground">Verifikasi Dua Langkah (2FA)</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">
               Wajib untuk akun Superadmin & Unit.
             </p>
           </div>
@@ -1141,59 +1123,59 @@ function PengaturanGlobalPage() {
   )
 
   const SideCardOperasional = () => (
-    <div className="bg-white rounded-xl border border-slate-200/80 p-5 shadow-xs">
-      <div className="flex items-center justify-between pb-3.5 border-b border-slate-100">
+    <div className="bg-card rounded-xl border border-border p-5 shadow-xs">
+      <div className="flex items-center justify-between pb-3.5 border-b border-border">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100">
+          <div className="w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center border border-primary/20">
             <span className="material-symbols-outlined text-[17px]">settings</span>
           </div>
-          <h3 className="text-xs font-bold text-slate-800">Parameter Operasional</h3>
+          <h3 className="text-xs font-bold text-foreground">Parameter Operasional</h3>
         </div>
-        <span className="text-[11px] font-medium text-slate-400">Konfigurasi Sistem</span>
+        <span className="text-[11px] font-medium text-muted-foreground">Konfigurasi Sistem</span>
       </div>
       <div className="py-3.5 space-y-3">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs font-semibold text-slate-800">Jam Kerja Global</p>
-            <p className="text-[11px] text-slate-400 mt-0.5">
+            <p className="text-xs font-semibold text-foreground">Jam Kerja Global</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">
               {daftarJamKerja().map((h) => `${h.hari} ${h.jamKerja}`).join(' • ')}
             </p>
           </div>
-          <span className="px-2 py-0.5 text-[11px] font-semibold rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+          <span className="px-2 py-0.5 text-[11px] font-semibold rounded-full bg-primary/10 text-primary border border-primary/20">
             Fixed
           </span>
         </div>
-        <div className="flex items-center justify-between pt-2.5 border-t border-slate-100">
+        <div className="flex items-center justify-between pt-2.5 border-t border-border">
           <div>
-            <p className="text-xs font-semibold text-slate-800">Jumat</p>
-            <p className="text-[11px] text-slate-400 mt-0.5">
+            <p className="text-xs font-semibold text-foreground">Jumat</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">
               Tidak memiliki batas minimal jam pulang
             </p>
           </div>
-          <span className="px-2 py-0.5 text-[11px] font-semibold rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+          <span className="px-2 py-0.5 text-[11px] font-semibold rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
             Bebas
           </span>
         </div>
-        <div className="flex items-center justify-between pt-2.5 border-t border-slate-100">
+        <div className="flex items-center justify-between pt-2.5 border-t border-border">
           <div>
-            <p className="text-xs font-semibold text-slate-800">Radius Geofence</p>
-            <p className="text-[11px] text-slate-400 mt-0.5">
+            <p className="text-xs font-semibold text-foreground">Radius Geofence</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">
               {formData.presensi?.radiusGeofenceDefault || 50} meter dari titik koordinat sekolah
             </p>
           </div>
-          <span className="px-2 py-0.5 text-[11px] font-semibold rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+          <span className="px-2 py-0.5 text-[11px] font-semibold rounded-full bg-primary/10 text-primary border border-primary/20">
             {formData.presensi?.radiusGeofenceDefault || 50} Meter
           </span>
         </div>
-        <div className="flex items-center justify-between pt-2.5 border-t border-slate-100">
+        <div className="flex items-center justify-between pt-2.5 border-t border-border">
           <div>
-            <p className="text-xs font-semibold text-slate-800">Aturan Presensi</p>
-            <p className="text-[11px] text-slate-400 mt-0.5">
+            <p className="text-xs font-semibold text-foreground">Aturan Presensi</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">
               Validasi lokasi GPS/Geofence saat absen
             </p>
           </div>
           <span className={`px-2 py-0.5 text-[11px] font-semibold rounded-full border ${
-            formData.presensi?.lokasiAktif ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'
+            formData.presensi?.lokasiAktif ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
           }`}>
             {formData.presensi?.lokasiAktif ? 'Lokasi Aktif' : 'Lokasi Nonaktif'}
           </span>
@@ -1203,75 +1185,75 @@ function PengaturanGlobalPage() {
   )
 
   const SideCardDefault = () => (
-    <div className="bg-white rounded-xl border border-slate-200/80 p-5 shadow-xs">
-      <div className="flex items-center justify-between pb-3.5 border-b border-slate-100">
+    <div className="bg-card rounded-xl border border-border p-5 shadow-xs">
+      <div className="flex items-center justify-between pb-3.5 border-b border-border">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-100">
+          <div className="w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center border border-primary/20">
             <span className="material-symbols-outlined text-[17px]">tune</span>
           </div>
-          <h3 className="text-xs font-bold text-slate-800">Default Sistem</h3>
+          <h3 className="text-xs font-bold text-foreground">Default Sistem</h3>
         </div>
-        <span className="text-[11px] font-medium text-slate-400">Parameter Master</span>
+        <span className="text-[11px] font-medium text-muted-foreground">Parameter Master</span>
       </div>
       <div className="py-3.5 space-y-3.5">
         <div className="grid grid-cols-2 gap-3">
-          <div className="p-3 bg-slate-50/70 rounded-lg border border-slate-200/80">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Radius Geofence</span>
-            <span className="text-xs font-bold text-slate-800 mt-0.5 block">{formData.presensi?.radiusGeofenceDefault || 50} Meter</span>
-            <span className="text-[10px] text-slate-400">Default unit baru</span>
+          <div className="p-3 bg-muted/30 rounded-lg border border-border">
+            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block">Radius Geofence</span>
+            <span className="text-xs font-bold text-foreground mt-0.5 block">{formData.presensi?.radiusGeofenceDefault || 50} Meter</span>
+            <span className="text-[10px] text-muted-foreground">Default unit baru</span>
           </div>
-          <div className="p-3 bg-slate-50/70 rounded-lg border border-slate-200/80">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Batas Jam Masuk</span>
-            <span className="text-xs font-bold text-slate-800 mt-0.5 block font-mono">
+          <div className="p-3 bg-muted/30 rounded-lg border border-border">
+            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block">Batas Jam Masuk</span>
+            <span className="text-xs font-bold text-foreground mt-0.5 block font-mono">
               {daftarJamKerja()[0].jamMasuk} • {daftarJamKerja()[4].jamMasuk}
             </span>
-            <span className="text-[10px] text-slate-400">Sen-Jum • Sab</span>
+            <span className="text-[10px] text-muted-foreground">Sen-Jum • Sab</span>
           </div>
         </div>
 
         <div className="space-y-2.5">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs font-semibold text-slate-800">Rekap Laporan</p>
-              <p className="text-[11px] text-slate-400 mt-0.5">
+              <p className="text-xs font-semibold text-foreground">Rekap Laporan</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">
                 Prefix: {formData.rekap?.prefixDokumen || 'SIMPRES'} | {formData.rekap?.defaultPeriodeLaporan || 'Bulanan'}
               </p>
             </div>
-            <span className="px-2 py-0.5 text-[11px] font-semibold rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
+            <span className="px-2 py-0.5 text-[11px] font-semibold rounded-full bg-primary/10 text-primary border border-primary/20">
               Terkonfigurasi
             </span>
           </div>
-          <div className="flex items-center justify-between pt-2.5 border-t border-slate-100">
+          <div className="flex items-center justify-between pt-2.5 border-t border-border">
             <div>
-              <p className="text-xs font-semibold text-slate-800">Notifikasi Default</p>
-              <p className="text-[11px] text-slate-400 mt-0.5">
+              <p className="text-xs font-semibold text-foreground">Notifikasi Default</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">
                 Email: {formData.notifikasi?.emailAktif ? 'Aktif' : 'Off'} | WA: {formData.notifikasi?.whatsappAktif ? 'Aktif' : 'Off'}
               </p>
             </div>
             <span className={`px-2 py-0.5 text-[11px] font-semibold rounded-full border ${
-              (formData.notifikasi?.emailAktif && formData.notifikasi?.whatsappAktif) ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'
+              (formData.notifikasi?.emailAktif && formData.notifikasi?.whatsappAktif) ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
             }`}>
               {(formData.notifikasi?.emailAktif && formData.notifikasi?.whatsappAktif) ? 'Semua Aktif' : 'Sebagian'}
             </span>
           </div>
         </div>
 
-        <div className="pt-2.5 border-t border-slate-100">
+        <div className="pt-2.5 border-t border-border">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold text-slate-800">Hari Libur Nasional (2026)</span>
-            <span className="px-2 py-0.5 text-[11px] font-semibold rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+            <span className="text-xs font-semibold text-foreground">Hari Libur Nasional (2026)</span>
+            <span className="px-2 py-0.5 text-[11px] font-semibold rounded-full bg-muted text-muted-foreground border border-border">
               {holidayData.length} Hari
             </span>
           </div>
           <div className="space-y-1.5">
             {holidayData.slice(0, 3).map((holiday, idx) => (
-              <div key={idx} className="flex items-center justify-between p-2 rounded-lg bg-slate-50/70 border border-slate-200/80 text-xs">
-                <span className="font-semibold text-slate-800 font-mono">{holiday.date}</span>
-                <span className="text-slate-500 truncate max-w-[180px]">{holiday.name}</span>
+              <div key={idx} className="flex items-center justify-between p-2 rounded-lg bg-muted/30 border border-border text-xs">
+                <span className="font-semibold text-foreground font-mono">{holiday.date}</span>
+                <span className="text-muted-foreground truncate max-w-[180px]">{holiday.name}</span>
               </div>
             ))}
             {holidayData.length > 3 && (
-              <p className="text-[11px] text-slate-400 px-1 pt-0.5">
+              <p className="text-[11px] text-muted-foreground px-1 pt-0.5">
                 +{holidayData.length - 3} hari libur lainnya
               </p>
             )}
@@ -1282,103 +1264,103 @@ function PengaturanGlobalPage() {
   )
 
   const SideCardAplikasi = () => (
-    <div className="bg-white rounded-xl border border-slate-200/80 p-5 shadow-xs">
-      <div className="flex items-center justify-between pb-3.5 border-b border-slate-100">
+    <div className="bg-card rounded-xl border border-border p-5 shadow-xs">
+      <div className="flex items-center justify-between pb-3.5 border-b border-border">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100">
+          <div className="w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center border border-primary/20">
             <span className="material-symbols-outlined text-[17px]">info</span>
           </div>
-          <h3 className="text-xs font-bold text-slate-800">Informasi Aplikasi</h3>
+          <h3 className="text-xs font-bold text-foreground">Informasi Aplikasi</h3>
         </div>
-        <span className="text-[11px] font-medium text-slate-400">Identitas Sistem</span>
+        <span className="text-[11px] font-medium text-muted-foreground">Identitas Sistem</span>
       </div>
       <div className="py-3.5 space-y-3">
         <div className="flex items-center justify-between gap-4">
           <div className="min-w-0">
-            <p className="text-xs font-semibold text-slate-800">Nama Aplikasi</p>
-            <p className="text-[11px] text-slate-400 mt-0.5 truncate">
+            <p className="text-xs font-semibold text-foreground">Nama Aplikasi</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
               {formData.namaAplikasi || 'Belum diisi'}
             </p>
           </div>
           <span className={`px-2 py-0.5 text-[11px] font-semibold rounded-full border shrink-0 ${
-            formData.namaAplikasi ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-500 border-slate-200'
+            formData.namaAplikasi ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' : 'bg-muted text-muted-foreground border-border'
           }`}>
             {formData.namaAplikasi ? 'Terisi' : 'Kosong'}
           </span>
         </div>
-        <div className="flex items-center justify-between gap-4 pt-2.5 border-t border-slate-100">
+        <div className="flex items-center justify-between gap-4 pt-2.5 border-t border-border">
           <div className="min-w-0">
-            <p className="text-xs font-semibold text-slate-800">Tagline</p>
-            <p className="text-[11px] text-slate-400 mt-0.5 truncate">
+            <p className="text-xs font-semibold text-foreground">Tagline</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
               {formData.tagline || 'Belum diisi'}
             </p>
           </div>
           <span className={`px-2 py-0.5 text-[11px] font-semibold rounded-full border shrink-0 ${
-            formData.tagline ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-500 border-slate-200'
+            formData.tagline ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' : 'bg-muted text-muted-foreground border-border'
           }`}>
             {formData.tagline ? 'Terisi' : 'Kosong'}
           </span>
         </div>
-        <div className="flex items-center justify-between gap-4 pt-2.5 border-t border-slate-100">
+        <div className="flex items-center justify-between gap-4 pt-2.5 border-t border-border">
           <div className="min-w-0">
-            <p className="text-xs font-semibold text-slate-800">Logo Aplikasi</p>
-            <p className="text-[11px] text-slate-400 mt-0.5">
+            <p className="text-xs font-semibold text-foreground">Logo Aplikasi</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">
               {logoPreview ? 'Logo telah diunggah' : 'Memakai logo bawaan'}
             </p>
           </div>
           <span className={`px-2 py-0.5 text-[11px] font-semibold rounded-full border shrink-0 ${
-            logoPreview ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-500 border-slate-200'
+            logoPreview ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' : 'bg-muted text-muted-foreground border-border'
           }`}>
             {logoPreview ? 'Aktif' : 'Bawaan'}
           </span>
         </div>
-        <div className="flex items-center justify-between gap-4 pt-2.5 border-t border-slate-100">
+        <div className="flex items-center justify-between gap-4 pt-2.5 border-t border-border">
           <div className="min-w-0">
-            <p className="text-xs font-semibold text-slate-800">Nama Yayasan</p>
-            <p className="text-[11px] text-slate-400 mt-0.5 truncate">
+            <p className="text-xs font-semibold text-foreground">Nama Yayasan</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
               {formData.namaYayasan || 'Belum diisi'}
             </p>
           </div>
           <span className={`px-2 py-0.5 text-[11px] font-semibold rounded-full border shrink-0 ${
-            formData.namaYayasan ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-500 border-slate-200'
+            formData.namaYayasan ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' : 'bg-muted text-muted-foreground border-border'
           }`}>
             {formData.namaYayasan ? 'Terisi' : 'Kosong'}
           </span>
         </div>
-        <div className="flex items-center justify-between gap-4 pt-2.5 border-t border-slate-100">
+        <div className="flex items-center justify-between gap-4 pt-2.5 border-t border-border">
           <div className="min-w-0">
-            <p className="text-xs font-semibold text-slate-800">Nomor Registrasi / SK</p>
-            <p className="text-[11px] text-slate-400 mt-0.5 truncate">
+            <p className="text-xs font-semibold text-foreground">Nomor Registrasi / SK</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
               {formData.skYayasan || 'Belum diisi'}
             </p>
           </div>
           <span className={`px-2 py-0.5 text-[11px] font-semibold rounded-full border shrink-0 ${
-            formData.skYayasan ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-500 border-slate-200'
+            formData.skYayasan ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' : 'bg-muted text-muted-foreground border-border'
           }`}>
             {formData.skYayasan ? 'Terisi' : 'Kosong'}
           </span>
         </div>
-        <div className="flex items-center justify-between gap-4 pt-2.5 border-t border-slate-100">
+        <div className="flex items-center justify-between gap-4 pt-2.5 border-t border-border">
           <div className="min-w-0">
-            <p className="text-xs font-semibold text-slate-800">Email &amp; Kontak</p>
-            <p className="text-[11px] text-slate-400 mt-0.5 truncate">
+            <p className="text-xs font-semibold text-foreground">Email &amp; Kontak</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
               {formData.emailSekretariat || 'Belum diisi'} {formData.noWhatsapp ? `| ${formData.noWhatsapp}` : ''}
             </p>
           </div>
           <span className={`px-2 py-0.5 text-[11px] font-semibold rounded-full border shrink-0 ${
-            formData.emailSekretariat ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-500 border-slate-200'
+            formData.emailSekretariat ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' : 'bg-muted text-muted-foreground border-border'
           }`}>
             {formData.emailSekretariat ? 'Terisi' : 'Kosong'}
           </span>
         </div>
-        <div className="flex items-center justify-between gap-4 pt-2.5 border-t border-slate-100">
+        <div className="flex items-center justify-between gap-4 pt-2.5 border-t border-border">
           <div className="min-w-0">
-            <p className="text-xs font-semibold text-slate-800">Alamat &amp; Zona Waktu</p>
-            <p className="text-[11px] text-slate-400 mt-0.5 truncate">
+            <p className="text-xs font-semibold text-foreground">Alamat &amp; Zona Waktu</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
               {formData.zonaWaktu || 'WIB'}
             </p>
           </div>
-          <span className="px-2 py-0.5 text-[11px] font-semibold rounded-full bg-blue-50 text-blue-700 border border-blue-200 shrink-0">
+          <span className="px-2 py-0.5 text-[11px] font-semibold rounded-full bg-primary/10 text-primary border border-primary/20 shrink-0">
             {formData.zonaWaktu || 'WIB'}
           </span>
         </div>
@@ -1409,37 +1391,37 @@ function PengaturanGlobalPage() {
       <div className="p-4 sm:p-6 lg:p-8 max-w-[1600px] mx-auto space-y-6 w-full">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
-              <span className="p-2 rounded-lg bg-blue-50 text-blue-600 border border-blue-100">
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight flex items-center gap-2.5">
+              <span className="p-2 rounded-lg bg-primary/10 text-primary border border-primary/20">
                 <span className="material-symbols-outlined text-[20px] leading-none">settings</span>
               </span>
               Pengaturan Global
             </h1>
-            <p className="text-xs sm:text-sm text-slate-500 mt-1">
+            <p className="text-xs sm:text-sm text-muted-foreground mt-1">
               Konfigurasi identitas sistem, parameter keamanan yayasan, dan pengaturan default operasional untuk seluruh unit sekolah.
             </p>
           </div>
-          <div className="flex items-center self-start md:self-auto bg-slate-50 border border-slate-200/80 px-3 py-1.5 rounded-lg shadow-xs">
-            <div className="flex items-center gap-1.5 text-xs text-slate-500">
-              <span className="material-symbols-outlined text-[15px] text-slate-400">home</span>
+          <div className="flex items-center self-start md:self-auto bg-card border border-border px-3 py-1.5 rounded-lg shadow-xs">
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <span className="material-symbols-outlined text-[15px] text-muted-foreground">home</span>
               <span>Home</span>
-              <span className="text-slate-300">/</span>
+              <span className="text-muted-foreground/40">/</span>
               <span>Superadmin</span>
-              <span className="text-slate-300">/</span>
-              <span className="text-blue-600 font-semibold">Pengaturan Global</span>
+              <span className="text-muted-foreground/40">/</span>
+              <span className="text-primary font-semibold">Pengaturan Global</span>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl border border-slate-200/60 overflow-x-auto">
+        <div className="flex items-center gap-1.5 p-1 bg-muted rounded-xl border border-border overflow-x-auto">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`h-9 shrink-0 whitespace-nowrap rounded-lg px-3.5 text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
                 activeTab === tab.id
-                  ? 'bg-white text-slate-900 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50/60'
+                  ? 'bg-card text-foreground shadow-xs'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-card/50'
               }`}
               type="button"
             >
@@ -1461,23 +1443,23 @@ function PengaturanGlobalPage() {
           </div>
         </div>
 
-        <div className="pt-4 border-t border-slate-200/80 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2 text-xs text-slate-500">
-            <span className="material-symbols-outlined text-[16px] text-emerald-600">check_circle</span>
+        <div className="pt-4 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <span className="material-symbols-outlined text-[16px] text-emerald-500">check_circle</span>
             <span>
-              Terakhir disimpan oleh <strong className="text-slate-800 font-semibold">{state.currentUser?.name || 'Superadmin Pusat'}</strong> pada {formatLastSaved()}
+              Terakhir disimpan oleh <strong className="text-foreground font-semibold">{state.currentUser?.name || 'Superadmin Pusat'}</strong> pada {formatLastSaved()}
             </span>
           </div>
           <div className="flex items-center gap-2.5 w-full sm:w-auto">
             <button
-              className="h-9 px-4 rounded-lg bg-white border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-xs cursor-pointer"
+              className="h-9 px-4 rounded-lg bg-card border border-border text-xs font-semibold text-foreground hover:bg-muted transition-colors shadow-xs cursor-pointer"
               type="button"
               onClick={handleReset}
             >
               Batal / Reset
             </button>
             <button
-              className="h-9 px-4 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition-colors shadow-xs flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              className="h-9 px-4 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold transition-colors shadow-xs flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
               type="submit"
               disabled={isSaving}
               form="pengaturan-form"

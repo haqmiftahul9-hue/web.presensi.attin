@@ -4,13 +4,13 @@ import { useSimPres } from '../store/simPresStore.jsx'
 import { initialsOf, selectUnitName, selectCurrentUser, selectCurrentUserRole, hasMenuPermission, selectScopedLogs, selectScopedAdminUsers, selectActiveUnitId } from '../store/simPresStore.jsx'
 
 const actionStyles = {
-  tambah: 'bg-blue-50 text-blue-700 border border-blue-200/80',
-  ubah: 'bg-amber-50 text-amber-800 border border-amber-200/80',
-  hapus: 'bg-rose-50 text-rose-700 border border-rose-200/80',
-  login: 'bg-slate-100 text-slate-700 border border-slate-200',
-  reset: 'bg-red-50 text-red-700 border border-red-200/80',
-  persetujuan: 'bg-emerald-50 text-emerald-800 border border-emerald-200/80',
-  konfigurasi: 'bg-purple-50 text-purple-700 border border-purple-200/80',
+  tambah: 'bg-primary/10 text-primary border-primary/20',
+  ubah: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
+  hapus: 'bg-destructive/10 text-destructive border-destructive/20',
+  login: 'bg-muted text-muted-foreground border-border',
+  reset: 'bg-destructive/10 text-destructive border-destructive/20',
+  persetujuan: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+  konfigurasi: 'bg-primary/10 text-primary border-primary/20',
 }
 
 const actionIcons = {
@@ -209,33 +209,33 @@ function LogAktivitasPage() {
         <div className="px-space-lg py-space-md flex flex-col gap-space-md">
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
             <div className="flex flex-col gap-1.5">
-              <nav className="flex items-center gap-1.5 text-xs text-slate-400">
-                <span className="hover:text-slate-700 cursor-pointer transition-colors">Home</span>
+              <nav className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <span className="hover:text-foreground cursor-pointer transition-colors">Home</span>
                 <span className="material-symbols-outlined text-[14px]">chevron_right</span>
-                <span className="hover:text-slate-700 cursor-pointer transition-colors">Pengaturan & Sistem</span>
+                <span className="hover:text-foreground cursor-pointer transition-colors">Pengaturan & Sistem</span>
                 <span className="material-symbols-outlined text-[14px]">chevron_right</span>
-                <span className="text-slate-800 font-semibold">Log Aktivitas</span>
+                <span className="text-foreground font-semibold">Log Aktivitas</span>
               </nav>
               <div className="flex items-center gap-2 mt-1">
-                <div className="w-8 h-8 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 flex-shrink-0">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary flex-shrink-0">
                   <span className="material-symbols-outlined text-[20px]">history</span>
                 </div>
-                <h1 className="text-2xl font-bold tracking-tight text-slate-900 leading-tight">Log Aktivitas</h1>
+                <h1 className="text-2xl font-bold tracking-tight text-foreground leading-tight">Log Aktivitas</h1>
               </div>
-              <p className="text-xs text-slate-500 max-w-3xl leading-relaxed">
+              <p className="text-xs text-muted-foreground max-w-3xl leading-relaxed">
                 Anda tidak memiliki akses untuk melihat halaman ini.
               </p>
             </div>
           </div>
-          <div className="bg-white rounded-xl border border-slate-200/80 p-8 shadow-xs flex items-center justify-center min-h-[320px]">
+          <div className="bg-card rounded-xl border border-border p-8 shadow-xs flex items-center justify-center min-h-[320px]">
             <div className="text-center max-w-md">
-              <div className="w-14 h-14 rounded-2xl bg-amber-50 border border-amber-100 text-amber-600 flex items-center justify-center mx-auto mb-3">
+              <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center mx-auto mb-3">
                 <span className="material-symbols-outlined text-[28px]">lock</span>
               </div>
-              <h3 className="text-base font-bold text-slate-900">Akses Ditolak</h3>
-              <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
+              <h3 className="text-base font-bold text-foreground">Akses Ditolak</h3>
+              <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
                 Hanya Superadmin dan Admin Unit yang dapat mengakses Log Aktivitas.
-                Role Anda (<strong className="text-slate-800">{currentUserRole}</strong>) tidak memiliki izin untuk melihat log audit sistem.
+                Role Anda (<strong className="text-foreground">{currentUserRole}</strong>) tidak memiliki izin untuk melihat log audit sistem.
               </p>
             </div>
           </div>
@@ -287,9 +287,9 @@ function LogAktivitasPage() {
     const { date, time } = formatLogDateTime(selectedLog.time)
     const unitName = selectedLog.unit || '-'
     const { before, after } = parseLogDetailsFromRow(selectedLog)
-    const roleBadgeClass = selectedLog.role === 'Superadmin' ? 'bg-purple-50 text-purple-700 border-purple-200' : 
-                           selectedLog.role === 'Admin Unit' ? 'bg-blue-50 text-blue-700 border-blue-200' : 
-                           selectedLog.role === 'Sistem' ? 'bg-slate-100 text-slate-700 border-slate-200' : 'bg-slate-50 text-slate-700 border-slate-200'
+    const roleBadgeClass = selectedLog.role === 'Superadmin' ? 'bg-primary/10 text-primary border-primary/20' : 
+                           selectedLog.role === 'Admin Unit' ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20' : 
+                           'bg-muted text-foreground border-border'
     return { date, time, unitName, before, after, roleBadgeClass }
   }
 
@@ -456,13 +456,13 @@ function LogAktivitasPage() {
         <div className="p-4 sm:p-6 lg:p-8 max-w-[1600px] mx-auto space-y-6 w-full">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
-                <span className="p-2 rounded-lg bg-blue-50 text-blue-600 border border-blue-100">
+              <h1 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight flex items-center gap-2.5">
+                <span className="p-2 rounded-lg bg-primary/10 text-primary border border-primary/20">
                   <span className="material-symbols-outlined text-[20px] leading-none">history</span>
                 </span>
                 Log Aktivitas
               </h1>
-              <p className="text-xs sm:text-sm text-slate-500 mt-1">
+              <p className="text-xs sm:text-sm text-muted-foreground mt-1">
                 Rekam jejak seluruh aktivitas sistem, perubahan data master, konfigurasi unit, dan autentikasi pengguna secara real-time.
               </p>
             </div>
@@ -470,15 +470,15 @@ function LogAktivitasPage() {
               <button
                 onClick={clearFilters}
                 disabled={!hasActiveFilters}
-                className="h-9 px-3.5 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-1.5 shadow-xs text-xs font-semibold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                className="h-9 px-3.5 rounded-lg bg-card border border-border text-foreground hover:bg-muted transition-colors flex items-center gap-1.5 shadow-xs text-xs font-semibold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                 type="button"
               >
-                <span className="material-symbols-outlined text-[16px] text-slate-400">filter_alt_off</span>
+                <span className="material-symbols-outlined text-[16px] text-muted-foreground">filter_alt_off</span>
                 <span>Bersihkan Filter</span>
               </button>
               <button
                 onClick={handleExportCSV}
-                className="h-9 px-3.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition-colors flex items-center gap-1.5 shadow-xs text-xs font-semibold cursor-pointer"
+                className="h-9 px-3.5 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground transition-colors flex items-center gap-1.5 shadow-xs text-xs font-semibold cursor-pointer"
                 type="button"
               >
                 <span className="material-symbols-outlined text-[16px]">download</span>
@@ -488,53 +488,53 @@ function LogAktivitasPage() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="bg-white rounded-xl border border-slate-200/80 p-4 shadow-xs flex items-center justify-between">
+            <div className="bg-card rounded-xl border border-border p-4 shadow-xs flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shadow-xs">
+                <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-xs">
                   <span className="material-symbols-outlined text-[20px]">trending_up</span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Total Log Hari Ini</span>
-                  <span className="text-lg font-bold text-slate-900 leading-snug">{totalLogHariIni} Catatan</span>
+                  <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Total Log Hari Ini</span>
+                  <span className="text-lg font-bold text-foreground leading-snug">{totalLogHariIni} Catatan</span>
                 </div>
               </div>
-              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">Hari ini</span>
+              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-muted text-muted-foreground border border-border">Hari ini</span>
             </div>
-            <div className="bg-white rounded-xl border border-slate-200/80 p-4 shadow-xs flex items-center justify-between">
+            <div className="bg-card rounded-xl border border-border p-4 shadow-xs flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shadow-xs">
+                <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-xs">
                   <span className="material-symbols-outlined text-[20px]">person</span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">User Teraktif</span>
-                  <span className="text-lg font-bold text-slate-900 leading-snug truncate max-w-[160px]">{topUser ? `${topUser[0].split(',')[0]} (${topUser[1]}x)` : '-'}</span>
+                  <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">User Teraktif</span>
+                  <span className="text-lg font-bold text-foreground leading-snug truncate max-w-[160px]">{topUser ? `${topUser[0].split(',')[0]} (${topUser[1]}x)` : '-'}</span>
                 </div>
               </div>
-              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-100">Terbanyak</span>
+              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">Terbanyak</span>
             </div>
-            <div className="bg-white rounded-xl border border-slate-200/80 p-4 shadow-xs flex items-center justify-between">
+            <div className="bg-card rounded-xl border border-border p-4 shadow-xs flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shadow-xs">
+                <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-xs">
                   <span className="material-symbols-outlined text-[20px]">security_update_good</span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Kebijakan Retensi</span>
-                  <span className="text-lg font-bold text-slate-900 leading-snug">{RETENSI_HARI} Hari</span>
+                  <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Kebijakan Retensi</span>
+                  <span className="text-lg font-bold text-foreground leading-snug">{RETENSI_HARI} Hari</span>
                 </div>
               </div>
-              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">Auto-purge</span>
+              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-muted text-muted-foreground border border-border">Auto-purge</span>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl border border-slate-200/80 p-3.5 shadow-xs flex flex-col lg:flex-row items-stretch lg:items-center gap-2.5">
+          <div className="bg-card rounded-xl border border-border p-3.5 shadow-xs flex flex-col lg:flex-row items-stretch lg:items-center gap-2.5">
             <div className="relative min-w-[200px]" ref={dateRangeDropdownRef}>
               <button
                 onClick={() => setShowDateRangeDropdown(prev => !prev)}
-                className="w-full h-9 px-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-slate-800 cursor-pointer transition-colors flex items-center justify-between text-xs font-medium"
+                className="w-full h-9 px-3 bg-muted/40 hover:bg-muted border border-input rounded-lg text-foreground cursor-pointer transition-colors flex items-center justify-between text-xs font-medium"
                 type="button"
               >
                 <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-slate-400 text-[16px]">calendar_today</span>
+                  <span className="material-symbols-outlined text-muted-foreground text-[16px]">calendar_today</span>
                   <span>
                     {dateRange === 'custom' 
                       ? `${customStart ? new Date(customStart).toLocaleDateString('id-ID', {day:'2-digit',month:'short',year:'numeric'}) : 'Mulai'} - ${customEnd ? new Date(customEnd).toLocaleDateString('id-ID', {day:'2-digit',month:'short',year:'numeric'}) : 'Selesai'}`
@@ -542,10 +542,10 @@ function LogAktivitasPage() {
                     }
                   </span>
                 </div>
-                <span className="material-symbols-outlined text-slate-400 text-[16px]">arrow_drop_down</span>
+                <span className="material-symbols-outlined text-muted-foreground text-[16px]">arrow_drop_down</span>
               </button>
               {showDateRangeDropdown && (
-                <div className="absolute left-0 top-full mt-1.5 w-56 bg-white rounded-xl shadow-lg border border-slate-200 py-1.5 z-20 animate-fade-in">
+                <div className="absolute left-0 top-full mt-1.5 w-56 bg-popover text-popover-foreground rounded-xl shadow-lg border border-border py-1.5 z-20 animate-fade-in">
                   {['today', 'weekly', 'monthly', 'custom'].map((range) => (
                     <button
                       key={range}
@@ -560,7 +560,7 @@ function LogAktivitasPage() {
                         }
                         setShowDateRangeDropdown(false)
                       }}
-                      className={`w-full px-3.5 py-2 text-left text-xs transition-colors ${dateRange === range ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-slate-700 hover:bg-slate-50'}`}
+                      className={`w-full px-3.5 py-2 text-left text-xs transition-colors ${dateRange === range ? 'bg-primary/10 text-primary font-semibold' : 'text-foreground hover:bg-muted'}`}
                       type="button"
                     >
                       {getDateRangeLabel(range)}
@@ -569,21 +569,21 @@ function LogAktivitasPage() {
                 </div>
               )}
               {showCustomDatePicker && (
-                <div ref={customDatePickerRef} className="absolute left-0 top-full mt-1.5 w-60 bg-white rounded-xl shadow-lg border border-slate-200 p-3 z-20 animate-fade-in space-y-2">
+                <div ref={customDatePickerRef} className="absolute left-0 top-full mt-1.5 w-60 bg-popover text-popover-foreground rounded-xl shadow-lg border border-border p-3 z-20 animate-fade-in space-y-2">
                   <div>
-                    <span className="block text-[11px] font-medium text-slate-500 mb-1">Tanggal Mulai</span>
+                    <span className="block text-[11px] font-medium text-muted-foreground mb-1">Tanggal Mulai</span>
                     <input
                       type="date"
-                      className="w-full h-8 px-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 focus:bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20"
+                      className="w-full h-8 px-2.5 bg-card border border-input rounded-lg text-xs text-foreground focus:ring-1 focus:ring-ring"
                       value={customStart}
                       onChange={(e) => setCustomStart(e.target.value)}
                     />
                   </div>
                   <div>
-                    <span className="block text-[11px] font-medium text-slate-500 mb-1">Tanggal Akhir</span>
+                    <span className="block text-[11px] font-medium text-muted-foreground mb-1">Tanggal Akhir</span>
                     <input
                       type="date"
-                      className="w-full h-8 px-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 focus:bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20"
+                      className="w-full h-8 px-2.5 bg-card border border-input rounded-lg text-xs text-foreground focus:ring-1 focus:ring-ring"
                       value={customEnd}
                       onChange={(e) => setCustomEnd(e.target.value)}
                     />
@@ -593,7 +593,7 @@ function LogAktivitasPage() {
             </div>
             <div className="relative min-w-[180px]">
               <select
-                className="w-full h-9 pl-3 pr-8 bg-slate-50 border border-slate-200 text-slate-800 text-xs font-medium rounded-lg focus:bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 cursor-pointer transition-colors"
+                className="w-full h-9 pl-3 pr-8 bg-muted/40 border border-input text-foreground text-xs font-medium rounded-lg focus:bg-card focus:ring-1 focus:ring-ring cursor-pointer transition-colors"
                 value={selectedUser}
                 onChange={(e) => setSelectedUser(e.target.value)}
               >
@@ -605,7 +605,7 @@ function LogAktivitasPage() {
             </div>
             <div className="relative min-w-[150px]">
               <select
-                className="w-full h-9 pl-3 pr-8 bg-slate-50 border border-slate-200 text-slate-800 text-xs font-medium rounded-lg focus:bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 cursor-pointer transition-colors"
+                className="w-full h-9 pl-3 pr-8 bg-muted/40 border border-input text-foreground text-xs font-medium rounded-lg focus:bg-card focus:ring-1 focus:ring-ring cursor-pointer transition-colors"
                 value={selectedAction}
                 onChange={(e) => setSelectedAction(e.target.value)}
               >
@@ -620,9 +620,9 @@ function LogAktivitasPage() {
               </select>
             </div>
             <div className="relative flex-1">
-              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[16px]">search</span>
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-[16px]">search</span>
               <input
-                className="w-full h-9 pl-9 pr-3 bg-slate-50 border border-slate-200 text-slate-800 placeholder:text-slate-400 text-xs rounded-lg focus:bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-colors"
+                className="w-full h-9 pl-9 pr-3 bg-muted/40 border border-input text-foreground placeholder:text-muted-foreground text-xs rounded-lg focus:bg-card focus:ring-1 focus:ring-ring transition-colors"
                 placeholder="Cari target objek, user, atau keterangan..."
                 type="text"
                 value={search}
@@ -631,11 +631,11 @@ function LogAktivitasPage() {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden flex flex-col">
+          <div className="bg-card rounded-xl border border-border shadow-xs overflow-hidden flex flex-col">
             <div className="sp-table-wrap w-full">
               <table className="w-full text-left text-xs border-collapse min-w-[1000px]">
                 <thead>
-                  <tr className="bg-slate-50/80 text-slate-500 font-bold text-[11px] uppercase tracking-wider h-11 border-b border-slate-200/80">
+                  <tr className="bg-muted text-muted-foreground font-bold text-[11px] uppercase tracking-wider h-11 border-b border-border">
                     <th className="py-3 px-4 w-[160px]" scope="col">Waktu & Tanggal</th>
                     <th className="py-3 px-3.5 w-[260px]" scope="col">User Pelaksana</th>
                     <th className="py-3 px-3.5 w-[140px]" scope="col">Jenis Aksi</th>
@@ -643,30 +643,30 @@ function LogAktivitasPage() {
                     <th className="py-3 px-4" scope="col">Keterangan Aktivitas</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-border/60">
                   {paginatedData.map((row) => {
                     const { date, time } = formatLogDateTime(row.time)
                     const displayAction = actionLabels[row.actionType] || row.action
                     return (
                       <tr 
                         key={row.id} 
-                        className="hover:bg-slate-50/60 transition-colors cursor-pointer"
+                        className="hover:bg-muted/40 transition-colors cursor-pointer"
                         onClick={() => openDetailModal(row)}
                       >
                         <td className="py-3 px-4 whitespace-nowrap">
                           <div className="flex flex-col items-start">
-                            <span className="font-semibold text-slate-900">{date}</span>
-                            <span className="text-[11px] text-slate-400 mt-0.5">{time}</span>
+                            <span className="font-semibold text-foreground">{date}</span>
+                            <span className="text-[11px] text-muted-foreground mt-0.5">{time}</span>
                           </div>
                         </td>
                         <td className="py-3 px-3.5">
                           <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 rounded-lg bg-blue-50 border border-blue-100 text-blue-700 font-bold text-xs flex items-center justify-center flex-shrink-0">
+                            <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 text-primary font-bold text-xs flex items-center justify-center flex-shrink-0">
                               {row.initials}
                             </div>
                             <div className="flex flex-col min-w-0">
-                              <span className="font-semibold text-slate-900 truncate max-w-xs">{row.name}</span>
-                              <span className="text-[11px] font-medium text-slate-500">{row.role}</span>
+                              <span className="font-semibold text-foreground truncate max-w-xs">{row.name}</span>
+                              <span className="text-[11px] font-medium text-muted-foreground">{row.role}</span>
                             </div>
                           </div>
                         </td>
@@ -678,12 +678,12 @@ function LogAktivitasPage() {
                         </td>
                         <td className="py-3 px-3.5">
                           <div className="flex flex-col min-w-0">
-                            <span className="font-semibold text-slate-800 truncate max-w-xs">{row.target}</span>
-                            <span className="text-[11px] text-slate-400 truncate max-w-xs">{row.targetSub}</span>
+                            <span className="font-semibold text-foreground truncate max-w-xs">{row.target}</span>
+                            <span className="text-[11px] text-muted-foreground truncate max-w-xs">{row.targetSub}</span>
                           </div>
                         </td>
                         <td className="py-3 px-4">
-                          <p className="text-xs text-slate-600 leading-relaxed truncate max-w-lg" title={row.desc}>
+                          <p className="text-xs text-muted-foreground leading-relaxed truncate max-w-lg" title={row.desc}>
                             {truncateText(row.desc, 100)}
                           </p>
                         </td>
@@ -692,23 +692,23 @@ function LogAktivitasPage() {
                   })}
                   {paginatedData.length === 0 && (
                     <tr>
-                      <td colSpan={5} className="py-12 text-center text-xs text-slate-400">Tidak ada data log yang sesuai</td>
+                      <td colSpan={5} className="py-12 text-center text-xs text-muted-foreground">Tidak ada data log yang sesuai</td>
                     </tr>
                   )}
                 </tbody>
               </table>
             </div>
-            <div className="p-4 bg-white border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+            <div className="p-4 bg-card border-t border-border flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
               <div className="flex items-center gap-3 flex-wrap">
                 <div>
-                  Menampilkan <span className="font-semibold text-slate-800">{(currentPage - 1) * itemsPerPage + 1}</span>–<span className="font-semibold text-slate-800">{Math.min(currentPage * itemsPerPage, filteredData.length)}</span> dari <span className="font-semibold text-blue-600">{filteredData.length}</span> catatan log
+                  Menampilkan <span className="font-semibold text-foreground">{(currentPage - 1) * itemsPerPage + 1}</span>–<span className="font-semibold text-foreground">{Math.min(currentPage * itemsPerPage, filteredData.length)}</span> dari <span className="font-semibold text-primary">{filteredData.length}</span> catatan log
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span>Baris per halaman:</span>
                   <select
                     value={itemsPerPage}
                     onChange={(e) => { setItemsPerPage(parseInt(e.target.value)); setCurrentPage(1) }}
-                    className="h-7 px-2 bg-slate-50 border border-slate-200 text-slate-700 text-xs rounded-md focus:bg-white focus:border-blue-500 cursor-pointer"
+                    className="h-7 px-2 bg-muted/40 border border-input text-foreground text-xs rounded-md focus:bg-card focus:border-ring cursor-pointer"
                   >
                     {ITEMS_PER_PAGE_OPTIONS.map((opt) => (
                       <option key={opt} value={opt}>{opt}</option>
@@ -720,7 +720,7 @@ function LogAktivitasPage() {
                 <button
                   onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
-                  className="h-8 px-2.5 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 transition-colors flex items-center gap-1 text-xs font-semibold disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="h-8 px-2.5 rounded-lg bg-card hover:bg-muted border border-border text-foreground transition-colors flex items-center gap-1 text-xs font-semibold disabled:opacity-40 disabled:cursor-not-allowed"
                   type="button"
                 >
                   <span className="material-symbols-outlined text-[16px]">chevron_left</span>
@@ -743,8 +743,8 @@ function LogAktivitasPage() {
                       onClick={() => setCurrentPage(pageNum)}
                       className={`w-8 h-8 rounded-lg text-xs font-semibold flex items-center justify-center transition-colors cursor-pointer ${
                         pageNum === currentPage
-                          ? 'bg-blue-600 text-white shadow-xs'
-                          : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
+                          ? 'bg-primary text-primary-foreground shadow-xs'
+                          : 'bg-card border border-border text-foreground hover:bg-muted'
                       }`}
                       type="button"
                     >
@@ -753,12 +753,12 @@ function LogAktivitasPage() {
                   )
                 })}
                 {totalPages > 5 && (
-                  <span className="w-6 text-center text-slate-400">...</span>
+                  <span className="w-6 text-center text-muted-foreground">...</span>
                 )}
                 <button
                   onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
-                  className="h-8 px-2.5 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 transition-colors flex items-center gap-1 text-xs font-semibold disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="h-8 px-2.5 rounded-lg bg-card hover:bg-muted border border-border text-foreground transition-colors flex items-center gap-1 text-xs font-semibold disabled:opacity-40 disabled:cursor-not-allowed"
                   type="button"
                 >
                   <span>Berikutnya</span>
@@ -770,34 +770,34 @@ function LogAktivitasPage() {
         </div>
       </div>
       {showDetailModal && selectedLog && detailData && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs" onClick={closeDetailModal}>
-          <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-slate-200/80 overflow-hidden flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
-            <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs" onClick={closeDetailModal}>
+          <div className="relative w-full max-w-2xl bg-card text-foreground rounded-2xl shadow-xl border border-border overflow-hidden flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
+            <div className="p-5 border-b border-border flex items-center justify-between bg-muted/30">
               <div>
-                <h2 className="text-base font-bold text-slate-900">Detail Log Aktivitas</h2>
-                <p className="text-xs text-slate-500 mt-0.5">Informasi lengkap aktivitas sistem</p>
+                <h2 className="text-base font-bold text-foreground">Detail Log Aktivitas</h2>
+                <p className="text-xs text-muted-foreground mt-0.5">Informasi lengkap aktivitas sistem</p>
               </div>
-              <button onClick={closeDetailModal} className="p-2 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer" type="button">
+              <button onClick={closeDetailModal} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer" type="button">
                 <span className="material-symbols-outlined text-[20px]">close</span>
               </button>
             </div>
             <div className="p-5 overflow-y-auto space-y-4">
-              <div className="bg-slate-50/80 rounded-xl border border-slate-200/60 p-4">
+              <div className="bg-muted/30 rounded-xl border border-border p-4">
                 <div className="grid grid-cols-2 gap-3 text-xs">
                   <div>
-                    <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">ID Log</span>
-                    <p className="font-mono text-slate-800 font-medium mt-0.5">{selectedLog.id}</p>
+                    <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">ID Log</span>
+                    <p className="font-mono text-foreground font-medium mt-0.5">{selectedLog.id}</p>
                   </div>
                   <div>
-                    <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Waktu</span>
-                    <p className="text-slate-800 font-medium mt-0.5">{detailData.date} • {detailData.time}</p>
+                    <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Waktu</span>
+                    <p className="text-foreground font-medium mt-0.5">{detailData.date} • {detailData.time}</p>
                   </div>
                   <div>
-                    <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">User</span>
-                    <p className="text-slate-800 font-medium mt-0.5">{selectedLog.name}</p>
+                    <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">User</span>
+                    <p className="text-foreground font-medium mt-0.5">{selectedLog.name}</p>
                   </div>
                   <div>
-                    <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Role</span>
+                    <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Role</span>
                     <p className="mt-0.5">
                       <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold border ${detailData.roleBadgeClass}`}>
                         {selectedLog.role}
@@ -805,11 +805,11 @@ function LogAktivitasPage() {
                     </p>
                   </div>
                   <div>
-                    <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Unit</span>
-                    <p className="text-slate-800 font-medium mt-0.5">{detailData.unitName}</p>
+                    <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Unit</span>
+                    <p className="text-foreground font-medium mt-0.5">{detailData.unitName}</p>
                   </div>
                   <div>
-                    <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Jenis Aktivitas</span>
+                    <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Jenis Aktivitas</span>
                     <p className="mt-0.5">
                       <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold border ${actionStyles[selectedLog.actionType]}`}>
                         <span className="material-symbols-outlined text-[13px]">{actionIcons[selectedLog.actionType]}</span>
@@ -818,52 +818,52 @@ function LogAktivitasPage() {
                     </p>
                   </div>
                   <div className="col-span-2">
-                    <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Target</span>
-                    <p className="text-slate-800 font-medium mt-0.5">{selectedLog.target}</p>
+                    <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Target</span>
+                    <p className="text-foreground font-medium mt-0.5">{selectedLog.target}</p>
                   </div>
                   <div className="col-span-2">
-                    <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Data Sebelum Perubahan</span>
-                    <div className="mt-1 p-3 bg-white rounded-lg border border-slate-200 max-h-40 overflow-y-auto">
+                    <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Data Sebelum Perubahan</span>
+                    <div className="mt-1 p-3 bg-card rounded-lg border border-border max-h-40 overflow-y-auto">
                       {Object.keys(detailData.before).length > 0 ? (
                         <dl className="space-y-1">
                           {Object.entries(detailData.before).map(([key, val]) => (
                             <div key={key} className="flex justify-between gap-2 text-xs">
-                              <dt className="text-slate-500">{key}</dt>
-                              <dd className="font-mono text-slate-800 font-medium">{val}</dd>
+                              <dt className="text-muted-foreground">{key}</dt>
+                              <dd className="font-mono text-foreground font-medium">{val}</dd>
                             </div>
                           ))}
                         </dl>
                       ) : (
-                        <p className="text-xs text-slate-400 italic">Tidak ada data perubahan tercatat</p>
+                        <p className="text-xs text-muted-foreground italic">Tidak ada data perubahan tercatat</p>
                       )}
                     </div>
                   </div>
                   <div className="col-span-2">
-                    <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Data Sesudah Perubahan</span>
-                    <div className="mt-1 p-3 bg-white rounded-lg border border-slate-200 max-h-40 overflow-y-auto">
+                    <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Data Sesudah Perubahan</span>
+                    <div className="mt-1 p-3 bg-card rounded-lg border border-border max-h-40 overflow-y-auto">
                       {Object.keys(detailData.after).length > 0 ? (
                         <dl className="space-y-1">
                           {Object.entries(detailData.after).map(([key, val]) => (
                             <div key={key} className="flex justify-between gap-2 text-xs">
-                              <dt className="text-slate-500">{key}</dt>
-                              <dd className="font-mono text-slate-800 font-medium">{val}</dd>
+                              <dt className="text-muted-foreground">{key}</dt>
+                              <dd className="font-mono text-foreground font-medium">{val}</dd>
                             </div>
                           ))}
                         </dl>
                       ) : (
-                        <p className="text-xs text-slate-400 italic">Tidak ada data perubahan tercatat</p>
+                        <p className="text-xs text-muted-foreground italic">Tidak ada data perubahan tercatat</p>
                       )}
                     </div>
                   </div>
                   <div className="col-span-2">
-                    <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Keterangan Lengkap</span>
-                    <p className="text-xs text-slate-800 mt-1 whitespace-pre-wrap bg-white p-3 rounded-lg border border-slate-200">{selectedLog.desc}</p>
+                    <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Keterangan Lengkap</span>
+                    <p className="text-xs text-foreground mt-1 whitespace-pre-wrap bg-card p-3 rounded-lg border border-border">{selectedLog.desc}</p>
                   </div>
                 </div>
               </div>
             </div>
-            <div className="p-4 bg-slate-50/50 border-t border-slate-100 flex justify-end">
-              <button onClick={closeDetailModal} className="h-9 px-4 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-xs transition-colors cursor-pointer" type="button">Tutup</button>
+            <div className="p-4 bg-muted/30 border-t border-border flex justify-end">
+              <button onClick={closeDetailModal} className="h-9 px-4 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs shadow-xs transition-colors cursor-pointer" type="button">Tutup</button>
             </div>
           </div>
         </div>

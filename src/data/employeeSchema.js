@@ -4,7 +4,6 @@
 
 export const EMPLOYEE_COLUMNS = [
   { key: 'niy', label: 'NIY', required: true, group: 'Identitas', type: 'text', width: 14 },
-  { key: 'nip', label: 'NIP', required: false, group: 'Identitas', type: 'text', width: 22 },
   { key: 'name', label: 'Nama Lengkap', required: true, group: 'Identitas', type: 'text', width: 32 },
   { key: 'gelar', label: 'Gelar Akademik', required: false, group: 'Identitas', type: 'text', width: 18 },
   { key: 'nomorIdentitas', label: 'Nomor Identitas (KTP)', required: false, group: 'Identitas', type: 'text', width: 22 },
@@ -39,7 +38,6 @@ export const EMPLOYEE_TEXT_KEYS = EMPLOYEE_COLUMNS
 
 export const EMPTY_EMPLOYEE = {
   niy: '',
-  nip: '',
   name: '',
   gelar: '',
   nomorIdentitas: '',
@@ -91,8 +89,7 @@ for (const col of EMPLOYEE_COLUMNS) {
 
 // Alias label yang lazim dipakai di file Excel milik pengguna.
 const HEADER_ALIASES = {
-  niy: ['niy', 'niy/nip', 'nomor induk yayasan', 'nomor induk pegawai'],
-  nip: ['nip', 'nip/niy', 'nomor induk kep figuring'],
+  niy: ['niy', 'nomor induk yayasan'],
   name: ['nama', 'nama lengkap', 'nama lengkap & gelar', 'nama dan gelar'],
   gelar: ['gelar', 'gelar akademik', 'akademik'],
   nomorIdentitas: ['nomor identitas', 'nomor identitas (ktp)', 'ktp', 'nik', 'no ktp', 'nomor ktp'],

@@ -3,10 +3,10 @@ import { useSimPres, selectJabatanOptions } from '../store/simPresStore.jsx'
 import { EMPLOYEE_COLUMNS, EMPLOYEE_GROUPS } from '../data/employeeSchema.js'
 
 const INPUT_CLASS =
-  'w-full h-9 px-3 rounded-lg bg-white border border-slate-200 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 text-xs text-slate-800 placeholder:text-slate-400 transition-all'
-const ERROR_INPUT_CLASS = 'border-rose-400 focus:border-rose-500 focus:ring-rose-500/20'
-const LABEL_CLASS = 'text-xs font-semibold text-slate-700'
-const HELP_CLASS = 'text-[11px] text-slate-400'
+  'w-full h-9 px-3 rounded-lg bg-card border border-input focus:outline-none focus:border-ring focus:ring-1 focus:ring-ring/20 text-xs text-foreground placeholder:text-muted-foreground transition-all'
+const ERROR_INPUT_CLASS = 'border-destructive focus:border-destructive focus:ring-destructive/20'
+const LABEL_CLASS = 'text-xs font-semibold text-foreground/90'
+const HELP_CLASS = 'text-[11px] text-muted-foreground'
 
 // Form bersama untuk Tambah & Edit: satu definisi kolom, satu tampilan.
 function EmployeeFormFields({ form, setForm, errors }) {
@@ -25,7 +25,7 @@ function EmployeeFormFields({ form, setForm, errors }) {
         if (columns.length === 0) return null
         return (
           <fieldset key={group} className="flex flex-col gap-3">
-            <legend className="text-[11px] font-bold uppercase tracking-wider text-blue-600 border-b border-slate-100 pb-1.5 block w-full">
+            <legend className="text-[11px] font-bold uppercase tracking-wider text-primary border-b border-border pb-1.5 block w-full">
               Data {group}
             </legend>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
@@ -90,7 +90,7 @@ function EmployeeFormFields({ form, setForm, errors }) {
                     )}
 
                     {err ? (
-                      <span className="text-[11px] text-rose-600">{err}</span>
+                      <span className="text-[11px] text-destructive">{err}</span>
                     ) : col.key === 'unitId' && form.unitId ? (
                       <span className={HELP_CLASS}>
                         {state.units.find((u) => u.id === form.unitId)?.nama}

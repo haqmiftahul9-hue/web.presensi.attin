@@ -21,13 +21,13 @@ const STATUS_AKTIF_OPTIONS = [
 // agar ketiga baris toolbar terlihat rata dan tidak ada ruang kosong berlebihan.
 const ROW = 'flex flex-wrap items-center gap-2.5'
 const FIELD_BASE =
-  'h-9 w-full bg-slate-50 border border-slate-200 text-slate-800 text-xs font-medium rounded-lg focus:bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-colors'
+  'h-9 w-full bg-card border border-input text-foreground text-xs font-medium rounded-lg focus:outline-none focus:ring-1 focus:ring-ring transition-colors'
 const SELECT_CLASS = `${FIELD_BASE} pl-8 pr-7 appearance-none cursor-pointer truncate`
-const SEARCH_CLASS = `${FIELD_BASE} pl-8 pr-3 placeholder:text-slate-400`
+const SEARCH_CLASS = `${FIELD_BASE} pl-8 pr-3 placeholder:text-muted-foreground`
 const ICON_LEFT =
-  'material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[16px] pointer-events-none leading-none'
+  'material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-[16px] pointer-events-none leading-none'
 const ICON_RIGHT =
-  'material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 text-[16px] pointer-events-none leading-none'
+  'material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground text-[16px] pointer-events-none leading-none'
 const BTN_BASE =
   'h-9 inline-flex items-center justify-center gap-1.5 rounded-lg text-xs font-semibold transition-colors shadow-xs cursor-pointer whitespace-nowrap'
 
@@ -70,16 +70,16 @@ function CardToolbar({
   }, [selectedCount, allSelected])
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs p-3.5 sm:p-4 flex flex-col gap-3">
+    <div className="bg-card rounded-xl border border-border shadow-xs p-3.5 sm:p-4 flex flex-col gap-3">
       {/* ===== Baris 1: aksi utama ===== */}
       <div className={ROW}>
-        <label className="flex h-9 shrink-0 cursor-pointer items-center gap-2 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 px-3 transition-colors text-xs font-semibold text-slate-700">
+        <label className="flex h-9 shrink-0 cursor-pointer items-center gap-2 rounded-lg bg-card hover:bg-muted border border-border px-3 transition-colors text-xs font-semibold text-foreground">
           <input
             ref={masterRef}
             type="checkbox"
             checked={allSelected}
             onChange={onToggleSelectAll}
-            className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+            className="w-4 h-4 rounded border-input text-primary focus:ring-ring cursor-pointer"
           />
           <span className="whitespace-nowrap">
             Pilih Semua ({filteredCount})
@@ -89,9 +89,9 @@ function CardToolbar({
         <button
           type="button"
           onClick={onReset}
-          className={`${BTN_BASE} flex-1 sm:flex-none shrink-0 px-3.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700`}
+          className={`${BTN_BASE} flex-1 sm:flex-none shrink-0 px-3.5 bg-card hover:bg-muted border border-border text-foreground`}
         >
-          <span className="material-symbols-outlined text-[16px] leading-none text-slate-400">restore</span>
+          <span className="material-symbols-outlined text-[16px] leading-none text-muted-foreground">restore</span>
           <span>Reset Filter</span>
         </button>
 
@@ -103,9 +103,9 @@ function CardToolbar({
           type="button"
           onClick={onDownload}
           disabled={selectedCount === 0 || Boolean(busy)}
-          className={`${BTN_BASE} flex-1 sm:flex-none px-3.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed`}
+          className={`${BTN_BASE} flex-1 sm:flex-none px-3.5 bg-card hover:bg-muted border border-border text-foreground disabled:opacity-40 disabled:cursor-not-allowed`}
         >
-          <span className="material-symbols-outlined text-[16px] leading-none text-slate-400">download</span>
+          <span className="material-symbols-outlined text-[16px] leading-none text-muted-foreground">download</span>
           <span>{busy === 'pdf' ? 'Menyusun PDF...' : 'Unduh PDF'}</span>
         </button>
 
@@ -113,7 +113,7 @@ function CardToolbar({
           type="button"
           onClick={onPrint}
           disabled={selectedCount === 0 || Boolean(busy)}
-          className={`${BTN_BASE} flex-1 sm:flex-none px-4 bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-40 disabled:cursor-not-allowed`}
+          className={`${BTN_BASE} flex-1 sm:flex-none px-4 bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-40 disabled:cursor-not-allowed`}
         >
           <span className="material-symbols-outlined text-[16px] leading-none">print</span>
           <span>{busy === 'print' ? 'Menyiapkan...' : `Cetak Terpilih (${selectedCount})`}</span>
@@ -144,7 +144,7 @@ function CardToolbar({
           <div className="relative">
             <span className={ICON_LEFT}>domain</span>
             <div
-              className="h-9 w-full pl-8 pr-7 bg-slate-100 border border-slate-200 flex items-center text-slate-500 text-xs font-medium rounded-lg truncate cursor-not-allowed"
+              className="h-9 w-full pl-8 pr-7 bg-muted border border-border flex items-center text-muted-foreground text-xs font-medium rounded-lg truncate cursor-not-allowed"
               title="Unit mengikuti akun Anda"
               aria-label={`Unit terkunci: ${unitOptions[0]?.nama || 'Semua Unit'}`}
             >
@@ -189,7 +189,7 @@ function CardToolbar({
           <input
             type="search"
             className={SEARCH_CLASS}
-            placeholder="Cari nama, NIY/NIP, jabatan..."
+            placeholder="Cari nama, NIY, jabatan..."
             value={searchTerm}
             onChange={(e) => onSearchTermChange(e.target.value)}
             aria-label="Cari pegawai"
@@ -233,10 +233,10 @@ function CardToolbar({
           type="button"
           onClick={onApplyValidity}
           disabled={selectedCount === 0}
-          className={`${BTN_BASE} flex-1 sm:flex-none px-3.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed`}
+          className={`${BTN_BASE} flex-1 sm:flex-none px-3.5 bg-secondary hover:bg-secondary/80 border border-border/50 text-secondary-foreground disabled:opacity-40 disabled:cursor-not-allowed`}
           title="Terapkan masa berlaku ke kartu yang sedang dipilih"
         >
-          <span className="material-symbols-outlined text-[16px] leading-none text-slate-500">published_with_changes</span>
+          <span className="material-symbols-outlined text-[16px] leading-none text-muted-foreground">published_with_changes</span>
           <span>Terapkan</span>
         </button>
       </div>

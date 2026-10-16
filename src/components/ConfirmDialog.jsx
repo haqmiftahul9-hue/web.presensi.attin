@@ -1,5 +1,8 @@
+import { useEffect } from 'react'
+import { createPortal } from 'react-dom'
+
 function ConfirmDialog({
-  show,
+  show = true,
   onClose,
   onConfirm,
   title,
@@ -9,49 +12,60 @@ function ConfirmDialog({
   variant = 'default',
   confirmIcon,
 }) {
+  useEffect(() => {
+    if (!show) return
+    function onKeyDown(e) {
+      if (e.key === 'Escape') onClose?.()
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [show, onClose])
+
   if (!show) return null
 
   const iconMap = {
-    danger: { icon: 'warning', bg: 'bg-rose-100', iconColor: 'text-rose-600' },
-    warning: { icon: 'warning', bg: 'bg-amber-100', iconColor: 'text-amber-600' },
-    default: { icon: 'help_center', bg: 'bg-slate-100', iconColor: 'text-slate-600' },
+    danger: { icon: 'warning', bg: 'bg-destructive/10 text-destructive border-destructive/20' },
+    warning: { icon: 'warning', bg: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20' },
+    default: { icon: 'help_center', bg: 'bg-primary/10 text-primary border-primary/20' },
   }
   const cfg = iconMap[variant] || iconMap.default
 
   const confirmClass =
     variant === 'danger'
-      ? 'px-space-md py-2 rounded-lg bg-rose-600 hover:bg-rose-700 text-on-primary font-body-md-medium text-body-md-medium shadow-sm flex items-center gap-1.5 transition-all cursor-pointer'
+      ? 'h-9 px-4 rounded-xl bg-destructive hover:bg-destructive/90 text-destructive-foreground font-semibold text-xs shadow-xs flex items-center gap-1.5 transition-all duration-200 active:scale-[0.98] cursor-pointer'
       : variant === 'warning'
-        ? 'px-space-md py-2 rounded-lg bg-amber-600 hover:bg-amber-700 text-on-primary font-body-md-medium text-body-md-medium shadow-sm flex items-center gap-1.5 transition-all cursor-pointer'
-        : 'px-space-md py-2 rounded-lg bg-primary-container hover:bg-primary text-on-primary font-body-md-medium text-body-md-medium shadow-sm flex items-center gap-1.5 transition-all cursor-pointer'
+        ? 'h-9 px-4 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs shadow-xs flex items-center gap-1.5 transition-all duration-200 active:scale-[0.98] cursor-pointer'
+        : 'h-9 px-4 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs shadow-xs flex items-center gap-1.5 transition-all duration-200 active:scale-[0.98] cursor-pointer'
 
-  return (
+  const dialogContent = (
     <div
-      className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-sp-fade"
       onClick={onClose}
       role="presentation"
     >
       <div
-        className="bg-surface-container-lowest w-full max-w-md rounded-xl shadow-2xl overflow-hidden flex flex-col"
+        className="relative w-full max-w-md bg-card text-card-foreground border border-border shadow-2xl rounded-2xl overflow-hidden animate-sp-rise flex flex-col"
         onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
       >
-        <div className="px-space-lg py-space-md bg-surface-container-lowest flex items-start gap-4">
-          <div className={`w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 ${cfg.bg} ${cfg.iconColor}`}>
+        <div className="p-6 bg-card flex items-start gap-4">
+          <div className={`w-11 h-11 rounded-xl border flex items-center justify-center shrink-0 ${cfg.bg}`}>
             <span className="material-symbols-outlined text-[22px]">{cfg.icon}</span>
           </div>
-          <div className="flex flex-col">
-            <h3 className="font-headline-sm text-headline-sm text-primary leading-tight">{title}</h3>
+          <div className="flex flex-col flex-1 min-w-0">
+            <h3 className="text-base font-bold text-foreground leading-snug">{title}</h3>
             {message && (
-              <p className="font-body-sm text-body-sm text-on-surface-variant mt-0.5 leading-relaxed">
+              <div className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
                 {message}
-              </p>
+              </div>
             )}
           </div>
         </div>
-        <div className="px-space-lg py-space-md bg-surface-container-low flex items-center justify-end gap-space-xs">
+        <div className="px-6 py-3.5 bg-muted/30 border-t border-border flex items-center justify-end gap-2.5">
           <button
             onClick={onClose}
-            className="px-space-md py-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface font-body-md-medium text-body-md-medium transition-colors cursor-pointer"
+            className="h-9 px-4 rounded-xl border border-border bg-card hover:bg-muted text-foreground font-semibold text-xs transition-colors cursor-pointer"
             type="button"
           >
             {cancelLabel}
@@ -65,7 +79,7 @@ function ConfirmDialog({
             type="button"
           >
             <span className="material-symbols-outlined text-[18px]">
-              {confirmIcon || (variant === 'danger' ? 'delete' : 'check')}
+              {confirmIcon || (variant === 'danger' ? 'logout' : 'check')}
             </span>
             <span>{confirmLabel}</span>
           </button>
@@ -73,6 +87,14 @@ function ConfirmDialog({
       </div>
     </div>
   )
+
+  // Gunakan createPortal ke document.body agar tidak terperangkap di dalam
+  // kontainer bertransformasi seperti sidebar aside (translate-x-0).
+  if (typeof document !== 'undefined' && document.body) {
+    return createPortal(dialogContent, document.body)
+  }
+
+  return dialogContent
 }
 
 export default ConfirmDialog

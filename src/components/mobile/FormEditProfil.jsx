@@ -16,7 +16,7 @@ const LABEL = 'font-label-sm text-label-sm text-on-surface-variant mb-2 block'
  * Form ubah data pribadi Guru/Pegawai.
  *
  * Yang bisa diubah: foto, nama lengkap, nomor HP, email, alamat, tempat lahir,
- * dan tanggal lahir. Sisanya (NIY, NIP, jabatan, unit, status kepegawaian)
+ * dan tanggal lahir. Sisanya (NIY, jabatan, unit, status kepegawaian)
  * ditampilkan terkunci — hanya Superadmin yang boleh mengubahnya.
  *
  * Pengiriman memakai aksi `UPDATE_STAFF_PROFILE`, yang kembali membuang field

@@ -28,7 +28,7 @@ export async function readSpreadsheet(file) {
   if (!sheet) throw new Error('File tidak berisi worksheet yang dapat dibaca.')
 
   // raw:false memakai teks yang ditampilkan sel, sehingga nol di depan pada
-  // NIY/NIP/KTP tetap terbaca sebagai teks, bukan angka.
+  // NIY/KTP tetap terbaca sebagai teks, bukan angka.
   const aoa = XLSX.utils.sheet_to_json(sheet, { header: 1, blankrows: true, defval: '', raw: false })
   if (aoa.length === 0) throw new Error('File kosong — tidak ada data untuk diimpor.')
 

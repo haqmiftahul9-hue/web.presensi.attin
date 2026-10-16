@@ -17,10 +17,10 @@ const statusStyles = {
 }
 
 const avatarStyles = [
-  'bg-blue-50 text-blue-700 border border-blue-100',
-  'bg-slate-100 text-slate-700 border border-slate-200',
-  'bg-indigo-50 text-indigo-700 border border-indigo-100',
-  'bg-teal-50 text-teal-700 border border-teal-100',
+  'bg-primary/10 text-primary border border-primary/20',
+  'bg-muted text-muted-foreground border border-border',
+  'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20',
+  'bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20',
 ]
 
 const periods = ['Harian', 'Mingguan', 'Bulanan', 'Tahunan']
@@ -80,7 +80,7 @@ function exportPresensiToExcel(data, unitLabel, periodLabel, yayasanInfo = null,
     ]
     
     // Kolom "Jam Kerja" menggantikan kolom shift/jam operasional.
-    const header = ['No', 'Nama Pegawai', 'NIY/NIP', 'Unit', 'Periode Rekap', 'Jam Kerja', 'Total Hari Kerja', 'Hadir', 'Tepat Waktu', 'Terlambat', 'Keterlambatan (menit)', 'Izin/Sakit', 'Alpha', 'Persentase Kehadiran']
+    const header = ['No', 'Nama Pegawai', 'NIY', 'Unit', 'Periode Rekap', 'Jam Kerja', 'Total Hari Kerja', 'Hadir', 'Tepat Waktu', 'Terlambat', 'Keterlambatan (menit)', 'Izin/Sakit', 'Alpha', 'Persentase Kehadiran']
     
     const rows = data.map((row, i) => [
       i + 1,
@@ -114,7 +114,7 @@ function exportPresensiToExcel(data, unitLabel, periodLabel, yayasanInfo = null,
     ws['!cols'] = [
       { wch: 5 },   // No
       { wch: 30 },  // Nama Pegawai
-      { wch: 15 },  // NIY/NIP
+      { wch: 15 },  // NIY
       { wch: 20 },  // Unit
       { wch: 15 },  // Periode Rekap
       { wch: 22 },  // Jam Kerja
@@ -164,7 +164,7 @@ function exportCutiToExcel(data, unitLabel, periodLabel, yayasanInfo = null, sig
       [],
     ]
     
-    const header = ['No', 'Nama Pegawai', 'NIY/NIP', 'Unit', 'Jenis Izin/Cuti', 'Tanggal Mulai', 'Tanggal Selesai', 'Lama Cuti', 'Status Persetujuan']
+    const header = ['No', 'Nama Pegawai', 'NIY', 'Unit', 'Jenis Izin/Cuti', 'Tanggal Mulai', 'Tanggal Selesai', 'Lama Cuti', 'Status Persetujuan']
     
     const rows = data.map((row, i) => [
       i + 1,
@@ -195,7 +195,7 @@ function exportCutiToExcel(data, unitLabel, periodLabel, yayasanInfo = null, sig
     ws['!cols'] = [
       { wch: 5 },   // No
       { wch: 30 },  // Nama Pegawai
-      { wch: 15 },  // NIY/NIP
+      { wch: 15 },  // NIY
       { wch: 20 },  // Unit
       { wch: 25 },  // Jenis Izin/Cuti
       { wch: 15 },  // Tanggal Mulai
@@ -491,7 +491,7 @@ function exportPresensiToPDF(data, unitLabel, periodLabel, yayasanInfo = null, s
   const columns = [
     { header: 'No', dataKey: 'no' },
     { header: 'Nama Pegawai', dataKey: 'name' },
-    { header: 'NIY/NIP', dataKey: 'niy' },
+    { header: 'NIY', dataKey: 'niy' },
     { header: 'Unit', dataKey: 'unit' },
     { header: 'Jam Kerja', dataKey: 'jamKerja' },
     { header: 'Hadir', dataKey: 'hadir' },
@@ -718,7 +718,7 @@ function exportCutiToPDF(data, unitLabel, periodLabel, yayasanInfo = null, signa
   const columns = [
     { header: 'No', dataKey: 'no' },
     { header: 'Nama Pegawai', dataKey: 'name' },
-    { header: 'NIY/NIP', dataKey: 'niy' },
+    { header: 'NIY', dataKey: 'niy' },
     { header: 'Unit', dataKey: 'unit' },
     { header: 'Jenis Izin/Cuti', dataKey: 'jenis' },
     { header: 'Tanggal Mulai', dataKey: 'tanggalMulai' },
@@ -786,39 +786,39 @@ function DetailModal({ employee, isOpen, onClose, state }) {
   const leaves = state.leaves.filter(l => l.staffId === employee.id && (l.status === 'Disetujui' || l.status === 'Menunggu'))
   
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs" onClick={onClose}>
-      <div className="w-full max-w-3xl max-h-[85vh] bg-white rounded-2xl shadow-2xl border border-slate-200/80 overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
-        <div className="p-5 md:p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs" onClick={onClose}>
+      <div className="w-full max-w-3xl max-h-[85vh] bg-card rounded-2xl shadow-xl border border-border overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
+        <div className="p-5 md:p-6 border-b border-border flex items-center justify-between bg-muted/30">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-blue-50 border border-blue-100 text-blue-700 font-bold text-base flex items-center justify-center flex-shrink-0">
+            <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 text-primary font-bold text-base flex items-center justify-center flex-shrink-0">
               {employee.initials}
             </div>
             <div>
-              <h3 className="text-base font-bold text-slate-900">{employee.name}</h3>
-              <p className="text-xs text-slate-500">{employee.niy} • {employee.unit}</p>
+              <h3 className="text-base font-bold text-foreground">{employee.name}</h3>
+              <p className="text-xs text-muted-foreground">{employee.niy} • {employee.unit}</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors" aria-label="Tutup">
+          <button onClick={onClose} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer" aria-label="Tutup">
             <span className="material-symbols-outlined text-[20px]">close</span>
           </button>
         </div>
         
         <div className="p-5 md:p-6 overflow-y-auto flex-1 space-y-6">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/60">
-              <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Total Hari Kerja</p>
-              <p className="text-xl font-bold text-slate-900 mt-1">{employee.totalHariKerja}</p>
+            <div className="p-3.5 bg-muted/40 rounded-xl border border-border/60">
+              <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Total Hari Kerja</p>
+              <p className="text-xl font-bold text-foreground mt-1">{employee.totalHariKerja}</p>
             </div>
-            <div className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/60">
-              <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Periode</p>
-              <p className="text-xs font-bold text-slate-800 mt-1.5 truncate">{employee.periode}</p>
+            <div className="p-3.5 bg-muted/40 rounded-xl border border-border/60">
+              <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Periode</p>
+              <p className="text-xs font-bold text-foreground mt-1.5 truncate">{employee.periode}</p>
             </div>
-            <div className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/60">
-              <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">% Kehadiran</p>
-              <p className="text-xl font-bold text-blue-600 mt-1">{employee.persentaseKehadiran}%</p>
+            <div className="p-3.5 bg-muted/40 rounded-xl border border-border/60">
+              <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">% Kehadiran</p>
+              <p className="text-xl font-bold text-primary mt-1">{employee.persentaseKehadiran}%</p>
             </div>
-            <div className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/60">
-              <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Status</p>
+            <div className="p-3.5 bg-muted/40 rounded-xl border border-border/60">
+              <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Status</p>
               <div className="mt-1.5">
                 <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${statusStyles[employee.statusType]}`}>{employee.status}</span>
               </div>
@@ -826,59 +826,59 @@ function DetailModal({ employee, isOpen, onClose, state }) {
           </div>
           
           <div>
-            <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-3">Ringkasan Kehadiran</h4>
+            <h4 className="text-xs font-bold text-foreground uppercase tracking-wider mb-3">Ringkasan Kehadiran</h4>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div className="p-3 bg-emerald-50/60 rounded-xl border border-emerald-100">
-                <p className="text-[11px] font-semibold text-emerald-800">Hadir</p>
-                <p className="text-xl font-bold text-emerald-700 mt-0.5">{employee.hadir}</p>
-                <p className="text-[11px] text-emerald-600 mt-0.5">{employee.tepatWaktu} tepat waktu</p>
+              <div className="p-3 bg-emerald-500/10 rounded-xl border border-emerald-500/20">
+                <p className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400">Hadir</p>
+                <p className="text-xl font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">{employee.hadir}</p>
+                <p className="text-[11px] text-emerald-600/80 mt-0.5">{employee.tepatWaktu} tepat waktu</p>
               </div>
-              <div className="p-3 bg-amber-50/60 rounded-xl border border-amber-100">
-                <p className="text-[11px] font-semibold text-amber-800">Terlambat</p>
-                <p className="text-xl font-bold text-amber-700 mt-0.5">{employee.terlambat}</p>
+              <div className="p-3 bg-amber-500/10 rounded-xl border border-amber-500/20">
+                <p className="text-[11px] font-semibold text-amber-700 dark:text-amber-400">Terlambat</p>
+                <p className="text-xl font-bold text-amber-600 dark:text-amber-400 mt-0.5">{employee.terlambat}</p>
               </div>
-              <div className="p-3 bg-blue-50/60 rounded-xl border border-blue-100">
-                <p className="text-[11px] font-semibold text-blue-800">Izin/Sakit</p>
-                <p className="text-xl font-bold text-blue-700 mt-0.5">{employee.izinSakit}</p>
+              <div className="p-3 bg-primary/10 rounded-xl border border-primary/20">
+                <p className="text-[11px] font-semibold text-primary">Izin/Sakit</p>
+                <p className="text-xl font-bold text-primary mt-0.5">{employee.izinSakit}</p>
               </div>
-              <div className="p-3 bg-rose-50/60 rounded-xl border border-rose-100">
-                <p className="text-[11px] font-semibold text-rose-800">Alpha</p>
-                <p className="text-xl font-bold text-rose-700 mt-0.5">{employee.alpha}</p>
+              <div className="p-3 bg-destructive/10 rounded-xl border border-destructive/20">
+                <p className="text-[11px] font-semibold text-destructive">Alpha</p>
+                <p className="text-xl font-bold text-destructive mt-0.5">{employee.alpha}</p>
               </div>
             </div>
           </div>
           
           <div>
-            <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-3">Detail Izin/Sakit</h4>
+            <h4 className="text-xs font-bold text-foreground uppercase tracking-wider mb-3">Detail Izin/Sakit</h4>
             {leaves.length > 0 ? (
               <div className="space-y-2">
                 {leaves.map(leave => (
-                  <div key={leave.id} className="p-3 bg-slate-50/80 rounded-xl border border-slate-200/60 flex items-center justify-between">
+                  <div key={leave.id} className="p-3 bg-muted/40 rounded-xl border border-border/60 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <span className={`w-2 h-2 rounded-full ${leave.status === 'Disetujui' ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
                       <div>
-                        <p className="text-xs font-semibold text-slate-800">{leave.jenis}</p>
-                        <p className="text-[11px] text-slate-500">{leave.periode} • {leave.durasi}</p>
+                        <p className="text-xs font-semibold text-foreground">{leave.jenis}</p>
+                        <p className="text-[11px] text-muted-foreground">{leave.periode} • {leave.durasi}</p>
                       </div>
                     </div>
-                    <span className={`px-2 py-0.5 rounded-full text-[11px] font-semibold border ${leave.status === 'Disetujui' ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80' : 'bg-amber-50 text-amber-700 border-amber-200/80'}`}>
+                    <span className={`px-2 py-0.5 rounded-full text-[11px] font-semibold border ${leave.status === 'Disetujui' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'}`}>
                       {leave.status}
                     </span>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-xs text-slate-400 py-3 text-center bg-slate-50/50 rounded-xl border border-dashed border-slate-200">Tidak ada data izin/sakit</p>
+              <p className="text-xs text-muted-foreground py-3 text-center bg-muted/20 rounded-xl border border-dashed border-border">Tidak ada data izin/sakit</p>
             )}
           </div>
           
           <div>
-            <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-3">Riwayat Presensi Terbaru</h4>
-            <div className="border border-slate-200/80 rounded-xl overflow-hidden">
+            <h4 className="text-xs font-bold text-foreground uppercase tracking-wider mb-3">Riwayat Presensi Terbaru</h4>
+            <div className="border border-border rounded-xl overflow-hidden">
               <div className="sp-table-wrap">
                 <table className="w-full text-xs">
                   <thead>
-                    <tr className="text-left bg-slate-50/80 border-b border-slate-200/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                    <tr className="text-left bg-muted border-b border-border text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
                       <th className="py-2.5 px-3 font-semibold">Tanggal</th>
                       <th className="py-2.5 px-3 font-semibold">Hari</th>
                       <th className="py-2.5 px-3 font-semibold">Jam Kerja</th>
@@ -889,17 +889,17 @@ function DetailModal({ employee, isOpen, onClose, state }) {
                       <th className="py-2.5 px-3 font-semibold">Metode</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
+                  <tbody className="divide-y divide-border/60">
                     {staffAttendance.slice().reverse().slice(0, 10).map((a) => {
                       const presensi = calculateAttendanceStatus(a.tanggal, a.masuk)
                       return (
-                        <tr key={a.id} className="hover:bg-slate-50/60 transition-colors">
-                          <td className="py-2.5 px-3 text-slate-600">{a.tanggal || presensi.tanggal || '-'}</td>
-                          <td className="py-2.5 px-3 text-slate-600">{presensi.hari}</td>
-                          <td className="py-2.5 px-3 text-slate-600">{presensi.jamKerja}</td>
-                          <td className="py-2.5 px-3 font-medium text-slate-800">{a.masuk ? jamPendek(a.masuk) : '-'}</td>
-                          <td className="py-2.5 px-3 font-medium text-slate-800">{a.pulang ? jamPendek(a.pulang) : '-'}</td>
-                          <td className="py-2.5 px-3 text-slate-600 tabular-nums">
+                        <tr key={a.id} className="hover:bg-muted/40 transition-colors">
+                          <td className="py-2.5 px-3 text-muted-foreground">{a.tanggal || presensi.tanggal || '-'}</td>
+                          <td className="py-2.5 px-3 text-muted-foreground">{presensi.hari}</td>
+                          <td className="py-2.5 px-3 text-muted-foreground">{presensi.jamKerja}</td>
+                          <td className="py-2.5 px-3 font-medium text-foreground">{a.masuk ? jamPendek(a.masuk) : '-'}</td>
+                          <td className="py-2.5 px-3 font-medium text-foreground">{a.pulang ? jamPendek(a.pulang) : '-'}</td>
+                          <td className="py-2.5 px-3 text-muted-foreground tabular-nums">
                             {presensi.lateMinutes > 0 ? `${presensi.lateMinutes} mnt` : '-'}
                           </td>
                           <td className="py-2.5 px-3">
@@ -907,13 +907,13 @@ function DetailModal({ employee, isOpen, onClose, state }) {
                               {a.status}
                             </span>
                           </td>
-                          <td className="py-2.5 px-3 text-slate-500">{a.method || '-'}</td>
+                          <td className="py-2.5 px-3 text-muted-foreground">{a.method || '-'}</td>
                         </tr>
                       )
                     })}
                     {staffAttendance.length === 0 && (
                       <tr>
-                        <td colSpan={8} className="py-6 text-center text-slate-400">Belum ada data presensi</td>
+                        <td colSpan={8} className="py-6 text-center text-muted-foreground">Belum ada data presensi</td>
                       </tr>
                     )}
                   </tbody>
@@ -930,14 +930,14 @@ function DetailModal({ employee, isOpen, onClose, state }) {
 function NotifToast({ notification }) {
   if (!notification) return null
   const colors = {
-    success: 'bg-white border-emerald-200 text-emerald-800 shadow-emerald-500/10',
-    info: 'bg-white border-blue-200 text-blue-800 shadow-blue-500/10',
-    error: 'bg-white border-rose-200 text-rose-800 shadow-rose-500/10',
+    success: 'bg-card border-emerald-500/30 text-emerald-700 dark:text-emerald-400 shadow-md',
+    info: 'bg-card border-border text-foreground shadow-md',
+    error: 'bg-card border-destructive/30 text-destructive shadow-md',
   }
   const iconColors = {
     success: 'text-emerald-600',
-    info: 'text-blue-600',
-    error: 'text-rose-600',
+    info: 'text-primary',
+    error: 'text-destructive',
   }
   const icons = {
     success: 'check_circle',
@@ -1064,13 +1064,11 @@ function RekapLaporanPage() {
       ketuaYayasan: {
         nama: penandatangan.kepalaYayasan?.nama || '',
         jabatan: penandatangan.kepalaYayasan?.jabatan || 'Ketua Yayasan',
-        nip: penandatangan.kepalaYayasan?.nip || '',
       },
       // Kepala Sekolah per unit
       kepalaSekolah: {
         nama: penandatangan.kepalaSekolah?.[id]?.nama || '',
         jabatan: penandatangan.kepalaSekolah?.[id]?.jabatan || `Kepala ${state.units.find(u => u.id === id)?.nama || 'Sekolah'}`,
-        nip: penandatangan.kepalaSekolah?.[id]?.nip || '',
       },
       // Petugas Presensi per unit
       petugasPresensi: {
@@ -1103,12 +1101,10 @@ function RekapLaporanPage() {
       ketuaYayasan: {
         nama: penandatangan.kepalaYayasan?.nama || '',
         jabatan: penandatangan.kepalaYayasan?.jabatan || 'Ketua Yayasan',
-        nip: penandatangan.kepalaYayasan?.nip || '',
       },
       kepalaSekolah: {
         nama: penandatangan.kepalaSekolah?.tk?.nama || '',
         jabatan: 'Kepala Sekolah',
-        nip: penandatangan.kepalaSekolah?.tk?.nip || '',
       },
       petugasPresensi: {
         nama: penandatangan.petugasPresensi?.yayasan?.nama || '',
@@ -1462,7 +1458,7 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
                 <tr>
                   <th style="width: 24px;">No</th>
                   <th style="width: 150px;">Nama Pegawai</th>
-                  <th style="width: 84px;">NIY/NIP</th>
+                  <th style="width: 84px;">NIY</th>
                   <th style="width: 110px;">Unit</th>
                   <th style="width: 84px;">Periode Rekap</th>
                   <th style="width: 110px;">Jam Kerja</th>
@@ -1524,7 +1520,7 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
                 <tr>
                   <th style="width: 30px;">No</th>
                   <th style="width: 160px;">Nama Pegawai</th>
-                  <th style="width: 90px;">NIY/NIP</th>
+                  <th style="width: 90px;">NIY</th>
                   <th style="width: 120px;">Unit</th>
                   <th style="width: 140px;">Jenis Izin/Cuti</th>
                   <th style="width: 90px;">Tanggal Mulai</th>
@@ -1737,7 +1733,7 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
             <tr>
               <th style="width: 24px;">No</th>
               <th style="width: 150px;">Nama Pegawai</th>
-              <th style="width: 84px;">NIY/NIP</th>
+              <th style="width: 84px;">NIY</th>
               <th style="width: 110px;">Unit</th>
               <th style="width: 84px;">Periode Rekap</th>
               <th style="width: 110px;">Jam Kerja</th>
@@ -1799,7 +1795,7 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
             <tr>
               <th style="width: 30px;">No</th>
               <th style="width: 160px;">Nama Pegawai</th>
-              <th style="width: 90px;">NIY/NIP</th>
+              <th style="width: 90px;">NIY</th>
               <th style="width: 120px;">Unit</th>
               <th style="width: 140px;">Jenis Izin/Cuti</th>
               <th style="width: 90px;">Tanggal Mulai</th>
@@ -1909,32 +1905,32 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
     <div className="flex flex-col w-full">
       <NotifToast notification={notification} />
       {showReportSettings && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs" onClick={() => setShowReportSettings(false)}>
-          <div className="w-full max-w-md max-h-[90vh] bg-white rounded-2xl shadow-2xl border border-slate-200/80 overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
-            <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-              <h3 className="text-base font-bold text-slate-900">Pengaturan Laporan</h3>
-              <button onClick={() => setShowReportSettings(false)} className="p-2 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors" aria-label="Tutup">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs" onClick={() => setShowReportSettings(false)}>
+          <div className="w-full max-w-md max-h-[90vh] bg-card rounded-2xl shadow-xl border border-border overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
+            <div className="p-5 border-b border-border flex items-center justify-between bg-muted/30">
+              <h3 className="text-base font-bold text-foreground">Pengaturan Laporan</h3>
+              <button onClick={() => setShowReportSettings(false)} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer" aria-label="Tutup">
                 <span className="material-symbols-outlined text-[20px]">close</span>
               </button>
             </div>
             <div className="p-5 md:p-6 overflow-y-auto flex-1">
               <div className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Jenis Laporan</label>
+                  <label className="block text-xs font-semibold text-muted-foreground mb-1.5">Jenis Laporan</label>
                   <div className="flex gap-2.5">
-                    <label className="flex-1 flex items-center gap-2 cursor-pointer p-3 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-slate-100/80 transition-colors">
-                      <input type="radio" name="reportType" value="presensi" checked={reportSettings.reportType === 'presensi'} onChange={(e) => setReportSettings(prev => ({...prev, reportType: e.target.value}))} className="text-blue-600 focus:ring-blue-500" />
-                      <span className="text-xs font-medium text-slate-800">Rekap Presensi</span>
+                    <label className="flex-1 flex items-center gap-2 cursor-pointer p-3 rounded-xl border border-border bg-muted/30 hover:bg-muted/60 transition-colors">
+                      <input type="radio" name="reportType" value="presensi" checked={reportSettings.reportType === 'presensi'} onChange={(e) => setReportSettings(prev => ({...prev, reportType: e.target.value}))} className="text-primary focus:ring-ring" />
+                      <span className="text-xs font-medium text-foreground">Rekap Presensi</span>
                     </label>
-                    <label className="flex-1 flex items-center gap-2 cursor-pointer p-3 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-slate-100/80 transition-colors">
-                      <input type="radio" name="reportType" value="cuti" checked={reportSettings.reportType === 'cuti'} onChange={(e) => setReportSettings(prev => ({...prev, reportType: e.target.value}))} className="text-blue-600 focus:ring-blue-500" />
-                      <span className="text-xs font-medium text-slate-800">Rekap Cuti/Izin</span>
+                    <label className="flex-1 flex items-center gap-2 cursor-pointer p-3 rounded-xl border border-border bg-muted/30 hover:bg-muted/60 transition-colors">
+                      <input type="radio" name="reportType" value="cuti" checked={reportSettings.reportType === 'cuti'} onChange={(e) => setReportSettings(prev => ({...prev, reportType: e.target.value}))} className="text-primary focus:ring-ring" />
+                      <span className="text-xs font-medium text-foreground">Rekap Cuti/Izin</span>
                     </label>
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Periode Laporan</label>
-                  <select value={reportSettings.period} onChange={(e) => setReportSettings(prev => ({...prev, period: e.target.value}))} className="w-full h-9 px-3 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 focus:bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20">
+                  <label className="block text-xs font-semibold text-muted-foreground mb-1.5">Periode Laporan</label>
+                  <select value={reportSettings.period} onChange={(e) => setReportSettings(prev => ({...prev, period: e.target.value}))} className="w-full h-9 px-3 bg-card border border-input rounded-lg text-xs text-foreground focus:ring-1 focus:ring-ring">
                     {periods.map(p => <option key={p} value={p}>{getPeriodLabel(p)}</option>)}
                     <option value="custom">Rentang Tanggal Custom</option>
                   </select>
@@ -1942,42 +1938,42 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
                 {reportSettings.period === 'custom' && (
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-semibold text-slate-600 mb-1.5">Tanggal Mulai</label>
-                      <input type="date" value={reportSettings.customStartDate} onChange={(e) => setReportSettings(prev => ({...prev, customStartDate: e.target.value}))} className="w-full h-9 px-3 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 focus:bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20" />
+                      <label className="block text-xs font-semibold text-muted-foreground mb-1.5">Tanggal Mulai</label>
+                      <input type="date" value={reportSettings.customStartDate} onChange={(e) => setReportSettings(prev => ({...prev, customStartDate: e.target.value}))} className="w-full h-9 px-3 bg-card border border-input rounded-lg text-xs text-foreground focus:ring-1 focus:ring-ring" />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-slate-600 mb-1.5">Tanggal Selesai</label>
-                      <input type="date" value={reportSettings.customEndDate} onChange={(e) => setReportSettings(prev => ({...prev, customEndDate: e.target.value}))} className="w-full h-9 px-3 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 focus:bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20" />
+                      <label className="block text-xs font-semibold text-muted-foreground mb-1.5">Tanggal Selesai</label>
+                      <input type="date" value={reportSettings.customEndDate} onChange={(e) => setReportSettings(prev => ({...prev, customEndDate: e.target.value}))} className="w-full h-9 px-3 bg-card border border-input rounded-lg text-xs text-foreground focus:ring-1 focus:ring-ring" />
                     </div>
                   </div>
                 )}
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Unit</label>
-                  <select value={reportSettings.unit} onChange={(e) => setReportSettings(prev => ({...prev, unit: e.target.value}))} className="w-full h-9 px-3 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 focus:bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20">
+                  <label className="block text-xs font-semibold text-muted-foreground mb-1.5">Unit</label>
+                  <select value={reportSettings.unit} onChange={(e) => setReportSettings(prev => ({...prev, unit: e.target.value}))} className="w-full h-9 px-3 bg-card border border-input rounded-lg text-xs text-foreground focus:ring-1 focus:ring-ring">
                     <option value="all">Semua Unit</option>
                     {state.units.map(u => <option key={u.id} value={u.id}>{u.nama}</option>)}
                   </select>
                 </div>
                 {reportSettings.format !== 'print' && (
                   <div>
-                    <label className="block text-xs font-semibold text-slate-600 mb-1.5">Format Output</label>
+                    <label className="block text-xs font-semibold text-muted-foreground mb-1.5">Format Output</label>
                     <div className="flex gap-2.5">
-                      <label className="flex-1 flex items-center gap-2 cursor-pointer p-3 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-slate-100/80 transition-colors">
-                        <input type="radio" name="format" value="pdf" checked={reportSettings.format === 'pdf'} onChange={(e) => setReportSettings(prev => ({...prev, format: e.target.value}))} className="text-blue-600 focus:ring-blue-500" />
-                        <span className="text-xs font-medium text-slate-800">PDF</span>
+                      <label className="flex-1 flex items-center gap-2 cursor-pointer p-3 rounded-xl border border-border bg-muted/30 hover:bg-muted/60 transition-colors">
+                        <input type="radio" name="format" value="pdf" checked={reportSettings.format === 'pdf'} onChange={(e) => setReportSettings(prev => ({...prev, format: e.target.value}))} className="text-primary focus:ring-ring" />
+                        <span className="text-xs font-medium text-foreground">PDF</span>
                       </label>
-                      <label className="flex-1 flex items-center gap-2 cursor-pointer p-3 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-slate-100/80 transition-colors">
-                        <input type="radio" name="format" value="excel" checked={reportSettings.format === 'excel'} onChange={(e) => setReportSettings(prev => ({...prev, format: e.target.value}))} className="text-blue-600 focus:ring-blue-500" />
-                        <span className="text-xs font-medium text-slate-800">Excel (.xlsx)</span>
+                      <label className="flex-1 flex items-center gap-2 cursor-pointer p-3 rounded-xl border border-border bg-muted/30 hover:bg-muted/60 transition-colors">
+                        <input type="radio" name="format" value="excel" checked={reportSettings.format === 'excel'} onChange={(e) => setReportSettings(prev => ({...prev, format: e.target.value}))} className="text-primary focus:ring-ring" />
+                        <span className="text-xs font-medium text-foreground">Excel (.xlsx)</span>
                       </label>
                     </div>
                   </div>
                 )}
               </div>
             </div>
-            <div className="p-4 md:p-5 border-t border-slate-100 bg-slate-50/50 flex gap-2.5 justify-end">
-              <button onClick={() => setShowReportSettings(false)} className="h-9 px-3.5 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 font-semibold text-xs shadow-xs transition-colors cursor-pointer">Batal</button>
-              <button onClick={() => handleReportAction(reportSettings.format === 'print' ? 'print' : 'download')} disabled={isExporting} className="h-9 px-4 rounded-lg bg-blue-600 text-white hover:bg-blue-700 font-semibold text-xs shadow-xs transition-colors cursor-pointer disabled:opacity-50">
+            <div className="p-4 md:p-5 border-t border-border bg-muted/30 flex gap-2.5 justify-end">
+              <button onClick={() => setShowReportSettings(false)} className="h-9 px-3.5 rounded-lg bg-card border border-border text-foreground hover:bg-muted font-semibold text-xs shadow-xs transition-colors cursor-pointer">Batal</button>
+              <button onClick={() => handleReportAction(reportSettings.format === 'print' ? 'print' : 'download')} disabled={isExporting} className="h-9 px-4 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 font-semibold text-xs shadow-xs transition-colors cursor-pointer disabled:opacity-50">
                 {isExporting ? 'Memproses...' : (reportSettings.format === 'print' ? 'Cetak' : 'Download')}
               </button>
             </div>
@@ -1987,35 +1983,35 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
       <div className="p-4 sm:p-6 lg:p-8 max-w-[1600px] mx-auto space-y-6 w-full">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
-              <span className="p-2 rounded-lg bg-blue-50 text-blue-600 border border-blue-100">
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight flex items-center gap-2.5">
+              <span className="p-2 rounded-lg bg-primary/10 text-primary border border-primary/20">
                 <span className="material-symbols-outlined text-[20px] leading-none">bar_chart</span>
               </span>
               Rekap & Laporan
             </h1>
-            <p className="text-xs sm:text-sm text-slate-500 mt-1">Analisis komprehensif kehadiran, kepatuhan jam kerja, dan ekspor laporan berkala seluruh unit sekolah.</p>
+            <p className="text-xs sm:text-sm text-muted-foreground mt-1">Analisis komprehensif kehadiran, kepatuhan jam kerja, dan ekspor laporan berkala seluruh unit sekolah.</p>
           </div>
-          <div className="flex items-center self-start md:self-auto bg-slate-50 border border-slate-200/80 px-3 py-1.5 rounded-lg shadow-xs">
-            <div className="flex items-center gap-1.5 text-xs text-slate-500">
-              <span className="material-symbols-outlined text-[15px] text-slate-400">home</span>
+          <div className="flex items-center self-start md:self-auto bg-muted/40 border border-border px-3 py-1.5 rounded-lg shadow-xs">
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <span className="material-symbols-outlined text-[15px] text-muted-foreground">home</span>
               <span>Home</span>
-              <span className="text-slate-300">/</span>
+              <span className="text-muted-foreground/40">/</span>
               <span>Laporan</span>
-              <span className="text-slate-300">/</span>
-              <span className="text-blue-600 font-semibold">Rekap & Laporan Kehadiran</span>
+              <span className="text-muted-foreground/40">/</span>
+              <span className="text-primary font-semibold">Rekap & Laporan Kehadiran</span>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-slate-200/80 p-3.5 shadow-xs flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3">
+        <div className="bg-card rounded-xl border border-border p-3.5 shadow-xs flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3">
           <div className="flex flex-wrap items-center gap-2.5">
-            <div className="inline-flex p-1 bg-slate-100 rounded-lg gap-1 border border-slate-200/60">
+            <div className="inline-flex p-1 bg-muted rounded-lg gap-1 border border-border/60">
               {periods.map((period) => (
                 <button
                   key={period}
                   onClick={() => setActivePeriod(period)}
                   className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${
-                    activePeriod === period ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                    activePeriod === period ? 'bg-card text-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground'
                   }`}
                   type="button"
                 >
@@ -2023,37 +2019,37 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
                 </button>
               ))}
             </div>
-            <div className="relative flex items-center bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-medium text-slate-700">
-              <span className="material-symbols-outlined text-[16px] text-slate-400 mr-1.5">calendar_today</span>
+            <div className="relative flex items-center bg-muted/40 border border-border rounded-lg px-3 py-1.5 text-xs font-medium text-foreground">
+              <span className="material-symbols-outlined text-[16px] text-muted-foreground mr-1.5">calendar_today</span>
               <span>{getPeriodLabel(activePeriod)}</span>
             </div>
             {canSwitchUnit ? (
               <div className="relative" onMouseLeave={() => setShowUnitDropdown(false)}>
                 <button
                   onClick={() => setShowUnitDropdown(!showUnitDropdown)}
-                  className="flex items-center gap-1.5 h-8.5 px-3 bg-slate-50 border border-slate-200 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer text-xs font-medium text-slate-700"
+                  className="flex items-center gap-1.5 h-8.5 px-3 bg-muted/40 border border-border rounded-lg hover:bg-muted transition-colors cursor-pointer text-xs font-medium text-foreground"
                   type="button"
                 >
-                  <span className="material-symbols-outlined text-[16px] text-slate-400">domain</span>
+                  <span className="material-symbols-outlined text-[16px] text-muted-foreground">domain</span>
                   <span>{unitLabel}</span>
-                  <span className="material-symbols-outlined text-[16px] text-slate-400">{showUnitDropdown ? 'expand_less' : 'expand_more'}</span>
+                  <span className="material-symbols-outlined text-[16px] text-muted-foreground">{showUnitDropdown ? 'expand_less' : 'expand_more'}</span>
                 </button>
                 {showUnitDropdown && (
-                  <div className="absolute left-0 top-full mt-1.5 min-w-[220px] bg-white rounded-xl shadow-lg border border-slate-200 py-1.5 z-50 animate-fade-in">
+                  <div className="absolute left-0 top-full mt-1.5 min-w-[220px] bg-popover rounded-xl shadow-lg border border-border py-1.5 z-50 animate-fade-in text-popover-foreground">
                     {unitOptions.map(u => (
                       <button
                         key={u.id}
                         onClick={() => { dispatch({ type: 'SET_SELECTED_UNIT', payload: u.id }); setShowUnitDropdown(false); }}
-                        className={`w-full px-3.5 py-2 text-left text-xs transition-colors ${selectedUnit === u.id ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-slate-700 hover:bg-slate-50'}`}
+                        className={`w-full px-3.5 py-2 text-left text-xs transition-colors cursor-pointer ${selectedUnit === u.id ? 'bg-primary/10 text-primary font-semibold' : 'text-foreground hover:bg-muted'}`}
                         type="button"
                       >
                         {u.nama}
                       </button>
                     ))}
-                    <hr className="my-1 border-slate-100" />
+                    <hr className="my-1 border-border/60" />
                     <button
                       onClick={() => { dispatch({ type: 'SET_SELECTED_UNIT', payload: ALL_UNITS }); setShowUnitDropdown(false); }}
-                      className={`w-full px-3.5 py-2 text-left text-xs transition-colors ${selectedUnit === ALL_UNITS ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-slate-700 hover:bg-slate-50'}`}
+                      className={`w-full px-3.5 py-2 text-left text-xs transition-colors cursor-pointer ${selectedUnit === ALL_UNITS ? 'bg-primary/10 text-primary font-semibold' : 'text-foreground hover:bg-muted'}`}
                       type="button"
                     >
                       Semua Unit ({state.units.length} Unit)
@@ -2062,10 +2058,10 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
                 )}
               </div>
             ) : (
-              <div className="flex items-center gap-1.5 h-8.5 px-3 bg-slate-100 border border-slate-200 rounded-lg cursor-not-allowed text-xs font-medium text-slate-500" title="Unit mengikuti akun Anda">
-                <span className="material-symbols-outlined text-[16px] text-slate-400">domain</span>
+              <div className="flex items-center gap-1.5 h-8.5 px-3 bg-muted border border-border rounded-lg cursor-not-allowed text-xs font-medium text-muted-foreground" title="Unit mengikuti akun Anda">
+                <span className="material-symbols-outlined text-[16px] text-muted-foreground">domain</span>
                 <span>{unitLabel}</span>
-                <span className="material-symbols-outlined text-[14px] text-slate-400">lock</span>
+                <span className="material-symbols-outlined text-[14px] text-muted-foreground">lock</span>
               </div>
             )}
           </div>
@@ -2082,7 +2078,7 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
             <button
               onClick={() => handleDirectDownload('cuti')}
               disabled={isExporting}
-              className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-semibold text-xs shadow-xs transition-colors cursor-pointer whitespace-nowrap disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs shadow-xs transition-colors cursor-pointer whitespace-nowrap disabled:opacity-50"
               type="button"
             >
               <span className="material-symbols-outlined text-[16px]">download</span>
@@ -2090,7 +2086,7 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
             </button>
             <button
               onClick={() => { setReportSettings(prev => ({...prev, format: 'print' })); setShowReportSettings(!showReportSettings); }}
-              className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-lg bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-semibold text-xs shadow-xs transition-colors cursor-pointer whitespace-nowrap"
+              className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-lg bg-card hover:bg-muted border border-border text-foreground font-semibold text-xs shadow-xs transition-colors cursor-pointer whitespace-nowrap"
               type="button"
             >
               <span className="material-symbols-outlined text-[16px]">print</span>
@@ -2099,16 +2095,16 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-slate-200/80 p-5 shadow-xs flex flex-col gap-6">
+        <div className="bg-card rounded-xl border border-border p-5 shadow-xs flex flex-col gap-6">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div className="flex flex-col gap-0.5">
               <div className="flex items-center gap-2">
-                <h2 className="text-base font-bold text-slate-900">Tren Kehadiran & Kepatuhan Jam Kerja</h2>
-                <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-100 text-xs font-semibold">{kepatuhanChart.kepatuhan}% Rata-rata</span>
+                <h2 className="text-base font-bold text-foreground">Tren Kehadiran & Kepatuhan Jam Kerja</h2>
+                <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 text-xs font-semibold">{kepatuhanChart.kepatuhan}% Rata-rata</span>
               </div>
-              <span className="text-xs text-slate-500">Periode {getPeriodLabel(activePeriod)} ({unitLabel})</span>
+              <span className="text-xs text-muted-foreground">Periode {getPeriodLabel(activePeriod)} ({unitLabel})</span>
             </div>
-            <div className="flex flex-wrap items-center gap-4 text-xs text-slate-600">
+            <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
               <div className="flex items-center gap-1.5">
                 <span className="w-2.5 h-2.5 rounded-xs bg-emerald-500"></span>
                 <span>Hadir Tepat Waktu</span>
@@ -2118,136 +2114,136 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
                 <span>Terlambat</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-xs bg-blue-500"></span>
+                <span className="w-2.5 h-2.5 rounded-xs bg-primary"></span>
                 <span>Izin/Sakit</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-xs bg-rose-500"></span>
+                <span className="w-2.5 h-2.5 rounded-xs bg-destructive"></span>
                 <span>Alpha</span>
               </div>
             </div>
           </div>
 
           <div className="relative w-full pt-2">
-            <div className="absolute inset-0 flex flex-col justify-between pointer-events-none pb-8 text-slate-400 text-[11px] font-mono">
+            <div className="absolute inset-0 flex flex-col justify-between pointer-events-none pb-8 text-muted-foreground text-[11px] font-mono">
               <div className="flex items-center w-full">
                 <span className="w-9 text-right pr-2">100%</span>
-                <div className="flex-1 h-px bg-slate-100"></div>
+                <div className="flex-1 h-px bg-border/60"></div>
               </div>
               <div className="flex items-center w-full">
                 <span className="w-9 text-right pr-2">75%</span>
-                <div className="flex-1 h-px bg-slate-100"></div>
+                <div className="flex-1 h-px bg-border/60"></div>
               </div>
               <div className="flex items-center w-full">
                 <span className="w-9 text-right pr-2">50%</span>
-                <div className="flex-1 h-px bg-slate-100"></div>
+                <div className="flex-1 h-px bg-border/60"></div>
               </div>
               <div className="flex items-center w-full">
                 <span className="w-9 text-right pr-2">25%</span>
-                <div className="flex-1 h-px bg-slate-100"></div>
+                <div className="flex-1 h-px bg-border/60"></div>
               </div>
               <div className="flex items-center w-full">
                 <span className="w-9 text-right pr-2">0%</span>
-                <div className="flex-1 h-px bg-slate-200"></div>
+                <div className="flex-1 h-px bg-border"></div>
               </div>
             </div>
 
             <div className="relative ml-9 h-56 flex items-end justify-between gap-1.5 sm:gap-3 overflow-x-auto pt-2 pb-8">
               {chartData.map((d) => (
                 <div key={d.day} className={`group flex flex-col items-center flex-1 min-w-[28px] h-full justify-end ${d.weekend ? 'opacity-40' : ''} cursor-pointer`}>
-                  <div className={`w-full max-w-[24px] rounded-t-sm bg-slate-100 flex flex-col-reverse overflow-hidden shadow-xs group-hover:opacity-90 transition-opacity ${d.current ? 'ring-2 ring-blue-500/30' : ''}`} style={{ height: `${Math.min(100, d.hadir + d.terlambat + d.izin + d.alpha)}%` }}>
+                  <div className={`w-full max-w-[24px] rounded-t-sm bg-muted flex flex-col-reverse overflow-hidden shadow-xs group-hover:opacity-90 transition-opacity ${d.current ? 'ring-2 ring-primary/40' : ''}`} style={{ height: `${Math.min(100, d.hadir + d.terlambat + d.izin + d.alpha)}%` }}>
                     <div className="w-full bg-emerald-500" style={{ height: `${d.hadir}%` }}></div>
                     <div className="w-full bg-amber-500" style={{ height: `${d.terlambat}%` }}></div>
-                    {d.izin > 0 && <div className="w-full bg-blue-500" style={{ height: `${d.izin}%` }}></div>}
-                    {d.alpha > 0 && <div className="w-full bg-rose-500" style={{ height: `${d.alpha}%` }}></div>}
+                    {d.izin > 0 && <div className="w-full bg-primary" style={{ height: `${d.izin}%` }}></div>}
+                    {d.alpha > 0 && <div className="w-full bg-destructive" style={{ height: `${d.alpha}%` }}></div>}
                   </div>
-                  <span className={`absolute -bottom-1 text-[11px] ${d.weekend ? 'text-slate-400' : d.current ? 'font-bold text-blue-600' : 'text-slate-500 group-hover:text-slate-900'}`}>{d.day}</span>
+                  <span className={`absolute -bottom-1 text-[11px] ${d.weekend ? 'text-muted-foreground/60' : d.current ? 'font-bold text-primary' : 'text-muted-foreground group-hover:text-foreground'}`}>{d.day}</span>
                 </div>
               ))}
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 pt-2">
-            <div className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/60 flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-white border border-slate-200/80 flex items-center justify-center text-blue-600 shadow-xs">
+            <div className="p-3.5 bg-muted/40 rounded-xl border border-border/60 flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-card border border-border/80 flex items-center justify-center text-primary shadow-xs">
                 <span className="material-symbols-outlined text-[18px]">groups</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Total Pegawai</span>
-                <span className="text-base font-bold text-slate-900 leading-snug">{summary.totalPegawai.toLocaleString()}</span>
+                <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Total Pegawai</span>
+                <span className="text-base font-bold text-foreground leading-snug">{summary.totalPegawai.toLocaleString()}</span>
               </div>
             </div>
-            <div className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/60 flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-white border border-slate-200/80 flex items-center justify-center text-emerald-600 shadow-xs">
+            <div className="p-3.5 bg-muted/40 rounded-xl border border-border/60 flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-card border border-border/80 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shadow-xs">
                 <span className="material-symbols-outlined text-[18px]">check_circle</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Hadir</span>
-                <span className="text-base font-bold text-slate-900 leading-snug">{summary.hadir.toLocaleString()}</span>
+                <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Hadir</span>
+                <span className="text-base font-bold text-foreground leading-snug">{summary.hadir.toLocaleString()}</span>
               </div>
             </div>
-            <div className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/60 flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-white border border-slate-200/80 flex items-center justify-center text-amber-600 shadow-xs">
+            <div className="p-3.5 bg-muted/40 rounded-xl border border-border/60 flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-card border border-border/80 flex items-center justify-center text-amber-600 dark:text-amber-400 shadow-xs">
                 <span className="material-symbols-outlined text-[18px]">schedule</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Terlambat</span>
-                <span className="text-base font-bold text-slate-900 leading-snug">{summary.terlambat.toLocaleString()}</span>
+                <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Terlambat</span>
+                <span className="text-base font-bold text-foreground leading-snug">{summary.terlambat.toLocaleString()}</span>
               </div>
             </div>
-            <div className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/60 flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-white border border-slate-200/80 flex items-center justify-center text-emerald-600 shadow-xs">
+            <div className="p-3.5 bg-muted/40 rounded-xl border border-border/60 flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-card border border-border/80 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shadow-xs">
                 <span className="material-symbols-outlined text-[18px]">verified_user</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">% Kehadiran</span>
-                <span className="text-base font-bold text-blue-600 leading-snug">{summary.persentaseKehadiran}%</span>
+                <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">% Kehadiran</span>
+                <span className="text-base font-bold text-primary leading-snug">{summary.persentaseKehadiran}%</span>
               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-slate-100">
-            <div className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/60 flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-white border border-slate-200/80 flex items-center justify-center text-blue-600 shadow-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-border">
+            <div className="p-3.5 bg-muted/40 rounded-xl border border-border/60 flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-card border border-border/80 flex items-center justify-center text-primary shadow-xs">
                 <span className="material-symbols-outlined text-[18px]">schedule</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Total Jam Kerja</span>
-                <span className="text-sm font-bold text-slate-900 leading-snug">{(summary.hadir * 8).toLocaleString()} <span className="text-xs text-slate-500 font-normal">Jam</span></span>
+                <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Total Jam Kerja</span>
+                <span className="text-sm font-bold text-foreground leading-snug">{(summary.hadir * 8).toLocaleString()} <span className="text-xs text-muted-foreground font-normal">Jam</span></span>
               </div>
             </div>
-            <div className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/60 flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-white border border-slate-200/80 flex items-center justify-center text-amber-600 shadow-xs">
+            <div className="p-3.5 bg-muted/40 rounded-xl border border-border/60 flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-card border border-border/80 flex items-center justify-center text-amber-600 dark:text-amber-400 shadow-xs">
                 <span className="material-symbols-outlined text-[18px]">history_toggle_off</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Rata-rata Keterlambatan</span>
-                <span className="text-sm font-bold text-slate-900 leading-snug">{(summary.terlambat > 0 ? (chartData.reduce((s, d) => s + d.terlambat, 0) / Math.max(chartData.filter(d => d.terlambat > 0).length, 1)).toFixed(1) : '0.0')} <span className="text-xs text-slate-500 font-normal">Menit / staf</span></span>
+                <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Rata-rata Keterlambatan</span>
+                <span className="text-sm font-bold text-foreground leading-snug">{(summary.terlambat > 0 ? (chartData.reduce((s, d) => s + d.terlambat, 0) / Math.max(chartData.filter(d => d.terlambat > 0).length, 1)).toFixed(1) : '0.0')} <span className="text-xs text-muted-foreground font-normal">Menit / staf</span></span>
               </div>
             </div>
-            <div className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/60 flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-white border border-slate-200/80 flex items-center justify-center text-emerald-600 shadow-xs">
+            <div className="p-3.5 bg-muted/40 rounded-xl border border-border/60 flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-card border border-border/80 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shadow-xs">
                 <span className="material-symbols-outlined text-[18px]">verified_user</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Tingkat Kepatuhan Jadwal</span>
-                <span className="text-sm font-bold text-slate-900 leading-snug">{kepatuhanChart.kepatuhan}% <span className="text-xs text-emerald-600 font-semibold">+1.2%</span></span>
+                <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Tingkat Kepatuhan Jadwal</span>
+                <span className="text-sm font-bold text-foreground leading-snug">{kepatuhanChart.kepatuhan}% <span className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold">+1.2%</span></span>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden">
-          <div className="p-4 sm:p-5 border-b border-slate-200/80 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="bg-card rounded-xl border border-border shadow-xs overflow-hidden">
+          <div className="p-4 sm:p-5 border-b border-border flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="flex flex-col">
-              <h3 className="text-sm font-bold text-slate-900">Laporan Rekap Kehadiran Pegawai</h3>
-              <span className="text-xs text-slate-500">Menampilkan {paginatedData.length} dari {filteredData.length} pegawai • Periode {getPeriodLabel(activePeriod)}</span>
+              <h3 className="text-sm font-bold text-foreground">Laporan Rekap Kehadiran Pegawai</h3>
+              <span className="text-xs text-muted-foreground">Menampilkan {paginatedData.length} dari {filteredData.length} pegawai • Periode {getPeriodLabel(activePeriod)}</span>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               <div className="relative w-full sm:w-64">
-                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">search</span>
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-[18px]">search</span>
                 <input
-                  className="w-full h-9 pl-9 pr-3 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 placeholder:text-slate-400 focus:bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20"
+                  className="w-full h-9 pl-9 pr-3 bg-card border border-input rounded-lg text-xs text-foreground placeholder:text-muted-foreground focus:ring-1 focus:ring-ring"
                   placeholder="Cari nama, NIY, unit..."
                   type="text"
                   value={search}
@@ -2257,7 +2253,7 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
               <select
                 value={pageSize}
                 onChange={(e) => { setPageSize(Number(e.target.value)); setCurrentPage(1); }}
-                className="h-9 px-3 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-700 focus:bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20"
+                className="h-9 px-3 bg-card border border-input rounded-lg text-xs text-foreground focus:ring-1 focus:ring-ring"
               >
                 <option value={10}>10 / halaman</option>
                 <option value={25}>25 / halaman</option>
@@ -2271,74 +2267,74 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
             <div className="sp-table-wrap">
               <table className="w-full text-left text-xs">
                 <thead>
-                  <tr className="bg-slate-50/80 border-b border-slate-200/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider leading-tight">
+                  <tr className="bg-muted border-b border-border text-[11px] font-bold text-muted-foreground uppercase tracking-wider leading-tight">
                     <th className="py-3 px-3.5 text-center" scope="col" style={{ width: '40px' }}>No</th>
                     <th className="py-3 px-3.5" scope="col" style={{ width: '200px', minWidth: '160px' }}>
-                      <button onClick={() => handleSort('name')} className="flex items-center gap-1 hover:text-slate-900 transition-colors whitespace-nowrap">Nama Pegawai {sortConfig.key === 'name' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</button>
+                      <button onClick={() => handleSort('name')} className="flex items-center gap-1 hover:text-foreground transition-colors whitespace-nowrap cursor-pointer">Nama Pegawai {sortConfig.key === 'name' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</button>
                     </th>
                     <th className="py-3 px-3.5" scope="col" style={{ width: '110px', minWidth: '100px' }}>
-                      <button onClick={() => handleSort('niy')} className="flex items-center gap-1 hover:text-slate-900 transition-colors whitespace-nowrap">NIY/NIP {sortConfig.key === 'niy' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</button>
+                      <button onClick={() => handleSort('niy')} className="flex items-center gap-1 hover:text-foreground transition-colors whitespace-nowrap cursor-pointer">NIY {sortConfig.key === 'niy' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</button>
                     </th>
                     <th className="py-3 px-3.5" scope="col" style={{ width: '120px', minWidth: '100px' }}>
-                      <button onClick={() => handleSort('unit')} className="flex items-center gap-1 hover:text-slate-900 transition-colors whitespace-nowrap">Unit {sortConfig.key === 'unit' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</button>
+                      <button onClick={() => handleSort('unit')} className="flex items-center gap-1 hover:text-foreground transition-colors whitespace-nowrap cursor-pointer">Unit {sortConfig.key === 'unit' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</button>
                     </th>
                     <th className="py-3 px-3.5 text-center hidden sm:table-cell" scope="col" style={{ width: '90px' }}>Periode</th>
                     <th className="py-3 px-3.5 text-center hidden md:table-cell" scope="col" style={{ width: '70px' }}>
-                      <button onClick={() => handleSort('totalHariKerja')} className="flex items-center justify-center gap-1 hover:text-slate-900 transition-colors whitespace-nowrap">Hari Kerja {sortConfig.key === 'totalHariKerja' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</button>
+                      <button onClick={() => handleSort('totalHariKerja')} className="flex items-center justify-center gap-1 hover:text-foreground transition-colors whitespace-nowrap cursor-pointer">Hari Kerja {sortConfig.key === 'totalHariKerja' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</button>
                     </th>
                     <th className="py-3 px-3.5 text-center" scope="col" style={{ width: '60px' }}>
-                      <button onClick={() => handleSort('hadir')} className="flex items-center justify-center gap-1 hover:text-slate-900 transition-colors whitespace-nowrap">Hadir {sortConfig.key === 'hadir' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</button>
+                      <button onClick={() => handleSort('hadir')} className="flex items-center justify-center gap-1 hover:text-foreground transition-colors whitespace-nowrap cursor-pointer">Hadir {sortConfig.key === 'hadir' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</button>
                     </th>
                     <th className="py-3 px-3.5 text-center hidden md:table-cell" scope="col" style={{ width: '70px' }}>
-                      <button onClick={() => handleSort('tepatWaktu')} className="flex items-center justify-center gap-1 hover:text-slate-900 transition-colors whitespace-nowrap">Tepat {sortConfig.key === 'tepatWaktu' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</button>
+                      <button onClick={() => handleSort('tepatWaktu')} className="flex items-center justify-center gap-1 hover:text-foreground transition-colors whitespace-nowrap cursor-pointer">Tepat {sortConfig.key === 'tepatWaktu' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</button>
                     </th>
                     <th className="py-3 px-3.5 text-center" scope="col" style={{ width: '70px' }}>
-                      <button onClick={() => handleSort('terlambat')} className="flex items-center justify-center gap-1 hover:text-slate-900 transition-colors whitespace-nowrap">Terlambat {sortConfig.key === 'terlambat' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</button>
+                      <button onClick={() => handleSort('terlambat')} className="flex items-center justify-center gap-1 hover:text-foreground transition-colors whitespace-nowrap cursor-pointer">Terlambat {sortConfig.key === 'terlambat' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</button>
                     </th>
                     <th className="py-3 px-3.5 text-center hidden lg:table-cell" scope="col" style={{ width: '70px' }}>
-                      <button onClick={() => handleSort('izinSakit')} className="flex items-center justify-center gap-1 hover:text-slate-900 transition-colors whitespace-nowrap">Izin/Sakit {sortConfig.key === 'izinSakit' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</button>
+                      <button onClick={() => handleSort('izinSakit')} className="flex items-center justify-center gap-1 hover:text-foreground transition-colors whitespace-nowrap cursor-pointer">Izin/Sakit {sortConfig.key === 'izinSakit' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</button>
                     </th>
                     <th className="py-3 px-3.5 text-center hidden lg:table-cell" scope="col" style={{ width: '60px' }}>
-                      <button onClick={() => handleSort('alpha')} className="flex items-center justify-center gap-1 hover:text-slate-900 transition-colors whitespace-nowrap">Alpha {sortConfig.key === 'alpha' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</button>
+                      <button onClick={() => handleSort('alpha')} className="flex items-center justify-center gap-1 hover:text-foreground transition-colors whitespace-nowrap cursor-pointer">Alpha {sortConfig.key === 'alpha' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</button>
                     </th>
                     <th className="py-3 px-3.5 text-center" scope="col" style={{ width: '80px' }}>
-                      <button onClick={() => handleSort('persentaseKehadiran')} className="flex items-center justify-center gap-1 hover:text-slate-900 transition-colors whitespace-nowrap">% Kehadiran {sortConfig.key === 'persentaseKehadiran' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</button>
+                      <button onClick={() => handleSort('persentaseKehadiran')} className="flex items-center justify-center gap-1 hover:text-foreground transition-colors whitespace-nowrap cursor-pointer">% Kehadiran {sortConfig.key === 'persentaseKehadiran' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</button>
                     </th>
                     <th className="py-3 px-3.5 text-center" scope="col" style={{ width: '100px' }}>Status</th>
                     <th className="py-3 px-3.5 text-center" scope="col" style={{ width: '44px' }}>Detail</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-border/60">
                   {paginatedData.map((row) => (
-                    <tr key={row.id} className="hover:bg-slate-50/60 transition-colors">
-                      <td className="py-3 px-3.5 text-center font-mono text-[11px] text-slate-400">{row.no}</td>
+                    <tr key={row.id} className="hover:bg-muted/40 transition-colors">
+                      <td className="py-3 px-3.5 text-center font-mono text-[11px] text-muted-foreground">{row.no}</td>
                       <td className="py-3 px-3.5">
                         <div className="flex items-center gap-2.5 min-w-0">
-                          <div className="w-7 h-7 rounded-lg bg-blue-50 border border-blue-100 text-blue-700 font-bold text-xs flex items-center justify-center flex-shrink-0">
+                          <div className="w-7 h-7 rounded-lg bg-primary/10 border border-primary/20 text-primary font-bold text-xs flex items-center justify-center flex-shrink-0">
                             {row.initials}
                           </div>
-                          <span className="font-semibold text-slate-800 truncate">{row.name}</span>
+                          <span className="font-semibold text-foreground truncate">{row.name}</span>
                         </div>
                       </td>
-                      <td className="py-3 px-3.5 font-mono text-xs text-slate-500">{row.niy}</td>
+                      <td className="py-3 px-3.5 font-mono text-xs text-muted-foreground">{row.niy}</td>
                       <td className="py-3 px-3.5">
-                        <span className="px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200 text-slate-600 font-medium text-[11px] whitespace-nowrap">{row.unit}</span>
+                        <span className="px-2 py-0.5 rounded-md bg-secondary border border-border/50 text-secondary-foreground font-medium text-[11px] whitespace-nowrap">{row.unit}</span>
                       </td>
-                      <td className="py-3 px-3.5 text-center hidden sm:table-cell text-xs text-slate-500">{row.periode}</td>
-                      <td className="py-3 px-3.5 text-center hidden md:table-cell font-semibold text-slate-800">{row.totalHariKerja}</td>
-                      <td className="py-3 px-3.5 text-center font-bold text-emerald-600">{row.hadir}</td>
-                      <td className="py-3 px-3.5 text-center hidden md:table-cell text-slate-600">{row.tepatWaktu}</td>
-                      <td className="py-3 px-3.5 text-center font-bold text-amber-600">{row.terlambat}</td>
-                      <td className="py-3 px-3.5 text-center hidden lg:table-cell text-blue-600 font-semibold">{row.izinSakit}</td>
-                      <td className="py-3 px-3.5 text-center hidden lg:table-cell text-rose-600 font-semibold">{row.alpha}</td>
-                      <td className="py-3 px-3.5 text-center font-bold text-blue-600">{row.persentaseKehadiran}%</td>
+                      <td className="py-3 px-3.5 text-center hidden sm:table-cell text-xs text-muted-foreground">{row.periode}</td>
+                      <td className="py-3 px-3.5 text-center hidden md:table-cell font-semibold text-foreground">{row.totalHariKerja}</td>
+                      <td className="py-3 px-3.5 text-center font-bold text-emerald-600 dark:text-emerald-400">{row.hadir}</td>
+                      <td className="py-3 px-3.5 text-center hidden md:table-cell text-muted-foreground">{row.tepatWaktu}</td>
+                      <td className="py-3 px-3.5 text-center font-bold text-amber-600 dark:text-amber-400">{row.terlambat}</td>
+                      <td className="py-3 px-3.5 text-center hidden lg:table-cell text-primary font-semibold">{row.izinSakit}</td>
+                      <td className="py-3 px-3.5 text-center hidden lg:table-cell text-destructive font-semibold">{row.alpha}</td>
+                      <td className="py-3 px-3.5 text-center font-bold text-primary">{row.persentaseKehadiran}%</td>
                       <td className="py-3 px-3.5 text-center">
                         <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold border ${statusStyles[row.statusType]}`}>{row.status}</span>
                       </td>
                       <td className="py-3 px-3.5 text-center">
                         <button
                           onClick={() => { setSelectedEmployee(row); setShowDetail(true); }}
-                          className="p-1 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 border border-transparent hover:border-blue-100 transition-colors cursor-pointer"
+                          className="p-1 rounded-lg text-muted-foreground hover:text-primary hover:bg-muted border border-transparent hover:border-border transition-colors cursor-pointer"
                           aria-label={`Detail ${row.name}`}
                         >
                           <span className="material-symbols-outlined text-[18px]">visibility</span>
@@ -2348,26 +2344,26 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
                   ))}
                   {paginatedData.length === 0 && (
                     <tr>
-                      <td colSpan={14} className="py-12 text-center text-slate-400">Tidak ada data pegawai</td>
+                      <td colSpan={14} className="py-12 text-center text-muted-foreground">Tidak ada data pegawai</td>
                     </tr>
                   )}
                 </tbody>
               </table>
             </div>
             
-            <div className="hidden lg:block bg-slate-50/60 px-4 py-2 text-right border-t border-slate-100">
-              <span className="text-[11px] text-slate-400">
+            <div className="hidden lg:block bg-muted/30 px-4 py-2 text-right border-t border-border">
+              <span className="text-[11px] text-muted-foreground">
                 Kolom tersembunyi di mobile: Periode, Hari Kerja, Tepat Waktu, Izin/Sakit, Alpha
               </span>
             </div>
           </div>
 
-          <div className="p-4 bg-white border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+          <div className="p-4 bg-card border-t border-border flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
             <div className="flex items-center gap-2 flex-wrap">
               <span>
-                Menampilkan <span className="font-semibold text-slate-800">{(currentPage - 1) * pageSize + 1}</span>–<span className="font-semibold text-slate-800">{Math.min(currentPage * pageSize, filteredData.length)}</span> dari <span className="font-semibold text-blue-600">{filteredData.length}</span> pegawai
+                Menampilkan <span className="font-semibold text-foreground">{(currentPage - 1) * pageSize + 1}</span>–<span className="font-semibold text-foreground">{Math.min(currentPage * pageSize, filteredData.length)}</span> dari <span className="font-semibold text-primary">{filteredData.length}</span> pegawai
               </span>
-              <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[11px] font-medium">
+              <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-md bg-secondary border border-border/50 text-secondary-foreground text-[11px] font-medium">
                 {totalPages} halaman
               </span>
             </div>
@@ -2375,7 +2371,7 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
               <button
                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
-                className="w-8 h-8 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 flex items-center justify-center transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                className="w-8 h-8 rounded-lg bg-card hover:bg-muted border border-border text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                 type="button"
                 aria-label="Halaman sebelumnya"
               >
@@ -2391,10 +2387,10 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
                   <button
                     key={pageNum}
                     onClick={() => setCurrentPage(pageNum)}
-                    className={`w-8 h-8 rounded-lg text-xs font-semibold flex items-center justify-center transition-colors ${
+                    className={`w-8 h-8 rounded-lg text-xs font-semibold flex items-center justify-center transition-colors cursor-pointer ${
                       currentPage === pageNum
-                        ? 'bg-blue-600 text-white shadow-xs'
-                        : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
+                        ? 'bg-primary text-primary-foreground shadow-xs'
+                        : 'bg-card border border-border text-foreground hover:bg-muted'
                     }`}
                     type="button"
                   >
@@ -2403,15 +2399,15 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
                 )
               })}
               {totalPages > 5 && currentPage > 3 && (
-                <span className="w-8 h-8 flex items-center justify-center text-slate-400">...</span>
+                <span className="w-8 h-8 flex items-center justify-center text-muted-foreground">...</span>
               )}
               {totalPages > 5 && currentPage < totalPages - 2 && (
-                <span className="w-8 h-8 flex items-center justify-center text-slate-400">...</span>
+                <span className="w-8 h-8 flex items-center justify-center text-muted-foreground">...</span>
               )}
               <button
                 onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
-                className="w-8 h-8 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 flex items-center justify-center transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                className="w-8 h-8 rounded-lg bg-card hover:bg-muted border border-border text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                 type="button"
                 aria-label="Halaman berikutnya"
               >

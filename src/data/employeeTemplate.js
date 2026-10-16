@@ -10,7 +10,7 @@ const PANDUAN = [
 // Template dibuat dari EMPLOYEE_COLUMNS, jadi kolomnya selalu sama dengan form.
 // Kolom yang bisa kehilangan nol di depan bila Excel mengubahnya jadi angka.
 const TEXT_FORMAT_KEYS = new Set([
-  'niy', 'nip', 'nomorIdentitas', 'kontak', 'npwp',
+  'niy', 'nomorIdentitas', 'kontak', 'npwp',
   'bpjsKesehatan', 'bpjsKetenagakerjaan', 'rekeningBank',
   'tanggalLahir', 'tanggalMasuk', 'skPengangkatan',
 ])
@@ -20,7 +20,6 @@ export function buildTemplateSheet(state) {
   const sample = toExcelRow(
     {
       niy: '049001234',
-      nip: '198501012005011001',
       name: 'Budi Santoso, S.Pd',
       gelar: 'S.Pd',
       nomorIdentitas: '3174012345678901',

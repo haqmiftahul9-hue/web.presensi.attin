@@ -1,10 +1,10 @@
-// Generator barcode Code 128 (Subset B) untuk NIY/NIP pegawai.
+// Generator barcode Code 128 (Subset B) untuk NIY pegawai.
 //
 // Dipakai kartu ID sebagai alat identifikasi cepat di loket:_lines_ yang jauh
 // lebih mudah dibaca pemindai 1D dibanding QR, sementara QR tetap membawa
 // payload integrasi (SIMPRESPEG-{NIY}).
 //
-// Code 128 B dipilih (bukan C) supaya karakter non-angka pada NIY/NIP tetap
+// Code 128 B dipilih (bukan C) supaya karakter non-angka pada NIY tetap
 // aman, tanpa perlu logika subset switching.
 
 // Lebar tiap simbol (6 elemen, kecuali stop = 7) dalam satuan modul.

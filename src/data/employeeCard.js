@@ -11,7 +11,7 @@
 //   id              kode kartu (CARD-{employee_id})
 //   employee_id     relasi ke staff.id
 //   qr_code         payload QR, format SIMPRESPEG-{NIY}
-//   barcode         payload barcode 1D, format NIY (fallback NIP/id)
+//   barcode         payload barcode 1D, format NIY (fallback id)
 //   issued_date     tanggal terbit (YYYY-MM-DD)
 //   expired_date    masa berlaku (YYYY-MM-DD)
 //   printed_count   berapa kali kartu dicetak
@@ -72,11 +72,10 @@ export const CARD_GEOMETRY = {
   qrLabel: 0.48,
   qrLabelGap: 0.12,
 
-  // Tipografi (nama paling dominan, lalu jabatan, lalu NIY/NIP)
+  // Tipografi (nama paling dominan, lalu jabatan, lalu NIY)
   name: 1.5,
   role: 0.95,
   niy: 0.9,
-  nip: 0.8,
   meta: 0.78,
 
   // Footer
@@ -149,15 +148,15 @@ export function shortUnitCode(unit) {
  * `employeeQrPayload()`; `cardQrValue()` hanyalah nama lama yang dipertahankan
  * supaya pemanggil lama tidak rusak.
  *
- * Format: SIMPRESPEG-{NIY}, dengan NIP sebagai cadangan untuk pegawai yang
+ * Format: SIMPRESPEG-{NIY}, dengan id sebagai cadangan untuk pegawai yang
  * datanya belum lengkap.
  */
 export function employeeQrPayload(staff) {
   if (!staff) return ''
   const niy = String(staff.niy ?? '').trim()
-  if (niy) return `${CARD_QR_PREFIX}${niy}`
   const nip = String(staff.nip ?? '').trim()
-  return `${CARD_QR_PREFIX}${nip || staff.id}`
+  if (niy || nip) return `${CARD_QR_PREFIX}${niy || nip}`
+  return `${CARD_QR_PREFIX}${staff.id}`
 }
 
 /** Alias lama (dipakai CetakKartuIdPage, kartu, dan toolbar). */
@@ -172,19 +171,25 @@ export function cardQrValue(staff) {
 export function employeeQrInfo(staff) {
   const value = employeeQrPayload(staff)
   const identitas = value.startsWith(CARD_QR_PREFIX) ? value.slice(CARD_QR_PREFIX.length) : value
+  const niy = String(staff?.niy ?? '').trim()
+  const nip = String(staff?.nip ?? '').trim()
   return {
     value,
     prefix: CARD_QR_PREFIX,
     identitas,
     // Field mana yang dipakai sebagai identitas, untuk ditampilkan ke pengguna.
-    sumber: String(staff?.niy ?? '').trim() ? 'NIY' : (String(staff?.nip ?? '').trim() ? 'NIP' : 'ID pegawai'),
+    sumber: niy ? 'NIY' : (nip ? 'NIP' : 'ID pegawai'),
   }
 }
 
-/** Payload barcode 1D: NIY, atau NIP sebagai cadangan. */
+/** Payload barcode 1D: NIY, NIP, atau id sebagai cadangan. */
 export function cardBarcodeValue(staff) {
   if (!staff) return ''
-  return String(staff.niy ?? '').trim() || String(staff.nip ?? '').trim() || String(staff.id)
+  const niy = String(staff.niy ?? '').trim()
+  if (niy) return niy
+  const nip = String(staff.nip ?? '').trim()
+  if (nip) return nip
+  return String(staff.id)
 }
 
 /** Foto pegawai dibaca dari field yang benar-benar ada di store. */

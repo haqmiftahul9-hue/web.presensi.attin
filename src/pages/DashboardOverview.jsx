@@ -30,26 +30,26 @@ function TopBar({ onBukaMenu }) {
   const currentUser = selectCurrentUser(state)
   const settings = state.settings
   return (
-    <header className="sp-portal-header sticky top-0 z-40 flex items-center justify-between gap-3 bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-4 md:px-6 pt-safe shadow-xs">
+    <header className="sp-portal-header sticky top-0 z-40 flex items-center justify-between gap-3 bg-card/95 backdrop-blur-md border-b border-border px-4 md:px-6 pt-safe shadow-xs">
       <div className="flex items-center gap-2.5 flex-1 max-w-xl">
         <button
           type="button"
           onClick={onBukaMenu}
           aria-label="Buka menu navigasi"
-          className="lg:hidden flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+          className="lg:hidden flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border text-foreground/70 hover:bg-accent hover:text-foreground transition-colors cursor-pointer"
         >
           <span className="material-symbols-outlined text-[20px]">menu</span>
         </button>
 
         <div className="relative w-full">
-          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px] pointer-events-none">search</span>
+          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-[18px] pointer-events-none">search</span>
           <input
-            aria-label="Cari pegawai, NIP, atau data presensi"
-            className="w-full h-9 pl-9 pr-12 bg-slate-50/80 border border-slate-200/90 hover:border-slate-300 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100/60 rounded-lg text-xs md:text-sm text-slate-800 placeholder:text-slate-400 outline-none transition-all"
-            placeholder="Cari pegawai, NIP, atau data presensi..."
+            aria-label="Cari pegawai, NIY, atau data presensi"
+            className="w-full h-9 pl-9 pr-12 bg-input/40 border border-input hover:border-border focus:border-ring focus:bg-card focus:ring-2 focus:ring-ring/20 rounded-lg text-xs md:text-sm text-foreground placeholder:text-muted-foreground outline-none transition-all"
+            placeholder="Cari pegawai, NIY, atau data presensi..."
             type="search"
           />
-          <kbd className="hidden sm:inline-flex absolute right-2.5 top-1/2 -translate-y-1/2 px-1.5 py-0.5 text-[10px] font-semibold text-slate-400 bg-white border border-slate-200 rounded shadow-2xs pointer-events-none">
+          <kbd className="hidden sm:inline-flex absolute right-2.5 top-1/2 -translate-y-1/2 px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground bg-muted border border-border rounded shadow-2xs pointer-events-none">
             /
           </kbd>
         </div>
@@ -59,26 +59,26 @@ function TopBar({ onBukaMenu }) {
         <button
           type="button"
           aria-label="Notifikasi"
-          className="relative w-9 h-9 rounded-lg border border-slate-200/70 flex items-center justify-center text-slate-600 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 transition-all"
+          className="relative w-9 h-9 rounded-lg border border-border flex items-center justify-center text-foreground/70 hover:bg-accent hover:text-foreground transition-all cursor-pointer"
           title="Notifikasi sistem"
         >
           <span className="material-symbols-outlined text-[19px]">notifications</span>
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500 ring-2 ring-white" />
+          <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-destructive ring-2 ring-card" />
         </button>
 
-        <div className="h-5 w-px bg-slate-200 mx-1 hidden sm:block" />
+        <div className="h-5 w-px bg-border mx-1 hidden sm:block" />
 
-        <div className="flex items-center gap-2.5 px-2 py-1 rounded-lg border border-slate-200/60 bg-slate-50/60 hover:bg-slate-50 transition-colors">
+        <div className="flex items-center gap-2.5 px-2 py-1 rounded-lg border border-border bg-muted/40 hover:bg-muted transition-colors">
           {settings.logo ? (
-            <img src={settings.logo} alt={settings.namaAplikasi || 'SimPres'} className="w-7 h-7 rounded-md object-cover border border-slate-200/60 shadow-2xs" />
+            <img src={settings.logo} alt={settings.namaAplikasi || 'SimPres'} className="w-7 h-7 rounded-md object-cover border border-border shadow-2xs" />
           ) : (
-            <div className="w-7 h-7 rounded-md bg-blue-600 text-white flex items-center justify-center shadow-2xs">
+            <div className="w-7 h-7 rounded-md bg-primary text-primary-foreground flex items-center justify-center shadow-2xs">
               <span className="material-symbols-outlined text-[16px]">domain</span>
             </div>
           )}
           <div className="hidden lg:flex flex-col text-left">
-            <span className="text-xs font-semibold text-slate-800 leading-tight">{settings.namaAplikasi || 'SimPres'}</span>
-            <span className="text-[11px] font-medium text-slate-500 leading-tight">
+            <span className="text-xs font-semibold text-foreground leading-tight">{settings.namaAplikasi || 'SimPres'}</span>
+            <span className="text-[11px] font-medium text-muted-foreground leading-tight">
               {selectIsAllUnits(state) ? (settings.namaYayasan || 'Yayasan Pendidikan') : selectActiveUnitLabel(state)}
             </span>
           </div>
@@ -102,7 +102,7 @@ function DashboardOverview() {
   const [drawerOpen, setDrawerOpen] = useState(false)
 
   return (
-    <div className="min-h-[100dvh] bg-slate-50/60 overflow-x-clip">
+    <div className="min-h-[100dvh] bg-background text-foreground overflow-x-clip">
       <DashboardNav open={drawerOpen} onTutup={() => setDrawerOpen(false)} />
 
       {drawerOpen && (
@@ -110,7 +110,7 @@ function DashboardOverview() {
           type="button"
           aria-label="Tutup menu navigasi"
           onClick={() => setDrawerOpen(false)}
-          className="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-[1px] lg:hidden"
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-xs lg:hidden"
         />
       )}
 
@@ -120,9 +120,9 @@ function DashboardOverview() {
         <main className="w-full flex-1">
           <div className="p-4 sm:p-6 lg:p-8 flex flex-col gap-6 max-w-7xl w-full mx-auto animate-sp-rise">
             {/* Judul halaman */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-1 border-b border-slate-200/80">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-1 border-b border-border">
               <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shadow-2xs">
+                <div className="w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-2xs">
                   {settings.logo ? (
                     <img src={settings.logo} alt={settings.namaAplikasi} className="w-11 h-11 rounded-xl object-cover" />
                   ) : (
@@ -131,30 +131,30 @@ function DashboardOverview() {
                 </div>
                 <div className="flex flex-col">
                   <div className="flex items-center gap-2">
-                    <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 leading-tight">
+                    <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground leading-tight">
                       {settings.namaAplikasi || 'SimPres'}
                     </h1>
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200/60">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-primary/10 text-primary border border-primary/20">
                       Overview
                     </span>
                   </div>
-                  <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+                  <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
                     {settings.tagline || 'Sistem Informasi Presensi Multi-Unit Sekolah'}
                   </p>
                 </div>
               </div>
 
               <div className="flex flex-wrap items-center gap-2 self-start md:self-auto">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-slate-200/80 shadow-2xs text-xs text-slate-700 font-medium">
-                  <span className="material-symbols-outlined text-[16px] text-blue-600">domain</span>
+                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-card border border-border shadow-2xs text-xs text-foreground font-medium">
+                  <span className="material-symbols-outlined text-[16px] text-primary">domain</span>
                   <span>{selectIsAllUnits(state) ? 'Semua Unit Sekolah' : selectActiveUnitLabel(state)}</span>
                 </div>
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border border-slate-200/80 shadow-2xs text-xs text-slate-600">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-card border border-border shadow-2xs text-xs text-muted-foreground">
                   <span className="relative flex h-2 w-2">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                   </span>
-                  <span className="font-medium text-slate-700">{liveTime || 'Memuat waktu...'}</span>
+                  <span className="font-medium text-foreground">{liveTime || 'Memuat waktu...'}</span>
                 </div>
               </div>
             </div>

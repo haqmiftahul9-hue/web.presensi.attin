@@ -1,19 +1,69 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: ["class"],
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     extend: {
       colors: {
+        border: "var(--border)",
+        input: "var(--input)",
+        ring: "var(--ring)",
+        background: "var(--background)",
+        foreground: "var(--foreground)",
+        primary: {
+          DEFAULT: "var(--primary)",
+          foreground: "var(--primary-foreground)",
+        },
+        secondary: {
+          DEFAULT: "var(--secondary)",
+          foreground: "var(--secondary-foreground)",
+        },
+        destructive: {
+          DEFAULT: "var(--destructive)",
+          foreground: "var(--destructive-foreground)",
+        },
+        muted: {
+          DEFAULT: "var(--muted)",
+          foreground: "var(--muted-foreground)",
+        },
+        accent: {
+          DEFAULT: "var(--accent)",
+          foreground: "var(--accent-foreground)",
+        },
+        popover: {
+          DEFAULT: "var(--popover)",
+          foreground: "var(--popover-foreground)",
+        },
+        card: {
+          DEFAULT: "var(--card)",
+          foreground: "var(--card-foreground)",
+        },
+        sidebar: {
+          DEFAULT: "var(--sidebar)",
+          foreground: "var(--sidebar-foreground)",
+          primary: "var(--sidebar-primary)",
+          "primary-foreground": "var(--sidebar-primary-foreground)",
+          accent: "var(--sidebar-accent)",
+          "accent-foreground": "var(--sidebar-accent-foreground)",
+          border: "var(--sidebar-border)",
+          ring: "var(--sidebar-ring)",
+        },
+        chart: {
+          1: "var(--chart-1)",
+          2: "var(--chart-2)",
+          3: "var(--chart-3)",
+          4: "var(--chart-4)",
+          5: "var(--chart-5)",
+        },
+        // Fallbacks for legacy mobile tokens
         "surface-tint": "#4d5f80",
         "secondary-fixed": "#dbe1ff",
         "on-error": "#ffffff",
-        primary: "#000718",
         "on-tertiary-container": "#7187b4",
         "secondary-container": "#316bf3",
         "on-primary-fixed": "#061b39",
         "on-tertiary-fixed-variant": "#304670",
         "inverse-primary": "#b5c7ed",
-        background: "#f7f9fc",
         "on-secondary": "#ffffff",
         "tertiary-fixed-dim": "#b0c7f8",
         "error-container": "#ffdad6",
@@ -22,24 +72,23 @@ export default {
         "surface-variant": "#e0e3e6",
         "surface-container": "#eceef1",
         "surface-dim": "#d8dadd",
-        surface: "#f7f9fc",
+        surface: "var(--background)",
         "on-secondary-container": "#fefcff",
         "on-tertiary-fixed": "#001a40",
-        "on-surface": "#191c1e",
+        "on-surface": "var(--foreground)",
         "secondary-fixed-dim": "#b4c5ff",
-        secondary: "#0051d5",
         "primary-fixed-dim": "#b5c7ed",
         "tertiary-container": "#011e46",
         tertiary: "#000618",
-        "primary-container": "#0b1f3d",
-        error: "#ba1a1a",
+        "primary-container": "var(--primary)",
+        error: "var(--destructive)",
         "surface-container-low": "#f2f4f7",
         "inverse-on-surface": "#eff1f4",
         "surface-container-lowest": "#ffffff",
         "tertiary-fixed": "#d7e2ff",
-        "on-primary-container": "#7687ab",
-        "on-background": "#191c1e",
-        "on-surface-variant": "#44474e",
+        "on-primary-container": "#ffffff",
+        "on-background": "var(--foreground)",
+        "on-surface-variant": "var(--muted-foreground)",
         "surface-container-highest": "#e0e3e6",
         "on-tertiary": "#ffffff",
         "surface-container-high": "#e6e8eb",
@@ -48,15 +97,27 @@ export default {
         "on-error-container": "#93000a",
         "primary-fixed": "#d7e3ff",
         "on-secondary-fixed-variant": "#003ea8",
-        "on-primary": "#ffffff",
+        "on-primary": "var(--primary-foreground)",
         "surface-bright": "#f7f9fc",
         "inverse-surface": "#2d3133",
       },
       borderRadius: {
         DEFAULT: "0.25rem",
-        lg: "0.5rem",
-        xl: "0.75rem",
+        sm: "calc(var(--radius) - 4px)",
+        md: "calc(var(--radius) - 2px)",
+        lg: "var(--radius)",
+        xl: "calc(var(--radius) + 4px)",
         full: "9999px",
+      },
+      boxShadow: {
+        "2xs": "var(--shadow-2xs)",
+        xs: "var(--shadow-xs)",
+        sm: "var(--shadow-sm)",
+        DEFAULT: "var(--shadow)",
+        md: "var(--shadow-md)",
+        lg: "var(--shadow-lg)",
+        xl: "var(--shadow-xl)",
+        "2xl": "var(--shadow-2xl)",
       },
       spacing: {
         gutter: "1.5rem",
@@ -65,9 +126,6 @@ export default {
         "space-xs": "0.5rem",
         "space-2xs": "0.25rem",
         "margin-mobile": "1rem",
-        // Spasi responsif: nilainya pakai CSS variable supaya bisa dikecilkan
-        // otomatis di layar kecil (lihat :root di src/index.css). Nilai
-        // cadangan di dalam var() menjaga tampilan bila variabel tak ada.
         "space-xl": "var(--sp-space-xl, 2rem)",
         "space-sm": "0.75rem",
         "space-2xl": "3rem",
@@ -75,6 +133,9 @@ export default {
         "space-md": "var(--sp-space-md, 1rem)",
       },
       fontFamily: {
+        sans: ["var(--font-sans)", "Inter", "sans-serif"],
+        serif: ["var(--font-serif)", "Source Serif 4", "serif"],
+        mono: ["var(--font-mono)", "JetBrains Mono", "monospace"],
         "headline-lg-mobile": ["Plus Jakarta Sans"],
         body: ["Inter"],
         "body-md": ["Inter"],
@@ -105,8 +166,6 @@ export default {
         "body-md-medium": ["14px", { lineHeight: "20px", fontWeight: "500" }],
         "display-lg": ["32px", { lineHeight: "40px", letterSpacing: "-0.02em", fontWeight: "700" }],
       },
-      // Animasi microenvironment: hanya transform + opacity (tidak menyentuh
-      // layout), jadi tetap murah di GPU. Prefix "sp" = SimPres.
       keyframes: {
         "sp-rise": {
           "0%": { opacity: "0", transform: "translate3d(0, 12px, 0)" },
