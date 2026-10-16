@@ -57,51 +57,56 @@ function UnitScopeSelector() {
   }, [open])
 
   const options = selectUnitOptionsById(state)
+  const label = canSwitch ? activeLabel : (activeLabel === 'Semua Unit' ? 'Semua Unit' : activeLabel)
 
   return (
-    <div className="px-space-md py-space-xs">
+    <div className="px-3 py-1.5">
       <div className="relative" ref={ref}>
         {canSwitch ? (
           <button
             type="button"
             onClick={() => setOpen((v) => !v)}
-            className="w-full flex items-center justify-between px-space-sm py-space-xs rounded-lg bg-white/5 text-left"
+            className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-sidebar-accent/50 hover:bg-sidebar-accent border border-sidebar-border text-left transition-all cursor-pointer shadow-2xs"
             aria-haspopup="listbox"
             aria-expanded={open}
           >
-            <span className="flex items-center gap-space-xs min-w-0">
-              <span className="material-symbols-outlined text-on-primary-container text-[18px]">domain</span>
+            <span className="flex items-center gap-2.5 min-w-0">
+              <span className="material-symbols-outlined text-primary text-[18px]">domain</span>
               <span className="flex flex-col min-w-0">
-                <span className="font-label-sm text-label-sm text-on-primary-container uppercase">Unit Terpilih</span>
-                <span className="font-body-sm-medium text-body-sm-medium text-on-primary truncate max-w-[120px]">{activeLabel}</span>
+                <span className="text-[10px] font-bold tracking-wider text-sidebar-foreground/60 uppercase">Unit Terpilih</span>
+                <span className="text-xs font-semibold text-sidebar-foreground truncate max-w-[140px]">{label}</span>
               </span>
             </span>
-            <span className="material-symbols-outlined text-on-primary-container text-[18px]">expand_more</span>
+            <span className="material-symbols-outlined text-sidebar-foreground/50 text-[18px]">expand_more</span>
           </button>
         ) : (
-          <div className="flex items-center justify-between px-space-sm py-space-xs rounded-lg bg-white/5">
-            <span className="flex items-center gap-space-xs min-w-0">
-              <span className="material-symbols-outlined text-on-primary-container text-[18px]">domain</span>
-              <span className="flex flex-col min-w-0">
-                <span className="font-label-sm text-label-sm text-on-primary-container uppercase">Unit Terpilih</span>
-                <span className="font-body-sm-medium text-body-sm-medium text-on-primary truncate max-w-[120px]">{activeLabel}</span>
-              </span>
-            </span>
+          <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-sidebar-accent/30 border border-sidebar-border text-left">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <span className="material-symbols-outlined text-sidebar-foreground/50 text-[18px]">domain</span>
+              <div className="flex flex-col min-w-0">
+                <span className="text-[10px] font-bold tracking-wider text-sidebar-foreground/60 uppercase">Unit Terpilih</span>
+                <span className="text-xs font-semibold text-sidebar-foreground truncate max-w-[140px]">{label}</span>
+              </div>
+            </div>
+            <span className="material-symbols-outlined text-sidebar-foreground/40 text-[16px]">lock</span>
           </div>
         )}
         {canSwitch && open && (
           <div
             role="listbox"
-            className="absolute left-0 right-0 top-full mt-1 z-50 bg-surface-container-lowest rounded-lg shadow-lg border border-outline/20 overflow-hidden"
+            className="absolute left-0 right-0 top-full mt-1.5 z-50 bg-popover text-popover-foreground rounded-xl shadow-xl border border-border p-1 overflow-hidden backdrop-blur-xl animate-sp-rise"
           >
             <button
               type="button"
               role="option"
               aria-selected={activeUnitId === ALL_UNITS}
               onClick={() => { dispatch({ type: 'SET_SELECTED_UNIT', payload: ALL_UNITS }); setOpen(false) }}
-              className={`w-full px-space-sm py-2 text-left font-body-sm text-body-sm transition-colors ${activeUnitId === ALL_UNITS ? 'bg-primary-container text-on-primary' : 'text-on-surface hover:bg-surface-container'}`}
+              className={`w-full px-3 py-2 text-left text-xs font-medium rounded-lg transition-colors flex items-center justify-between ${
+                activeUnitId === ALL_UNITS ? 'bg-primary text-primary-foreground font-semibold' : 'text-popover-foreground hover:bg-accent hover:text-accent-foreground'
+              }`}
             >
-              Semua Unit
+              <span>Semua Unit</span>
+              {activeUnitId === ALL_UNITS && <span className="material-symbols-outlined text-[16px]">check</span>}
             </button>
             {options.map((u) => (
               <button
@@ -110,9 +115,12 @@ function UnitScopeSelector() {
                 role="option"
                 aria-selected={activeUnitId === u.id}
                 onClick={() => { dispatch({ type: 'SET_SELECTED_UNIT', payload: u.id }); setOpen(false) }}
-                className={`w-full px-space-sm py-2 text-left font-body-sm text-body-sm transition-colors ${activeUnitId === u.id ? 'bg-primary-container text-on-primary' : 'text-on-surface hover:bg-surface-container'}`}
+                className={`w-full px-3 py-2 text-left text-xs font-medium rounded-lg transition-colors flex items-center justify-between ${
+                  activeUnitId === u.id ? 'bg-primary text-primary-foreground font-semibold' : 'text-popover-foreground hover:bg-accent hover:text-accent-foreground'
+                }`}
               >
-                {u.nama}
+                <span className="truncate">{u.nama}</span>
+                {activeUnitId === u.id && <span className="material-symbols-outlined text-[16px]">check</span>}
               </button>
             ))}
           </div>
@@ -163,8 +171,12 @@ function UserMenu() {
         message={
           <>
             Apakah Anda yakin ingin keluar dari akun ini?
-            <span className="mt-1.5 block font-body-md-medium text-body-md-medium text-on-surface">
-              {currentUser?.name || 'Pengguna'}
+            <span className="mt-1.5 block font-semibold text-foreground">
+              {currentUser?.name || 'Superadmin Pusat'}
+              <span className="text-muted-foreground font-normal">
+                {' '}
+                &middot; {currentUser?.email || currentUser?.username || '-'}
+              </span>
             </span>
           </>
         }
@@ -204,27 +216,27 @@ function DashboardNav({ open = false, onTutup } = {}) {
 
   return (
     <aside
-      className={`fixed inset-y-0 left-0 z-50 flex w-[272px] max-w-[86vw] flex-col justify-between overflow-y-auto overscroll-contain bg-[#0B132B] border-r border-slate-800/80 pb-safe shadow-2xl transition-transform duration-300 ease-out lg:w-[260px] lg:max-w-none lg:translate-x-0 lg:shadow-none ${
+      className={`fixed inset-y-0 left-0 z-50 flex w-[272px] max-w-[86vw] flex-col justify-between overflow-y-auto overscroll-contain bg-sidebar text-sidebar-foreground border-r border-sidebar-border pb-safe shadow-xl transition-transform duration-300 ease-out lg:w-[260px] lg:max-w-none lg:translate-x-0 lg:shadow-none ${
         open ? 'translate-x-0' : '-translate-x-full'
       }`}
     >
       <div className="flex flex-col">
         {/* Brand header */}
-        <div className="h-16 px-4 flex items-center justify-between border-b border-slate-800/80 sticky top-0 z-10 bg-[#0B132B]">
+        <div className="h-16 px-4 flex items-center justify-between border-b border-sidebar-border/80 sticky top-0 z-10 bg-sidebar">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-xs shadow-blue-500/40">
+            <div className="w-9 h-9 rounded-xl bg-primary text-primary-foreground flex items-center justify-center shadow-xs">
               <span className="material-symbols-outlined text-[20px]">verified</span>
             </div>
             <div className="flex flex-col">
-              <span className="font-headline-sm text-sm font-bold text-white tracking-tight leading-tight">SimPres</span>
-              <span className="text-[10px] font-medium text-slate-400 leading-tight mt-0.5">Multi-Unit System</span>
+              <span className="font-headline-sm text-sm font-bold text-sidebar-foreground tracking-tight leading-tight">SIMPEG</span>
+              <span className="text-[10px] font-medium text-sidebar-foreground/60 leading-tight mt-0.5">Multi-Unit System</span>
             </div>
           </div>
           <button
             type="button"
             onClick={onTutup}
             aria-label="Tutup menu"
-            className="lg:hidden w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition-colors"
+            className="lg:hidden w-8 h-8 flex items-center justify-center rounded-lg text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors"
           >
             <span className="material-symbols-outlined text-[18px]">close</span>
           </button>
@@ -233,7 +245,7 @@ function DashboardNav({ open = false, onTutup } = {}) {
         <UnitScopeSelector />
 
         <div className="px-4 pt-3 pb-1">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Navigasi Utama</span>
+          <span className="text-[10px] font-bold text-sidebar-foreground/60 uppercase tracking-wider">Navigasi Utama</span>
         </div>
         <nav className="flex flex-col gap-1 px-2.5 py-1">
           {visibleItems.map((item) => (
@@ -244,8 +256,8 @@ function DashboardNav({ open = false, onTutup } = {}) {
               className={({ isActive }) =>
                 `flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
                   isActive
-                    ? 'bg-blue-600 text-white shadow-xs shadow-blue-500/30 font-semibold'
-                    : 'text-slate-300 hover:text-white hover:bg-slate-800/70'
+                    ? 'bg-sidebar-accent text-sidebar-accent-foreground shadow-2xs font-semibold'
+                    : 'text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent/60'
                 }`
               }
             >
@@ -256,20 +268,20 @@ function DashboardNav({ open = false, onTutup } = {}) {
         </nav>
       </div>
 
-      <div className="p-3 border-t border-slate-800/80 bg-[#080E21]">
-        <div className="flex items-center gap-2.5 p-2 rounded-xl bg-slate-800/60 border border-slate-700/60 shadow-2xs">
-          <div className="w-9 h-9 rounded-lg bg-blue-600/90 text-white flex items-center justify-center shrink-0 font-bold text-xs shadow-2xs">
+      <div className="p-3 border-t border-sidebar-border/80 bg-sidebar">
+        <div className="flex items-center gap-2.5 p-2 rounded-xl bg-sidebar-accent/50 border border-sidebar-border shadow-2xs">
+          <div className="w-9 h-9 rounded-lg bg-primary text-primary-foreground flex items-center justify-center shrink-0 font-bold text-xs shadow-2xs">
             <span className="material-symbols-outlined text-[18px]">shield_person</span>
           </div>
           <div className="flex flex-col min-w-0 flex-1">
-            <span className="text-xs font-semibold text-slate-100 truncate" title={currentUser?.name || ''}>
+            <span className="text-xs font-semibold text-sidebar-foreground truncate" title={currentUser?.name || ''}>
               {currentUser?.name || 'Superadmin'}
             </span>
-            <span className="text-[11px] text-slate-400 truncate" title={currentUser?.email || ''}>
+            <span className="text-[11px] text-sidebar-foreground/60 truncate" title={currentUser?.email || ''}>
               {currentUser?.username || currentUser?.niy || currentUser?.email || 'superadmin@simpres.sch.id'}
             </span>
-            <span className={`mt-1 self-start inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium leading-none ${r.roleBg} ${r.roleText}`}>
-              <span className={`w-1.5 h-1.5 rounded-full ${r.roleDot}`} />
+            <span className="mt-1 self-start inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium leading-none bg-sidebar-accent text-sidebar-accent-foreground border border-sidebar-border/60">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary" />
               {currentRole}
             </span>
           </div>
