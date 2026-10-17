@@ -1,6 +1,6 @@
 ﻿import QRCodeSvg from './QRCodeSvg.jsx'
 import BarcodeSvg from './BarcodeSvg.jsx'
-import { YayasanLogo, UnitLogo } from './CardLogos.jsx'
+import { UnitLogo } from './CardLogos.jsx'
 import { cardStatusStyle, cardPhotoOf, formatDateID, CARD_QR_PREFIX_LABEL } from '../../data/employeeCard.js'
 import { getEmployeeGreeting } from '../../data/sapaanPegawai.js'
 
@@ -36,9 +36,7 @@ function CardFace({ row, settings, unit, className = '' }) {
     >
       {/* Header: identitas yayasan & unit */}
       <div className="flex shrink-0 items-center justify-between bg-primary-container pl-[0.7em] pr-[0.7em] text-on-primary" style={{ height: 'var(--sp-header)' }}>
-        <div className="flex min-w-0 items-center gap-[0.4em]">
-          <YayasanLogo settings={settings} className="h-[var(--sp-logo)] w-[var(--sp-logo)] shrink-0 rounded-full" />
-          <div className="flex min-w-0 flex-col leading-tight">
+        <div className="flex min-w-0 flex-col leading-tight">
             <span className="truncate text-[length:var(--sp-header-label)] font-semibold uppercase tracking-[0.1em] text-on-primary-container">
               Kartu Identitas Pegawai
             </span>
@@ -46,7 +44,6 @@ function CardFace({ row, settings, unit, className = '' }) {
               {namaYayasan}
             </span>
           </div>
-        </div>
         <div className="flex min-w-0 shrink-0 items-center gap-[0.4em]">
           <UnitLogo unit={unit} className="h-[var(--sp-logo)] w-[var(--sp-logo)] shrink-0 rounded-full" />
           <div className="flex min-w-0 flex-col items-end leading-tight">
