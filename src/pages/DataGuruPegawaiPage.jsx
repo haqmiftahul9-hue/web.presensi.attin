@@ -1,5 +1,7 @@
 import { useState } from 'react'
-import { useSimPres, selectActiveUnitId } from '../store/simPresStore.jsx'
+import {
+  useSimPres, selectActiveUnitId, selectSearchTerm,
+} from '../store/simPresStore.jsx'
 import BreadcrumbHeader from '../components/BreadcrumbHeader.jsx'
 import ActionToolbar from '../components/ActionToolbar.jsx'
 import StaffTable from '../components/StaffTable.jsx'
@@ -7,17 +9,18 @@ import UnitCards from '../components/UnitCards.jsx'
 import ImportModal from '../components/ImportModal.jsx'
 
 function DataGuruPegawaiPage() {
-  const { state } = useSimPres()
+  const { state, dispatch } = useSimPres()
   const [showImport, setShowImport] = useState(false)
   // Unit filter bukan lagi state lokal: dibaca dari unit terpilih di store.
   const unitFilter = selectActiveUnitId(state)
-  const [searchTerm, setSearchTerm] = useState('')
+  // Kata kunci pencarian global dari Header (state tunggal untuk semua halaman).
+  const searchTerm = selectSearchTerm(state)
   const [statusFilter, setStatusFilter] = useState('all')
   const [currentPage, setCurrentPage] = useState(1)
   const [focusStaffId, setFocusStaffId] = useState(null)
 
   const handleResetFilters = () => {
-    setSearchTerm('')
+    dispatch({ type: 'SET_SEARCH_TERM', payload: '' })
     setStatusFilter('all')
   }
 
@@ -27,7 +30,7 @@ function DataGuruPegawaiPage() {
       <ActionToolbar
         onImport={() => setShowImport(true)}
         searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
+        setSearchTerm={(v) => dispatch({ type: 'SET_SEARCH_TERM', payload: v })}
         statusFilter={statusFilter}
         setStatusFilter={setStatusFilter}
         onResetFilters={handleResetFilters}

@@ -545,6 +545,10 @@ const initialState = {
   trend30: TREND_30,
   holidays: HOLIDAYS,
   permissionMatrix: PERMISSION_MATRIX,
+  // Kata kunci pencarian global dari kotak pencarian di Header. Di-consumes
+  // oleh halaman dengan data yang bisa dicari (Data Guru/Pegawai, Monitoring,
+  // Admin User, Cetak Kartu ID, Rekap, Log Aktivitas, dll).
+  searchTerm: '',
   // Sesi login. currentUser null = belum masuk; authenticateCredentials()
   // yang mengisinya, sehingga aplikasi tidak pernah diam-diamauto-login.
   currentUser: null,
@@ -1036,6 +1040,13 @@ logs: [
             ...(action.payload?.logoPerUnit || {}),
           },
         },
+      }
+    // Kata kunci pencarian global dari Header — diperbarui saat pengguna
+    // mengetik di kotak pencarian paling atas.
+    case 'SET_SEARCH_TERM':
+      return {
+        ...state,
+        searchTerm: String(action.payload ?? ''),
       }
     // Riwayat cetak kartu: printed_count naik satu kali per proses cetak,
     // last_printed_at diisi waktu yang benar-benar dicetak.
@@ -2962,6 +2973,11 @@ export function selectActiveUnitId(state) {
   const selected = state.selectedUnitId
   if (selected === ALL_UNITS) return ALL_UNITS
   return state.units.some((u) => u.id === selected) ? selected : ALL_UNITS
+}
+
+// Kata kunci pencarian global dari kotak pencarian di Header.
+export function selectSearchTerm(state) {
+  return state.searchTerm || ''
 }
 
 export function selectIsAllUnits(state) {

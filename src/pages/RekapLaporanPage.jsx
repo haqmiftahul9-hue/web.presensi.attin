@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useSimPres } from '../store/simPresStore.jsx'
-import { selectRekapTableData, selectRekapSummary, selectRekapChartData, selectRekapKepatuhanChart, selectRekapReportData, selectLeavesEnriched, buildAttendance, initialsOf, selectActiveUnitId, selectCanSwitchUnit, selectUnitOptionsById, ALL_UNITS } from '../store/simPresStore.jsx'
+import { selectRekapTableData, selectRekapSummary, selectRekapChartData, selectRekapKepatuhanChart, selectRekapReportData, selectLeavesEnriched, buildAttendance, initialsOf, selectActiveUnitId, selectCanSwitchUnit, selectUnitOptionsById, ALL_UNITS, selectSearchTerm } from '../store/simPresStore.jsx'
 import { calculateAttendanceStatus, jamKerjaRules, daftarJamKerja } from '../data/jamKerja.js'
 import { jamPendek } from '../data/presensiMobile.js'
 import { warnaJenis, warnaAvatarJenis, kelompokIzinCuti } from '../data/jenisIzinCuti.js'
@@ -1460,7 +1460,7 @@ function RekapLaporanPage() {
   // Unit berasal dari unit terpilih di store (role-aware), bukan state lokal.
   const selectedUnit = selectActiveUnitId(state)
   const canSwitchUnit = selectCanSwitchUnit(state)
-  const [search, setSearch] = useState('')
+  const search = selectSearchTerm(state)
   const [sortConfig, setSortConfig] = useState({ key: 'no', direction: 'asc' })
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
@@ -3028,7 +3028,7 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
                   placeholder="Cari nama, NIY, unit..."
                   type="text"
                   value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  onChange={(e) => dispatch({ type: 'SET_SEARCH_TERM', payload: e.target.value })}
                 />
               </div>
               <select

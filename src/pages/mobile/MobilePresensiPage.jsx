@@ -541,6 +541,17 @@ function MobilePresensiPage() {
     || jamMenitDariDate(now) >= (rules.jamPulangMenit ?? 15 * 60) - 60
   const geofenceOk = rules.lokasiAktif && geofence.dalamRadius
 
+  // Tombol presensi utama hanya muncul saat wajah sudah terdaftar. Kalau belum
+  // terdaftar, tombol "Daftarkan Wajah Sekarang" di banner (baris di atas) sudah
+  // cukup — tidak perlu tombol duplikat di area aksi utama.
+  const labelTombolAksi = belumMasuk
+    ? busy ? 'Memproses...' : 'Ambil Presensi Sekarang'
+    : belumPulang
+      ? jendelaPulangTerbuka ? 'Absen Pulang Sekarang' : 'Menunggu Jam Pulang'
+      : 'Presensi Hari Ini Selesai'
+  const tombolAksiDisabled = busy || (!belumTerdaftarWajah && (belumPulang || (!belumMasuk && !jendelaPulangTerbuka) || !geofenceOk))
+  const onTombolAksi = belumMasuk ? jalankanPresensi : jalankanPresensiPulang
+
   return (
     <div className="sp-page">
       {/* Loading state: selama kamera belum selesai meminta izin, halaman
@@ -869,8 +880,24 @@ function MobilePresensiPage() {
 
         {/* 6. Tombol presensi: validasi lokasi -> waktu -> biometrik -> simpan. */}
         <div className="flex flex-col gap-2">
-
-          {!geofenceOk && (
+          {!belumTerdaftarWajah && (
+            <button
+              type="button"
+              onClick={onTombolAksi}
+              disabled={tombolAksiDisabled}
+              className={`sp-btn w-full py-4 font-headline-sm text-headline-sm flex items-center justify-center gap-2 shadow-lg transition-all active:scale-[0.99] disabled:opacity-60 disabled:active:scale-100 ${
+                belumMasuk
+                  ? 'bg-gradient-to-r from-[#20275e] to-[#323d8f] text-white'
+                  : belumPulang
+                    ? 'bg-gradient-to-r from-[#1c2254] to-[#323d8f] text-white'
+                    : 'bg-emerald-700 text-white'
+              }`}
+            >
+              <Icon name={busy ? 'progress_activity' : belumMasuk ? 'check_circle' : belumPulang ? 'logout' : 'task_alt'} className={`text-[20px] shrink-0 ${busy ? 'animate-spin' : ''}`} />
+              <span>{labelTombolAksi}</span>
+            </button>
+          )}
+            {!geofenceOk && (
             <p className="text-center font-body-sm text-body-sm text-on-error-container leading-snug px-1">
               {rules.lokasiAktif
                 ? 'Presensi hanya bisa diambil di dalam radius titik lokasi sekolah.'

@@ -3,6 +3,7 @@ import {
   useSimPres, addActivityLog, selectActiveUnitId, selectUnitName,
   selectFilteredCardStaff, selectCardRows, selectCardSummary, selectScopedStaff,
   selectCurrentUser, selectCanSwitchUnit, markCardsPrinted, setCardsValidity, ALL_UNITS,
+  selectSearchTerm,
 } from '../store/simPresStore.jsx'
 import { DEFAULT_VALIDITY_YEARS, printLayoutByValue, CARD_SIZE_MM } from '../data/employeeCard.js'
 import { exportCardsToPdf } from '../utils/cardPrint.js'
@@ -34,7 +35,7 @@ function CetakKartuIdPage() {
   // Guru/Pegawai), sehingga sidebar dan toolbox tidak pernah berbeda pendapat.
   const unitFilter = selectActiveUnitId(state)
 
-  const [searchTerm, setSearchTerm] = useState('')
+  const searchTerm = selectSearchTerm(state)
   const [statusPegawai, setStatusPegawai] = useState('all')
   const [status, setStatus] = useState('all')
   const [layout, setLayout] = useState('cr80')
@@ -125,7 +126,7 @@ function CetakKartuIdPage() {
   // Filter unit ikut dikembalikan ke "Semua Unit" hanya bila pengguna punya
   // izin berpindah unit; Admin Unit memang terkunci ke unitnya sendiri.
   const handleResetFilters = useCallback(() => {
-    setSearchTerm('')
+    dispatch({ type: 'SET_SEARCH_TERM', payload: '' })
     setStatusPegawai('all')
     setStatus('all')
     if (canSwitchUnit && unitFilter !== ALL_UNITS) {
@@ -255,7 +256,10 @@ function CetakKartuIdPage() {
       <CardToolbar
         onUnitFilterChange={handleUnitFilterChange}
         searchTerm={searchTerm}
-        onSearchTermChange={resetPage(setSearchTerm)}
+        onSearchTermChange={(v) => {
+          setCurrentPage(1)
+          dispatch({ type: 'SET_SEARCH_TERM', payload: v })
+        }}
         statusPegawai={statusPegawai}
         onStatusPegawaiChange={resetPage(setStatusPegawai)}
         status={status}

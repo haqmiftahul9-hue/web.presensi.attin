@@ -1,4 +1,4 @@
-import { useSimPres, selectCurrentUser, selectActiveUnitLabel, selectIsAllUnits } from '../store/simPresStore.jsx'
+import { useSimPres, selectCurrentUser, selectActiveUnitLabel, selectIsAllUnits, selectSearchTerm } from '../store/simPresStore.jsx'
 
 /**
  * Header portal.
@@ -11,9 +11,10 @@ import { useSimPres, selectCurrentUser, selectActiveUnitLabel, selectIsAllUnits 
  * Tidak ada fixed width: headernya selalu mengikuti lebar viewport.
  */
 function Header({ onBukaMenu } = {}) {
-  const { state } = useSimPres()
+  const { state, dispatch } = useSimPres()
   const currentUser = selectCurrentUser(state)
   const settings = state.settings
+  const searchTerm = selectSearchTerm(state)
 
   return (
     <header className="sp-portal-header fixed top-0 left-0 right-0 lg:left-[260px] z-40 flex items-center justify-between gap-3 bg-card/95 backdrop-blur-md border-b border-border px-4 md:px-6 pt-safe shadow-xs">
@@ -34,6 +35,8 @@ function Header({ onBukaMenu } = {}) {
             className="w-full h-9 pl-9 pr-12 bg-card border border-input hover:border-primary/60 focus:border-ring focus:ring-1 focus:ring-ring rounded-lg text-xs md:text-sm text-foreground placeholder:text-muted-foreground outline-none transition-all shadow-2xs"
             placeholder="Cari pegawai, NIY, atau data presensi..."
             type="search"
+            value={searchTerm}
+            onChange={(e) => dispatch({ type: 'SET_SEARCH_TERM', payload: e.target.value })}
           />
           <kbd className="hidden sm:inline-flex absolute right-2.5 top-1/2 -translate-y-1/2 px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground bg-muted border border-border rounded shadow-2xs pointer-events-none">
             /

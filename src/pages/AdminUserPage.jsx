@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react'
-import { useSimPres, selectUnitName, initialsOf, ROLE_OPTIONS, MENU_OPTIONS, PERMISSION_ACTIONS, getRolePermissions, addActivityLog, selectScopedAdminUsers, selectCanSwitchUnit, selectActiveUnitId, selectUnitOptionsById, ALL_UNITS } from '../store/simPresStore.jsx'
+import { useSimPres, selectUnitName, initialsOf, ROLE_OPTIONS, MENU_OPTIONS, PERMISSION_ACTIONS, getRolePermissions, addActivityLog, selectScopedAdminUsers, selectCanSwitchUnit, selectActiveUnitId, selectUnitOptionsById, ALL_UNITS, selectSearchTerm } from '../store/simPresStore.jsx'
 import ConfirmDialog from '../components/ConfirmDialog.jsx'
 
 const roleMap = {
@@ -10,7 +10,7 @@ const roleMap = {
 
 function AdminUserPage() {
   const { state, dispatch } = useSimPres()
-  const [searchTerm, setSearchTerm] = useState('')
+  const searchTerm = selectSearchTerm(state)
   const [roleFilter, setRoleFilter] = useState('all')
   const [statusFilter, setStatusFilter] = useState('all')
   // Unit daftar akun mengikuti unit terpilih di store utama.

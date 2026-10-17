@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react'
-import { useSimPres } from '../store/simPresStore.jsx'
+import { useSimPres, selectSearchTerm } from '../store/simPresStore.jsx'
 import { selectJumlahHadir, selectJumlahTerlambat, selectTotalPegawai, selectUnitSummary, selectFilterTabCounts, selectMonitoringActivity, selectBelumPresensi, selectHadirHariIni, selectCanSwitchUnit, selectActiveUnitId, selectUnitOptionsById, ALL_UNITS } from '../store/simPresStore.jsx'
 import { daftarJamKerja, jamKerjaRules } from '../data/jamKerja.js'
 
 function MonitoringPresensiPage() {
   const { state, dispatch } = useSimPres()
   const [activeFilter, setActiveFilter] = useState('semua')
-  const [searchTerm, setSearchTerm] = useState('')
+  const searchTerm = selectSearchTerm(state)
   const [autoRefresh, setAutoRefresh] = useState('15s')
   const [isAutoRefreshOn, setIsAutoRefreshOn] = useState(true)
   const [liveTime, setLiveTime] = useState('')

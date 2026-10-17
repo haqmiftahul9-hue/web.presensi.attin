@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { useSimPres } from '../store/simPresStore.jsx'
+import { useSimPres, selectSearchTerm } from '../store/simPresStore.jsx'
 import { initialsOf, selectUnitName, selectCurrentUser, selectCurrentUserRole, hasMenuPermission, selectScopedLogs, selectScopedAdminUsers, selectActiveUnitId } from '../store/simPresStore.jsx'
 
 const actionStyles = {
@@ -196,7 +196,7 @@ function parseLogDetails(desc) {
 }
 
 function LogAktivitasPage() {
-  const { state } = useSimPres()
+  const { state, dispatch } = useSimPres()
   const currentUser = selectCurrentUser(state)
   const currentUserRole = selectCurrentUserRole(state)
   const canViewLogs = hasMenuPermission(state, 'logAktivitas')
@@ -244,7 +244,7 @@ function LogAktivitasPage() {
     )
   }
 
-  const [search, setSearch] = useState('')
+  const search = selectSearchTerm(state)
   const [dateRange, setDateRange] = useState('monthly')
   const [customStart, setCustomStart] = useState('')
   const [customEnd, setCustomEnd] = useState('')
@@ -396,7 +396,7 @@ function LogAktivitasPage() {
   const RETENSI_HARI = 365
 
   const clearFilters = () => {
-    setSearch('')
+    dispatch({ type: 'SET_SEARCH_TERM', payload: '' })
     setDateRange('monthly')
     setCustomStart('')
     setCustomEnd('')
@@ -626,7 +626,7 @@ function LogAktivitasPage() {
                 placeholder="Cari target objek, user, atau keterangan..."
                 type="text"
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => dispatch({ type: 'SET_SEARCH_TERM', payload: e.target.value })}
               />
             </div>
           </div>

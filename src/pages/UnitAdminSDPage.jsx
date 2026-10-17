@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import EditUnitModal from '../components/EditUnitModal.jsx'
-import { useSimPres, selectUnitName, addActivityLog } from '../store/simPresStore.jsx'
+import { useSimPres, selectUnitName, addActivityLog, selectSearchTerm } from '../store/simPresStore.jsx'
 import { daftarJamKerja } from '../data/jamKerja.js'
 
 function ringkasanJamKerja() {
@@ -11,7 +11,7 @@ function ringkasanJamKerja() {
 
 function UnitAdminSDPage() {
   const { state, dispatch } = useSimPres()
-  const [searchTerm, setSearchTerm] = useState('')
+  const searchTerm = selectSearchTerm(state)
   const [showModal, setShowModal] = useState(false)
   const [editingUnit, setEditingUnit] = useState(null)
   const [notification, setNotification] = useState(null)
@@ -470,7 +470,7 @@ function UnitAdminSDPage() {
             placeholder="Cari nama unit, kode, atau alamat..."
             type="text"
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => dispatch({ type: 'SET_SEARCH_TERM', payload: e.target.value })}
           />
         </div>
 

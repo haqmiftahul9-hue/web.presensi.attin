@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import * as XLSX from 'xlsx'
-import { useSimPres, selectLeavesEnriched, selectActiveStaff, selectCurrentUserRole, addActivityLog, selectUnitName, selectActiveUnitId, selectCanSwitchUnit, selectIsAllUnits, ALL_UNITS } from '../store/simPresStore.jsx'
+import { useSimPres, selectLeavesEnriched, selectActiveStaff, selectCurrentUserRole, addActivityLog, selectUnitName, selectActiveUnitId, selectCanSwitchUnit, selectIsAllUnits, ALL_UNITS, selectSearchTerm } from '../store/simPresStore.jsx'
 import { initialsOf } from '../store/simPresStore.jsx'
 import { selectLeavesByStatus, selectPendingLeaves, selectApprovedLeaves, selectRejectedLeaves } from '../store/simPresStore.jsx'
 import LeaveRequestModal from '../components/LeaveRequestModal.jsx'
@@ -48,7 +48,7 @@ const avatarClassMap = Object.fromEntries(SEMUA_JENIS.map((j) => [j.nama, j.warn
 function PengajuanIzinCutiPage() {
   const { state, dispatch } = useSimPres()
   const [activeStatusTab, setActiveStatusTab] = useState('semua')
-  const [searchTerm, setSearchTerm] = useState('')
+  const searchTerm = selectSearchTerm(state)
   const [filterStatus, setFilterStatus] = useState('Semua Status')
   const [filterJenis, setFilterJenis] = useState('Semua Jenis Izin/Cuti')
   const [filterBulan, setFilterBulan] = useState('Sep 2026')
@@ -456,7 +456,7 @@ function PengajuanIzinCutiPage() {
                   placeholder="Cari nama pegawai, NIY, atau keterangan..."
                   type="text"
                   value={searchTerm}
-                  onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1) }}
+                  onChange={(e) => { dispatch({ type: 'SET_SEARCH_TERM', payload: e.target.value }); setCurrentPage(1) }}
                 />
               </div>
               <div className="md:col-span-2">
