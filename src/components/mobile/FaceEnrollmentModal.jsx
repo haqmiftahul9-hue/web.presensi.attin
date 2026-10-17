@@ -28,8 +28,8 @@ export function FaceEnrollmentModal({
   const [processing, setProcessing] = useState(false)
   const [statusMessage, setStatusMessage] = useState('')
   const [successData, setSuccessData] = useState(null)
-  const fileInputRef = useRef(null)
   const loopRef = useRef(null)
+  const processingTimeoutRef = useRef(null)
 
   // Inisialisasi dan pemuatan model face-api
   useEffect(() => {
@@ -64,8 +64,22 @@ export function FaceEnrollmentModal({
         clearInterval(loopRef.current)
         loopRef.current = null
       }
+      if (processingTimeoutRef.current) {
+        clearTimeout(processingTimeoutRef.current)
+        processingTimeoutRef.current = null
+      }
     }
   }, [terbuka])
+
+  // Pastikan video kamera memutar saat modal terbuka
+  useEffect(() => {
+    if (!terbuka || !cameraAktif) return undefined
+    const video = videoRef?.current
+    if (video) {
+      video.play().catch(() => {})
+    }
+    return undefined
+  }, [terbuka, cameraAktif, videoRef])
 
   // Loop deteksi wajah real-time saat kamera aktif dan model siap
   useEffect(() => {
@@ -101,8 +115,20 @@ export function FaceEnrollmentModal({
     const video = videoRef?.current
     if (!video || processing || !staff) return
 
+    // Pastikan video sedang memutar
+    if (video.readyState < 2) {
+      setStatusMessage('Kamera belum siap. Tunggu hingga pratinjau kamera muncul.')
+      return
+    }
+
     setProcessing(true)
     setStatusMessage('Mendeteksi dan mengekstrak biometrik wajah...')
+
+    // Jaring pengaman: paksa reset processing setelah 15 detik jika terjebak
+    processingTimeoutRef.current = setTimeout(() => {
+      setProcessing(false)
+      setStatusMessage('Proses terlalu lama. Coba lagi atau periksa kamera.')
+    }, 15000)
 
     try {
       // Ambil snapshot foto
@@ -110,6 +136,11 @@ export function FaceEnrollmentModal({
 
       // Deteksi wajah dengan resolusi penuh untuk descriptor yang akurat
       const detection = await detectSingleFaceAndDescriptor(video, { inputSize: 320, scoreThreshold: 0.5 })
+
+      if (processingTimeoutRef.current) {
+        clearTimeout(processingTimeoutRef.current)
+        processingTimeoutRef.current = null
+      }
 
       if (!detection.detected || !detection.descriptor) {
         setStatusMessage('Wajah tidak terdeteksi jelas. Posisikan wajah Anda tepat di dalam bingkai oval.')
@@ -128,52 +159,15 @@ export function FaceEnrollmentModal({
       setStatusMessage('Wajah berhasil didaftarkan!')
       onSukses?.(record)
     } catch (err) {
+      if (processingTimeoutRef.current) {
+        clearTimeout(processingTimeoutRef.current)
+        processingTimeoutRef.current = null
+      }
       setStatusMessage(`Gagal mendaftarkan wajah: ${err.message || 'Terjadi kesalahan sistem'}`)
     } finally {
       setProcessing(false)
     }
   }, [videoRef, processing, staff, onSukses])
-
-  // Pendaftaran alternatif melalui unggah foto (fallback jika kamera terkendala)
-  const handleUnggahFoto = useCallback(async (event) => {
-    const file = event.target.files?.[0]
-    if (!file || !staff) return
-
-    setProcessing(true)
-    setStatusMessage('Memproses foto yang diunggah...')
-
-    const reader = new FileReader()
-    reader.onload = async (e) => {
-      const dataUrl = e.target.result
-      const img = new Image()
-      img.src = dataUrl
-      img.onload = async () => {
-        try {
-          const detection = await detectSingleFaceAndDescriptor(img, { inputSize: 320, scoreThreshold: 0.5 })
-          if (!detection.detected || !detection.descriptor) {
-            setStatusMessage('Wajah tidak terdeteksi pada foto. Gunakan foto dengan wajah menghadap ke depan.')
-            setProcessing(false)
-            return
-          }
-
-          const record = saveRegisteredFaceData({
-            staff,
-            descriptor: detection.descriptor,
-            photo: dataUrl,
-          })
-
-          setSuccessData(record)
-          setStatusMessage('Wajah berhasil didaftarkan dari foto!')
-          onSukses?.(record)
-        } catch (err) {
-          setStatusMessage(`Gagal memproses foto: ${err.message}`)
-        } finally {
-          setProcessing(false)
-        }
-      }
-    }
-    reader.readAsDataURL(file)
-  }, [staff, onSukses])
 
   if (!terbuka) return null
 
@@ -327,26 +321,6 @@ export function FaceEnrollmentModal({
                   <Icon name={processing ? 'progress_activity' : 'camera_alt'} className={`text-[18px] ${processing ? 'animate-spin' : ''}`} />
                   <span>{processing ? 'Memproses Biometrik...' : 'Ambil & Daftarkan Wajah'}</span>
                 </button>
-
-                {/* Fallback upload */}
-                <div className="flex items-center justify-center gap-2 pt-1 border-t border-slate-100">
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleUnggahFoto}
-                    className="hidden"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={processing}
-                    className="text-slate-600 hover:text-slate-900 font-label-sm text-xs flex items-center gap-1 px-3 py-1.5 rounded-lg hover:bg-slate-50 transition-colors"
-                  >
-                    <Icon name="upload_file" className="text-[14px]" />
-                    <span>Atau unggah foto dari galeri</span>
-                  </button>
-                </div>
               </div>
             </>
           )}
