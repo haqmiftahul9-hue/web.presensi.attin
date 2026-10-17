@@ -152,7 +152,7 @@ function ChangePasswordGate() {
         aria-labelledby="ubah-sandi-judul"
         // Klik di dalam kartu tidak boleh menutup modal.
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-[430px] sm:max-w-[480px] max-h-[90dvh] overflow-y-auto overscroll-contain animate-sp-rise rounded-t-3xl sm:rounded-2xl bg-card border border-border p-5 pb-6 shadow-xl sm:p-7 text-card-foreground"
+        className="w-full max-w-[430px] max-h-[90dvh] overflow-y-auto overscroll-contain animate-sp-rise rounded-xl bg-card border border-border p-4 pb-6 shadow-xl"
       >
         <div className="flex items-start gap-3">
           <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-amber-500/10 border border-amber-500/20">
