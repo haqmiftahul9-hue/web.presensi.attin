@@ -818,7 +818,7 @@ export function simPresReducer(state, action) {
         ...targetStaff,
         faceDescriptor: action.payload.descriptor,
         faceRegisteredAt: action.payload.registeredAt || new Date().toISOString(),
-        ...(action.payload.photo ? { facePhoto: action.payload.photo, foto: action.payload.photo } : {}),
+        ...(action.payload.photo ? { facePhoto: action.payload.photo } : {}),
       }
       const nextStaff = state.staff.map((s) => (s.id === targetStaff.id ? updatedStaff : s))
       writePersistedItem(PERSISTED_STAFF_KEY, nextStaff)

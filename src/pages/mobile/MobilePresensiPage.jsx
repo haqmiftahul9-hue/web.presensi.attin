@@ -170,7 +170,6 @@ function MobilePresensiPage() {
   const [faceDetectedLive, setFaceDetectedLive] = useState(false)
   const [faceStatus, setFaceStatus] = useState('idle')
   const [faceConfidence, setFaceConfidence] = useState(null)
-  const [simulasiWajah, setSimulasiWajah] = useState('cocok') // 'cocok' | 'bukan-pemilik'
 
   const geofence = useGeofence({ unit, radius: rules?.radius, staffId: staff?.id })
   // Kamera hanya hidup selama halaman ini dipakai; berpindah tab mematikan
@@ -344,15 +343,6 @@ function MobilePresensiPage() {
       }
     }
 
-    if (simulasiWajah === 'bukan-pemilik') {
-      return {
-        ok: false,
-        icon: 'face',
-        judul: 'Akses Ditolak/Wajah Tidak Cocok',
-        detail: `Wajah di depan kamera berbeda dari pemilik akun (${staff.name} - NIY ${staff.niy}).`,
-      }
-    }
-
     const kecocokan = faceConfidence || (96 + ((Number(staff.id) || 1) * 3) % 4)
     return {
       ok: true,
@@ -380,15 +370,7 @@ function MobilePresensiPage() {
         return
       }
 
-      if (simulasiWajah === 'bukan-pemilik') {
-        setFaceStatus('mismatched')
-        hasilBiometri = {
-          ok: false,
-          icon: 'face',
-          judul: 'Akses Ditolak/Wajah Tidak Cocok',
-          detail: `Wajah yang terdeteksi bukan milik akun ini (${staff.name} - NIY ${staff.niy}).`,
-        }
-      } else if (kamera.aktif && kamera.videoRef?.current) {
+      if (kamera.aktif && kamera.videoRef?.current) {
         setStatusPenutup('jalan')
         setPesanPenutup('Mencocokkan wajah dengan AI Face-api.js...')
         try {
@@ -813,40 +795,6 @@ function MobilePresensiPage() {
               </button>
             </div>
 
-            {/* Mode Uji Coba Pencocokan Wajah (Pemilik vs Orang Lain) */}
-            <div className="pt-2 border-t border-emerald-200/60 flex items-center justify-between gap-2 text-xs">
-              <span className="text-slate-600 font-label-sm">Simulasi Uji Wajah:</span>
-              <div className="flex gap-1">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSimulasiWajah('cocok')
-                    setFaceStatus('idle')
-                  }}
-                  className={`px-2.5 py-1 rounded-lg font-label-sm transition-all ${
-                    simulasiWajah === 'cocok'
-                      ? 'bg-[#323d8f] text-white font-bold shadow-sm'
-                      : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
-                  }`}
-                >
-                  Pemilik Asli
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSimulasiWajah('bukan-pemilik')
-                    setFaceStatus('idle')
-                  }}
-                  className={`px-2.5 py-1 rounded-lg font-label-sm transition-all ${
-                    simulasiWajah === 'bukan-pemilik'
-                      ? 'bg-rose-600 text-white font-bold shadow-sm'
-                      : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
-                  }`}
-                >
-                  Bukan Pemilik
-                </button>
-              </div>
-            </div>
           </div>
         )}
 
@@ -965,7 +913,6 @@ function MobilePresensiPage() {
               staffId: staff.id,
               niy: staff.niy,
               descriptor: rec.descriptor,
-              photo: rec.photo,
             },
           })
           setFaceStatus('idle')
