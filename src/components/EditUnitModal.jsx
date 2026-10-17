@@ -5,39 +5,48 @@ function EditUnitModal({ unit, onClose, onSave }) {
   const [name, setName] = useState(unit?.nama || '')
   const [address, setAddress] = useState(unit?.alamat || '')
   const [radius, setRadius] = useState(unit?.radius || 50)
-  const [latitude, setLatitude] = useState(unit?.latitude || -6.28945)
-  const [longitude, setLongitude] = useState(unit?.longitude || 106.79234)
+  const [latitude, setLatitude] = useState(unit?.latitude != null ? String(unit.latitude) : '-6.28945')
+  const [longitude, setLongitude] = useState(unit?.longitude != null ? String(unit.longitude) : '106.79234')
   const [geofenceActive, setGeofenceActive] = useState(unit?.geofenceActive ?? true)
+  const [gpsLoading, setGpsLoading] = useState(false)
+  const [gpsSuccess, setGpsSuccess] = useState(false)
   const [errors, setErrors] = useState({})
   const [touched, setTouched] = useState({})
 
-  const radiusSize = Math.min(Math.max(radius * 1.8, 90), 180)
+  const radiusSize = Math.min(Math.max((parseInt(radius) || 50) * 1.8, 90), 180)
 
   const validateField = (field, value) => {
     switch (field) {
       case 'name':
-        if (!value.trim()) return 'Nama unit wajib diisi'
-        if (value.trim().length < 3) return 'Nama unit minimal 3 karakter'
+        if (!String(value || '').trim()) return 'Nama unit wajib diisi'
+        if (String(value || '').trim().length < 3) return 'Nama unit minimal 3 karakter'
         return ''
       case 'address':
-        if (!value.trim()) return 'Alamat wajib diisi'
-        if (value.trim().length < 10) return 'Alamat minimal 10 karakter'
+        if (!String(value || '').trim()) return 'Alamat wajib diisi'
+        if (String(value || '').trim().length < 10) return 'Alamat minimal 10 karakter'
         return ''
-      case 'radius':
+      case 'radius': {
         const r = parseInt(value)
         if (isNaN(r)) return 'Radius wajib diisi'
         if (r < 10 || r > 500) return 'Radius harus antara 10 - 500 meter'
         return ''
-      case 'latitude':
-        const lat = parseFloat(value)
-        if (isNaN(lat)) return 'Latitude wajib diisi'
+      }
+      case 'latitude': {
+        const strVal = String(value ?? '').trim()
+        if (!strVal) return 'Latitude wajib diisi'
+        const lat = parseFloat(strVal)
+        if (isNaN(lat)) return 'Latitude wajib berupa angka valid'
         if (lat < -90 || lat > 90) return 'Latitude harus antara -90 hingga 90'
         return ''
-      case 'longitude':
-        const lng = parseFloat(value)
-        if (isNaN(lng)) return 'Longitude wajib diisi'
+      }
+      case 'longitude': {
+        const strVal = String(value ?? '').trim()
+        if (!strVal) return 'Longitude wajib diisi'
+        const lng = parseFloat(strVal)
+        if (isNaN(lng)) return 'Longitude wajib berupa angka valid'
         if (lng < -180 || lng > 180) return 'Longitude harus antara -180 hingga 180'
         return ''
+      }
       default:
         return ''
     }
@@ -63,12 +72,39 @@ function EditUnitModal({ unit, onClose, onSave }) {
         setRadius(value === '' ? '' : parseInt(value) || 50)
         break
       case 'latitude':
-        setLatitude(value === '' ? '' : parseFloat(value))
+        setLatitude(value)
         break
       case 'longitude':
-        setLongitude(value === '' ? '' : parseFloat(value))
+        setLongitude(value)
         break
     }
+  }
+
+  const ambilLokasiSaatIni = () => {
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      alert('Perangkat Anda tidak mendukung pembacaan GPS.')
+      return
+    }
+    setGpsLoading(true)
+    setGpsSuccess(false)
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const latStr = pos.coords.latitude.toFixed(6)
+        const lngStr = pos.coords.longitude.toFixed(6)
+        setLatitude(latStr)
+        setLongitude(lngStr)
+        setGpsLoading(false)
+        setGpsSuccess(true)
+        handleBlur('latitude', latStr)
+        handleBlur('longitude', lngStr)
+        setTimeout(() => setGpsSuccess(false), 4000)
+      },
+      (err) => {
+        setGpsLoading(false)
+        alert(`Gagal membaca GPS: ${err?.message || 'Izin lokasi belum diberikan'}`)
+      },
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 },
+    )
   }
 
   const validateAll = () => {
@@ -86,7 +122,14 @@ function EditUnitModal({ unit, onClose, onSave }) {
 
   const handleSubmit = () => {
     if (validateAll()) {
-      onSave({ name, address, radius, latitude, longitude, geofenceActive })
+      onSave({
+        name: name.trim(),
+        address: address.trim(),
+        radius: parseInt(radius) || 50,
+        latitude: parseFloat(String(latitude).trim()),
+        longitude: parseFloat(String(longitude).trim()),
+        geofenceActive,
+      })
     }
   }
 
@@ -160,6 +203,21 @@ function EditUnitModal({ unit, onClose, onSave }) {
             {errors.address && touched.address && <span className="text-[11px] text-rose-500">{errors.address}</span>}
           </div>
 
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-foreground">Titik Koordinat Sekolah (GPS)</span>
+            <button
+              type="button"
+              onClick={ambilLokasiSaatIni}
+              disabled={gpsLoading}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 transition-all cursor-pointer disabled:opacity-50"
+            >
+              <span className={`material-symbols-outlined text-[15px] ${gpsLoading ? 'animate-spin' : ''}`}>
+                {gpsLoading ? 'sync' : gpsSuccess ? 'check_circle' : 'my_location'}
+              </span>
+              <span>{gpsLoading ? 'Membaca GPS...' : gpsSuccess ? 'Lokasi GPS Terisi!' : 'Ambil Titik Lokasi Saya (GPS)'}</span>
+            </button>
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-semibold text-foreground" htmlFor="inputLatitude">Latitude <span className="text-rose-500">*</span></label>
@@ -168,8 +226,7 @@ function EditUnitModal({ unit, onClose, onSave }) {
                 <input
                   className={getInputClass('latitude') + ' pl-8 font-mono'}
                   id="inputLatitude"
-                  type="number"
-                  step="0.00001"
+                  type="text"
                   placeholder="-6.28945"
                   value={latitude}
                   onChange={(e) => handleChange('latitude', e.target.value)}
@@ -185,8 +242,7 @@ function EditUnitModal({ unit, onClose, onSave }) {
                 <input
                   className={getInputClass('longitude') + ' pl-8 font-mono'}
                   id="inputLongitude"
-                  type="number"
-                  step="0.00001"
+                  type="text"
                   placeholder="106.79234"
                   value={longitude}
                   onChange={(e) => handleChange('longitude', e.target.value)}
@@ -230,7 +286,7 @@ function EditUnitModal({ unit, onClose, onSave }) {
 
               <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-card/95 backdrop-blur-xs px-2.5 py-1 rounded-md shadow-xs border border-border text-xs font-mono text-foreground z-10">
                 <span className="material-symbols-outlined text-primary text-[15px]">location_on</span>
-                <span>{latitude.toFixed(5)}, {longitude.toFixed(5)}</span>
+                <span>{Number(latitude || 0).toFixed(5)}, {Number(longitude || 0).toFixed(5)}</span>
               </div>
 
               <div className="absolute top-3 right-3 flex flex-col gap-1 z-10">

@@ -266,12 +266,18 @@ function MobilePresensiPage() {
     : 'Koordinat belum diatur'
 
   function validasiLokasi() {
+    const geofenceWajib = rules.lokasiAktif && unit?.geofenceActive !== false
+    if (!geofenceWajib) {
+      return {
+        ok: true,
+        dalam: true,
+        detail: 'Validasi radius dinonaktifkan oleh administrator unit',
+      }
+    }
     return {
-      ok: rules.lokasiAktif && geofence.dalamRadius,
+      ok: geofence.dalamRadius,
       dalam: geofence.dalamRadius,
-      detail: rules.lokasiAktif
-        ? `${formatMeter(geofence.jarak)} dari titik presensi (radius ${rules.radius} m)`
-        : 'Lokasi presensi dinonaktifkan administrator unit',
+      detail: `${formatMeter(geofence.jarak)} dari titik presensi (radius ${rules.radius} m)`,
     }
   }
 
@@ -651,8 +657,18 @@ function MobilePresensiPage() {
             <Sensor
               ikon="gps_fixed"
               label="Lokasi"
-              nilai={geofence.dalamRadius ? 'Dalam radius' : 'Di luar radius'}
-              tone={geofence.dalamRadius ? 'baik' : 'lambat'}
+              nilai={
+                unit?.geofenceActive === false || !rules.lokasiAktif
+                  ? 'Bebas Radius'
+                  : geofence.dalamRadius
+                    ? 'Dalam radius'
+                    : 'Di luar radius'
+              }
+              tone={
+                unit?.geofenceActive === false || !rules.lokasiAktif || geofence.dalamRadius
+                  ? 'baik'
+                  : 'lambat'
+              }
             />
             <Sensor
               ikon="schedule"
@@ -939,6 +955,8 @@ function MobilePresensiPage() {
         staff={staff}
         videoRef={kamera.videoRef}
         cameraAktif={kamera.aktif}
+        stream={kamera.stream}
+        onRestartCamera={kamera.restart}
         onSukses={(rec) => {
           setRegisteredFace(rec)
           dispatch({

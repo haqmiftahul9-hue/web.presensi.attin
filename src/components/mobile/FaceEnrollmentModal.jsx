@@ -18,8 +18,13 @@ export function FaceEnrollmentModal({
   staff,
   videoRef,
   cameraAktif,
+  stream,
+  onRestartCamera,
   onSukses,
 }) {
+  const modalVideoRef = useRef(null)
+  const [localStream, setLocalStream] = useState(null)
+  const [cameraStarting, setCameraStarting] = useState(false)
   const [modelLoading, setModelLoading] = useState(true)
   const [modelError, setModelError] = useState(null)
   const [loadingText, setLoadingText] = useState('Memuat model AI Face Recognition...')
@@ -71,25 +76,73 @@ export function FaceEnrollmentModal({
     }
   }, [terbuka])
 
-  // Pastikan video kamera memutar saat modal terbuka
+  // Hubungkan video stream ke elemen video modal secara mandiri tanpa konflik ref
   useEffect(() => {
-    if (!terbuka || !cameraAktif) return undefined
-    const video = videoRef?.current
-    if (video) {
+    if (!terbuka) {
+      if (localStream) {
+        localStream.getTracks().forEach((track) => track.stop())
+        setLocalStream(null)
+      }
+      return undefined
+    }
+
+    const activeStream = stream || localStream
+    const video = modalVideoRef.current
+
+    if (activeStream && video) {
+      if (video.srcObject !== activeStream) {
+        video.srcObject = activeStream
+      }
       video.play().catch(() => {})
+    } else if (!activeStream && typeof navigator !== 'undefined' && navigator.mediaDevices?.getUserMedia) {
+      setCameraStarting(true)
+      if (onRestartCamera) {
+        onRestartCamera()
+      }
+      navigator.mediaDevices
+        .getUserMedia({
+          video: { facingMode: 'user', width: { ideal: 720 }, height: { ideal: 720 } },
+          audio: false,
+        })
+        .then((s) => {
+          setLocalStream(s)
+          setCameraStarting(false)
+          if (modalVideoRef.current) {
+            modalVideoRef.current.srcObject = s
+            modalVideoRef.current.play().catch(() => {})
+          }
+        })
+        .catch((err) => {
+          setCameraStarting(false)
+          console.warn('Gagal membuka kamera internal modal:', err)
+        })
     }
     return undefined
-  }, [terbuka, cameraAktif, videoRef])
+  }, [terbuka, stream, localStream, onRestartCamera])
+
+  // Pasang stream begitu stream atau localStream diperbarui
+  useEffect(() => {
+    if (!terbuka) return
+    const activeStream = stream || localStream
+    const video = modalVideoRef.current
+    if (activeStream && video) {
+      if (video.srcObject !== activeStream) {
+        video.srcObject = activeStream
+      }
+      video.play().catch(() => {})
+    }
+  }, [terbuka, stream, localStream])
 
   // Loop deteksi wajah real-time saat kamera aktif dan model siap
   useEffect(() => {
-    if (!terbuka || modelLoading || !cameraAktif || successData) {
+    const activeStream = stream || localStream
+    if (!terbuka || modelLoading || (!cameraAktif && !activeStream) || successData) {
       if (loopRef.current) clearInterval(loopRef.current)
       return undefined
     }
 
     const interval = setInterval(async () => {
-      const video = videoRef?.current
+      const video = modalVideoRef.current
       if (!video || video.readyState < 2 || processing) return
 
       try {
@@ -108,16 +161,16 @@ export function FaceEnrollmentModal({
 
     loopRef.current = interval
     return () => clearInterval(interval)
-  }, [terbuka, modelLoading, cameraAktif, videoRef, processing, successData])
+  }, [terbuka, modelLoading, cameraAktif, stream, localStream, processing, successData])
 
   // Proses pendaftaran dari video kamera
   const ambilDanDaftarkan = useCallback(async () => {
-    const video = videoRef?.current
+    const video = modalVideoRef.current
     if (!video || processing || !staff) return
 
     // Pastikan video sedang memutar
     if (video.readyState < 2) {
-      setStatusMessage('Kamera belum siap. Tunggu hingga pratinjau kamera muncul.')
+      setStatusMessage('Kamera sedang menginisialisasi. Mohon tunggu hingga pratinjau muncul.')
       return
     }
 
@@ -167,7 +220,7 @@ export function FaceEnrollmentModal({
     } finally {
       setProcessing(false)
     }
-  }, [videoRef, processing, staff, onSukses])
+  }, [processing, staff, onSukses])
 
   if (!terbuka) return null
 
@@ -252,23 +305,23 @@ export function FaceEnrollmentModal({
                 <div className={`relative w-full h-full rounded-full overflow-hidden flex items-center justify-center bg-slate-900 ring-2 transition-all duration-300 ${
                   faceDetected ? 'ring-emerald-400' : 'ring-amber-400/80'
                 }`}>
-                  {cameraAktif ? (
-                    <video
-                      ref={videoRef}
-                      autoPlay
-                      playsInline
-                      muted
-                      className="absolute inset-0 h-full w-full object-cover"
-                    />
-                  ) : (
-                    <div className="flex flex-col items-center justify-center text-white/50 gap-1 p-4 text-center">
-                      <Icon name="videocam_off" className="text-[28px]" />
-                      <span className="text-[11px]">Kamera belum aktif</span>
+                  <video
+                    ref={modalVideoRef}
+                    autoPlay
+                    playsInline
+                    muted
+                    className="absolute inset-0 h-full w-full object-cover"
+                  />
+
+                  {(!stream && !localStream) && (
+                    <div className="absolute inset-0 bg-slate-900/90 flex flex-col items-center justify-center text-white/70 gap-1.5 p-4 text-center z-10">
+                      <Icon name={cameraStarting ? 'progress_activity' : 'videocam'} className={`text-[28px] ${cameraStarting ? 'animate-spin' : ''}`} />
+                      <span className="text-xs font-medium">{cameraStarting ? 'Membuka kamera...' : 'Menghubungkan kamera...'}</span>
                     </div>
                   )}
 
                   {/* Panduan Oval Wajah */}
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
                     <svg
                       className={`w-28 h-36 drop-shadow-md transition-colors duration-300 ${
                         faceDetected ? 'text-emerald-400' : 'text-white/60'
@@ -292,7 +345,7 @@ export function FaceEnrollmentModal({
                 </div>
 
                 {/* Status Pill Live */}
-                <span className={`absolute -bottom-2.5 inset-x-0 mx-auto w-fit px-3 py-1 rounded-full text-white font-label-sm text-[11px] font-bold shadow-md flex items-center gap-1 z-10 transition-colors ${
+                <span className={`absolute -bottom-2.5 inset-x-0 mx-auto w-fit px-3 py-1 rounded-full text-white font-label-sm text-[11px] font-bold shadow-md flex items-center gap-1 z-20 transition-colors ${
                   faceDetected ? 'bg-emerald-600' : 'bg-amber-600'
                 }`}>
                   <Icon name={faceDetected ? 'check_circle' : 'search'} className="text-[13px]" />
@@ -315,8 +368,8 @@ export function FaceEnrollmentModal({
                 <button
                   type="button"
                   onClick={ambilDanDaftarkan}
-                  disabled={processing || !cameraAktif}
-                  className="sp-btn w-full py-3 bg-gradient-to-r from-[#20275e] to-[#323d8f] hover:from-[#1c2254] hover:to-[#252e6d] text-white font-headline-sm text-sm rounded-xl flex items-center justify-center gap-2 shadow-md disabled:opacity-50 active:scale-[0.99] transition-all"
+                  disabled={processing || (!stream && !localStream && !cameraAktif)}
+                  className="sp-btn w-full py-3 bg-gradient-to-r from-[#20275e] to-[#323d8f] hover:from-[#1c2254] hover:to-[#252e6d] text-white font-headline-sm text-sm rounded-xl flex items-center justify-center gap-2 shadow-md disabled:opacity-50 active:scale-[0.99] transition-all cursor-pointer"
                 >
                   <Icon name={processing ? 'progress_activity' : 'camera_alt'} className={`text-[18px] ${processing ? 'animate-spin' : ''}`} />
                   <span>{processing ? 'Memproses Biometrik...' : 'Ambil & Daftarkan Wajah'}</span>

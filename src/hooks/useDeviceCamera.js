@@ -17,6 +17,7 @@ export function useDeviceCamera({ facingMode = 'user', aktif = true, onQrValue }
   const streamRef = useRef(null)
   const loopRef = useRef(null)
   const onQrRef = useRef(onQrValue)
+  const [stream, setStream] = useState(null)
   const [status, setStatus] = useState('idle')
   const [error, setError] = useState(null)
   const [nilaiQr, setNilaiQr] = useState(null)
@@ -32,6 +33,7 @@ export function useDeviceCamera({ facingMode = 'user', aktif = true, onQrValue }
     }
     streamRef.current?.getTracks().forEach((track) => track.stop())
     streamRef.current = null
+    setStream(null)
     if (videoRef.current) videoRef.current.srcObject = null
     setStatus('idle')
   }, [])
@@ -69,13 +71,14 @@ export function useDeviceCamera({ facingMode = 'user', aktif = true, onQrValue }
     setStatus('meminta')
     setError(null)
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
+      const mediaStream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode, width: { ideal: 720 }, height: { ideal: 720 } },
         audio: false,
       })
-      streamRef.current = stream
+      streamRef.current = mediaStream
+      setStream(mediaStream)
       if (videoRef.current) {
-        videoRef.current.srcObject = stream
+        videoRef.current.srcObject = mediaStream
         videoRef.current.play().catch(() => {})
         mulaiDeteksiQr()
       }
@@ -94,6 +97,8 @@ export function useDeviceCamera({ facingMode = 'user', aktif = true, onQrValue }
 
   return {
     videoRef,
+    stream,
+    streamRef,
     status,
     error,
     nilaiQr,

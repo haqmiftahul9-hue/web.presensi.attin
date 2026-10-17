@@ -14,8 +14,8 @@ const SUDUT_RADAR = (135 * Math.PI) / 180
  * dari lingkaran aunque jarak sebenarnya jauh lebih besar.
  */
 function GeofenceCard({ geofence, namaTitik, koordinatTeks }) {
-  const { dalamRadius, formatJarak, radius, sumber, akurasi, errorGps, membaca, lokasiAktif } = geofence
-  const aktif = lokasiAktif && dalamRadius
+  const { dalamRadius, formatJarak, radius, sumber, akurasi, errorGps, membaca, lokasiAktif, bebasRadius, refresh } = geofence
+  const aktif = bebasRadius || (lokasiAktif && dalamRadius)
   const jarak = geofence.jarak || 0
   const persen = Math.min(100, Math.round((jarak / Math.max(1, radius)) * 100))
   const warna = aktif ? '#059669' : '#ba1a1a'
@@ -45,13 +45,22 @@ function GeofenceCard({ geofence, namaTitik, koordinatTeks }) {
             <span className={`relative inline-flex rounded-full h-2 w-2 ${aktif ? 'bg-emerald-600' : 'bg-error'}`} />
           </span>
           <span className="font-label-sm text-label-sm font-semibold leading-snug">
-            {aktif ? 'Anda berada dalam radius' : 'Anda berada di luar radius'}
+            {bebasRadius
+              ? 'Geofence dinonaktifkan (Bebas radius)'
+              : aktif
+                ? 'Anda berada dalam radius'
+                : 'Anda berada di luar radius'}
           </span>
         </div>
-        <span className="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1 shrink-0">
-          <Icon name={membaca ? 'gps_fixed' : 'my_location'} className={`text-[14px] ${aktif ? 'text-emerald-600' : 'text-error'}`} />
-          {sumber === 'gps' ? `GPS ±${akurasi ?? '-'} m` : 'GPS nonaktif'}
-        </span>
+        <button
+          type="button"
+          onClick={refresh}
+          title="Perbarui koordinat GPS"
+          className="font-label-sm text-label-sm text-on-surface-variant hover:text-foreground flex items-center gap-1 shrink-0 p-1 rounded-md hover:bg-black/5 transition-colors cursor-pointer"
+        >
+          <Icon name={membaca ? 'sync' : 'gps_fixed'} className={`text-[14px] ${membaca ? 'animate-spin' : aktif ? 'text-emerald-600' : 'text-error'}`} />
+          <span>{sumber === 'gps' ? `GPS ±${akurasi ?? '-'} m` : 'GPS nonaktif'}</span>
+        </button>
       </div>
 
       <div className="flex items-center gap-3">

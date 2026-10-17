@@ -369,6 +369,7 @@ main > :last-child {
   height: 100dvh;
   min-height: 100dvh;
   overflow: hidden;
+  overflow-x: clip;
   overscroll-behavior: none;
   touch-action: pan-y manipulation;
   -webkit-text-size-adjust: 100%;
@@ -427,10 +428,6 @@ main > :last-child {
                 0 0 50px -10px rgba(50, 61, 143, 0.35);
   }
 
-  .sp-mobile-column {
-    max-width: 430px;
-  }
-
   body:has(.sp-mobile-root) {
     background: radial-gradient(circle at 50% 20%, #1c2242 0%, #0b0f1d 100%);
     display: flex;
@@ -441,11 +438,11 @@ main > :last-child {
 }
 
 /* Kolom aplikasi mobile — pembungkus header, konten, dan bottom navigation.
- * Pada HP, 100% memenuhi lebar layar HP. Pada desktop, mengikuti shell 430px. */
+ * Pada HP, 100% memenuhi lebar layar HP hingga 430px. Pada desktop, mengikuti shell 430px. */
 .sp-mobile-column {
   position: relative;
   width: 100%;
-  max-width: 100%;
+  max-width: 430px;
   height: 100%;
   min-height: 100dvh;
   min-width: 0;
@@ -955,11 +952,14 @@ main > :last-child {
  */
 .sp-nav-float {
   position: absolute;
-  left: 14px;
-  right: 14px;
-  width: auto;
-  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
-  height: 72px;
+  left: 16px;
+  right: 16px;
+  width: calc(100% - 32px);
+  max-width: 398px;
+  margin: 0 auto;
+  bottom: 16px;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  height: 76px;
   z-index: 50;
   border-radius: 24px;
   background: rgba(255, 255, 255, 0.96);
@@ -972,15 +972,6 @@ main > :last-child {
   transform: translateZ(0);
   -webkit-transform: translateZ(0);
   will-change: transform;
-}
-
-@media (min-width: 769px) {
-  .sp-nav-float {
-    left: 16px;
-    right: 16px;
-    max-width: 398px;
-    margin: 0 auto;
-  }
 }
 
 /* Banner pasang aplikasi. Tingginya dihitung dari navigasi (lihat

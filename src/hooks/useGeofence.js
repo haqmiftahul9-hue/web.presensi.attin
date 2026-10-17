@@ -57,31 +57,38 @@ export function useGeofence({ unit, radius, staffId, aktif = true, refreshMs = 2
     }
   }, [aktif, mulai, refreshMs, berhenti])
 
-  const jarakGps = posisi ? jarakKeUnit(posisi, unit) : null
+  const latUnit = unit?.latitude != null ? Number(unit.latitude) : null
+  const lngUnit = unit?.longitude != null ? Number(unit.longitude) : null
+  const unitParsed = latUnit != null && lngUnit != null ? { ...unit, latitude: latUnit, longitude: lngUnit } : unit
+
+  const jarakGps = posisi && unitParsed?.latitude != null && unitParsed?.longitude != null ? jarakKeUnit(posisi, unitParsed) : null
   const memakaiGps = jarakGps !== null
 
   // Simulasi hanya dipakai saat GPS tidak menghasilkan koordinat. Nilainya
   // diturunkan dari id pegawai supaya stabil selama sesi (tidak melompat tiap
   // render) dan selalu di dalam radius, sehingga alur presensi tetap bisa
   // dicoba di perangkat tanpa GPS.
-  const jarakSimulasi = radius ? 6 + ((Number(staffId) || 1) * 13) % Math.max(6, Math.floor(radius * 0.6)) : null
-  const jarak = memakaiGps ? jarakGps : radius ? jarakSimulasi : null
-  const dalamRadius = jarak !== null && Number.isFinite(jarak) && jarak <= radius
+  const effectiveRadius = Number(radius || unit?.radius || 50)
+  const jarakSimulasi = effectiveRadius ? 6 + ((Number(staffId) || 1) * 13) % Math.max(6, Math.floor(effectiveRadius * 0.6)) : null
+  const jarak = memakaiGps ? jarakGps : effectiveRadius ? jarakSimulasi : null
+  const dalamRadius = jarak !== null && Number.isFinite(jarak) && jarak <= effectiveRadius
+  const geofenceWajib = unit?.geofenceActive !== false
 
   return {
     jarak,
     formatJarak: formatMeter(jarak),
-    radius,
+    radius: effectiveRadius,
     dalamRadius,
+    bebasRadius: !geofenceWajib,
     // Geofence hanya berlaku kalau unit sekolahnya sudah punya koordinat;
     // tanpa itu jarak tidak pernah bisa dibandingkan secara nyata.
-    lokasiAktif: Boolean(unit?.latitude) && Boolean(unit?.longitude),
+    lokasiAktif: Boolean(latUnit) && Boolean(lngUnit),
     posisi,
     akurasi,
     errorGps,
     membaca,
     sumber: memakaiGps ? 'gps' : 'simulasi',
-    koordinatUnit: unit ? { latitude: unit.latitude, longitude: unit.longitude } : null,
+    koordinatUnit: unitParsed ? { latitude: latUnit, longitude: lngUnit } : null,
     refresh: mulai,
   }
 }

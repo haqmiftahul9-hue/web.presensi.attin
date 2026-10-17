@@ -1,4 +1,4 @@
-import { createContext, useContext, useReducer, useMemo } from 'react'
+import { createContext, useContext, useReducer, useMemo, useEffect } from 'react'
 import {
   UNITS, STAFF, LEAVES, ADMIN_USERS, INITIAL_LOGS,
   INITIAL_SETTINGS, WEEKLY_TREND, TREND_30, HOLIDAYS, buildFullStaff, buildAttendance, initialsOf,
@@ -443,7 +443,74 @@ export const PASSWORD_CHANGE_FORBIDDEN =
 // Nilai khusus "melihat seluruh unit" (hanya Superadmin).
 export const ALL_UNITS = 'all'
 
-const initialStaff = buildFullStaff()
+export const PERSISTED_UNITS_KEY = 'simpres.units'
+export const PERSISTED_SETTINGS_KEY = 'simpres.settings'
+export const PERSISTED_STAFF_KEY = 'simpres.staff'
+
+export function readPersistedItem(key, fallback) {
+  if (typeof window === 'undefined') return fallback
+  try {
+    const raw = window.localStorage.getItem(key)
+    if (!raw) return fallback
+    const parsed = JSON.parse(raw)
+    return parsed ?? fallback
+  } catch {
+    return fallback
+  }
+}
+
+export function writePersistedItem(key, value) {
+  if (typeof window === 'undefined') return
+  try {
+    window.localStorage.setItem(key, JSON.stringify(value))
+  } catch {
+    /* storage full / disabled */
+  }
+}
+
+export function getInitialUnits() {
+  const persisted = readPersistedItem(PERSISTED_UNITS_KEY, null)
+  if (!persisted || !Array.isArray(persisted) || persisted.length === 0) return UNITS
+  return UNITS.map((seedUnit) => {
+    const found = persisted.find((u) => u.id === seedUnit.id)
+    return found ? { ...seedUnit, ...found } : seedUnit
+  }).concat(persisted.filter((p) => !UNITS.some((u) => u.id === p.id)))
+}
+
+export function getInitialSettings() {
+  const persisted = readPersistedItem(PERSISTED_SETTINGS_KEY, null)
+  if (!persisted || typeof persisted !== 'object') return INITIAL_SETTINGS
+  return {
+    ...INITIAL_SETTINGS,
+    ...persisted,
+    logoPerUnit: {
+      ...(INITIAL_SETTINGS.logoPerUnit || {}),
+      ...(persisted.logoPerUnit || {}),
+    },
+    presensi: {
+      ...(INITIAL_SETTINGS.presensi || {}),
+      ...(persisted.presensi || {}),
+      radiusGeofencePerUnit: {
+        ...(INITIAL_SETTINGS.presensi?.radiusGeofencePerUnit || {}),
+        ...(persisted.presensi?.radiusGeofencePerUnit || {}),
+      },
+    },
+  }
+}
+
+export function getInitialStaff() {
+  const baseStaff = buildFullStaff()
+  const savedStaff = readPersistedItem(PERSISTED_STAFF_KEY, null)
+  if (!savedStaff || !Array.isArray(savedStaff) || savedStaff.length === 0) return baseStaff
+  return baseStaff.map((s) => {
+    const saved = savedStaff.find((p) => p.id === s.id || (p.niy && p.niy === s.niy))
+    return saved ? { ...s, ...saved } : s
+  })
+}
+
+const initialStaff = getInitialStaff()
+const initialUnits = getInitialUnits()
+const initialSettings = getInitialSettings()
 
 function buildInitialAttendanceHistory(staff, trend30) {
   const history = []
@@ -522,7 +589,7 @@ export function initialUnitScope(user) {
 
 const initialState = {
   staff: initialStaff,
-  units: UNITS,
+  units: initialUnits,
   leaves: LEAVES,
   adminUsers: ADMIN_USERS,
   // Tabel employee_card. Satu baris per pegawai; isinya hanya metadata
@@ -540,7 +607,7 @@ const initialState = {
   // pegawai — tidak ada lagi tabel terpisah per pegawai.
   userAccounts: buildUserAccounts(initialStaff),
   logs: INITIAL_LOGS,
-  settings: INITIAL_SETTINGS,
+  settings: initialSettings,
   weeklyTrend: WEEKLY_TREND,
   trend30: TREND_30,
   holidays: HOLIDAYS,
@@ -603,9 +670,12 @@ export function simPresReducer(state, action) {
           )
         : syncAdminUserFromStaff(state.adminUsers, staffBaru)
 
+      const nextStaff = state.staff.map((s) => (s.id === id ? staffBaru : s))
+      writePersistedItem(PERSISTED_STAFF_KEY, nextStaff)
+
       return {
         ...state,
-        staff: state.staff.map((s) => (s.id === id ? staffBaru : s)),
+        staff: nextStaff,
         adminUsers: adminUsersUpdated,
         employeeCards: syncEmployeeCardsFromStaff(state.employeeCards, staffBaru, 'update'),
         // Status/unit/NIY akun ikut mengikuti data pegawai yang baru.
@@ -657,9 +727,12 @@ export function simPresReducer(state, action) {
         fieldDitolak: ditolak.map((d) => d.field),
       }
 
+      const nextStaff = state.staff.map((s) => (s.id === staffId ? staffBaru : s))
+      writePersistedItem(PERSISTED_STAFF_KEY, nextStaff)
+
       return {
         ...state,
-        staff: state.staff.map((s) => (s.id === staffId ? staffBaru : s)),
+        staff: nextStaff,
         // Nama & foto ikut memengaruhi kartu ID dan avatar, jadi keduanya
         // disinkronkan dari data master yang baru.
         employeeCards: syncEmployeeCardsFromStaff(state.employeeCards, staffBaru, 'update'),
@@ -673,9 +746,12 @@ export function simPresReducer(state, action) {
       const staffToAdd = state.staff.some((s) => s.id === action.payload.id)
         ? { ...action.payload, id: nextIdFrom(state.staff) }
         : action.payload
+      const nextStaff = [...state.staff, staffToAdd]
+      writePersistedItem(PERSISTED_STAFF_KEY, nextStaff)
+
       return {
         ...state,
-        staff: [...state.staff, staffToAdd],
+        staff: nextStaff,
         adminUsers: syncAdminUserFromStaff(state.adminUsers, staffToAdd, 'add'),
         employeeCards: syncEmployeeCardsFromStaff(state.employeeCards, staffToAdd, 'add'),
         // AUTO CREATE ACCOUNT: begitu pegawai disimpan, akun login-nya langsung
@@ -689,9 +765,12 @@ export function simPresReducer(state, action) {
       const staffId = action.payload;
       const staffToDelete = state.staff.find((s) => s.id === staffId);
       const niyToDelete = staffToDelete?.niy;
+      const nextStaff = state.staff.filter((s) => s.id !== staffId)
+      writePersistedItem(PERSISTED_STAFF_KEY, nextStaff)
+
       return {
         ...state,
-        staff: state.staff.filter((s) => s.id !== staffId),
+        staff: nextStaff,
         adminUsers: niyToDelete 
           ? state.adminUsers.filter((u) => u.niy !== niyToDelete)
           : state.adminUsers,
@@ -704,24 +783,33 @@ export function simPresReducer(state, action) {
           (a) => a.pegawaiId !== staffId && a.niy !== niyToDelete,
         ),
       };
-    case 'UPDATE_UNIT':
+    case 'UPDATE_UNIT': {
+      const nextUnits = state.units.map((u) =>
+        u.id === action.payload.id ? { ...u, ...action.payload } : u,
+      )
+      writePersistedItem(PERSISTED_UNITS_KEY, nextUnits)
       return {
         ...state,
-        units: state.units.map((u) =>
-          u.id === action.payload.id ? { ...u, ...action.payload } : u,
-        ),
+        units: nextUnits,
       }
-    case 'ADD_UNIT':
+    }
+    case 'ADD_UNIT': {
+      const nextUnits = [...state.units, action.payload]
+      writePersistedItem(PERSISTED_UNITS_KEY, nextUnits)
       return {
         ...state,
-        units: [...state.units, action.payload],
+        units: nextUnits,
       }
-    case 'DELETE_UNIT':
+    }
+    case 'DELETE_UNIT': {
+      const nextUnits = state.units.filter((u) => u.id !== action.payload)
+      writePersistedItem(PERSISTED_UNITS_KEY, nextUnits)
       return {
         ...state,
-        units: state.units.filter((u) => u.id !== action.payload),
+        units: nextUnits,
         staff: state.staff.filter((s) => s.unitId !== action.payload),
       }
+    }
     case 'REGISTER_FACE': {
       const staffId = action.payload.staffId ?? action.payload.id
       const targetStaff = state.staff.find((s) => s.id === staffId || (action.payload.niy && s.niy === action.payload.niy))
@@ -732,9 +820,11 @@ export function simPresReducer(state, action) {
         faceRegisteredAt: action.payload.registeredAt || new Date().toISOString(),
         ...(action.payload.photo ? { facePhoto: action.payload.photo, foto: action.payload.photo } : {}),
       }
+      const nextStaff = state.staff.map((s) => (s.id === targetStaff.id ? updatedStaff : s))
+      writePersistedItem(PERSISTED_STAFF_KEY, nextStaff)
       return {
         ...state,
-        staff: state.staff.map((s) => (s.id === targetStaff.id ? updatedStaff : s)),
+        staff: nextStaff,
         employeeCards: syncEmployeeCardsFromStaff(state.employeeCards, updatedStaff, 'update'),
       }
     }
@@ -1029,18 +1119,27 @@ logs: [
         adminUsers: state.adminUsers.filter((u) => u.id !== action.payload),
         staff: syncStaffFromAdminUser(state.staff, { id: action.payload }, 'delete'),
       }
-    case 'UPDATE_SETTINGS':
-      return {
-        ...state,
-        settings: {
-          ...state.settings,
-          ...action.payload,
-          logoPerUnit: {
-            ...(state.settings?.logoPerUnit || {}),
-            ...(action.payload?.logoPerUnit || {}),
-          },
+    case 'UPDATE_SETTINGS': {
+      const nextSettings = {
+        ...state.settings,
+        ...action.payload,
+        logoPerUnit: {
+          ...(state.settings?.logoPerUnit || {}),
+          ...(action.payload?.logoPerUnit || {}),
         },
       }
+      writePersistedItem(PERSISTED_SETTINGS_KEY, nextSettings)
+      return {
+        ...state,
+        settings: nextSettings,
+      }
+    }
+    case 'SYNC_STORAGE_UNITS':
+      return { ...state, units: action.payload }
+    case 'SYNC_STORAGE_STAFF':
+      return { ...state, staff: action.payload }
+    case 'SYNC_STORAGE_SETTINGS':
+      return { ...state, settings: action.payload }
     // Kata kunci pencarian global dari Header — diperbarui saat pengguna
     // mengetik di kotak pencarian paling atas.
     case 'SET_SEARCH_TERM':
@@ -1553,6 +1652,31 @@ function attendanceSource(state) {
 
 export function SimPresProvider({ children }) {
   const [state, dispatch] = useReducer(simPresReducer, initialState, initWithStoredSession)
+
+  // Sinkronisasi otomatis antar-tab saat admin mengubah koordinat/unit/pengaturan
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined
+    const handleStorageChange = (e) => {
+      if (!e.newValue) return
+      try {
+        if (e.key === PERSISTED_UNITS_KEY) {
+          const parsed = JSON.parse(e.newValue)
+          if (Array.isArray(parsed)) dispatch({ type: 'SYNC_STORAGE_UNITS', payload: parsed })
+        } else if (e.key === PERSISTED_STAFF_KEY) {
+          const parsed = JSON.parse(e.newValue)
+          if (Array.isArray(parsed)) dispatch({ type: 'SYNC_STORAGE_STAFF', payload: parsed })
+        } else if (e.key === PERSISTED_SETTINGS_KEY) {
+          const parsed = JSON.parse(e.newValue)
+          if (parsed && typeof parsed === 'object') dispatch({ type: 'SYNC_STORAGE_SETTINGS', payload: parsed })
+        }
+      } catch {
+        /* Abaikan data rusak */
+      }
+    }
+    window.addEventListener('storage', handleStorageChange)
+    return () => window.removeEventListener('storage', handleStorageChange)
+  }, [])
+
   // attendance selalu turunan data pegawai (satu sumber data presensi).
   const value = useMemo(
     () => ({ state: { ...state, attendance: buildAttendance(attendanceSource(state)) }, dispatch }),

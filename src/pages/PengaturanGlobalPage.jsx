@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react'
+import { Link } from 'react-router-dom'
 import { useSimPres, addActivityLog } from '../store/simPresStore.jsx'
 import { daftarJamKerja } from '../data/jamKerja.js'
 
@@ -844,6 +845,42 @@ function PengaturanGlobalPage() {
                       />
                       <span className="text-xs font-medium text-foreground">Aktifkan Validasi Lokasi Presensi (GPS / Geofence)</span>
                     </label>
+                  </div>
+
+                  {/* Daftar Titik Koordinat Unit Terdaftar */}
+                  <div className="mt-4 pt-4 border-t border-border">
+                    <div className="flex items-center justify-between mb-2.5">
+                      <span className="text-[11px] font-bold text-foreground uppercase tracking-wider">
+                        Titik Koordinat & Radius Terkoneksi Per Unit
+                      </span>
+                      <Link
+                        to="/unit-sd-islam-rj"
+                        className="text-[11px] font-semibold text-primary hover:underline flex items-center gap-1"
+                      >
+                        <span className="material-symbols-outlined text-[14px]">edit_location_alt</span>
+                        <span>Edit di Manajemen Unit</span>
+                      </Link>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      {(state.units || []).map((u) => (
+                        <div key={u.id} className="p-2.5 rounded-lg bg-card border border-border flex items-center justify-between gap-2 shadow-2xs">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className="material-symbols-outlined text-primary text-[18px] shrink-0">location_on</span>
+                            <div className="flex flex-col min-w-0">
+                              <span className="text-xs font-semibold text-foreground truncate">{u.nama}</span>
+                              <span className="text-[11px] font-mono text-muted-foreground truncate">
+                                {Number(u.latitude || 0).toFixed(5)}, {Number(u.longitude || 0).toFixed(5)}
+                              </span>
+                            </div>
+                          </div>
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-semibold shrink-0 ${
+                            u.geofenceActive !== false ? 'bg-emerald-500/10 text-emerald-600' : 'bg-muted text-muted-foreground'
+                          }`}>
+                            {u.radius || 50}m {u.geofenceActive !== false ? 'Aktif' : 'Nonaktif'}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
