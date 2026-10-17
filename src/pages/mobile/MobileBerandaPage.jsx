@@ -171,21 +171,21 @@ function MobileBerandaPage() {
           </div>
 
           <div className="mt-3.5 grid grid-cols-2 gap-2">
-            <div className="flex items-center gap-2 rounded-xl bg-white/12 border border-white/20 px-2.5 py-2 backdrop-blur-md min-w-0">
+            <div className="flex items-center gap-2 rounded-xl bg-white/15 border border-white/20 px-2.5 py-2 min-w-0">
               <Icon name="badge" className="text-[15px] text-white/90 shrink-0" />
               <span className="font-label-sm text-label-sm text-white font-medium truncate">NIY {staff.niy}</span>
             </div>
-            <div className="flex items-center gap-2 rounded-xl bg-white/12 border border-white/20 px-2.5 py-2 backdrop-blur-md min-w-0">
+            <div className="flex items-center gap-2 rounded-xl bg-white/15 border border-white/20 px-2.5 py-2 min-w-0">
               <Icon name="domain" className="text-[15px] text-white/90 shrink-0" />
               <span className="font-label-sm text-label-sm text-white font-medium truncate">{unit?.nama || '-'}</span>
             </div>
-            <div className="flex items-center gap-2 rounded-xl bg-white/12 border border-white/20 px-2.5 py-2 backdrop-blur-md min-w-0">
+            <div className="flex items-center gap-2 rounded-xl bg-white/15 border border-white/20 px-2.5 py-2 min-w-0">
               <Icon name="work" className="text-[15px] text-white/90 shrink-0" />
               <span className="font-label-sm text-label-sm text-white font-medium truncate">{staff.role}</span>
             </div>
             <div
-              className={`flex items-center gap-2 rounded-xl border px-2.5 py-2 backdrop-blur-md min-w-0 ${
-                online ? 'bg-emerald-400/20 border-emerald-300/40 text-emerald-100' : 'bg-white/10 border-white/15 text-white/80'
+              className={`flex items-center gap-2 rounded-xl border px-2.5 py-2 min-w-0 ${
+                online ? 'bg-emerald-400/25 border-emerald-300/40 text-emerald-100' : 'bg-white/10 border-white/15 text-white/80'
               }`}
             >
               <Icon name={online ? 'wifi_tethering' : 'wifi_off'} className="text-[15px] shrink-0" />
@@ -204,7 +204,7 @@ function MobileBerandaPage() {
           <div className="relative z-[1] flex flex-col gap-3.5">
             <div className="flex items-start justify-between gap-2">
               <div className="flex items-center gap-2.5 min-w-0">
-                <span className="w-10 h-10 rounded-2xl bg-white/20 border border-white/30 flex items-center justify-center shrink-0 shadow-sm backdrop-blur-md">
+                <span className="w-10 h-10 rounded-2xl bg-white/25 border border-white/30 flex items-center justify-center shrink-0 shadow-sm">
                   <Icon name="how_to_reg" className="text-white text-[22px]" />
                 </span>
                 <div className="flex flex-col min-w-0">
@@ -212,7 +212,7 @@ function MobileBerandaPage() {
                   <span className="font-label-sm text-label-sm text-white/80 truncate mt-0.5">{tanggalPanjang(jam)}</span>
                 </div>
               </div>
-              <span className="shrink-0 px-2.5 py-1 rounded-full bg-white/15 border border-white/20 font-label-sm text-label-sm text-white font-medium flex items-center gap-1 backdrop-blur-md">
+              <span className="shrink-0 px-2.5 py-1 rounded-full bg-white/20 border border-white/20 font-label-sm text-label-sm text-white font-medium flex items-center gap-1">
                 <Icon name="schedule" className="text-[14px]" />
                 Jam Kerja {rules.jamKerja}
               </span>
@@ -230,7 +230,7 @@ function MobileBerandaPage() {
             </div>
 
             {/* Status kehadiran. */}
-            <div className="flex items-center justify-between gap-2 px-4 py-3 rounded-2xl bg-white/15 border border-white/20 backdrop-blur-md shadow-inner">
+            <div className="flex items-center justify-between gap-2 px-4 py-3 rounded-2xl bg-white/20 border border-white/25 shadow-inner">
               <span className="flex items-center gap-2 font-label-md text-label-md text-white font-medium min-w-0">
                 <Icon name="task_alt" className="text-[16px] shrink-0 text-white/90" />
                 <span className="truncate">
@@ -245,11 +245,11 @@ function MobileBerandaPage() {
 
             {/* Batas jam masuk hari ini + lokasi GPS. */}
             <div className="grid grid-cols-2 gap-2.5">
-              <div className="rounded-2xl bg-white/12 border border-white/18 px-3.5 py-3 flex flex-col gap-1 backdrop-blur-md">
+              <div className="rounded-2xl bg-white/15 border border-white/20 px-3.5 py-3 flex flex-col gap-1">
                 <span className="font-label-sm text-label-sm text-white/70 text-[11px] font-medium">Batas masuk</span>
                 <span className="font-headline-sm text-headline-sm text-white font-bold tabular-nums">{presensi.batasMasuk}</span>
               </div>
-              <div className="rounded-2xl bg-white/12 border border-white/18 px-3.5 py-3 flex flex-col gap-1 backdrop-blur-md">
+              <div className="rounded-2xl bg-white/15 border border-white/20 px-3.5 py-3 flex flex-col gap-1">
                 <span className="font-label-sm text-label-sm text-white/70 text-[11px] font-medium">Lokasi</span>
                 <span className="font-headline-sm text-headline-sm text-white font-bold flex items-center gap-1 truncate">
                   <Icon name="my_location" className="text-[15px] shrink-0 text-white/80" />

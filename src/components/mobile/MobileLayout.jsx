@@ -36,12 +36,23 @@ function MobileLayout() {
   const { state } = useSimPres()
   const location = useLocation()
 
+  // Mengunci scroll dokumen luar agar pengguliran terpusat 100% pada kontainer mobile
+  // tanpa konflik scroll atau jitter address bar di smartphone.
+  useEffect(() => {
+    document.documentElement.classList.add('sp-mobile-active')
+    document.body.classList.add('sp-mobile-active')
+    return () => {
+      document.documentElement.classList.remove('sp-mobile-active')
+      document.body.classList.remove('sp-mobile-active')
+    }
+  }, [])
+
   // Setiap kali berpindah tab, halaman dimulai dari atas — perilaku yang
   // familier di aplikasi native, bukan menyisakan posisi scroll lama.
   useEffect(() => {
     const isi = document.querySelector('[data-mobile-scroll]')
-    if (isi) isi.scrollTo({ top: 0 })
-    window.scrollTo({ top: 0 })
+    if (isi) isi.scrollTo({ top: 0, behavior: 'instant' })
+    window.scrollTo({ top: 0, behavior: 'instant' })
   }, [location.pathname])
 
   if (selectAppMode(state) !== MODE_MOBILE) {

@@ -2,9 +2,8 @@
 <html lang="id">
 <head>
   <meta charset="utf-8" />
-  <!-- viewport-fit=cover: konten boleh sampai ke notch, lalu modul mobile yang
-       menambah padding aman lewat env(safe-area-inset-*). -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <!-- Viewport dikunci agar pas dengan layar smartphone tanpa zoom cubit/double-tap yang membuat layout berantakan -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="description" content="SimPres — sistem presensi digital sekolah. Modul Kepegawaian untuk Guru dan Pegawai dapat dipasang sebagai aplikasi." />
 
   <!-- PWA: manifest + warna tema navy SimPres -->
@@ -25,6 +24,12 @@
        /fonts: tidak ada permintaan ke CDN font eksternal, sehingga ikon dan
        teks tetap tampil pada perangkat yang sedang offline. -->
   <title>SIMPEG - Sistem Informasi Kepegawaian</title>
+  <script>
+    // Mencegah zoom cubit (pinch) dan gesture zoom di iOS Safari agar tampilannya menetap seperti aplikasi mobile native
+    document.addEventListener('gesturestart', function (e) { e.preventDefault(); }, { passive: false });
+    document.addEventListener('gesturechange', function (e) { e.preventDefault(); }, { passive: false });
+    document.addEventListener('gestureend', function (e) { e.preventDefault(); }, { passive: false });
+  </script>
 </head>
 <body>
   <div id="root"></div>

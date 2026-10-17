@@ -601,16 +601,16 @@ function MobilePresensiPage() {
           </div>
 
           <div className="mt-3.5 grid grid-cols-2 gap-2">
-            <div className="flex items-center gap-2 rounded-xl bg-white/12 border border-white/20 px-2.5 py-2 backdrop-blur-md min-w-0">
+            <div className="flex items-center gap-2 rounded-xl bg-white/15 border border-white/20 px-2.5 py-2 min-w-0">
               <Icon name="domain" className="text-[15px] text-white/90 shrink-0" />
               <span className="font-label-sm text-label-sm text-white font-medium truncate">{unit?.nama || '-'}</span>
             </div>
-            <div className="flex items-center gap-2 rounded-xl bg-white/12 border border-white/20 px-2.5 py-2 backdrop-blur-md min-w-0">
+            <div className="flex items-center gap-2 rounded-xl bg-white/15 border border-white/20 px-2.5 py-2 min-w-0">
               <Icon name="work" className="text-[15px] text-white/90 shrink-0" />
               <span className="font-label-sm text-label-sm text-white font-medium truncate">{staff.role}</span>
             </div>
           </div>
-          <div className="mt-2 flex items-center gap-2 rounded-xl bg-white/12 border border-white/20 px-3 py-2 backdrop-blur-md min-w-0">
+          <div className="mt-2 flex items-center gap-2 rounded-xl bg-white/15 border border-white/20 px-3 py-2 min-w-0">
             <Icon name="schedule" className="text-[15px] text-white/90 shrink-0" />
             <span className="font-label-sm text-label-sm text-white font-medium truncate">
               Jam Kerja {rules.hari}: <span className="font-semibold">{rules.jamKerja}</span>
