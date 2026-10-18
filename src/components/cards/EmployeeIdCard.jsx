@@ -1,4 +1,4 @@
-﻿import QRCodeSvg from './QRCodeSvg.jsx'
+import QRCodeSvg from './QRCodeSvg.jsx'
 import BarcodeSvg from './BarcodeSvg.jsx'
 import { UnitLogo } from './CardLogos.jsx'
 import { cardStatusStyle, cardPhotoOf, formatDateID, CARD_QR_PREFIX_LABEL } from '../../data/employeeCard.js'
@@ -26,7 +26,7 @@ function CardFace({ row, settings, unit, className = '' }) {
   const photo = cardPhotoOf(staff)
   const initials = row.initials || staff.name
   const statusGroup = row.statusGroup
-  const namaYayasan = settings?.namaYayasan || 'Yayasan Pendidikan'
+  const namaYayasan = settings?.namaYayasan || 'Yayasan Islam Attin Indonesia'
   // Sapaan mengikuti gender + unit, bukan ditulis manual di kartu.
   const sapaan = row.greeting || getEmployeeGreeting(staff, { unit })
 
@@ -34,16 +34,16 @@ function CardFace({ row, settings, unit, className = '' }) {
     <div
       className={`sp-idcard relative flex h-full w-full flex-col overflow-hidden bg-white text-on-surface ${className}`}
     >
-      {/* Header: identitas yayasan & unit */}
+      {/* Header: identitas yayasan & unit — tanpa logo bulat di kiri, hanya teks */}
       <div className="flex shrink-0 items-center justify-between bg-primary-container pl-[0.7em] pr-[0.7em] text-on-primary" style={{ height: 'var(--sp-header)' }}>
         <div className="flex min-w-0 flex-col leading-tight">
-            <span className="truncate text-[length:var(--sp-header-label)] font-semibold uppercase tracking-[0.1em] text-on-primary-container">
-              Kartu Identitas Pegawai
-            </span>
-            <span className="truncate text-[length:var(--sp-header-title)] font-semibold leading-tight text-white" title={namaYayasan}>
-              {namaYayasan}
-            </span>
-          </div>
+          <span className="truncate text-[length:var(--sp-header-label)] font-semibold uppercase tracking-[0.1em] text-on-primary-container">
+            Kartu Identitas Pegawai
+          </span>
+          <span className="truncate text-[length:var(--sp-header-title)] font-semibold leading-tight text-white" title={namaYayasan}>
+            {namaYayasan}
+          </span>
+        </div>
         <div className="flex min-w-0 shrink-0 items-center gap-[0.4em]">
           <UnitLogo unit={unit} className="h-[var(--sp-logo)] w-[var(--sp-logo)] shrink-0 rounded-full" />
           <div className="flex min-w-0 flex-col items-end leading-tight">

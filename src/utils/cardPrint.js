@@ -150,31 +150,12 @@ function drawCard(doc, row, settings, unit, { x, y, width, photoDataUrl }) {
   doc.setFillColor(...COLORS.navy)
   roundedRectWithSquareEdge(doc, x, y, width, headerH, radius, 'bottom')
 
-  const logo = em * G.logo
-  const logoX = x + padX
-  const logoY = y + (headerH - logo) / 2
-  const yayasanLogo = String(settings?.logo || '').trim()
-  if (yayasanLogo) {
-    try {
-      doc.addImage(yayasanLogo, 'AUTO', logoX, logoY, logo, logo, undefined, 'FAST')
-    } catch {
-      doc.setFillColor(...COLORS.white)
-      doc.circle(logoX + logo / 2, logoY + logo / 2, logo / 2, 'F')
-    }
-  } else {
-    doc.setFillColor(...COLORS.white)
-    doc.circle(logoX + logo / 2, logoY + logo / 2, logo / 2, 'F')
-    drawText(doc, initialsOf(settings?.namaYayasan), logoX + logo / 2, logoY + logo / 2, {
-      size: em * G.headerLabel * 1.3, color: COLORS.navy, style: 'bold', align: 'center',
-    })
-  }
-
-  const titleX = logoX + logo + em * 0.4
-  const yayasanName = settings?.namaYayasan || 'Yayasan Pendidikan'
-  drawText(doc, 'KARTU IDENTITAS PEGAWAI', titleX, logoY + logo * 0.34, {
+  const titleX = x + padX
+  const yayasanName = settings?.namaYayasan || 'Yayasan Islam Attin Indonesia'
+  drawText(doc, 'KARTU IDENTITAS PEGAWAI', titleX, y + headerH * 0.36, {
     size: em * G.headerLabel, color: [168, 182, 213], style: 'bold',
   })
-  drawText(doc, yayasanName, titleX, logoY + logo * 0.72, {
+  drawText(doc, yayasanName, titleX, y + headerH * 0.70, {
     size: em * G.headerTitle, color: COLORS.white, style: 'bold',
   })
 
