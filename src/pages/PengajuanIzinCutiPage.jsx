@@ -518,10 +518,10 @@ function PengajuanIzinCutiPage() {
                     <th className="py-2.5 px-2.5 w-[11%]">Unit</th>
                     <th className="py-2.5 px-2.5 w-[12%]">Jenis</th>
                     <th className="py-2.5 px-2.5 w-[13%]">Periode</th>
-                    <th className="py-2.5 px-2.5 w-[7%]">Durasi</th>
-                    <th className="py-2.5 px-2.5 w-[11%]">Lampiran</th>
-                    <th className="py-2.5 px-2.5 w-[9%]">Status</th>
-                    <th className="py-2.5 px-2.5 text-right w-[9%]">Aksi</th>
+                    <th className="py-2.5 px-2.5 text-center w-[7%]">Durasi</th>
+                    <th className="py-2.5 px-2.5 text-center w-[11%]">Lampiran</th>
+                    <th className="py-2.5 px-2.5 text-center w-[8%]">Status</th>
+                    <th className="py-2.5 px-2.5 text-right w-[10%]">Aksi</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/60 text-xs">
@@ -564,9 +564,9 @@ function PengajuanIzinCutiPage() {
                           {row.status}
                         </span>
                       </td>
-                      <td className="py-2.5 px-2.5 text-right">
+                      <td className="py-2.5 px-2.5 text-right pr-3">
                         {row.status === 'Menunggu' ? (
-                          <div className="flex items-center justify-end gap-1">
+                          <div className="flex items-center justify-end gap-2">
                             <button onClick={() => handleApprove(row.id)} className="h-7 w-7 rounded-md bg-emerald-600 text-white hover:bg-emerald-700 transition-colors flex items-center justify-center shadow-xs cursor-pointer flex-shrink-0" type="button" title="Setujui">
                               <span className="material-symbols-outlined text-[15px]">check</span>
                             </button>
