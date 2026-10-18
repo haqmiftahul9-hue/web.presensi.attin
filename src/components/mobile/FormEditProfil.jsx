@@ -29,6 +29,7 @@ const LABEL = 'font-label-sm text-label-sm text-on-surface-variant mb-2 block'
 export function FormEditProfil({ staff, unit, onSimpan, onBatal }) {
   const [isian, setIsian] = useState(() => isianAwalProfil(staff))
   const [foto, setFoto] = useState(staff?.[FIELD_FOTO.key] || '')
+  const [fotoDiubah, setFotoDiubah] = useState(false)
   const [galat, setGalat] = useState({})
   const [pesan, setPesan] = useState('')
   const [sibuk, setSibuk] = useState(false)
@@ -51,11 +52,19 @@ export function FormEditProfil({ staff, unit, onSimpan, onBatal }) {
     try {
       const dataUrl = await bacaFoto(berkas)
       setFoto(dataUrl)
+      setFotoDiubah(true)
       setPesan('')
       setGalat((g) => ({ ...g, foto: '' }))
     } catch (error) {
       setGalat((g) => ({ ...g, foto: error?.message || 'Foto gagal dimuat.' }))
     }
+  }
+
+  function hapusFoto() {
+    setFoto('')
+    setFotoDiubah(true)
+    setPesan('')
+    setGalat((g) => ({ ...g, foto: '' }))
   }
 
   async function simpan(event) {
@@ -72,7 +81,9 @@ export function FormEditProfil({ staff, unit, onSimpan, onBatal }) {
     setPesan('')
     try {
       // Foto disimpan terpisah karena isinya berupa data URL, bukan teks.
-      if (foto && foto !== staff?.[FIELD_FOTO.key]) {
+      // fotoDiubah melacak apakah pengguna sengaja mengganti atau menghapus foto,
+      // termasuk ketika foto dikosongkan (string kosong) agar foto bisa dihapus.
+      if (fotoDiubah) {
         await onSimpan({ ...isian, foto }, { foto })
       } else {
         await onSimpan(isian, {})
@@ -112,6 +123,16 @@ export function FormEditProfil({ staff, unit, onSimpan, onBatal }) {
               <Icon name="photo_camera" className="text-[18px] shrink-0" />
               {foto ? 'Ganti foto' : 'Unggah foto'}
             </label>
+            {foto && (
+              <button
+                type="button"
+                onClick={hapusFoto}
+                className="sp-press sp-btn px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl shadow-xs font-label-md text-label-md flex items-center gap-1.5 active:scale-[0.98] transition-all cursor-pointer"
+              >
+                <Icon name="delete" className="text-[18px] shrink-0" />
+                Hapus foto
+              </button>
+            )}
             <input
               ref={inputFoto}
               id="profil-foto"
