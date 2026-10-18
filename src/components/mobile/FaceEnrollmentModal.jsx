@@ -76,7 +76,9 @@ export function FaceEnrollmentModal({
     }
   }, [terbuka])
 
-  // Hubungkan video stream ke elemen video modal secara mandiri tanpa konflik ref
+  // Hubungkan stream kamera (dari prop parent atau lokal) ke elemen video modal.
+  // Hanya memanggil onRestartCamera dari parent saat belum ada stream sama sekali,
+  // agar tidak memunculkan dialog izin kamera berkali-kali.
   useEffect(() => {
     if (!terbuka) {
       if (localStream) {
@@ -89,38 +91,44 @@ export function FaceEnrollmentModal({
     const activeStream = stream || localStream
     const video = modalVideoRef.current
 
-    if (activeStream && video) {
-      if (video.srcObject !== activeStream) {
-        video.srcObject = activeStream
-      }
-      video.play().catch(() => {})
-    } else if (!activeStream && typeof navigator !== 'undefined' && navigator.mediaDevices?.getUserMedia) {
+    if (!activeStream) {
       setCameraStarting(true)
       if (onRestartCamera) {
         onRestartCamera()
       }
-      navigator.mediaDevices
-        .getUserMedia({
-          video: { facingMode: 'user', width: { ideal: 720 }, height: { ideal: 720 } },
-          audio: false,
-        })
-        .then((s) => {
-          setLocalStream(s)
-          setCameraStarting(false)
-          if (modalVideoRef.current) {
-            modalVideoRef.current.srcObject = s
-            modalVideoRef.current.play().catch(() => {})
-          }
-        })
-        .catch((err) => {
-          setCameraStarting(false)
-          console.warn('Gagal membuka kamera internal modal:', err)
-        })
+      // Fallback hanya jika parent belum menyediakan stream setelah restart
+      if (typeof navigator !== 'undefined' && navigator.mediaDevices?.getUserMedia) {
+        navigator.mediaDevices
+          .getUserMedia({
+            video: { facingMode: 'user', width: { ideal: 720 }, height: { ideal: 720 } },
+            audio: false,
+          })
+          .then((s) => {
+            setLocalStream(s)
+            setCameraStarting(false)
+            if (video) {
+              video.srcObject = s
+              video.play().catch(() => {})
+            }
+          })
+          .catch((err) => {
+            setCameraStarting(false)
+            console.warn('Gagal membuka kamera internal modal:', err)
+          })
+      }
+      return undefined
     }
-    return undefined
+
+    setCameraStarting(false)
+    if (video) {
+      if (video.srcObject !== activeStream) {
+        video.srcObject = activeStream
+      }
+      video.play().catch(() => {})
+    }
   }, [terbuka, stream, localStream, onRestartCamera])
 
-  // Pasang stream begitu stream atau localStream diperbarui
+  // Pasang ulang stream ke video saat stream diperbarui (reactive)
   useEffect(() => {
     if (!terbuka) return
     const activeStream = stream || localStream
@@ -130,6 +138,7 @@ export function FaceEnrollmentModal({
         video.srcObject = activeStream
       }
       video.play().catch(() => {})
+      setCameraStarting(false)
     }
   }, [terbuka, stream, localStream])
 
@@ -316,7 +325,8 @@ export function FaceEnrollmentModal({
                   {(!stream && !localStream) && (
                     <div className="absolute inset-0 bg-slate-900/90 flex flex-col items-center justify-center text-white/70 gap-1.5 p-4 text-center z-10">
                       <Icon name={cameraStarting ? 'progress_activity' : 'videocam'} className={`text-[28px] ${cameraStarting ? 'animate-spin' : ''}`} />
-                      <span className="text-xs font-medium">{cameraStarting ? 'Membuka kamera...' : 'Menghubungkan kamera...'}</span>
+                      <span className="text-xs font-medium">{cameraStarting ? 'Menunggu kamera siap…' : 'Menghubungkan kamera…'}</span>
+                      <span className="text-[10px] text-white/50 mt-1">Izinkan akses kamera jika muncul perizinan.</span>
                     </div>
                   )}
 
