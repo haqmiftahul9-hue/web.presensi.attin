@@ -75,7 +75,7 @@ export function GlassTopBar({ staff }) {
           className="sp-press w-10 h-10 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 border border-white/15 relative transition-colors"
         >
           <Icon name="notifications" className="text-white text-[20px]" />
-          <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-emerald-400 ring-2 ring-[#1c2254]" />
+          <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-emerald-400 ring-2 ring-[#181d48]" />
         </button>
         <NavLink to="/mobile/profil" aria-label="Profil saya" className="sp-press w-10 h-10 rounded-full flex items-center justify-center">
           <StaffAvatar

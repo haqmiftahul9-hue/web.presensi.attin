@@ -230,7 +230,7 @@ function MobileSlipPage() {
           <button
             type="button"
             onClick={() => window.print()}
-            className="sp-btn flex-1 py-3 bg-primary-container text-on-primary font-label-md text-label-md flex items-center justify-center gap-2 active:scale-[0.99] transition-transform"
+            className="sp-btn flex-1 py-3 bg-[#323d8f] hover:bg-[#252e6d] text-white font-label-md text-label-md font-semibold rounded-xl flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-sm"
           >
             <Icon name="print" className="text-[18px] shrink-0" />
             Cetak Slip
@@ -238,7 +238,7 @@ function MobileSlipPage() {
           <button
             type="button"
             onClick={() => navigate('/mobile/riwayat')}
-            className="sp-btn flex-1 py-3 bg-surface-container-low text-on-surface font-label-md text-label-md flex items-center justify-center gap-2 active:scale-[0.99] transition-transform"
+            className="sp-btn flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-label-md text-label-md font-semibold rounded-xl flex items-center justify-center gap-2 active:scale-[0.98] transition-all border border-slate-200/80"
           >
             <Icon name="calendar_month" className="text-[18px] shrink-0" />
             Riwayat

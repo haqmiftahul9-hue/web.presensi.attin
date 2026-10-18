@@ -566,7 +566,7 @@ function MobilePresensiPage() {
                 ring="ring-[3px] ring-white/20"
               />
               <span
-                className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full ring-[3px] ring-[#1c2254] ${
+                className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full ring-[3px] ring-[#181d48] ${
                   state.currentUser?.status === 'Aktif' ? 'bg-emerald-400' : 'bg-outline'
                 }`}
                 title={state.currentUser?.status === 'Aktif' ? 'Online' : 'Offline'}
@@ -853,7 +853,7 @@ function MobilePresensiPage() {
                 belumMasuk
                   ? 'bg-gradient-to-r from-[#20275e] to-[#323d8f] text-white'
                   : belumPulang
-                    ? 'bg-gradient-to-r from-[#1c2254] to-[#323d8f] text-white'
+                    ? 'bg-gradient-to-r from-[#181d48] to-[#323d8f] text-white'
                     : 'bg-emerald-700 text-white'
               }`}
             >

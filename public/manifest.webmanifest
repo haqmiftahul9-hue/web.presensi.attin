@@ -10,7 +10,7 @@
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui", "browser"],
   "orientation": "portrait-primary",
-  "theme_color": "#0B1F3D",
+  "theme_color": "#323d8f",
   "background_color": "#F7F9FC",
   "categories": ["business", "productivity", "education"],
   "icons": [

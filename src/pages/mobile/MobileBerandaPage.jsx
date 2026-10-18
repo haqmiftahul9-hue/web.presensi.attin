@@ -150,7 +150,7 @@ function MobileBerandaPage() {
                 ring="ring-[3px] ring-white/30"
               />
               <span
-                className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full ring-[3px] ring-[#1c2254] ${
+                className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full ring-[3px] ring-[#181d48] ${
                   online ? 'bg-emerald-400' : 'bg-slate-400'
                 }`}
                 title={online ? 'Online' : 'Offline'}

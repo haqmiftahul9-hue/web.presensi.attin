@@ -9,7 +9,7 @@ import { getEmployeeGreeting } from '../../data/sapaanPegawai.js'
 import { Spinner } from '../../components/mobile/Feedback.jsx'
 
 const FIELD =
-  'sp-field px-3 py-2.5 bg-surface-container-low border border-outline-variant/50 text-body-md text-body-md text-on-surface outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20'
+  'sp-field px-3.5 py-2.5 bg-white border border-slate-200/80 rounded-xl text-body-md text-slate-900 outline-none focus:border-[#323d8f] focus:ring-2 focus:ring-[#323d8f]/20 transition-all'
 const LABEL = 'font-label-sm text-label-sm text-on-surface-variant mb-2 block'
 
 /**
@@ -107,7 +107,7 @@ export function FormEditProfil({ staff, unit, onSimpan, onBatal }) {
           <div className="flex flex-col items-center gap-2">
             <label
               htmlFor="profil-foto"
-              className="sp-press sp-btn px-4 py-2.5 bg-secondary text-secondary-foreground font-label-md text-label-md flex items-center gap-1.5"
+              className="sp-press sp-btn px-4 py-2.5 bg-[#323d8f] hover:bg-[#252e6d] text-white rounded-xl shadow-xs font-label-md text-label-md flex items-center gap-1.5 active:scale-[0.98] transition-all cursor-pointer"
             >
               <Icon name="photo_camera" className="text-[18px] shrink-0" />
               {foto ? 'Ganti foto' : 'Unggah foto'}
@@ -197,14 +197,14 @@ export function FormEditProfil({ staff, unit, onSimpan, onBatal }) {
           <button
             type="button"
             onClick={onBatal}
-            className="sp-btn flex-1 py-3 bg-surface-container text-on-surface font-label-md text-label-md active:scale-[0.99] transition-transform"
+            className="sp-btn flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-label-md text-label-md font-semibold rounded-xl border border-slate-200/80 active:scale-[0.98] transition-all"
           >
             Batal
           </button>
           <button
             type="submit"
             disabled={sibuk}
-            className="sp-btn flex-1 py-3 bg-secondary text-secondary-foreground border-2 border-secondary-foreground font-label-md text-label-md flex items-center justify-center gap-2 active:scale-[0.99] transition-transform disabled:opacity-60"
+            className="sp-btn flex-1 py-3 bg-[#323d8f] hover:bg-[#252e6d] text-white font-label-md text-label-md font-semibold rounded-xl shadow-md flex items-center justify-center gap-2 active:scale-[0.98] transition-all disabled:opacity-60"
           >
             {sibuk ? <Spinner /> : <Icon name="save" className="text-[18px] shrink-0" />}
             {sibuk ? 'Menyimpan...' : 'Simpan'}

@@ -128,7 +128,7 @@ function MobileKartuIdPage() {
             aksi={<span className="font-mono font-label-sm text-label-sm text-on-surface-variant shrink-0">CR80 85.6 × 53.98 mm</span>}
           />
 
-          <div className="w-full aspect-[85.6/53.98] rounded-xl overflow-hidden shadow-[0_14px_30px_-16px_rgba(11,31,61,0.5)] ring-1 ring-outline-variant/30">
+          <div className="w-full aspect-[85.6/53.98] rounded-xl overflow-hidden shadow-[0_14px_30px_-16px_rgba(50,61,143,0.45)] ring-1 ring-outline-variant/30">
             <EmployeeIdCardPrint row={baris} settings={settings} units={state.units} />
           </div>
 

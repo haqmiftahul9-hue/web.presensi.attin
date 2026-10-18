@@ -1,9 +1,9 @@
 import Icon from '../Icon.jsx'
 const STATUS_STYLE = {
-  menunggu: { icon: 'radio_button_unchecked', badge: 'bg-surface-container text-on-surface-variant', label: 'Menunggu' },
-  berjalan: { icon: 'progress_activity', badge: 'bg-secondary-container/15 text-secondary', label: 'Memeriksa' },
-  berhasil: { icon: 'check_circle', badge: 'bg-emerald-50 text-emerald-700', label: 'Lolos' },
-  gagal: { icon: 'cancel', badge: 'bg-error-container text-on-error-container', label: 'Gagal' },
+  menunggu: { icon: 'radio_button_unchecked', badge: 'bg-slate-100 text-slate-500 border border-slate-200/60', label: 'Menunggu' },
+  berjalan: { icon: 'progress_activity', badge: 'bg-[#323d8f]/10 text-[#323d8f] border border-[#323d8f]/20', label: 'Memeriksa' },
+  berhasil: { icon: 'check_circle', badge: 'bg-emerald-50 text-emerald-700 border border-emerald-200/60', label: 'Lolos' },
+  gagal: { icon: 'cancel', badge: 'bg-rose-50 text-rose-700 border border-rose-200/60', label: 'Gagal' },
 }
 
 /**

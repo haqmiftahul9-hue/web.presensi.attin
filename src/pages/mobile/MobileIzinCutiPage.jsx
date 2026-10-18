@@ -16,7 +16,7 @@ import { SectionTitle } from '../../components/mobile/AppShell.jsx'
 import { EmptyState, ErrorState, LoadingState, Spinner } from '../../components/mobile/Feedback.jsx'
 
 const FIELD =
-  'sp-field px-3 py-3 bg-surface-container-low border border-outline-variant/50 text-body-md text-body-md text-on-surface outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20'
+  'sp-field px-3.5 py-3 bg-slate-50 border border-slate-200/80 rounded-xl text-body-md text-slate-900 outline-none focus:border-[#323d8f] focus:ring-2 focus:ring-[#323d8f]/20 transition-all'
 const LABEL = 'font-label-sm text-label-sm text-on-surface-variant mb-2 block'
 
 /** Grouping pilihan jenis: Cuti dulu, lalu Izin. */
@@ -86,10 +86,10 @@ export function FormPengajuan({
                       type="button"
                       onClick={() => onUbahJenis(item)}
                       aria-pressed={aktif}
-                      className={`px-3.5 py-2.5 rounded-xl border text-left transition-colors ${
+                      className={`px-3.5 py-2.5 rounded-xl border text-left transition-all active:scale-[0.98] ${
                         aktif
-                          ? 'border-secondary bg-secondary-container text-on-secondary-container'
-                          : 'border-outline-variant bg-surface-container-low text-on-surface-variant'
+                          ? 'border-[#323d8f] bg-[#323d8f]/10 text-[#323d8f] font-semibold shadow-xs'
+                          : 'border-slate-200/80 bg-slate-50 text-slate-700 hover:bg-slate-100'
                       }`}
                     >
                       <span className="flex items-center gap-1.5 font-label-md text-label-md">
@@ -182,7 +182,7 @@ export function FormPengajuan({
       <button
         type="submit"
         disabled={mengirim}
-        className="sp-btn w-full py-3.5 bg-primary text-on-primary border-2 border-outline font-headline-sm text-headline-sm flex items-center justify-center gap-2 shadow-md active:scale-[0.99] transition-transform disabled:opacity-60"
+        className="sp-btn w-full py-3.5 bg-[#323d8f] hover:bg-[#252e6d] text-white font-headline-sm text-headline-sm flex items-center justify-center gap-2 rounded-xl shadow-md active:scale-[0.98] transition-all disabled:opacity-60"
       >
         {mengirim && <Spinner />}
         {mengirim ? 'Mengirim...' : 'Kirim Pengajuan'}
@@ -358,7 +358,7 @@ function MobileIzinCutiPage() {
               setPesan('')
               setGalat('')
             }}
-            className="sp-btn w-full min-h-[60px] py-4 bg-gradient-to-r from-[#1c2254] via-[#20275e] to-[#323d8f] text-white border-[3px] border-[#323d8f]/40 shadow-lg shadow-blue-950/20 font-headline-sm text-headline-sm flex items-center justify-center gap-2.5 active:scale-[0.98] transition-all hover:brightness-105"
+            className="sp-btn w-full min-h-[60px] py-4 bg-gradient-to-r from-[#181d48] via-[#252e6d] to-[#323d8f] text-white border-[3px] border-[#323d8f]/40 shadow-lg shadow-blue-950/20 font-headline-sm text-headline-sm flex items-center justify-center gap-2.5 active:scale-[0.98] transition-all hover:brightness-105"
           >
             <Icon name="add" className="text-[26px] shrink-0 text-white" />
             <span className="text-white font-semibold tracking-wide">Buat Pengajuan</span>

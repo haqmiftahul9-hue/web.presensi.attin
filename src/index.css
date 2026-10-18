@@ -774,9 +774,10 @@ main > :last-child {
    ========================================================================== */
 
 :root {
-  --sp-navy: #1c2254;
+  --sp-navy: #181d48;
   --sp-navy-2: #323d8f;
-  --sp-navy-3: #13173d;
+  --sp-navy-3: #252e6d;
+  --sp-navy-light: #4352b8;
   --sp-accent: #323d8f;
   --sp-ink: #0f172a;
   --sp-muted: #64748b;
@@ -785,12 +786,7 @@ main > :last-child {
 
 /* --- 1. SHELL APLIKASI --------------------------------------------------- */
 
-/* Latar modul: navy pekat di atas, bergradasi ke abu soft di bawah. Bukan
- * putih polos, dan tidak ada elemen dekoratif yang berada di area teks.
- *
- * `display: flex; flex-direction: column` + `flex: 1` membuatnya mengisi
- * tinggi device frame, lalu meneruskan tinggi itu ke `.sp-mobile-column`
- * di dalamnya. */
+/* Latar modul: navy superadmin pekat di atas, bergradasi ke abu soft di bawah. */
 .sp-app-bg {
   position: relative;
   display: flex;
@@ -800,9 +796,9 @@ main > :last-child {
   width: 100%;
   overflow: hidden;
   background:
-    radial-gradient(520px 320px at 8% 4%, rgba(50, 61, 143, 0.32) 0%, transparent 68%),
-    radial-gradient(460px 300px at 96% 22%, rgba(67, 82, 184, 0.22) 0%, transparent 70%),
-    linear-gradient(180deg, var(--sp-navy) 0%, var(--sp-navy-2) 210px, #f8fafc 520px, #f1f5f9 100%);
+    radial-gradient(560px 340px at 10% 4%, rgba(50, 61, 143, 0.40) 0%, transparent 70%),
+    radial-gradient(480px 320px at 94% 20%, rgba(67, 82, 184, 0.28) 0%, transparent 72%),
+    linear-gradient(180deg, #181d48 0%, #323d8f 210px, #f8fafc 520px, #f1f5f9 100%);
   background-repeat: no-repeat;
   background-attachment: scroll;
 }
@@ -835,7 +831,7 @@ main > :last-child {
   height: 220px;
   top: 150px;
   left: -110px;
-  background: radial-gradient(circle, rgba(50, 61, 143, 0.25) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(50, 61, 143, 0.28) 0%, transparent 70%);
 }
 
 /* Pola titik tipis untuk membedakan hero dari kartu biasa tanpa menambah
@@ -852,10 +848,10 @@ main > :last-child {
 
 /* --- 2. TOP BAR KACA (logo, notifikasi, profil) -------------------------- */
 .sp-glass-bar {
-  background: rgba(28, 34, 84, 0.88);
-  backdrop-filter: blur(12px) saturate(140%);
-  -webkit-backdrop-filter: blur(12px) saturate(140%);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(30, 37, 94, 0.88);
+  backdrop-filter: blur(14px) saturate(150%);
+  -webkit-backdrop-filter: blur(14px) saturate(150%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
   transform: translateZ(0);
   -webkit-transform: translateZ(0);
 }
@@ -865,7 +861,7 @@ main > :last-child {
   position: relative;
   overflow: hidden;
   isolation: isolate;
-  background: linear-gradient(150deg, #181e4b 0%, var(--sp-navy-2) 55%, #3f4dae 100%);
+  background: linear-gradient(145deg, #181d48 0%, #323d8f 52%, #4352b8 100%);
 }
 
 /* Kartu yang "melayang" menutupi batas hero: efek favorit aplikasi mobile. */
@@ -890,9 +886,9 @@ main > :last-child {
   box-sizing: border-box;
   border-radius: 24px;
   color: #ffffff;
-  background: linear-gradient(135deg, #181d45 0%, #323d8f 52%, #4252bd 100%);
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  box-shadow: 0 20px 42px -16px rgba(50, 61, 143, 0.65), inset 0 1px 1px 0 rgba(255, 255, 255, 0.28);
+  background: linear-gradient(135deg, #1e255e 0%, #323d8f 50%, #4352b8 100%);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 20px 42px -16px rgba(50, 61, 143, 0.65), inset 0 1px 1px 0 rgba(255, 255, 255, 0.32);
   padding: clamp(16px, 4.5vw, 20px);
 }
 
@@ -922,13 +918,18 @@ main > :last-child {
   border-radius: 20px;
   background: #ffffff;
   border: 1px solid var(--sp-line);
-  box-shadow: 0 4px 16px -6px rgba(50, 61, 143, 0.08), 0 1px 2px 0 rgba(0, 0, 0, 0.03);
-  transition: transform 0.12s ease-out, box-shadow 0.12s ease-out;
+  box-shadow: 0 4px 18px -6px rgba(50, 61, 143, 0.08), 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+  transition: transform 0.14s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.14s ease-out, border-color 0.14s ease-out;
+}
+
+.sp-shortcut:hover {
+  border-color: rgba(50, 61, 143, 0.25);
+  box-shadow: 0 8px 24px -6px rgba(50, 61, 143, 0.14);
 }
 
 .sp-shortcut:active {
   transform: scale(0.96);
-  box-shadow: 0 2px 8px -4px rgba(50, 61, 143, 0.12);
+  box-shadow: 0 2px 8px -4px rgba(50, 61, 143, 0.15);
 }
 
 .sp-shortcut-icon {

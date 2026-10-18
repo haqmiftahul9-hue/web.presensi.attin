@@ -73,7 +73,7 @@ function GeofenceCard({ geofence, namaTitik, koordinatTeks }) {
           <circle cx="50" cy="50" r="4" fill={warna} />
           <circle cx="50" cy="50" r="8" fill={warna} fillOpacity="0.18" className={aktif ? 'animate-pulse' : ''} />
           {/* Titik perangkat pengguna. */}
-          <circle cx={50 + dx} cy={50 + dy} r="5" fill="#ffffff" stroke="#0b1f3d" strokeWidth="2.5" />
+          <circle cx={50 + dx} cy={50 + dy} r="5" fill="#ffffff" stroke="#323d8f" strokeWidth="2.5" />
         </svg>
 
         <div className="flex flex-col gap-1.5 min-w-0 flex-1">
