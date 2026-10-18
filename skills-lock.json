@@ -31,6 +31,12 @@
       "skillPath": "skills/output-skill/SKILL.md",
       "computedHash": "524f7c7950c3fde726101613f630140411c7d080e63be718687f4b38f919be81"
     },
+    "gluestack-ui-v5": {
+      "source": "gluestack/agent-skills",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/gluestack-ui-v5/SKILL.md",
+      "computedHash": "b19717e992153a421da7423f0609a39c4864f947c7f50fca67cf5e5b7d4878e4"
+    },
     "gpt-taste": {
       "source": "Leonxlnx/taste-skill",
       "sourceType": "github",
