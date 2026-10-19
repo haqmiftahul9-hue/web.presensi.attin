@@ -116,9 +116,14 @@ export function ringkasPerubahanProfil(perubahan) {
 export function validasiProfil(isian = {}) {
   const galat = {}
 
-  const nama = String(isian.nama ?? '').trim()
-  if (!nama) galat.nama = 'Nama lengkap wajib diisi.'
-  else if (nama.length > 120) galat.nama = 'Nama maksimal 120 karakter.'
+  const nama = String(isian.name ?? isian.nama ?? '').trim()
+  if (!nama) {
+    galat.name = 'Nama lengkap wajib diisi.'
+    galat.nama = 'Nama lengkap wajib diisi.'
+  } else if (nama.length > 120) {
+    galat.name = 'Nama maksimal 120 karakter.'
+    galat.nama = 'Nama maksimal 120 karakter.'
+  }
 
   const kontak = String(isian.kontak ?? '').trim()
   if (kontak && !/^[0-9+\-\s()]{6,20}$/.test(kontak)) {

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import Icon from '../../components/Icon.jsx'
 import { useNavigate } from 'react-router-dom'
 import {
@@ -12,6 +12,8 @@ import StaffAvatar from '../../components/mobile/StaffAvatar.jsx'
 import { FormEditProfil } from '../../components/mobile/FormEditProfil.jsx'
 import { ErrorState, LoadingState } from '../../components/mobile/Feedback.jsx'
 import { getRegisteredFaceData } from '../../services/faceRecognitionService.js'
+import { bacaFoto, MAKS_FOTO_BYTES } from '../../data/profilGuru.js'
+import { uploadStaffPhoto, deleteStaffPhoto } from '../../services/photoStorageService.js'
 
 /** Baris informasi label:nilai.
  *
@@ -111,6 +113,8 @@ function MobileProfilPage() {
   const [bukaEdit, setBukaEdit] = useState(false)
   const [pesan, setPesan] = useState('')
   const [konfirmasiKeluar, setKonfirmasiKeluar] = useState(false)
+  const [uploadingFoto, setUploadingFoto] = useState(false)
+  const fileInputRef = useRef(null)
   const registeredFace = staff ? getRegisteredFaceData(staff) : null
 
   if (!state) {
@@ -136,6 +140,51 @@ function MobileProfilPage() {
 
   const rules = presensi.rules
   const kelompok = statusKepegawaianGroup(staff.statusPegawai)
+
+  async function handleQuickPhotoUpload(e) {
+    const berkas = e.target.files?.[0]
+    if (!berkas) return
+    if (berkas.size > MAKS_FOTO_BYTES) {
+      setPesan(`Ukuran foto maksimal ${Math.round(MAKS_FOTO_BYTES / (1024 * 1024))} MB.`)
+      return
+    }
+    setUploadingFoto(true)
+    setPesan('Mengunggah foto profil ke Supabase...')
+    try {
+      const dataUrl = await bacaFoto(berkas)
+      const fotoUrl = await uploadStaffPhoto(staff, dataUrl)
+      dispatch({
+        type: 'UPDATE_STAFF_PROFILE',
+        payload: { foto: fotoUrl || dataUrl },
+      })
+      setPesan('Foto profil berhasil diperbarui dan tersimpan di Supabase.')
+    } catch (err) {
+      setPesan(err?.message || 'Gagal mengunggah foto profil.')
+    } finally {
+      setUploadingFoto(false)
+      if (e.target) e.target.value = ''
+    }
+  }
+
+  async function handleQuickPhotoDelete() {
+    if (!window.confirm('Apakah Anda yakin ingin menghapus foto profil ini?')) return
+    setUploadingFoto(true)
+    setPesan('Menghapus foto profil...')
+    try {
+      if (staff.foto) {
+        await deleteStaffPhoto(staff, staff.foto)
+      }
+      dispatch({
+        type: 'UPDATE_STAFF_PROFILE',
+        payload: { foto: '' },
+      })
+      setPesan('Foto profil berhasil dihapus.')
+    } catch (err) {
+      setPesan(err?.message || 'Gagal menghapus foto profil.')
+    } finally {
+      setUploadingFoto(false)
+    }
+  }
 
   function keluar() {
     performLogout(dispatch)
@@ -178,7 +227,7 @@ function MobileProfilPage() {
 
         {/* KARTU IDENTITAS UTAMA PEGAWAI (Shadcn Card) */}
         <section className="sp-card p-5 flex flex-col items-center gap-4 text-center sp-rise">
-          <div className="relative">
+          <div className="relative group">
             <StaffAvatar
               staff={staff}
               size="w-20 h-20"
@@ -187,11 +236,21 @@ function MobileProfilPage() {
               className="shadow-md"
             />
             <span
-              className={`absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full ring-2 ring-white ${
+              className={`absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full ring-2 ring-white z-10 ${
                 staff.status === 'Aktif' ? 'bg-emerald-500' : 'bg-slate-400'
               }`}
               title={staff.status}
             />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploadingFoto}
+              aria-label="Ubah foto profil"
+              title="Ubah foto profil"
+              className="absolute -top-1 -right-1 w-7 h-7 rounded-full bg-[#323d8f] hover:bg-[#252e6d] text-white flex items-center justify-center shadow-md border-2 border-white active:scale-90 transition-all z-20 cursor-pointer"
+            >
+              <Icon name={uploadingFoto ? 'hourglass_top' : 'photo_camera'} className={`text-[14px] ${uploadingFoto ? 'animate-spin' : ''}`} />
+            </button>
           </div>
 
           <div className="flex flex-col items-center min-w-0 max-w-full">
@@ -202,6 +261,37 @@ function MobileProfilPage() {
               <Icon name="domain" className="text-[14px] text-slate-400 shrink-0" />
               <span className="truncate">{staff.role} • {unit?.nama || '-'}</span>
             </span>
+          </div>
+
+          {/* Tombol Aksi Foto Profil Mobile */}
+          <div className="flex items-center justify-center gap-2 pt-0.5">
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploadingFoto}
+              className="px-3 py-1.5 rounded-xl bg-[#323d8f] hover:bg-[#252e6d] text-white font-label-md text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-all active:scale-[0.98] cursor-pointer"
+            >
+              <Icon name={uploadingFoto ? 'hourglass_top' : 'photo_camera'} className={`text-[15px] ${uploadingFoto ? 'animate-spin' : ''}`} />
+              <span>{uploadingFoto ? 'Menyimpan...' : (staff.foto ? 'Ganti Foto' : 'Tambah Foto')}</span>
+            </button>
+            {Boolean(staff.foto) && (
+              <button
+                type="button"
+                onClick={handleQuickPhotoDelete}
+                disabled={uploadingFoto}
+                className="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200/80 font-label-md text-xs font-semibold flex items-center gap-1.5 transition-all active:scale-[0.98] cursor-pointer"
+              >
+                <Icon name="delete" className="text-[15px]" />
+                <span>Hapus Foto</span>
+              </button>
+            )}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={handleQuickPhotoUpload}
+              className="sr-only"
+            />
           </div>
 
           {/* Symmetrical 2x2 Bento Badges Grid */}

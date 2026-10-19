@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import Icon from '../Icon.jsx'
 import {
   loadFaceApiModels,
+  isFaceApiLoaded,
   detectSingleFaceAndDescriptor,
   captureVideoFrame,
   saveRegisteredFaceData,
@@ -14,6 +15,7 @@ import {
  */
 export function FaceEnrollmentModal({
   terbuka,
+  isModelLoaded = false,
   onTutup,
   staff,
   videoRef,
@@ -25,9 +27,9 @@ export function FaceEnrollmentModal({
   const modalVideoRef = useRef(null)
   const [localStream, setLocalStream] = useState(null)
   const [cameraStarting, setCameraStarting] = useState(false)
-  const [modelLoading, setModelLoading] = useState(true)
+  const [modelLoading, setModelLoading] = useState(() => !isFaceApiLoaded() && !isModelLoaded)
   const [modelError, setModelError] = useState(null)
-  const [loadingText, setLoadingText] = useState('Memuat model AI Face Recognition...')
+  const [loadingText, setLoadingText] = useState('')
   const [faceDetected, setFaceDetected] = useState(false)
   const [faceScore, setFaceScore] = useState(0)
   const [processing, setProcessing] = useState(false)
@@ -41,27 +43,33 @@ export function FaceEnrollmentModal({
     if (!terbuka) return undefined
 
     let isMounted = true
-    setModelLoading(true)
-    setModelError(null)
     setSuccessData(null)
     setStatusMessage('')
     setFaceDetected(false)
 
-    loadFaceApiModels((msg) => {
-      if (isMounted) setLoadingText(msg)
-    })
-      .then(() => {
-        if (isMounted) {
-          setModelLoading(false)
-          setLoadingText('')
-        }
+    if (isFaceApiLoaded() || isModelLoaded) {
+      setModelLoading(false)
+      setModelError(null)
+      setLoadingText('')
+    } else {
+      setModelLoading(true)
+      setModelError(null)
+      loadFaceApiModels((msg) => {
+        if (isMounted) setLoadingText(msg)
       })
-      .catch((err) => {
-        if (isMounted) {
-          setModelLoading(false)
-          setModelError(err?.message || 'Gagal memuat model deteksi wajah')
-        }
-      })
+        .then(() => {
+          if (isMounted) {
+            setModelLoading(false)
+            setLoadingText('')
+          }
+        })
+        .catch((err) => {
+          if (isMounted) {
+            setModelLoading(false)
+            setModelError(err?.message || 'Gagal memuat model deteksi wajah')
+          }
+        })
+    }
 
     return () => {
       isMounted = false

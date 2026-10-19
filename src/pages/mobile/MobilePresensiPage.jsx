@@ -23,6 +23,8 @@ import {
   getRegisteredFaceData,
   detectSingleFaceAndDescriptor,
   compareFaceDescriptors,
+  loadFaceApiModels,
+  isFaceApiLoaded,
 } from '../../services/faceRecognitionService.js'
 
 const TABS = [
@@ -166,6 +168,7 @@ function MobilePresensiPage() {
 
   // State Face Recognition
   const [modalDaftarWajah, setModalDaftarWajah] = useState(false)
+  const [isModelLoaded, setIsModelLoaded] = useState(() => isFaceApiLoaded())
   const [registeredFace, setRegisteredFace] = useState(() => (staff ? getRegisteredFaceData(staff) : null))
   const [faceDetectedLive, setFaceDetectedLive] = useState(false)
   const [faceStatus, setFaceStatus] = useState('idle')
@@ -175,6 +178,21 @@ function MobilePresensiPage() {
   // Kamera hanya hidup selama halaman ini dipakai; berpindah tab mematikan
   // stream supaya kamera perangkat tidak menyala di latar belakang.
   const kamera = useDeviceCamera({ facingMode: facing, aktif: true, onQrValue: setQrTerbaca })
+
+  // Preload model Face-api di latar belakang sejak halaman pertama kali dibuka
+  useEffect(() => {
+    let isMounted = true
+    loadFaceApiModels()
+      .then(() => {
+        if (isMounted) setIsModelLoaded(true)
+      })
+      .catch((err) => {
+        console.warn('Background face-api model preload failed:', err)
+      })
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 1000)
@@ -784,10 +802,18 @@ function MobilePresensiPage() {
             <button
               type="button"
               onClick={() => setModalDaftarWajah(true)}
-              className="sp-btn w-full py-2.5 px-4 bg-[#323d8f] hover:bg-[#252e6d] text-white font-label-md text-xs rounded-xl flex items-center justify-center gap-2 shadow-sm transition-all active:scale-[0.98]"
+              disabled={!isModelLoaded}
+              className={`sp-btn w-full py-2.5 px-4 font-label-md text-xs rounded-xl flex items-center justify-center gap-2 shadow-sm transition-all active:scale-[0.98] ${
+                isModelLoaded
+                  ? 'bg-[#323d8f] hover:bg-[#252e6d] text-white cursor-pointer'
+                  : 'bg-slate-200 text-slate-500 cursor-not-allowed opacity-80'
+              }`}
             >
-              <Icon name="add_a_photo" className="text-[16px]" />
-              <span>Daftarkan Wajah Sekarang</span>
+              <Icon
+                name={isModelLoaded ? 'add_a_photo' : 'hourglass_top'}
+                className={`text-[16px] ${!isModelLoaded ? 'animate-spin' : ''}`}
+              />
+              <span>{isModelLoaded ? 'Daftarkan Wajah Sekarang' : 'Memuat Model AI Wajah...'}</span>
             </button>
           </div>
         )}
@@ -816,9 +842,14 @@ function MobilePresensiPage() {
               <button
                 type="button"
                 onClick={() => setModalDaftarWajah(true)}
-                className="px-2.5 py-1 rounded-lg text-[11px] font-semibold text-emerald-900 bg-white/80 border border-emerald-300 hover:bg-emerald-100 shrink-0"
+                disabled={!isModelLoaded}
+                className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold shrink-0 transition-all ${
+                  isModelLoaded
+                    ? 'text-emerald-900 bg-white/80 border border-emerald-300 hover:bg-emerald-100 cursor-pointer'
+                    : 'text-slate-400 bg-slate-100 border border-slate-200 cursor-not-allowed opacity-75'
+                }`}
               >
-                Perbarui
+                {isModelLoaded ? 'Perbarui' : 'Memuat AI...'}
               </button>
             </div>
 
@@ -926,6 +957,7 @@ function MobilePresensiPage() {
 
       <FaceEnrollmentModal
         terbuka={modalDaftarWajah}
+        isModelLoaded={isModelLoaded}
         onTutup={() => setModalDaftarWajah(false)}
         staff={staff}
         videoRef={kamera.videoRef}

@@ -645,6 +645,9 @@ ON CONFLICT (id) DO UPDATE SET public = EXCLUDED.public;
 
 -- Bersihkan policy storage lama bila ada agar tidak terjadi error duplicate
 DROP POLICY IF EXISTS "Public Read Avatars" ON storage.objects;
+DROP POLICY IF EXISTS "Public Insert Avatars" ON storage.objects;
+DROP POLICY IF EXISTS "Public Update Avatars" ON storage.objects;
+DROP POLICY IF EXISTS "Public Delete Avatars" ON storage.objects;
 DROP POLICY IF EXISTS "Public Read Logos" ON storage.objects;
 DROP POLICY IF EXISTS "Auth Upload Face Snapshots" ON storage.objects;
 DROP POLICY IF EXISTS "Auth Read Face Snapshots" ON storage.objects;
@@ -654,6 +657,15 @@ DROP POLICY IF EXISTS "Auth Read Leave Attachments" ON storage.objects;
 -- Buat ulang policy storage
 CREATE POLICY "Public Read Avatars" ON storage.objects
 FOR SELECT USING (bucket_id = 'avatars');
+
+CREATE POLICY "Public Insert Avatars" ON storage.objects
+FOR INSERT WITH CHECK (bucket_id = 'avatars');
+
+CREATE POLICY "Public Update Avatars" ON storage.objects
+FOR UPDATE USING (bucket_id = 'avatars');
+
+CREATE POLICY "Public Delete Avatars" ON storage.objects
+FOR DELETE USING (bucket_id = 'avatars');
 
 CREATE POLICY "Public Read Logos" ON storage.objects
 FOR SELECT USING (bucket_id = 'unit-logos');

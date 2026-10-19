@@ -7,6 +7,7 @@ import {
 } from '../../data/profilGuru.js'
 import { getEmployeeGreeting } from '../../data/sapaanPegawai.js'
 import { Spinner } from '../../components/mobile/Feedback.jsx'
+import { uploadStaffPhoto, deleteStaffPhoto } from '../../services/photoStorageService.js'
 
 const FIELD =
   'sp-field px-3.5 py-2.5 bg-white border border-slate-200/80 rounded-xl text-body-md text-slate-900 outline-none focus:border-[#323d8f] focus:ring-2 focus:ring-[#323d8f]/20 transition-all'
@@ -57,6 +58,8 @@ export function FormEditProfil({ staff, unit, onSimpan, onBatal }) {
       setGalat((g) => ({ ...g, foto: '' }))
     } catch (error) {
       setGalat((g) => ({ ...g, foto: error?.message || 'Foto gagal dimuat.' }))
+    } finally {
+      if (event.target) event.target.value = ''
     }
   }
 
@@ -80,11 +83,17 @@ export function FormEditProfil({ staff, unit, onSimpan, onBatal }) {
     setSibuk(true)
     setPesan('')
     try {
-      // Foto disimpan terpisah karena isinya berupa data URL, bukan teks.
-      // fotoDiubah melacak apakah pengguna sengaja mengganti atau menghapus foto,
-      // termasuk ketika foto dikosongkan (string kosong) agar foto bisa dihapus.
+      // Foto diunggah ke Supabase Storage (bucket avatars) jika ada perubahan foto
       if (fotoDiubah) {
-        await onSimpan({ ...isian, foto }, { foto })
+        let finalFoto = foto
+        if (foto) {
+          setPesan('Menyimpan foto ke Supabase Storage...')
+          finalFoto = await uploadStaffPhoto(staff, foto)
+        } else if (staff?.foto) {
+          await deleteStaffPhoto(staff, staff.foto)
+          finalFoto = ''
+        }
+        await onSimpan({ ...isian, foto: finalFoto }, { foto: finalFoto })
       } else {
         await onSimpan(isian, {})
       }
