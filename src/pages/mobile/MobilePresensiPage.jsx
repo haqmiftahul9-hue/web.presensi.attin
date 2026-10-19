@@ -542,7 +542,7 @@ function MobilePresensiPage() {
   // presensi masuk tercatat. Hari lain baru terbuka 1 jam sebelum jam pulang.
   const jendelaPulangTerbuka = rules.pulangBebas
     || jamMenitDariDate(now) >= (rules.jamPulangMenit ?? 15 * 60) - 60
-  const geofenceOk = rules.lokasiAktif && geofence.dalamRadius
+  const geofenceOk = !rules.lokasiAktif || unit?.geofenceActive === false || geofence.dalamRadius
 
   // Tombol presensi utama hanya muncul saat wajah sudah terdaftar. Kalau belum
   // terdaftar, tombol "Daftarkan Wajah Sekarang" di banner (baris di atas) sudah

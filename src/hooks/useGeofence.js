@@ -3,83 +3,170 @@ import { jarakKeUnit, formatMeter } from '../data/presensiMobile.js'
 
 const SUPPORTS_GPS = typeof navigator !== 'undefined' && 'geolocation' in navigator
 
+// Cache GPS tingkat modul agar navigasi antar halaman / tab di mobile instan tanpa jeda
+let cachedGpsFix = null
+
+function getSavedFix() {
+  if (cachedGpsFix && Date.now() - cachedGpsFix.timestamp < 10 * 60 * 1000) {
+    return cachedGpsFix
+  }
+  try {
+    if (typeof window !== 'undefined' && window.sessionStorage) {
+      const raw = window.sessionStorage.getItem('simpres_last_gps_fix')
+      if (raw) {
+        const parsed = JSON.parse(raw)
+        if (Date.now() - parsed.timestamp < 10 * 60 * 1000) {
+          cachedGpsFix = parsed
+          return parsed
+        }
+      }
+    }
+  } catch {
+    // Abaikan kesalahan storage
+  }
+  return null
+}
+
+function saveFix(coords, accuracy) {
+  const item = {
+    latitude: coords.latitude,
+    longitude: coords.longitude,
+    accuracy: Number.isFinite(accuracy) ? Math.round(accuracy) : null,
+    timestamp: Date.now(),
+  }
+  cachedGpsFix = item
+  try {
+    if (typeof window !== 'undefined' && window.sessionStorage) {
+      window.sessionStorage.setItem('simpres_last_gps_fix', JSON.stringify(item))
+    }
+  } catch {
+    // Abaikan kesalahan storage
+  }
+}
+
 /**
- * Pembacaan geolokasi untuk halaman presensi mobile.
+ * Pembacaan geolokasi super cepat dan presisi untuk halaman presensi mobile.
  *
- * Sumber jarak, berurutan dari yang paling akurat:
- *  1. GPS perangkat (watchPosition) dihitung terhadap koordinat unit sekolah.
- *  2. Simulasi stabil dari id pegawai, dipakai hanya ketika GPS tidak
- *     menghasilkan koordinat (desktop, izin ditolak, perangkat tanpa GPS)
- *     supaya halaman tetap bisa dicoba. Sumbernya selalu terlihat di status.
+ * Menggunakan pendekatan Two-Tier + Cache:
+ *  1. Inisialisasi instan dari memori / sessionStorage (< 10ms) sehingga perhitungan
+ *     jarak langsung tersedia saat halaman pertama kali dibuka.
+ *  2. Fast-tier getCurrentPosition (network/cached fix) untuk respons sub-detik.
+ *  3. Refined-tier high accuracy GPS untuk presisi akurasi hingga meter.
+ *  4. watchPosition aktif dengan hysteresis threshold (>= 2.5m) agar selalu
+ *     akurat saat berjalan menuju gerbang tanpa kedipan render layar.
+ *  5. Fallback simulasi stabil jika perangkat tidak memiliki GPS atau izin ditolak.
  */
 export function useGeofence({ unit, radius, staffId, aktif = true, refreshMs = 5000 }) {
-  const [posisi, setPosisi] = useState(null)
-  const [akurasi, setAkurasi] = useState(null)
+  const initialFix = getSavedFix()
+  const [posisi, setPosisi] = useState(() => (initialFix ? { latitude: initialFix.latitude, longitude: initialFix.longitude } : null))
+  const [akurasi, setAkurasi] = useState(() => initialFix?.accuracy ?? null)
   const [errorGps, setErrorGps] = useState(null)
   const [membaca, setMembaca] = useState(false)
-  const watchRef = useRef(null)
+  const intervalRef = useRef(null)
+  const watchIdRef = useRef(null)
+  const lastPos = useRef(initialFix ? { latitude: initialFix.latitude, longitude: initialFix.longitude } : null)
+  const isMountedRef = useRef(true)
 
-  const berhenti = useCallback(() => {
-    if (watchRef.current != null && SUPPORTS_GPS) {
-      navigator.geolocation.clearWatch(watchRef.current)
-      watchRef.current = null
+  const handlePositionSuccess = useCallback((hasil) => {
+    if (!isMountedRef.current) return
+    const baru = { latitude: hasil.coords.latitude, longitude: hasil.coords.longitude }
+    const acc = Number.isFinite(hasil.coords.accuracy) ? Math.round(hasil.coords.accuracy) : null
+
+    // Simpan ke cache modul & session storage
+    saveFix(baru, acc)
+
+    // Hanya perbarui state jika bergerak cukup jauh (>= 2.5 meter) agar
+    // tidak re-render berlebihan dari noise GPS.
+    const lama = lastPos.current
+    const bergerak =
+      !lama ||
+      Math.abs(baru.latitude - lama.latitude) > 0.000025 ||
+      Math.abs(baru.longitude - lama.longitude) > 0.000025
+
+    if (bergerak) {
+      lastPos.current = baru
+      setPosisi(baru)
+    }
+    setAkurasi(acc)
+    setErrorGps(null)
+    setMembaca(false)
+  }, [])
+
+  const handlePositionError = useCallback((salah) => {
+    if (!isMountedRef.current) return
+    // Jika sudah ada koordinat yang tersimpan/terbaca sebelumnya, pertahankan posisinya
+    if (!lastPos.current) {
+      setErrorGps(salah?.message || 'GPS tidak dapat dibaca')
     }
     setMembaca(false)
   }, [])
 
-  const mulai = useCallback(() => {
+  const ambilPosisi = useCallback(() => {
     if (!aktif || !SUPPORTS_GPS) return
     setMembaca(true)
-    if (watchRef.current != null) {
-      navigator.geolocation.clearWatch(watchRef.current)
-      watchRef.current = null
-    }
-    // Ambil posisi segera sekali untuk hasil awal tanpa menunggu watchPosition
+
+    // 1. Jalur Cepat (Tier 1 - Instant/Cached Fix):
+    // Gunakan maximumAge hingga 60 detik agar mobile OS langsung mengembalikan
+    // koordinat terakhir (Wi-Fi / Cell tower / cached GPS) dalam 10-50 milidetik
     navigator.geolocation.getCurrentPosition(
       (hasil) => {
-        setPosisi((prev) => {
-          if (prev && prev.latitude === hasil.coords.latitude && prev.longitude === hasil.coords.longitude) {
-            return prev
-          }
-          return { latitude: hasil.coords.latitude, longitude: hasil.coords.longitude }
-        })
-        setAkurasi(Number.isFinite(hasil.coords.accuracy) ? Math.round(hasil.coords.accuracy) : null)
-        setErrorGps(null)
-        setMembaca(false)
+        handlePositionSuccess(hasil)
+        // 2. Jalur Akurasi Tinggi (Tier 2 - Refined High Accuracy):
+        // Setelah koordinat awal didapat secara instan, perbarui ke presisi tinggi satelit
+        navigator.geolocation.getCurrentPosition(
+          handlePositionSuccess,
+          () => {
+            if (isMountedRef.current) setMembaca(false)
+          },
+          { enableHighAccuracy: true, maximumAge: 5000, timeout: 6000 },
+        )
       },
-      (salah) => {
-        setMembaca(false)
+      () => {
+        // Jika jalur cepat tidak menghasilkan cache, langsung coba high accuracy
+        navigator.geolocation.getCurrentPosition(
+          handlePositionSuccess,
+          handlePositionError,
+          { enableHighAccuracy: true, maximumAge: 10000, timeout: 8000 },
+        )
       },
-      { enableHighAccuracy: true, maximumAge: 0, timeout: 6000 },
+      { enableHighAccuracy: false, maximumAge: 60000, timeout: 1500 },
     )
-    // watchPosition selaras terus-menerus untuk pembaruan posisi selama bergerak
-    watchRef.current = navigator.geolocation.watchPosition(
-      (hasil) => {
-        setPosisi((prev) => {
-          if (prev && prev.latitude === hasil.coords.latitude && prev.longitude === hasil.coords.longitude) {
-            return prev
-          }
-          return { latitude: hasil.coords.latitude, longitude: hasil.coords.longitude }
-        })
-        setAkurasi(Number.isFinite(hasil.coords.accuracy) ? Math.round(hasil.coords.accuracy) : null)
-        setErrorGps(null)
-        setMembaca(false)
-      },
-      (salah) => {
-        setErrorGps(salah?.message || 'GPS tidak dapat dibaca')
-        setMembaca(false)
-      },
-      { enableHighAccuracy: true, maximumAge: 1000, timeout: 8000 },
-    )
-  }, [aktif])
+  }, [aktif, handlePositionSuccess, handlePositionError])
 
   useEffect(() => {
+    isMountedRef.current = true
     if (!aktif || !SUPPORTS_GPS) return undefined
-    mulai()
-    return () => {
-      berhenti()
+
+    ambilPosisi()
+
+    // Gunakan watchPosition untuk mendeteksi pergerakan secara responsif
+    try {
+      if (navigator.geolocation.watchPosition) {
+        watchIdRef.current = navigator.geolocation.watchPosition(
+          handlePositionSuccess,
+          () => {}, // abaikan glitch sementara pada watchPosition
+          { enableHighAccuracy: true, maximumAge: 5000, timeout: 8000 },
+        )
+      }
+    } catch {
+      // Abaikan jika watchPosition tidak didukung
     }
-  }, [aktif, mulai, berhenti])
+
+    intervalRef.current = setInterval(ambilPosisi, refreshMs)
+
+    return () => {
+      isMountedRef.current = false
+      if (watchIdRef.current != null) {
+        navigator.geolocation.clearWatch(watchIdRef.current)
+        watchIdRef.current = null
+      }
+      if (intervalRef.current != null) {
+        clearInterval(intervalRef.current)
+        intervalRef.current = null
+      }
+      setMembaca(false)
+    }
+  }, [aktif, ambilPosisi, refreshMs, handlePositionSuccess])
 
   const latUnit = unit?.latitude != null ? Number(unit.latitude) : null
   const lngUnit = unit?.longitude != null ? Number(unit.longitude) : null
@@ -88,10 +175,6 @@ export function useGeofence({ unit, radius, staffId, aktif = true, refreshMs = 5
   const jarakGps = posisi && unitParsed?.latitude != null && unitParsed?.longitude != null ? jarakKeUnit(posisi, unitParsed) : null
   const memakaiGps = jarakGps !== null
 
-  // Simulasi hanya dipakai saat GPS tidak menghasilkan koordinat. Nilainya
-  // diturunkan dari id pegawai supaya stabil selama sesi (tidak melompat tiap
-  // render) dan selalu di dalam radius, sehingga alur presensi tetap bisa
-  // dicoba di perangkat tanpa GPS.
   const effectiveRadius = Number(radius || unit?.radius || 50)
   const jarakSimulasi = effectiveRadius ? 6 + ((Number(staffId) || 1) * 13) % Math.max(6, Math.floor(effectiveRadius * 0.6)) : null
   const jarak = memakaiGps ? jarakGps : effectiveRadius ? jarakSimulasi : null
@@ -104,8 +187,6 @@ export function useGeofence({ unit, radius, staffId, aktif = true, refreshMs = 5
     radius: effectiveRadius,
     dalamRadius,
     bebasRadius: !geofenceWajib,
-    // Geofence hanya berlaku kalau unit sekolahnya sudah punya koordinat;
-    // tanpa itu jarak tidak pernah bisa dibandingkan secara nyata.
     lokasiAktif: Boolean(latUnit) && Boolean(lngUnit),
     posisi,
     akurasi,
@@ -113,6 +194,6 @@ export function useGeofence({ unit, radius, staffId, aktif = true, refreshMs = 5
     membaca,
     sumber: memakaiGps ? 'gps' : 'simulasi',
     koordinatUnit: unitParsed ? { latitude: latUnit, longitude: lngUnit } : null,
-    refresh: mulai,
+    refresh: ambilPosisi,
   }
 }

@@ -76,11 +76,40 @@ export function FaceEnrollmentModal({
     }
   }, [terbuka])
 
+  // Hubungkan stream kamera
+  const attachStreamToVideo = useCallback((videoEl, streamToAttach) => {
+    if (!videoEl || !streamToAttach) return
+    try {
+      if (videoEl.srcObject !== streamToAttach) {
+        videoEl.srcObject = streamToAttach
+      }
+      const playPromise = videoEl.play()
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {})
+      }
+    } catch {
+      // Abaikan error assignment
+    }
+  }, [])
+
+  // Callback ref untuk memastikan begitu elemen video ada di DOM, stream langsung dipasang
+  const setVideoNode = useCallback(
+    (node) => {
+      modalVideoRef.current = node
+      if (node) {
+        const activeStream = stream || localStream
+        if (activeStream) {
+          attachStreamToVideo(node, activeStream)
+          setCameraStarting(false)
+        }
+      }
+    },
+    [stream, localStream, attachStreamToVideo],
+  )
+
   // Hubungkan stream kamera dari prop parent ke elemen video modal.
   // Jika belum ada stream (kamera masih meminta izin), panggil onRestartCamera
-  // dari parent untuk memulai/mulai ulang kamera, lalu tunggu stream tersedia.
-  // Tidak memanggil getUserMedia sendiri di sini untuk menghindari dialog
-  // izin kamera muncul dua kali (sekaligus parent dan modal).
+  // dari parent dan siapkan fallback mandiri jika stream parent belum siap.
   useEffect(() => {
     if (!terbuka) {
       if (localStream) {
@@ -92,39 +121,57 @@ export function FaceEnrollmentModal({
     }
 
     const activeStream = stream || localStream
-    const video = modalVideoRef.current
+
+    if (activeStream && modalVideoRef.current) {
+      attachStreamToVideo(modalVideoRef.current, activeStream)
+      setCameraStarting(false)
+      return undefined
+    }
 
     if (!activeStream) {
       setCameraStarting(true)
       if (onRestartCamera) {
         onRestartCamera()
       }
-      return undefined
-    }
 
-    setCameraStarting(false)
-    if (video) {
-      if (video.srcObject !== activeStream) {
-        video.srcObject = activeStream
+      // Fallback mandiri jika parent belum menyediakan stream dalam 350ms
+      let timer = null
+      if (typeof navigator !== 'undefined' && navigator.mediaDevices?.getUserMedia) {
+        timer = setTimeout(async () => {
+          if (!stream && !localStream && terbuka) {
+            try {
+              const ls = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: 'user', width: { ideal: 720 }, height: { ideal: 720 } },
+                audio: false,
+              })
+              setLocalStream(ls)
+              setCameraStarting(false)
+              if (modalVideoRef.current) {
+                attachStreamToVideo(modalVideoRef.current, ls)
+              }
+            } catch {
+              setCameraStarting(false)
+            }
+          }
+        }, 350)
       }
-      video.play().catch(() => {})
+      return () => {
+        if (timer) clearTimeout(timer)
+      }
     }
-    return undefined
-  }, [terbuka, stream, localStream, onRestartCamera])
 
-  // Pasang ulang stream ke video saat stream diperbarui (reactive)
+    return undefined
+  }, [terbuka, stream, localStream, onRestartCamera, attachStreamToVideo])
+
+  // Pasang ulang stream ke video saat stream atau modelLoading diperbarui (reactive)
   useEffect(() => {
     if (!terbuka) return
     const activeStream = stream || localStream
-    const video = modalVideoRef.current
-    if (activeStream && video) {
-      if (video.srcObject !== activeStream) {
-        video.srcObject = activeStream
-      }
-      video.play().catch(() => {})
+    if (activeStream && modalVideoRef.current) {
+      attachStreamToVideo(modalVideoRef.current, activeStream)
       setCameraStarting(false)
     }
-  }, [terbuka, stream, localStream])
+  }, [terbuka, stream, localStream, modelLoading, attachStreamToVideo])
 
   // Loop deteksi wajah real-time saat kamera aktif dan model siap
   useEffect(() => {
@@ -243,13 +290,7 @@ export function FaceEnrollmentModal({
 
         {/* Konten Modal */}
         <div className="p-4 flex flex-col items-center gap-3 overflow-y-auto">
-          {modelLoading ? (
-            <div className="py-12 flex flex-col items-center justify-center gap-3 text-center">
-              <Icon name="progress_activity" className="text-[32px] text-[#323d8f] animate-spin" />
-              <span className="font-body-md text-slate-700 font-medium">{loadingText}</span>
-              <span className="font-label-sm text-slate-500 text-xs">Menyiapkan neural network TensorFlow & Face-api...</span>
-            </div>
-          ) : modelError ? (
+          {modelError ? (
             <div className="py-8 flex flex-col items-center justify-center gap-3 text-center">
               <Icon name="error" className="text-[36px] text-rose-500" />
               <span className="font-body-md text-rose-700 font-semibold">{modelError}</span>
@@ -293,13 +334,13 @@ export function FaceEnrollmentModal({
             </div>
           ) : (
             <>
-              {/* Bingkai Kamera Wajah */}
+              {/* Bingkai Kamera Wajah: Selalu ter-render langsung saat modal dibuka */}
               <div className="relative w-52 h-52 rounded-full p-2 bg-gradient-to-b from-[#181d48] to-[#323d8f] shadow-inner flex items-center justify-center">
                 <div className={`relative w-full h-full rounded-full overflow-hidden flex items-center justify-center bg-slate-900 ring-2 transition-all duration-300 ${
                   faceDetected ? 'ring-emerald-400' : 'ring-amber-400/80'
                 }`}>
                   <video
-                    ref={modalVideoRef}
+                    ref={setVideoNode}
                     autoPlay
                     playsInline
                     muted
@@ -311,6 +352,15 @@ export function FaceEnrollmentModal({
                       <Icon name={cameraStarting ? 'progress_activity' : 'videocam'} className={`text-[28px] ${cameraStarting ? 'animate-spin' : ''}`} />
                       <span className="text-xs font-medium">{cameraStarting ? 'Menunggu kamera siap…' : 'Menghubungkan kamera…'}</span>
                       <span className="text-[10px] text-white/50 mt-1">Izinkan akses kamera jika muncul perizinan.</span>
+                    </div>
+                  )}
+
+                  {/* Overlay Pemuatan Model AI — kamera tetap menyala di latar belakang */}
+                  {modelLoading && (
+                    <div className="absolute inset-0 bg-slate-950/70 backdrop-blur-[2px] flex flex-col items-center justify-center text-white gap-2 p-4 text-center z-15 animate-sp-fade">
+                      <Icon name="progress_activity" className="text-[26px] text-white animate-spin" />
+                      <span className="text-xs font-semibold">{loadingText || 'Menyiapkan AI Wajah...'}</span>
+                      <span className="text-[10px] text-white/70">Memuat modul deteksi biometrik</span>
                     </div>
                   )}
 
@@ -340,17 +390,17 @@ export function FaceEnrollmentModal({
 
                 {/* Status Pill Live */}
                 <span className={`absolute -bottom-2.5 inset-x-0 mx-auto w-fit px-3 py-1 rounded-full text-white font-label-sm text-[11px] font-bold shadow-md flex items-center gap-1 z-20 transition-colors ${
-                  faceDetected ? 'bg-emerald-600' : 'bg-amber-600'
+                  modelLoading ? 'bg-slate-700/90' : faceDetected ? 'bg-emerald-600' : 'bg-amber-600'
                 }`}>
-                  <Icon name={faceDetected ? 'check_circle' : 'search'} className="text-[13px]" />
-                  {faceDetected ? `Wajah Terdeteksi (${faceScore}%)` : 'Posisikan Wajah di Oval'}
+                  <Icon name={modelLoading ? 'sync' : faceDetected ? 'check_circle' : 'search'} className={`text-[13px] ${modelLoading ? 'animate-spin' : ''}`} />
+                  {modelLoading ? 'Memuat Model AI...' : faceDetected ? `Wajah Terdeteksi (${faceScore}%)` : 'Posisikan Wajah di Oval'}
                 </span>
               </div>
 
               {/* Status & Petunjuk */}
               <div className="mt-2 text-center flex flex-col gap-1 w-full">
                 <span className="font-body-sm-medium text-xs font-semibold text-slate-800">
-                  {statusMessage || (faceDetected ? 'Posisi wajah siap. Tekan tombol daftarkan.' : 'Arahkan wajah tegak lurus ke kamera.')}
+                  {statusMessage || (modelLoading ? 'Menyiapkan modul AI pengenalan wajah...' : faceDetected ? 'Posisi wajah siap. Tekan tombol daftarkan.' : 'Arahkan wajah tegak lurus ke kamera.')}
                 </span>
                 <span className="font-label-sm text-[11px] text-slate-500 leading-snug">
                   Pastikan pencahayaan cukup dan wajah tidak tertutup masker.
@@ -362,11 +412,11 @@ export function FaceEnrollmentModal({
                 <button
                   type="button"
                   onClick={ambilDanDaftarkan}
-                  disabled={processing || (!stream && !localStream && !cameraAktif)}
+                  disabled={processing || modelLoading || (!stream && !localStream && !cameraAktif)}
                   className="sp-btn w-full py-3 bg-gradient-to-r from-[#252e6d] to-[#323d8f] hover:from-[#181d48] hover:to-[#252e6d] text-white font-headline-sm text-sm rounded-xl flex items-center justify-center gap-2 shadow-md disabled:opacity-50 active:scale-[0.99] transition-all cursor-pointer"
                 >
                   <Icon name={processing ? 'progress_activity' : 'camera_alt'} className={`text-[18px] ${processing ? 'animate-spin' : ''}`} />
-                  <span>{processing ? 'Memproses Biometrik...' : 'Ambil & Daftarkan Wajah'}</span>
+                  <span>{processing ? 'Memproses Biometrik...' : modelLoading ? 'Menyiapkan AI...' : 'Ambil & Daftarkan Wajah'}</span>
                 </button>
               </div>
             </>
