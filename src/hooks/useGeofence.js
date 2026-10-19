@@ -12,7 +12,7 @@ const SUPPORTS_GPS = typeof navigator !== 'undefined' && 'geolocation' in naviga
  *     menghasilkan koordinat (desktop, izin ditolak, perangkat tanpa GPS)
  *     supaya halaman tetap bisa dicoba. Sumbernya selalu terlihat di status.
  */
-export function useGeofence({ unit, radius, staffId, aktif = true, refreshMs = 20000 }) {
+export function useGeofence({ unit, radius, staffId, aktif = true, refreshMs = 5000 }) {
   const [posisi, setPosisi] = useState(null)
   const [akurasi, setAkurasi] = useState(null)
   const [errorGps, setErrorGps] = useState(null)
@@ -31,25 +31,38 @@ export function useGeofence({ unit, radius, staffId, aktif = true, refreshMs = 2
     if (!aktif || !SUPPORTS_GPS) return
     setMembaca(true)
     if (watchRef.current != null) navigator.geolocation.clearWatch(watchRef.current)
+    // Ambil posisi segera sekali untuk hasil awal tanpa menunggu watchPosition
+    navigator.geolocation.getCurrentPosition(
+      (hasil) => {
+        setPosisi({ latitude: hasil.coords.latitude, longitude: hasil.coords.longitude })
+        setAkurasi(Number.isFinite(hasil.coords.accuracy) ? Math.round(hasil.coords.accuracy) : null)
+        setErrorGps(null)
+        setMembaca(false)
+      },
+      (salah) => {
+        setMembaca(false)
+      },
+      { enableHighAccuracy: true, maximumAge: 0, timeout: 6000 },
+    )
+    // watchPosition selaras terus-menerus untuk pembaruan posisi selama bergerak
     watchRef.current = navigator.geolocation.watchPosition(
       (hasil) => {
         setPosisi({ latitude: hasil.coords.latitude, longitude: hasil.coords.longitude })
         setAkurasi(Number.isFinite(hasil.coords.accuracy) ? Math.round(hasil.coords.accuracy) : null)
         setErrorGps(null)
+        setMembaca(false)
       },
       (salah) => {
         setErrorGps(salah?.message || 'GPS tidak dapat dibaca')
         setMembaca(false)
       },
-      { enableHighAccuracy: true, maximumAge: 10000, timeout: 15000 },
+      { enableHighAccuracy: true, maximumAge: 1000, timeout: 8000 },
     )
   }, [aktif])
 
   useEffect(() => {
     if (!aktif || !SUPPORTS_GPS) return undefined
     mulai()
-    // watchPosition sudah memperbarui posisi sendiri; interval ini hanya
-    // memaksa pembacaan ulang pada perangkat yang sesekali macet.
     const id = setInterval(mulai, refreshMs)
     return () => {
       clearInterval(id)
