@@ -204,25 +204,40 @@ function MobilePresensiPage() {
     setFaceDetectedLive(false)
   }, [mode])
 
-  // Deteksi wajah live pada kamera saat mode face aktif
+  // Deteksi wajah live pada kamera saat mode face aktif dengan penstabil (hysteresis)
   useEffect(() => {
     if (mode !== 'face' || !kamera.aktif) {
       setFaceDetectedLive(false)
       return undefined
     }
     let cancelled = false
+    let isDetecting = false
+    let missCount = 0
+
     const interval = setInterval(async () => {
       const video = kamera.videoRef?.current
-      if (!video || video.readyState < 2 || cancelled) return
+      if (!video || video.readyState < 2 || cancelled || isDetecting) return
+      isDetecting = true
       try {
         const res = await detectSingleFaceAndDescriptor(video, { inputSize: 224, scoreThreshold: 0.45 })
         if (!cancelled) {
-          setFaceDetectedLive(Boolean(res.detected))
+          if (res?.detected) {
+            missCount = 0
+            setFaceDetectedLive(true)
+          } else {
+            missCount += 1
+            // Menghindari kedipan (flickering): hanya ubah status jika 2 frame berturut-turut tidak ada wajah
+            if (missCount >= 2) {
+              setFaceDetectedLive(false)
+            }
+          }
         }
       } catch {
         // Frame skip
+      } finally {
+        isDetecting = false
       }
-    }, 600)
+    }, 500)
     return () => {
       cancelled = true
       clearInterval(interval)
@@ -542,14 +557,6 @@ function MobilePresensiPage() {
 
   return (
     <div className="sp-page">
-      {/* Loading state: selama kamera belum selesai meminta izin, halaman
-          menampilkan skeleton supaya tidak ada kedipan layout. */}
-      {kamera.status === 'meminta' && (
-        <div className="sp-page-container pt-6 pb-2">
-          <LoadingState judul="Menyiapkan kamera…" detail="Izinkan akses kamera agar presensi wajah dapat dipakai." lines={3} />
-        </div>
-      )}
-
       {/* 1. HERO: identitas + jam real-time. Gelap, dengan bentuk dekoratif. */}
       <section className="sp-hero sp-page-container pt-4 pb-20">
         <span className="sp-pattern-dots" aria-hidden="true" />

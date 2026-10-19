@@ -30,11 +30,19 @@ export function useGeofence({ unit, radius, staffId, aktif = true, refreshMs = 5
   const mulai = useCallback(() => {
     if (!aktif || !SUPPORTS_GPS) return
     setMembaca(true)
-    if (watchRef.current != null) navigator.geolocation.clearWatch(watchRef.current)
+    if (watchRef.current != null) {
+      navigator.geolocation.clearWatch(watchRef.current)
+      watchRef.current = null
+    }
     // Ambil posisi segera sekali untuk hasil awal tanpa menunggu watchPosition
     navigator.geolocation.getCurrentPosition(
       (hasil) => {
-        setPosisi({ latitude: hasil.coords.latitude, longitude: hasil.coords.longitude })
+        setPosisi((prev) => {
+          if (prev && prev.latitude === hasil.coords.latitude && prev.longitude === hasil.coords.longitude) {
+            return prev
+          }
+          return { latitude: hasil.coords.latitude, longitude: hasil.coords.longitude }
+        })
         setAkurasi(Number.isFinite(hasil.coords.accuracy) ? Math.round(hasil.coords.accuracy) : null)
         setErrorGps(null)
         setMembaca(false)
@@ -47,7 +55,12 @@ export function useGeofence({ unit, radius, staffId, aktif = true, refreshMs = 5
     // watchPosition selaras terus-menerus untuk pembaruan posisi selama bergerak
     watchRef.current = navigator.geolocation.watchPosition(
       (hasil) => {
-        setPosisi({ latitude: hasil.coords.latitude, longitude: hasil.coords.longitude })
+        setPosisi((prev) => {
+          if (prev && prev.latitude === hasil.coords.latitude && prev.longitude === hasil.coords.longitude) {
+            return prev
+          }
+          return { latitude: hasil.coords.latitude, longitude: hasil.coords.longitude }
+        })
         setAkurasi(Number.isFinite(hasil.coords.accuracy) ? Math.round(hasil.coords.accuracy) : null)
         setErrorGps(null)
         setMembaca(false)
@@ -63,12 +76,10 @@ export function useGeofence({ unit, radius, staffId, aktif = true, refreshMs = 5
   useEffect(() => {
     if (!aktif || !SUPPORTS_GPS) return undefined
     mulai()
-    const id = setInterval(mulai, refreshMs)
     return () => {
-      clearInterval(id)
       berhenti()
     }
-  }, [aktif, mulai, refreshMs, berhenti])
+  }, [aktif, mulai, berhenti])
 
   const latUnit = unit?.latitude != null ? Number(unit.latitude) : null
   const lngUnit = unit?.longitude != null ? Number(unit.longitude) : null

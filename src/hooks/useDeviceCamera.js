@@ -17,6 +17,7 @@ export function useDeviceCamera({ facingMode = 'user', aktif = true, onQrValue }
   const streamRef = useRef(null)
   const loopRef = useRef(null)
   const onQrRef = useRef(onQrValue)
+  const isStartingRef = useRef(false)
   const [stream, setStream] = useState(null)
   const [status, setStatus] = useState('idle')
   const [error, setError] = useState(null)
@@ -31,8 +32,11 @@ export function useDeviceCamera({ facingMode = 'user', aktif = true, onQrValue }
       cancelAnimationFrame(loopRef.current)
       loopRef.current = null
     }
-    streamRef.current?.getTracks().forEach((track) => track.stop())
-    streamRef.current = null
+    isStartingRef.current = false
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop())
+      streamRef.current = null
+    }
     setStream(null)
     if (videoRef.current) videoRef.current.srcObject = null
     setStatus('idle')
@@ -68,11 +72,11 @@ export function useDeviceCamera({ facingMode = 'user', aktif = true, onQrValue }
       setStatus('tidak-didukung')
       return
     }
-    // Jika sudah ada stream aktif atau permintaan izin sedang berlangsung,
-    // jangan panggil getUserMedia ulang untuk menghindari dialog ganda.
-    if (streamRef.current || status === 'meminta') {
+    // Jika sudah ada stream aktif atau sedang meminta, jangan panggil getUserMedia ganda.
+    if (streamRef.current || isStartingRef.current) {
       return
     }
+    isStartingRef.current = true
     setStatus('meminta')
     setError(null)
     try {
@@ -80,19 +84,31 @@ export function useDeviceCamera({ facingMode = 'user', aktif = true, onQrValue }
         video: { facingMode, width: { ideal: 720 }, height: { ideal: 720 } },
         audio: false,
       })
+      isStartingRef.current = false
       streamRef.current = mediaStream
       setStream(mediaStream)
-      if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream
-        videoRef.current.play().catch(() => {})
-        mulaiDeteksiQr()
-      }
       setStatus('aktif')
+      mulaiDeteksiQr()
     } catch (salah) {
+      isStartingRef.current = false
       setError(salah?.message || 'Kamera tidak dapat diakses')
       setStatus('ditolak')
     }
-  }, [aktif, facingMode, mulaiDeteksiQr, status])
+  }, [aktif, facingMode, mulaiDeteksiQr])
+
+  // Pastikan stream selalu terpasang ke video element setiap kali stream berubah
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video) return
+    if (stream) {
+      if (video.srcObject !== stream) {
+        video.srcObject = stream
+        video.play().catch(() => {})
+      }
+    } else if (video.srcObject) {
+      video.srcObject = null
+    }
+  }, [stream])
 
   useEffect(() => {
     if (!aktif) return undefined

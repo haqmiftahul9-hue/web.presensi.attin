@@ -37,15 +37,15 @@ function CameraLayer({ videoRef, cameraAktif, children, rounded = 'rounded-full'
   return (
     <div className={`relative w-full h-full overflow-hidden bg-primary ${rounded} flex items-center justify-center`}>
       <div className="absolute inset-0 bg-gradient-to-br from-[#181d48] via-[#252e6d] to-[#323d8f]" />
-      {cameraAktif && (
-        <video
-          ref={videoRef}
-          autoPlay
-          playsInline
-          muted
-          className="absolute inset-0 h-full w-full object-cover"
-        />
-      )}
+      <video
+        ref={videoRef}
+        autoPlay
+        playsInline
+        muted
+        className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ${
+          cameraAktif ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        }`}
+      />
       {children}
     </div>
   )
