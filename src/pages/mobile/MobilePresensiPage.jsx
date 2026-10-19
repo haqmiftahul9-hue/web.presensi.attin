@@ -213,34 +213,41 @@ function MobilePresensiPage() {
     let cancelled = false
     let isDetecting = false
     let missCount = 0
+    let interval = null
 
-    const interval = setInterval(async () => {
-      const video = kamera.videoRef?.current
-      if (!video || video.readyState < 2 || cancelled || isDetecting) return
-      isDetecting = true
-      try {
-        const res = await detectSingleFaceAndDescriptor(video, { inputSize: 224, scoreThreshold: 0.45 })
-        if (!cancelled) {
-          if (res?.detected) {
-            missCount = 0
-            setFaceDetectedLive(true)
-          } else {
-            missCount += 1
-            // Menghindari kedipan (flickering): hanya ubah status jika 2 frame berturut-turut tidak ada wajah
-            if (missCount >= 2) {
-              setFaceDetectedLive(false)
+    // Beri jeda 700ms agar viewfinder kamera terbuka lancar di awal tanpa lag WebGL
+    const startTimer = setTimeout(() => {
+      if (cancelled) return
+      interval = setInterval(async () => {
+        const video = kamera.videoRef?.current
+        if (!video || video.readyState < 2 || cancelled || isDetecting) return
+        isDetecting = true
+        try {
+          const res = await detectSingleFaceAndDescriptor(video, { inputSize: 224, scoreThreshold: 0.45 })
+          if (!cancelled) {
+            if (res?.detected) {
+              missCount = 0
+              setFaceDetectedLive(true)
+            } else {
+              missCount += 1
+              // Menghindari kedipan (flickering): hanya ubah status jika 2 frame berturut-turut tidak ada wajah
+              if (missCount >= 2) {
+                setFaceDetectedLive(false)
+              }
             }
           }
+        } catch {
+          // Frame skip
+        } finally {
+          isDetecting = false
         }
-      } catch {
-        // Frame skip
-      } finally {
-        isDetecting = false
-      }
-    }, 500)
+      }, 500)
+    }, 700)
+
     return () => {
       cancelled = true
-      clearInterval(interval)
+      clearTimeout(startTimer)
+      if (interval) clearInterval(interval)
     }
   }, [mode, kamera.aktif, kamera.videoRef])
 
@@ -389,7 +396,7 @@ function MobilePresensiPage() {
         setStatusPenutup('jalan')
         setPesanPenutup('Mencocokkan wajah dengan AI Face-api.js...')
         try {
-          const det = await detectSingleFaceAndDescriptor(kamera.videoRef.current, { inputSize: 320, scoreThreshold: 0.5 })
+          const det = await detectSingleFaceAndDescriptor(kamera.videoRef.current, { inputSize: 224, scoreThreshold: 0.5 })
           if (det.detected && det.descriptor) {
             const comp = await compareFaceDescriptors(det.descriptor, curRegistered.descriptor)
             if (comp.match) {

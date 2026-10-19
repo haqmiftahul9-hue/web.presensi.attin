@@ -3010,8 +3010,8 @@ export function selectPresensiRules(state, unitId, tanggal = new Date()) {
   const presensi = state.settings?.presensi || {}
   const unit = selectUnitById(state, unitId)
   const radius = presensi.radiusGeofencePerUnit?.[unitId]
-    ?? presensi.radiusGeofenceDefault
     ?? unit?.radius
+    ?? presensi.radiusGeofenceDefault
     ?? 50
   const jamKerja = jamKerjaRules(tanggal)
   return {

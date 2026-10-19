@@ -75,7 +75,25 @@ export async function loadFaceApiModels(onProgress) {
 }
 
 /**
- * Deteksi wajah tunggal dan ekstrak descriptor 128-d.
+ * Konfigurasi opsi detektor wajah TinyFaceDetectorOptions.
+ * Jauh lebih ringan dan cepat di mobile web dibandingkan SSD MobileNet.
+ */
+export function createTinyFaceDetectorOptions(faceapi, { inputSize = 224, scoreThreshold = 0.5 } = {}) {
+  if (faceapi?.TinyFaceDetectorOptions) {
+    return new faceapi.TinyFaceDetectorOptions({ inputSize, scoreThreshold })
+  }
+  return { inputSize, scoreThreshold }
+}
+
+/**
+ * Cek apakah model neural network face-api sudah selesai dimuat.
+ */
+export function isFaceApiLoaded() {
+  return modelsLoaded
+}
+
+/**
+ * Deteksi wajah tunggal dan ekstrak descriptor 128-d menggunakan TinyFaceDetector.
  * @param {HTMLVideoElement|HTMLImageElement|HTMLCanvasElement} inputElement
  * @param {object} options
  */
@@ -88,16 +106,17 @@ export async function detectSingleFaceAndDescriptor(inputElement, options = {}) 
   }
 
   const {
-    inputSize = 320,
+    inputSize = 224,
     scoreThreshold = 0.5,
   } = options
 
+  // Selalu gunakan new faceapi.TinyFaceDetectorOptions() sesuai permintaan refactor
   const detectorOptions = new faceapi.TinyFaceDetectorOptions({
     inputSize,
     scoreThreshold,
   })
 
-  // Deteksi wajah + 68 landmark wajah + ekstraksi descriptor 128 dimensi
+  // Deteksi wajah tunggal menggunakan TinyFaceDetector + landmark 68 + descriptor
   const detection = await faceapi
     .detectSingleFace(inputElement, detectorOptions)
     .withFaceLandmarks()

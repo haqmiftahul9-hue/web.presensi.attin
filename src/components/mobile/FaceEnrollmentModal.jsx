@@ -227,8 +227,8 @@ export function FaceEnrollmentModal({
       // Ambil snapshot foto
       const photo = captureVideoFrame(video)
 
-      // Deteksi wajah dengan resolusi penuh untuk descriptor yang akurat
-      const detection = await detectSingleFaceAndDescriptor(video, { inputSize: 320, scoreThreshold: 0.5 })
+      // Deteksi wajah dengan TinyFaceDetector (inputSize 224 ringan & cepat)
+      const detection = await detectSingleFaceAndDescriptor(video, { inputSize: 224, scoreThreshold: 0.5 })
 
       if (processingTimeoutRef.current) {
         clearTimeout(processingTimeoutRef.current)

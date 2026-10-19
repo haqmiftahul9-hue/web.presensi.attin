@@ -7,6 +7,7 @@ import {
 import MobileErrorBoundary from './MobileErrorBoundary.jsx'
 import InstallPrompt from './InstallPrompt.jsx'
 import { GlassTopBar, MobileAppShell } from './AppShell.jsx'
+import { prewarmGeolocation } from '../../hooks/useGeofence.js'
 
 // Bottom navigation modul mobile. Lima menu ini adalah seluruh navigasi
 // role Guru/Pegawai: Beranda, Riwayat, Presensi (tengah, menonjol), Izin/Cuti, Profil.
@@ -45,6 +46,11 @@ function MobileLayout() {
       document.documentElement.classList.remove('sp-mobile-active')
       document.body.classList.remove('sp-mobile-active')
     }
+  }, [])
+
+  // Pre-warm GPS lokasi perangkat agar koordinat langsung siap sebelum guru membuka presensi
+  useEffect(() => {
+    prewarmGeolocation()
   }, [])
 
   // Setiap kali berpindah tab, halaman dimulai dari atas — perilaku yang

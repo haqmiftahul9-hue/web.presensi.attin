@@ -2,20 +2,22 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { jarakKeUnit, formatMeter } from '../data/presensiMobile.js'
 
 const SUPPORTS_GPS = typeof navigator !== 'undefined' && 'geolocation' in navigator
+const GPS_CACHE_KEY = 'simpres_last_gps_fix'
+const GPS_CACHE_TTL_MS = 15 * 60 * 1000 // 15 menit validitas cache lokasi terakhir
 
 // Cache GPS tingkat modul agar navigasi antar halaman / tab di mobile instan tanpa jeda
 let cachedGpsFix = null
 
 function getSavedFix() {
-  if (cachedGpsFix && Date.now() - cachedGpsFix.timestamp < 10 * 60 * 1000) {
+  if (cachedGpsFix && Date.now() - cachedGpsFix.timestamp < GPS_CACHE_TTL_MS) {
     return cachedGpsFix
   }
   try {
-    if (typeof window !== 'undefined' && window.sessionStorage) {
-      const raw = window.sessionStorage.getItem('simpres_last_gps_fix')
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const raw = window.localStorage.getItem(GPS_CACHE_KEY)
       if (raw) {
         const parsed = JSON.parse(raw)
-        if (Date.now() - parsed.timestamp < 10 * 60 * 1000) {
+        if (Date.now() - parsed.timestamp < GPS_CACHE_TTL_MS) {
           cachedGpsFix = parsed
           return parsed
         }
@@ -36,8 +38,8 @@ function saveFix(coords, accuracy) {
   }
   cachedGpsFix = item
   try {
-    if (typeof window !== 'undefined' && window.sessionStorage) {
-      window.sessionStorage.setItem('simpres_last_gps_fix', JSON.stringify(item))
+    if (typeof window !== 'undefined' && window.localStorage) {
+      window.localStorage.setItem(GPS_CACHE_KEY, JSON.stringify(item))
     }
   } catch {
     // Abaikan kesalahan storage
@@ -45,10 +47,32 @@ function saveFix(coords, accuracy) {
 }
 
 /**
+ * Pre-warm lokasi GPS perangkat di latar belakang saat aplikasi mobile terbuka.
+ * Memastikan koordinat sudah siap di cache sebelum guru/pegawai membuka menu presensi.
+ */
+export function prewarmGeolocation() {
+  if (!SUPPORTS_GPS) return
+  try {
+    navigator.geolocation.getCurrentPosition(
+      (hasil) => {
+        saveFix(
+          { latitude: hasil.coords.latitude, longitude: hasil.coords.longitude },
+          hasil.coords.accuracy,
+        )
+      },
+      () => {},
+      { enableHighAccuracy: false, maximumAge: 300000, timeout: 5000 },
+    )
+  } catch {
+    // Abaikan
+  }
+}
+
+/**
  * Pembacaan geolokasi super cepat dan presisi untuk halaman presensi mobile.
  *
- * Menggunakan pendekatan Two-Tier + Cache:
- *  1. Inisialisasi instan dari memori / sessionStorage (< 10ms) sehingga perhitungan
+ * Menggunakan pendekatan Two-Tier + Persistent Cache:
+ *  1. Inisialisasi instan dari memori / localStorage (< 10ms) sehingga perhitungan
  *     jarak langsung tersedia saat halaman pertama kali dibuka.
  *  2. Fast-tier getCurrentPosition (network/cached fix) untuk respons sub-detik.
  *  3. Refined-tier high accuracy GPS untuk presisi akurasi hingga meter.
@@ -72,7 +96,7 @@ export function useGeofence({ unit, radius, staffId, aktif = true, refreshMs = 5
     const baru = { latitude: hasil.coords.latitude, longitude: hasil.coords.longitude }
     const acc = Number.isFinite(hasil.coords.accuracy) ? Math.round(hasil.coords.accuracy) : null
 
-    // Simpan ke cache modul & session storage
+    // Simpan ke cache modul & localStorage
     saveFix(baru, acc)
 
     // Hanya perbarui state jika bergerak cukup jauh (>= 2.5 meter) agar
@@ -105,14 +129,11 @@ export function useGeofence({ unit, radius, staffId, aktif = true, refreshMs = 5
     if (!aktif || !SUPPORTS_GPS) return
     setMembaca(true)
 
-    // 1. Jalur Cepat (Tier 1 - Instant/Cached Fix):
-    // Gunakan maximumAge hingga 60 detik agar mobile OS langsung mengembalikan
-    // koordinat terakhir (Wi-Fi / Cell tower / cached GPS) dalam 10-50 milidetik
+    // Jalur Cepat (Tier 1): maximumAge 5 menit untuk respons instan
     navigator.geolocation.getCurrentPosition(
       (hasil) => {
         handlePositionSuccess(hasil)
-        // 2. Jalur Akurasi Tinggi (Tier 2 - Refined High Accuracy):
-        // Setelah koordinat awal didapat secara instan, perbarui ke presisi tinggi satelit
+        // Jalur Akurasi Tinggi (Tier 2): perbarui ke presisi tinggi satelit
         navigator.geolocation.getCurrentPosition(
           handlePositionSuccess,
           () => {
@@ -122,14 +143,14 @@ export function useGeofence({ unit, radius, staffId, aktif = true, refreshMs = 5
         )
       },
       () => {
-        // Jika jalur cepat tidak menghasilkan cache, langsung coba high accuracy
+        // Fallback langsung ke high accuracy jika cache OS tidak tersedia
         navigator.geolocation.getCurrentPosition(
           handlePositionSuccess,
           handlePositionError,
           { enableHighAccuracy: true, maximumAge: 10000, timeout: 8000 },
         )
       },
-      { enableHighAccuracy: false, maximumAge: 60000, timeout: 1500 },
+      { enableHighAccuracy: false, maximumAge: 300000, timeout: 2500 },
     )
   }, [aktif, handlePositionSuccess, handlePositionError])
 
@@ -145,7 +166,7 @@ export function useGeofence({ unit, radius, staffId, aktif = true, refreshMs = 5
         watchIdRef.current = navigator.geolocation.watchPosition(
           handlePositionSuccess,
           () => {}, // abaikan glitch sementara pada watchPosition
-          { enableHighAccuracy: true, maximumAge: 5000, timeout: 8000 },
+          { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 },
         )
       }
     } catch {
@@ -175,7 +196,8 @@ export function useGeofence({ unit, radius, staffId, aktif = true, refreshMs = 5
   const jarakGps = posisi && unitParsed?.latitude != null && unitParsed?.longitude != null ? jarakKeUnit(posisi, unitParsed) : null
   const memakaiGps = jarakGps !== null
 
-  const effectiveRadius = Number(radius || unit?.radius || 50)
+  // Prioritas radius: gunakan radius hasil selectPresensiRules (atau unit.radius) yang telah diatur oleh admin
+  const effectiveRadius = Number(radius ?? unit?.radius ?? 50)
   const jarakSimulasi = effectiveRadius ? 6 + ((Number(staffId) || 1) * 13) % Math.max(6, Math.floor(effectiveRadius * 0.6)) : null
   const jarak = memakaiGps ? jarakGps : effectiveRadius ? jarakSimulasi : null
   const dalamRadius = jarak !== null && Number.isFinite(jarak) && jarak <= effectiveRadius
