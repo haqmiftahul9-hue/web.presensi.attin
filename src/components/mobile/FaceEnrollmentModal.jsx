@@ -76,15 +76,18 @@ export function FaceEnrollmentModal({
     }
   }, [terbuka])
 
-  // Hubungkan stream kamera (dari prop parent atau lokal) ke elemen video modal.
-  // Hanya memanggil onRestartCamera dari parent saat belum ada stream sama sekali,
-  // agar tidak memunculkan dialog izin kamera berkali-kali.
+  // Hubungkan stream kamera dari prop parent ke elemen video modal.
+  // Jika belum ada stream (kamera masih meminta izin), panggil onRestartCamera
+  // dari parent untuk memulai/mulai ulang kamera, lalu tunggu stream tersedia.
+  // Tidak memanggil getUserMedia sendiri di sini untuk menghindari dialog
+  // izin kamera muncul dua kali (sekaligus parent dan modal).
   useEffect(() => {
     if (!terbuka) {
       if (localStream) {
         localStream.getTracks().forEach((track) => track.stop())
         setLocalStream(null)
       }
+      setCameraStarting(false)
       return undefined
     }
 
@@ -96,26 +99,6 @@ export function FaceEnrollmentModal({
       if (onRestartCamera) {
         onRestartCamera()
       }
-      // Fallback hanya jika parent belum menyediakan stream setelah restart
-      if (typeof navigator !== 'undefined' && navigator.mediaDevices?.getUserMedia) {
-        navigator.mediaDevices
-          .getUserMedia({
-            video: { facingMode: 'user', width: { ideal: 720 }, height: { ideal: 720 } },
-            audio: false,
-          })
-          .then((s) => {
-            setLocalStream(s)
-            setCameraStarting(false)
-            if (video) {
-              video.srcObject = s
-              video.play().catch(() => {})
-            }
-          })
-          .catch((err) => {
-            setCameraStarting(false)
-            console.warn('Gagal membuka kamera internal modal:', err)
-          })
-      }
       return undefined
     }
 
@@ -126,6 +109,7 @@ export function FaceEnrollmentModal({
       }
       video.play().catch(() => {})
     }
+    return undefined
   }, [terbuka, stream, localStream, onRestartCamera])
 
   // Pasang ulang stream ke video saat stream diperbarui (reactive)

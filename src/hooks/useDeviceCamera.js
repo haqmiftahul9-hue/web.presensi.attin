@@ -68,6 +68,11 @@ export function useDeviceCamera({ facingMode = 'user', aktif = true, onQrValue }
       setStatus('tidak-didukung')
       return
     }
+    // Jika sudah ada stream aktif atau permintaan izin sedang berlangsung,
+    // jangan panggil getUserMedia ulang untuk menghindari dialog ganda.
+    if (streamRef.current || status === 'meminta') {
+      return
+    }
     setStatus('meminta')
     setError(null)
     try {
@@ -87,7 +92,7 @@ export function useDeviceCamera({ facingMode = 'user', aktif = true, onQrValue }
       setError(salah?.message || 'Kamera tidak dapat diakses')
       setStatus('ditolak')
     }
-  }, [aktif, facingMode, mulaiDeteksiQr])
+  }, [aktif, facingMode, mulaiDeteksiQr, status])
 
   useEffect(() => {
     if (!aktif) return undefined
