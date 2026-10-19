@@ -504,6 +504,19 @@ function MobilePresensiPage() {
   function jalankanPresensiPulang() {
     if (busy) return
     const saatPresensi = new Date()
+    const hasilLokasi = validasiLokasi()
+    if (!hasilLokasi.ok) {
+      setStatusPenutup('gagal')
+      setPesanPenutup(`${hasilLokasi.detail}. Absen pulang tidak disimpan.`)
+      setSheetTerbuka(true)
+      return
+    }
+    if (!jendelaPulangTerbuka) {
+      setStatusPenutup('gagal')
+      setPesanPenutup(`Jam pulang belum terbuka. Absen pulang tidak disimpan.`)
+      setSheetTerbuka(true)
+      return
+    }
     setStatusPenutup('berhasil')
     setPesanPenutup(`Absen pulang tersimpan pukul ${jamDetik(saatPresensi)} ${zonaWaktu}.`)
     dispatch({
@@ -559,7 +572,7 @@ function MobilePresensiPage() {
     : belumPulang
       ? jendelaPulangTerbuka ? 'Absen Pulang Sekarang' : 'Menunggu Jam Pulang'
       : 'Presensi Hari Ini Selesai'
-  const tombolAksiDisabled = busy || (!belumTerdaftarWajah && (belumPulang || (!belumMasuk && !jendelaPulangTerbuka) || !geofenceOk))
+  const tombolAksiDisabled = busy || (!belumTerdaftarWajah && (!belumPulang || (!belumMasuk && !jendelaPulangTerbuka) || !geofenceOk))
   const onTombolAksi = belumMasuk ? jalankanPresensi : jalankanPresensiPulang
 
   return (
