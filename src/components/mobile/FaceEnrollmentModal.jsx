@@ -38,6 +38,62 @@ export function FaceEnrollmentModal({
   const loopRef = useRef(null)
   const processingTimeoutRef = useRef(null)
 
+  // =================== Liveness Detection (Bank-Style) ===================
+  const EAR_OPEN_THRESHOLD = 0.27
+  const EAR_CLOSED_THRESHOLD = 0.22
+  const EAR_HISTORY_SIZE = 10
+  const FRONTAL_SYMMETRY_THRESHOLD = 0.18
+
+  function dist(p1, p2) {
+    return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2))
+  }
+
+  function avg(nums) {
+    return nums.reduce((a, b) => a + b, 0) / nums.length
+  }
+
+  function computeEyeEAR(eye) {
+    const A = dist(eye[1], eye[5])
+    const B = dist(eye[2], eye[4])
+    const C = dist(eye[0], eye[3])
+    return C > 0 ? (A + B) / (2.0 * C) : 1.0
+  }
+
+  function calculateEAR(landmarks) {
+    const leftEye = [36, 37, 38, 39, 40, 41].map((i) => landmarks[i])
+    const rightEye = [42, 43, 44, 45, 46, 47].map((i) => landmarks[i])
+    return (computeEyeEAR(leftEye) + computeEyeEAR(rightEye)) / 2
+  }
+
+  function checkFrontal(landmarks) {
+    const leftEyePts = [36, 37, 38, 39, 40, 41].map((i) => landmarks[i])
+    const rightEyePts = [42, 43, 44, 45, 46, 47].map((i) => landmarks[i])
+    const noseTip = landmarks[30]
+
+    const leftCenter = {
+      x: avg(leftEyePts.map((p) => p.x)),
+      y: avg(leftEyePts.map((p) => p.y)),
+    }
+    const rightCenter = {
+      x: avg(rightEyePts.map((p) => p.x)),
+      y: avg(rightEyePts.map((p) => p.y)),
+    }
+    const eyeMidX = (leftCenter.x + rightCenter.x) / 2
+    const eyeDist = dist(leftCenter, rightCenter)
+    const noseOffset = Math.abs(noseTip.x - eyeMidX)
+
+    return eyeDist > 0 && noseOffset / eyeDist < FRONTAL_SYMMETRY_THRESHOLD
+  }
+
+  const [livenessStep, setLivenessStep] = useState(1)
+  const [livenessPassed, setLivenessPassed] = useState(false)
+  const [livenessInstruction, setLivenessInstruction] = useState(
+    'Silakan hadap wajah ke depan.'
+  )
+  const [earHistory, setEarHistory] = useState([])
+  const [blinkState, setBlinkState] = useState('open')
+  const [frontalVerified, setFrontalVerified] = useState(false)
+
   // Inisialisasi dan pemuatan model face-api
   useEffect(() => {
     if (!terbuka) return undefined
@@ -46,6 +102,12 @@ export function FaceEnrollmentModal({
     setSuccessData(null)
     setStatusMessage('')
     setFaceDetected(false)
+    setLivenessStep(1)
+    setLivenessPassed(false)
+    setLivenessInstruction('Silakan hadap wajah ke depan.')
+    setEarHistory([])
+    setBlinkState('open')
+    setFrontalVerified(false)
 
     if (isFaceApiLoaded() || isModelLoaded) {
       setModelLoading(false)
@@ -198,6 +260,38 @@ export function FaceEnrollmentModal({
         if (result.detected) {
           setFaceDetected(true)
           setFaceScore(Math.round(result.score * 100))
+
+          // ===== Liveness Detection: sequential frontal -> blink =====
+          const landmarks = result.landmarks
+          if (landmarks && landmarks.length >= 68) {
+            if (livenessStep === 1 && !frontalVerified) {
+              const isFrontal = checkFrontal(landmarks)
+              if (isFrontal) {
+                setFrontalVerified(true)
+                setLivenessStep(2)
+                setLivenessInstruction('Silakan berkedip sekali.')
+                setEarHistory([])
+                setBlinkState('open')
+              } else {
+                setLivenessInstruction('Silakan hadap wajah ke depan, tegak lurus ke kamera.')
+              }
+            } else if (livenessStep === 2 && frontalVerified && !livenessPassed) {
+              const ear = calculateEAR(landmarks)
+              const updated = [...earHistory, ear].slice(-EAR_HISTORY_SIZE)
+              setEarHistory(updated)
+
+              if (blinkState === 'open' && ear < EAR_CLOSED_THRESHOLD) {
+                setBlinkState('closed')
+              } else if (blinkState === 'closed' && ear > EAR_OPEN_THRESHOLD) {
+                setBlinkState('open')
+                setLivenessPassed(true)
+                setLivenessStep(3)
+                setLivenessInstruction('Verifikasi liveness selesai. Siap daftarkan wajah.')
+              }
+            }
+          }
+          // ===== end liveness =====
+
         } else {
           setFaceDetected(false)
           setFaceScore(0)
@@ -209,7 +303,7 @@ export function FaceEnrollmentModal({
 
     loopRef.current = interval
     return () => clearInterval(interval)
-  }, [terbuka, modelLoading, cameraAktif, stream, localStream, processing, successData])
+  }, [terbuka, modelLoading, cameraAktif, stream, localStream, processing, successData, livenessStep, frontalVerified, blinkState, earHistory, livenessPassed])
 
   // Proses pendaftaran dari video kamera
   const ambilDanDaftarkan = useCallback(async () => {
@@ -219,6 +313,12 @@ export function FaceEnrollmentModal({
     // Pastikan video sedang memutar
     if (video.readyState < 2) {
       setStatusMessage('Kamera sedang menginisialisasi. Mohon tunggu hingga pratinjau muncul.')
+      return
+    }
+
+    // Wajib lulus verifikasi liveness (hadap depan + berkedip) sebelum mendaftar
+    if (!livenessPassed) {
+      setStatusMessage('Selesaikan verifikasi liveness terlebih dahulu (hadap depan dan berkedip).')
       return
     }
 
@@ -268,7 +368,7 @@ export function FaceEnrollmentModal({
     } finally {
       setProcessing(false)
     }
-  }, [processing, staff, onSukses])
+  }, [processing, staff, onSukses, livenessPassed])
 
   if (!terbuka) return null
 
@@ -398,33 +498,56 @@ export function FaceEnrollmentModal({
 
                 {/* Status Pill Live */}
                 <span className={`absolute -bottom-2.5 inset-x-0 mx-auto w-fit px-3 py-1 rounded-full text-white font-label-sm text-[11px] font-bold shadow-md flex items-center gap-1 z-20 transition-colors ${
-                  modelLoading ? 'bg-slate-700/90' : faceDetected ? 'bg-emerald-600' : 'bg-amber-600'
+                  modelLoading ? 'bg-slate-700/90' : livenessPassed ? 'bg-emerald-600' : faceDetected ? 'bg-emerald-600' : 'bg-amber-600'
                 }`}>
-                  <Icon name={modelLoading ? 'sync' : faceDetected ? 'check_circle' : 'search'} className={`text-[13px] ${modelLoading ? 'animate-spin' : ''}`} />
-                  {modelLoading ? 'Memuat Model AI...' : faceDetected ? `Wajah Terdeteksi (${faceScore}%)` : 'Posisikan Wajah di Oval'}
+                  <Icon name={modelLoading ? 'sync' : livenessPassed ? 'check_circle' : faceDetected ? livenessStep === 2 ? 'remove_red_eye' : 'face' : 'search'} className={`text-[13px] ${modelLoading ? 'animate-spin' : ''}`} />
+                  {modelLoading ? 'Memuat Model AI...' : livenessPassed ? 'Liveness Terverifikasi' : faceDetected ? `Langkah ${livenessStep} — ${livenessInstruction}` : 'Posisikan Wajah di Oval'}
                 </span>
               </div>
 
               {/* Status & Petunjuk */}
               <div className="mt-2 text-center flex flex-col gap-1 w-full">
-                <span className="font-body-sm-medium text-xs font-semibold text-slate-800">
-                  {statusMessage || (modelLoading ? 'Menyiapkan modul AI pengenalan wajah...' : faceDetected ? 'Posisi wajah siap. Tekan tombol daftarkan.' : 'Arahkan wajah tegak lurus ke kamera.')}
+                <span className={`font-body-sm-medium text-xs font-semibold leading-snug ${
+                  livenessPassed ? 'text-emerald-700' : 'text-slate-800'
+                }`}>
+                  {modelLoading ? 'Menyiapkan modul AI pengenalan wajah...' : livenessInstruction}
                 </span>
-                <span className="font-label-sm text-[11px] text-slate-500 leading-snug">
-                  Pastikan pencahayaan cukup dan wajah tidak tertutup masker.
-                </span>
+                {!livenessPassed && (
+                  <span className="font-label-sm text-[11px] text-slate-500 leading-snug">
+                    Ikuti instruksi langkah demi langkah untuk verifikasi keaslian wajah.
+                  </span>
+                )}
+                {livenessPassed && (
+                  <span className="font-label-sm text-[11px] text-emerald-600 leading-snug">
+                    Wajah terverifikasi asli. Silakan tekan tombol daftar di bawah.
+                  </span>
+                )}
               </div>
-
               {/* Tombol Aksi */}
               <div className="w-full flex flex-col gap-2 mt-2">
                 <button
                   type="button"
                   onClick={ambilDanDaftarkan}
-                  disabled={processing || modelLoading || (!stream && !localStream && !cameraAktif)}
-                  className="sp-btn w-full py-3 bg-gradient-to-r from-[#252e6d] to-[#323d8f] hover:from-[#181d48] hover:to-[#252e6d] text-white font-headline-sm text-sm rounded-xl flex items-center justify-center gap-2 shadow-md disabled:opacity-50 active:scale-[0.99] transition-all cursor-pointer"
+                  disabled={
+                    processing ||
+                    modelLoading ||
+                    (!stream && !localStream && !cameraAktif) ||
+                    !livenessPassed
+                  }
+                  className={`sp-btn w-full py-3 bg-gradient-to-r from-[#252e6d] to-[#323d8f] hover:from-[#181d48] hover:to-[#252e6d] text-white font-headline-sm text-sm rounded-xl flex items-center justify-center gap-2 shadow-md disabled:opacity-50 active:scale-[0.99] transition-all cursor-pointer ${
+                    !livenessPassed ? 'bg-slate-300 text-slate-500 cursor-not-allowed hover:from-[#252e6d] hover:to-[#323d8f]' : ''
+                  }`}
                 >
                   <Icon name={processing ? 'progress_activity' : 'camera_alt'} className={`text-[18px] ${processing ? 'animate-spin' : ''}`} />
-                  <span>{processing ? 'Memproses Biometrik...' : modelLoading ? 'Menyiapkan AI...' : 'Ambil & Daftarkan Wajah'}</span>
+                  <span>
+                    {!livenessPassed
+                      ? `Selesaikan Langkah ${livenessStep} Terlebih Dahulu`
+                      : processing
+                        ? 'Memproses Biometrik...'
+                        : modelLoading
+                          ? 'Menyiapkan AI...'
+                          : 'Ambil & Daftarkan Wajah'}
+                  </span>
                 </button>
               </div>
             </>
