@@ -171,6 +171,7 @@ function MobilePresensiPage() {
   const [isModelLoaded, setIsModelLoaded] = useState(() => isFaceApiLoaded())
   const [registeredFace, setRegisteredFace] = useState(() => (staff ? getRegisteredFaceData(staff) : null))
   const [faceDetectedLive, setFaceDetectedLive] = useState(false)
+  const [focusingLive, setFocusingLive] = useState(false)
   const [faceStatus, setFaceStatus] = useState('idle')
   const [faceConfidence, setFaceConfidence] = useState(null)
 
@@ -223,49 +224,66 @@ function MobilePresensiPage() {
   }, [mode])
 
   // Deteksi wajah live pada kamera saat mode face aktif dengan penstabil (hysteresis)
+  // Menampilkan jeda fokus 1-2 detik terlebih dahulu agar viewfinder kamera terasa instan tanpa freeze
   useEffect(() => {
     if (mode !== 'face' || !kamera.aktif) {
       setFaceDetectedLive(false)
+      setFocusingLive(false)
       return undefined
     }
+
     let cancelled = false
     let isDetecting = false
     let missCount = 0
-    let interval = null
+    let rafId = null
 
-    // Beri jeda 700ms agar viewfinder kamera terbuka lancar di awal tanpa lag WebGL
+    // Berikan efek UI 'Sedang memfokuskan...' selama 1.5 detik saat kamera pertama bermain
+    setFocusingLive(true)
+
     const startTimer = setTimeout(() => {
       if (cancelled) return
-      interval = setInterval(async () => {
+      setFocusingLive(false)
+
+      // Loop deteksi face-api.js di dalam loop requestAnimationFrame
+      const tick = async () => {
+        if (cancelled) return
+
         const video = kamera.videoRef?.current
-        if (!video || video.readyState < 2 || cancelled || isDetecting) return
-        isDetecting = true
-        try {
-          const res = await detectSingleFaceAndDescriptor(video, { inputSize: 224, scoreThreshold: 0.45 })
-          if (!cancelled) {
-            if (res?.detected) {
-              missCount = 0
-              setFaceDetectedLive(true)
-            } else {
-              missCount += 1
-              // Menghindari kedipan (flickering): hanya ubah status jika 2 frame berturut-turut tidak ada wajah
-              if (missCount >= 2) {
-                setFaceDetectedLive(false)
+        if (video && video.readyState >= 2 && !isDetecting) {
+          isDetecting = true
+          try {
+            const res = await detectSingleFaceAndDescriptor(video, { inputSize: 224, scoreThreshold: 0.45 })
+            if (!cancelled) {
+              if (res?.detected) {
+                missCount = 0
+                setFaceDetectedLive(true)
+              } else {
+                missCount += 1
+                // Menghindari kedipan (flickering): hanya ubah status jika 2 frame berturut-turut tidak ada wajah
+                if (missCount >= 2) {
+                  setFaceDetectedLive(false)
+                }
               }
             }
+          } catch {
+            // Frame skip
+          } finally {
+            isDetecting = false
           }
-        } catch {
-          // Frame skip
-        } finally {
-          isDetecting = false
         }
-      }, 500)
-    }, 700)
+
+        if (!cancelled) {
+          rafId = requestAnimationFrame(tick)
+        }
+      }
+
+      rafId = requestAnimationFrame(tick)
+    }, 1500)
 
     return () => {
       cancelled = true
       clearTimeout(startTimer)
-      if (interval) clearInterval(interval)
+      if (rafId) cancelAnimationFrame(rafId)
     }
   }, [mode, kamera.aktif, kamera.videoRef])
 
@@ -780,6 +798,7 @@ function MobilePresensiPage() {
                 faceStatus={faceStatus}
                 faceDetected={faceDetectedLive}
                 faceConfidence={faceConfidence}
+                focusing={focusingLive}
               />
             </div>
           </div>

@@ -51,32 +51,36 @@ function CameraLayer({ videoRef, cameraAktif, children, rounded = 'rounded-full'
   )
 }
 
-function FaceFrame({ videoRef, cameraAktif, initials, captured, faceStatus = 'idle', faceDetected = false, faceConfidence }) {
+function FaceFrame({ videoRef, cameraAktif, initials, captured, faceStatus = 'idle', faceDetected = false, faceConfidence, focusing = false }) {
   const isMismatch = faceStatus === 'mismatched'
   const isMatch = faceStatus === 'matched' || captured
 
   return (
     <div
       className={`relative w-56 h-56 rounded-full p-2 bg-gradient-to-b from-[#181d48] via-[#252e6d] to-[#323d8f]/40 shadow-inner flex items-center justify-center transition-all duration-300 ${
-        isMismatch
-          ? 'ring-4 ring-rose-500 shadow-rose-500/40'
-          : isMatch
-            ? 'ring-4 ring-emerald-500 shadow-emerald-500/40'
-            : faceDetected
-              ? 'ring-2 ring-emerald-400/80'
-              : ''
+        focusing
+          ? 'ring-2 ring-amber-400 shadow-amber-400/30'
+          : isMismatch
+            ? 'ring-4 ring-rose-500 shadow-rose-500/40'
+            : isMatch
+              ? 'ring-4 ring-emerald-500 shadow-emerald-500/40'
+              : faceDetected
+                ? 'ring-2 ring-emerald-400/80'
+                : ''
       }`}
     >
       {cameraAktif && (
         <span
           className={`absolute -inset-3 rounded-full blur-xl pointer-events-none transition-colors duration-300 ${
-            isMismatch
-              ? 'bg-rose-500/30 animate-pulse'
-              : isMatch
-                ? 'bg-emerald-400/25 animate-sp-glow'
-                : faceDetected
-                  ? 'bg-emerald-400/20 animate-pulse'
-                  : 'bg-emerald-400/15 animate-sp-glow'
+            focusing
+              ? 'bg-amber-400/20 animate-pulse'
+              : isMismatch
+                ? 'bg-rose-500/30 animate-pulse'
+                : isMatch
+                  ? 'bg-emerald-400/25 animate-sp-glow'
+                  : faceDetected
+                    ? 'bg-emerald-400/20 animate-pulse'
+                    : 'bg-emerald-400/15 animate-sp-glow'
           }`}
         />
       )}
@@ -113,26 +117,32 @@ function FaceFrame({ videoRef, cameraAktif, initials, captured, faceStatus = 'id
           </svg>
         </div>
 
-        <CornerBrackets tone={isMismatch ? 'border-rose-400' : isMatch ? 'border-emerald-400' : 'border-emerald-400'} />
+        <CornerBrackets tone={focusing ? 'border-amber-300' : isMismatch ? 'border-rose-400' : isMatch ? 'border-emerald-400' : 'border-emerald-400'} />
         <ScanLine />
         {isMatch && <div className="absolute inset-0 bg-emerald-500/25 animate-sp-fade" />}
         {isMismatch && <div className="absolute inset-0 bg-rose-500/35 animate-pulse" />}
       </CameraLayer>
 
       {/* Floating Status Pill */}
-      {isMismatch && (
+      {focusing && !isMatch && !isMismatch && (
+        <span className="absolute -bottom-2.5 inset-x-0 mx-auto w-fit px-3 py-1 rounded-full bg-amber-600 text-white font-label-sm text-[11px] font-bold shadow-md animate-pulse flex items-center gap-1.5 z-10">
+          <Icon name="center_focus_strong" className="text-[14px] animate-spin" />
+          Sedang memfokuskan...
+        </span>
+      )}
+      {!focusing && isMismatch && (
         <span className="absolute -bottom-2.5 inset-x-0 mx-auto w-fit px-3 py-1 rounded-full bg-rose-600 text-white font-label-sm text-xs font-bold shadow-md animate-bounce flex items-center gap-1 z-10">
           <Icon name="block" className="text-[14px]" />
           Akses Ditolak
         </span>
       )}
-      {isMatch && !isMismatch && (
+      {!focusing && isMatch && !isMismatch && (
         <span className="absolute -bottom-2.5 inset-x-0 mx-auto w-fit px-3 py-1 rounded-full bg-emerald-600 text-white font-label-sm text-xs font-bold shadow-md flex items-center gap-1 z-10">
           <Icon name="verified" className="text-[14px]" />
           Wajah Cocok {faceConfidence ? `(${faceConfidence}%)` : ''}
         </span>
       )}
-      {!isMatch && !isMismatch && faceDetected && (
+      {!focusing && !isMatch && !isMismatch && faceDetected && (
         <span className="absolute -bottom-2 inset-x-0 mx-auto w-fit px-2.5 py-0.5 rounded-full bg-[#323d8f] text-white font-label-sm text-[11px] font-medium shadow-sm flex items-center gap-1 z-10">
           <Icon name="face" className="text-[13px]" />
           Wajah Terdeteksi
@@ -195,6 +205,7 @@ function ScanFrame({
   faceStatus = 'idle',
   faceDetected = false,
   faceConfidence,
+  focusing = false,
 }) {
   const labelKamera = facing === 'user' ? 'kamera depan' : 'kamera belakang'
   const hint =
@@ -207,7 +218,7 @@ function ScanFrame({
       <div className="w-full flex items-center justify-between gap-2">
         <div className="flex items-center gap-1.5 text-emerald-700 font-label-sm text-label-sm">
           <span className={`w-2 h-2 rounded-full ${cameraAktif ? 'bg-emerald-500' : 'bg-amber-400'}`} />
-          <span>{cameraAktif ? 'Sensor Siap' : cameraStatus === 'meminta' ? 'Menyiapkan Kamera' : 'Mode Tampilan'}</span>
+          <span>{cameraAktif ? (focusing ? 'Memfokuskan Kamera' : 'Sensor Siap') : cameraStatus === 'meminta' ? 'Menyiapkan Kamera' : 'Mode Tampilan'}</span>
         </div>
         <button
           type="button"
@@ -237,6 +248,7 @@ function ScanFrame({
           faceStatus={faceStatus}
           faceDetected={faceDetected}
           faceConfidence={faceConfidence}
+          focusing={focusing}
         />
       )}
 
