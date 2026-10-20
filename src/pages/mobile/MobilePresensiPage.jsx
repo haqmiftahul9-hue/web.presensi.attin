@@ -21,10 +21,12 @@ import { ErrorState, LoadingState } from '../../components/mobile/Feedback.jsx'
 import { FaceEnrollmentModal } from '../../components/mobile/FaceEnrollmentModal.jsx'
 import {
   getRegisteredFaceData,
+  getRegisteredFaceDataFromSupabase,
   detectSingleFaceAndDescriptor,
   compareFaceDescriptors,
   loadFaceApiModels,
   isFaceApiLoaded,
+  uploadFaceProofPhoto,
 } from '../../services/faceRecognitionService.js'
 
 const TABS = [
@@ -202,11 +204,24 @@ function MobilePresensiPage() {
 
   useEffect(() => () => clearTimeout(timerRef.current), [])
 
-  // Selaraskan data wajah terdaftar saat data staff diperbarui di store
+  // Selaraskan data wajah terdaftar saat data staff diperbarui di store.
+  // Coba ambil dari Supabase terlebih dahulu, fallback ke localStorage.
   useEffect(() => {
-    if (staff) {
-      setRegisteredFace(getRegisteredFaceData(staff))
+    if (!staff) return
+    let mounted = true
+    const sync = async () => {
+      // Coba Supabase async terlebih dahulu
+      const supabaseData = await getRegisteredFaceDataFromSupabase(staff)
+      if (!mounted) return
+      if (supabaseData) {
+        setRegisteredFace(supabaseData)
+      } else {
+        // Fallback ke localStorage / store
+        setRegisteredFace(getRegisteredFaceData(staff))
+      }
     }
+    sync()
+    return () => { mounted = false }
   }, [staff])
 
   // Ganti mode (wajah <-> barcode) mengembalikan langkah ke keadaan semula dan
@@ -420,7 +435,19 @@ function MobilePresensiPage() {
 
     // Jika mode Face Recognition, kamera aktif, dan wajah terdaftar: jalankan pencocokan real-time dengan Face-api
     if (mode === 'face') {
-      const curRegistered = registeredFace || getRegisteredFaceData(staff)
+      // Coba ambil descriptor dari Supabase dulu, fallback ke store/localStorage
+      let curRegistered = registeredFace
+      if (!curRegistered?.descriptor) {
+        try {
+          curRegistered = await getRegisteredFaceDataFromSupabase(staff)
+        } catch {
+          // diabaikan
+        }
+      }
+      if (!curRegistered?.descriptor) {
+        curRegistered = getRegisteredFaceData(staff)
+      }
+
       if (!curRegistered?.descriptor) {
         setStatusPenutup('gagal')
         setPesanPenutup('Wajah belum terdaftar. Silakan daftarkan wajah Anda terlebih dahulu melalui tombol "Daftarkan Wajah Sekarang".')
@@ -444,6 +471,17 @@ function MobilePresensiPage() {
                 judul: 'Validasi Wajah',
                 detail: `Wajah cocok ${comp.confidence}% dengan data biometrik ${staff.niy} (${staff.name})`,
               }
+              // Upload foto bukti presensi: crop wajah → WebP 0.5 → Supabase Storage
+              // Jalankan secara background (tidak menghambat alur presensi)
+              uploadFaceProofPhoto(staff, kamera.videoRef.current, det.box)
+                .then((photoUrl) => {
+                  if (photoUrl) {
+                    console.info('[FaceRec] Foto bukti presensi terupload:', photoUrl)
+                  }
+                })
+                .catch((err) => {
+                  console.warn('[FaceRec] Upload foto bukti presensi gagal (non-fatal):', err)
+                })
             } else {
               setFaceStatus('mismatched')
               setFaceConfidence(comp.confidence)

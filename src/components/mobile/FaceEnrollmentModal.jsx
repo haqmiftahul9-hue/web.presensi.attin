@@ -5,6 +5,7 @@ import {
   isFaceApiLoaded,
   detectSingleFaceAndDescriptor,
   captureVideoFrame,
+  saveRegisteredFaceDataToSupabase,
   saveRegisteredFaceData,
 } from '../../services/faceRecognitionService.js'
 
@@ -428,12 +429,15 @@ export function FaceEnrollmentModal({
         return
       }
 
-      // Simpan data pendaftaran ke LocalStorage & beri tahu caller
-      const record = saveRegisteredFaceData({
-        staff,
-        descriptor,
-        photo,
-      })
+      // Simpan data pendaftaran ke Supabase DB (utama) dan localStorage (cache)
+      let record
+      try {
+        record = await saveRegisteredFaceDataToSupabase({ staff, descriptor, photo })
+      } catch (supabaseErr) {
+        console.warn('[FaceEnrollment] Supabase save gagal, fallback ke localStorage:', supabaseErr)
+        // Fallback ke localStorage jika Supabase gagal atau tidak dikonfigurasi
+        record = saveRegisteredFaceData({ staff, descriptor, photo })
+      }
 
       setSuccessData(record)
       setStatusMessage('Wajah berhasil didaftarkan!')

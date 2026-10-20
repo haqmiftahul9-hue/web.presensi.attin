@@ -1,14 +1,17 @@
 /**
  * Layanan Face Recognition Client-Side menggunakan Face-api.js (@vladmandic/face-api).
- * 
+ *
  * Fitur:
  * 1. Pemuatan model offline dari /models/face-api (TinyFaceDetector, Landmark68, FaceRecognition).
  * 2. Deteksi wajah real-time pada video kamera atau elemen gambar.
  * 3. Ekstraksi vektor deskriptor biometrik 128 dimensi.
- * 4. Pendaftaran wajah pengguna (Enrollment) tersimpan ke Store & LocalStorage.
- * 5. Pencocokan wajah (Verification) dengan perbandingan jarak Euclidean.
- * 6. Validasi ketat: jika wajah tidak cocok, tolak dengan pesan "Akses Ditolak/Wajah Tidak Cocok".
+ * 4. Pendaftaran wajah: simpan ke Supabase Database (public.staff_faces), fallback localStorage.
+ * 5. Pencocokan wajah (Verification) dengan perbandingan jarak Euclidean via faceapi.euclideanDistance.
+ * 6. Bukti foto presensi: crop area wajah → WebP 0.5 → upload ke Supabase Storage bucket face-snapshots.
+ * 7. Validasi ketat: jika wajah tidak cocok, tolak dengan pesan "Akses Ditolak/Wajah Tidak Cocok".
  */
+
+import { supabase, isSupabaseConfigured } from '../lib/supabaseClient.js'
 
 let faceapiPromise = null
 let modelsLoaded = false
@@ -215,11 +218,115 @@ export function captureVideoFrame(videoElement, quality = 0.88) {
   return canvas.toDataURL('image/jpeg', quality)
 }
 
-// Key format untuk penyimpanan pendaftaran wajah di localStorage
+// Key format untuk penyimpanan pendaftaran wajah di localStorage (fallback)
 const STORAGE_PREFIX = 'attin_face_reg_'
 
+// ============================================================================
+// SUPABASE DB: Baca & Tulis Face Descriptor ke tabel public.staff_faces
+// ============================================================================
+
 /**
- * Mengambil data pendaftaran wajah tersimpan berdasarkan NIY atau staffId.
+ * Mengambil data descriptor wajah dari Supabase Database (tabel staff_faces).
+ * Mengembalikan object { niy, staffId, name, descriptor, photo, registeredAt }
+ * atau null jika belum terdaftar.
+ *
+ * @param {object} staff - objek staff dengan .id dan .niy
+ * @returns {Promise<object|null>}
+ */
+export async function getRegisteredFaceDataFromSupabase(staff) {
+  if (!staff || !isSupabaseConfigured || !supabase) return null
+  try {
+    const { data, error } = await supabase
+      .from('staff_faces')
+      .select('staff_id, niy, name, descriptor, photo_url, registered_at')
+      .eq('staff_id', staff.id)
+      .maybeSingle()
+
+    if (error || !data) return null
+    const descriptor = Array.isArray(data.descriptor)
+      ? data.descriptor
+      : Object.values(data.descriptor)
+    if (!descriptor || descriptor.length !== 128) return null
+
+    return {
+      niy: data.niy,
+      staffId: data.staff_id,
+      name: data.name,
+      descriptor,
+      photo: data.photo_url || null,
+      registeredAt: data.registered_at || null,
+    }
+  } catch (err) {
+    console.warn('[FaceRec] Gagal membaca face descriptor dari Supabase:', err)
+    return null
+  }
+}
+
+/**
+ * Menyimpan / memperbarui descriptor wajah ke Supabase Database (upsert).
+ * Juga menyimpan ke localStorage sebagai cache lokal.
+ *
+ * @param {{ staff: object, descriptor: number[]|Float32Array, photo?: string|null }} param
+ * @returns {Promise<object>} record yang tersimpan
+ */
+export async function saveRegisteredFaceDataToSupabase({ staff, descriptor, photo }) {
+  if (!staff) throw new Error('Data staff diperlukan untuk menyimpan face descriptor')
+
+  const descriptorArr = Array.isArray(descriptor) ? descriptor : Array.from(descriptor)
+  if (descriptorArr.length !== 128) {
+    throw new Error('Descriptor wajah harus 128 dimensi (Float32Array dari face-api.js)')
+  }
+
+  const record = {
+    niy: staff.niy,
+    staffId: staff.id,
+    name: staff.name,
+    descriptor: descriptorArr,
+    photo: photo || null,
+    registeredAt: new Date().toISOString(),
+  }
+
+  // 1. Simpan ke Supabase DB (utama)
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const { error } = await supabase.from('staff_faces').upsert(
+        {
+          staff_id: staff.id,
+          niy: staff.niy,
+          name: staff.name,
+          descriptor: descriptorArr,
+          photo_url: photo || null,
+        },
+        { onConflict: 'staff_id' },
+      )
+      if (error) {
+        console.warn('[FaceRec] Upsert Supabase gagal, fallback ke localStorage:', error.message)
+      }
+    } catch (err) {
+      console.warn('[FaceRec] Error upsert Supabase:', err)
+    }
+  }
+
+  // 2. Selalu simpan ke localStorage sebagai cache offline
+  try {
+    if (typeof window !== 'undefined') {
+      const key = `${STORAGE_PREFIX}${staff.niy || staff.id}`
+      window.localStorage.setItem(key, JSON.stringify(record))
+    }
+  } catch (err) {
+    console.warn('[FaceRec] Gagal menyimpan cache wajah ke localStorage:', err)
+  }
+
+  return record
+}
+
+// ============================================================================
+// LEGACY API: Tetap dipertahankan agar backward-compatible dengan tests & store
+// ============================================================================
+
+/**
+ * Mengambil data pendaftaran wajah tersimpan (sinkron dari store/localStorage).
+ * Untuk pengambilan dari Supabase gunakan getRegisteredFaceDataFromSupabase().
  */
 export function getRegisteredFaceData(staff) {
   if (typeof window === 'undefined' || !staff) return null
@@ -236,7 +343,7 @@ export function getRegisteredFaceData(staff) {
     }
   }
 
-  // 2. Cek dari LocalStorage dengan kunci NIY
+  // 2. Cek dari LocalStorage dengan kunci NIY (cache offline)
   try {
     const key = `${STORAGE_PREFIX}${staff.niy || staff.id}`
     const raw = window.localStorage.getItem(key)
@@ -254,7 +361,8 @@ export function getRegisteredFaceData(staff) {
 }
 
 /**
- * Menyimpan data pendaftaran wajah ke LocalStorage dan mengembalikan objek registrasi.
+ * Menyimpan data pendaftaran wajah ke LocalStorage (sinkron, untuk legacy/test).
+ * Untuk penyimpanan ke Supabase, gunakan saveRegisteredFaceDataToSupabase().
  */
 export function saveRegisteredFaceData({ staff, descriptor, photo }) {
   if (typeof window === 'undefined' || !staff) return null
@@ -289,6 +397,101 @@ export function deleteRegisteredFaceData(staff) {
     return true
   } catch {
     return false
+  }
+}
+
+// ============================================================================
+// FACE PROOF PHOTO: Crop wajah dari video → WebP → Upload ke Supabase Storage
+// ============================================================================
+
+/**
+ * Crop area wajah dari elemen video berdasarkan bounding box face-api.
+ * Mengembalikan elemen HTMLCanvasElement yang berisi potongan wajah.
+ *
+ * @param {HTMLVideoElement} videoElement
+ * @param {{ x: number, y: number, width: number, height: number }} box - bounding box dari detection
+ * @param {number} padding - padding piksel di sekitar wajah (default 20)
+ * @returns {HTMLCanvasElement|null}
+ */
+export function cropFaceFromVideo(videoElement, box, padding = 20) {
+  if (!videoElement || !box) return null
+  const vw = videoElement.videoWidth || 640
+  const vh = videoElement.videoHeight || 480
+
+  // Terapkan padding, clamp ke batas video
+  const x = Math.max(0, Math.floor(box.x - padding))
+  const y = Math.max(0, Math.floor(box.y - padding))
+  const w = Math.min(vw - x, Math.ceil(box.width + padding * 2))
+  const h = Math.min(vh - y, Math.ceil(box.height + padding * 2))
+
+  if (w <= 0 || h <= 0) return null
+
+  const canvas = document.createElement('canvas')
+  canvas.width = w
+  canvas.height = h
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return null
+
+  ctx.drawImage(videoElement, x, y, w, h, 0, 0, w, h)
+  return canvas
+}
+
+/**
+ * Crop area wajah, kompres ke WebP 0.5, upload ke Supabase Storage bucket face-snapshots.
+ * Target ukuran file < 30KB.
+ *
+ * @param {{ id: number|string, niy: string, name: string }} staff
+ * @param {HTMLVideoElement} videoElement
+ * @param {{ x: number, y: number, width: number, height: number }} detectionBox - dari result.box
+ * @returns {Promise<string|null>} URL publik file yang di-upload, atau null jika gagal
+ */
+export async function uploadFaceProofPhoto(staff, videoElement, detectionBox) {
+  if (!isSupabaseConfigured || !supabase) {
+    console.warn('[FaceRec] Supabase tidak dikonfigurasi, skip upload foto bukti presensi.')
+    return null
+  }
+  if (!videoElement || !detectionBox) return null
+
+  try {
+    // 1. Crop wajah dari video frame
+    const faceCanvas = cropFaceFromVideo(videoElement, detectionBox, 20)
+    if (!faceCanvas) return null
+
+    // 2. Kompres ke WebP kualitas 0.5 (target < 30KB)
+    const dataUrl = faceCanvas.toDataURL('image/webp', 0.5)
+    if (!dataUrl || dataUrl === 'data:,') return null
+
+    // 3. Konversi data URL ke Blob
+    const response = await fetch(dataUrl)
+    const blob = await response.blob()
+
+    // 4. Buat nama file unik berdasarkan NIY + timestamp
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
+    const filePath = `proof/${staff.niy}/${timestamp}.webp`
+
+    // 5. Upload ke Supabase Storage bucket 'face-snapshots'
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('face-snapshots')
+      .upload(filePath, blob, {
+        contentType: 'image/webp',
+        cacheControl: '3600',
+        upsert: false,
+      })
+
+    if (uploadError) {
+      console.warn('[FaceRec] Gagal upload foto bukti presensi:', uploadError.message)
+      return null
+    }
+
+    // 6. Ambil URL publik (signed URL selama 1 tahun untuk audit)
+    const { data: urlData } = supabase.storage
+      .from('face-snapshots')
+      .getPublicUrl(uploadData?.path || filePath)
+
+    return urlData?.publicUrl || null
+  } catch (err) {
+    console.warn('[FaceRec] Error upload foto bukti presensi:', err)
+    return null
   }
 }
 

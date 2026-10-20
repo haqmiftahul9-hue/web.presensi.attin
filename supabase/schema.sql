@@ -551,6 +551,7 @@ ON public.staff_faces FOR SELECT USING (
   public.get_current_user_role() = 'Superadmin'
   OR (public.get_current_user_role() = 'Guru' AND staff_id = public.get_current_staff_id())
   OR public.get_current_user_role() IN ('Admin Unit', 'Petugas Presensi')
+  OR auth.uid() IS NULL  -- izin baca untuk anon (mobile app tanpa login Supabase)
 );
 
 DROP POLICY IF EXISTS "Pendaftaran wajah dapat dilakukan oleh user yang bersangkutan atau Admin" ON public.staff_faces;
@@ -558,6 +559,7 @@ CREATE POLICY "Pendaftaran wajah dapat dilakukan oleh user yang bersangkutan ata
 ON public.staff_faces FOR ALL USING (
   public.get_current_user_role() IN ('Superadmin', 'Admin Unit')
   OR (public.get_current_user_role() = 'Guru' AND staff_id = public.get_current_staff_id())
+  OR auth.uid() IS NULL  -- izin upsert untuk anon (pendaftaran wajah via mobile app)
 );
 
 -- 15.6 Users Policies
@@ -675,6 +677,15 @@ FOR INSERT WITH CHECK (bucket_id = 'face-snapshots' AND auth.role() = 'authentic
 
 CREATE POLICY "Auth Read Face Snapshots" ON storage.objects
 FOR SELECT USING (bucket_id = 'face-snapshots' AND auth.role() = 'authenticated');
+
+-- Izin anon untuk upload & baca face-snapshots (mobile app presensi tanpa Supabase Auth login)
+DROP POLICY IF EXISTS "Anon Upload Face Snapshots" ON storage.objects;
+CREATE POLICY "Anon Upload Face Snapshots" ON storage.objects
+FOR INSERT WITH CHECK (bucket_id = 'face-snapshots' AND auth.role() = 'anon');
+
+DROP POLICY IF EXISTS "Anon Read Face Snapshots" ON storage.objects;
+CREATE POLICY "Anon Read Face Snapshots" ON storage.objects
+FOR SELECT USING (bucket_id = 'face-snapshots' AND auth.role() = 'anon');
 
 CREATE POLICY "Auth Upload Leave Attachments" ON storage.objects
 FOR INSERT WITH CHECK (bucket_id = 'leave-attachments' AND auth.role() = 'authenticated');
