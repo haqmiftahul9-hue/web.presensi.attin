@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { cardPhotoOf } from '../../data/employeeCard.js'
 import { initialsOf } from '../../store/simPresStore.jsx'
 
@@ -17,6 +17,11 @@ function StaffAvatar({
   const [gagalMuat, setGagalMuat] = useState(false)
   const foto = cardPhotoOf(staff)
   const nama = staff?.name || 'Pegawai'
+
+  // Reset status gagal saat foto berubah (mis. setelah upload foto baru)
+  useEffect(() => {
+    setGagalMuat(false)
+  }, [foto])
 
   if (foto && !gagalMuat) {
     return (
