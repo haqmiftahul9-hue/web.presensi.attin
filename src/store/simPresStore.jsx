@@ -501,10 +501,24 @@ export function getInitialSettings() {
 export function getInitialStaff() {
   const baseStaff = buildFullStaff()
   const savedStaff = readPersistedItem(PERSISTED_STAFF_KEY, null)
+  const today = new Date()
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+
   if (!savedStaff || !Array.isArray(savedStaff) || savedStaff.length === 0) return baseStaff
   return baseStaff.map((s) => {
     const saved = savedStaff.find((p) => p.id === s.id || (p.niy && p.niy === s.niy))
-    return saved ? { ...s, ...saved } : s
+    if (!saved) return s
+    const isToday = saved.attendanceDate === todayStr
+    return {
+      ...s,
+      ...saved,
+      masuk: isToday ? (saved.masuk || null) : null,
+      pulang: isToday ? (saved.pulang || null) : null,
+      method: isToday ? (saved.method || null) : null,
+      pulangMethod: isToday ? (saved.pulangMethod || null) : null,
+      lateMinutes: isToday ? (saved.lateMinutes || 0) : 0,
+      latePulangMinutes: isToday ? (saved.latePulangMinutes || 0) : 0,
+    }
   })
 }
 
@@ -516,13 +530,13 @@ function buildInitialAttendanceHistory(staff, trend30) {
   const history = []
   const activeStaff = staff.filter(s => s.status === 'Aktif')
 
-  // Riwayat 30 hari terakhir. Jam masuk, lateMinutes, dan status setiap baris
-  // dihitung calculateAttendanceStatus() terhadap hari yang sedang digenerate,
-  // jadi hari Sabtu (batas 07:30) dan hari kerja lain (batas 07:10) otomatis
-  // memakai aturan jam kerjanya masing-masing.
+  // Riwayat 30 hari terakhir (kemarin dan hari-hari sebelumnya, tidak termasuk hari ini).
+  // Jam masuk, lateMinutes, dan status setiap baris dihitung calculateAttendanceStatus()
+  // terhadap hari yang sedang digenerate, jadi hari Sabtu (batas 07:30) dan hari kerja lain
+  // (batas 07:10) otomatis memakai aturan jam kerjanya masing-masing.
   trend30.forEach((day, dayIndex) => {
     const date = new Date()
-    date.setDate(date.getDate() - (29 - dayIndex))
+    date.setDate(date.getDate() - (30 - dayIndex))
     const rules = jamKerjaRules(date)
     if (!rules.hariKerja) return
     const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
@@ -951,19 +965,22 @@ logs: [
         lateMinutes: hasilCheckIn.lateMinutes,
         status: hasilCheckIn.status,
       } : null
+      const nextStaffCheckIn = state.staff.map((s) =>
+        s.id === action.payload.id
+          ? {
+              ...s,
+              masuk: action.payload.masuk,
+              method: action.payload.method,
+              lateMinutes: hasilCheckIn.lateMinutes,
+              status: 'Aktif',
+              attendanceDate: hasilCheckIn.tanggal,
+            }
+          : s,
+      )
+      writePersistedItem(PERSISTED_STAFF_KEY, nextStaffCheckIn)
       return {
         ...state,
-        staff: state.staff.map((s) =>
-          s.id === action.payload.id
-            ? {
-                ...s,
-                masuk: action.payload.masuk,
-                method: action.payload.method,
-                lateMinutes: hasilCheckIn.lateMinutes,
-                status: 'Aktif',
-              }
-            : s,
-        ),
+        staff: nextStaffCheckIn,
         logs: [
           {
             id: Date.now(),
@@ -990,18 +1007,20 @@ logs: [
       // Jumat tidak punya batas minimal jam pulang: calculateCheckoutStatus()
       // yang memutuskan, bukan Comparing jam secara manual di sini.
       const hasilPulang = calculateCheckoutStatus(new Date(), action.payload.pulang ?? null)
+      const nextStaffCheckOut = state.staff.map((s) =>
+        s.id === action.payload.id
+          ? {
+              ...s,
+              pulang: action.payload.pulang,
+              pulangMethod: action.payload.method || s.pulangMethod || null,
+              latePulangMinutes: hasilPulang.terlambatPulang || 0,
+            }
+          : s,
+      )
+      writePersistedItem(PERSISTED_STAFF_KEY, nextStaffCheckOut)
       return {
         ...state,
-        staff: state.staff.map((s) =>
-          s.id === action.payload.id
-            ? {
-                ...s,
-                pulang: action.payload.pulang,
-                pulangMethod: action.payload.method || s.pulangMethod || null,
-                latePulangMinutes: hasilPulang.terlambatPulang || 0,
-              }
-            : s,
-        ),
+        staff: nextStaffCheckOut,
         logs: [
           {
             id: Date.now(),
