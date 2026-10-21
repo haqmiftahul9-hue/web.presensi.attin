@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Icon from '../../components/Icon.jsx'
 import {
   FIELD_PROFIL, FIELD_TERKUNCI, FIELD_FOTO,
@@ -8,6 +8,7 @@ import {
 import { getEmployeeGreeting } from '../../data/sapaanPegawai.js'
 import { Spinner } from '../../components/mobile/Feedback.jsx'
 import { uploadStaffPhoto, deleteStaffPhoto } from '../../services/photoStorageService.js'
+import { useSimPresOptional } from '../../store/simPresStore.jsx'
 
 const FIELD =
   'sp-field px-3.5 py-2.5 bg-white border border-slate-200/80 rounded-xl text-body-md text-slate-900 outline-none focus:border-[#323d8f] focus:ring-2 focus:ring-[#323d8f]/20 transition-all'
@@ -28,13 +29,23 @@ const LABEL = 'font-label-sm text-label-sm text-on-surface-variant mb-2 block'
  * Superadmin, jadi tidak ada salinan profil terpisah.
  */
 export function FormEditProfil({ staff, unit, onSimpan, onBatal }) {
+  const ctx = useSimPresOptional()
+  const dispatch = ctx?.dispatch
   const [isian, setIsian] = useState(() => isianAwalProfil(staff))
   const [foto, setFoto] = useState(staff?.[FIELD_FOTO.key] || '')
   const [fotoDiubah, setFotoDiubah] = useState(false)
   const [galat, setGalat] = useState({})
   const [pesan, setPesan] = useState('')
   const [sibuk, setSibuk] = useState(false)
+  const [uploadingFoto, setUploadingFoto] = useState(false)
   const inputFoto = useRef(null)
+
+  // Selaraskan foto saat data staff berubah di store
+  useEffect(() => {
+    if (staff?.foto !== undefined) {
+      setFoto(staff.foto || '')
+    }
+  }, [staff?.foto])
 
   /** Pratinjau perubahan sebelum disimpan, supaya jelas apa yang akan berubah. */
   const ringkasan = ringkasPerubahanProfil(
@@ -50,24 +61,69 @@ export function FormEditProfil({ staff, unit, onSimpan, onBatal }) {
   async function pilihFoto(event) {
     const berkas = event.target.files?.[0]
     if (!berkas) return
+    if (berkas.size > MAKS_FOTO_BYTES) {
+      setGalat((g) => ({
+        ...g,
+        foto: `Ukuran foto maksimal ${Math.round(MAKS_FOTO_BYTES / (1024 * 1024))} MB.`,
+      }))
+      if (event.target) event.target.value = ''
+      return
+    }
+
+    setUploadingFoto(true)
+    setPesan('Mengunggah foto profil ke Supabase...')
+    setGalat((g) => ({ ...g, foto: '' }))
+
     try {
       const dataUrl = await bacaFoto(berkas)
-      setFoto(dataUrl)
+      const fotoUrl = await uploadStaffPhoto(staff, dataUrl)
+      const finalFoto = fotoUrl || dataUrl
+      setFoto(finalFoto)
       setFotoDiubah(true)
-      setPesan('')
+      if (dispatch) {
+        dispatch({
+          type: 'UPDATE_STAFF_PROFILE',
+          payload: { foto: finalFoto },
+        })
+      }
+      setPesan('Foto profil berhasil diperbarui dan tersimpan di Supabase.')
       setGalat((g) => ({ ...g, foto: '' }))
     } catch (error) {
-      setGalat((g) => ({ ...g, foto: error?.message || 'Foto gagal dimuat.' }))
+      console.warn('Gagal membaca/mengunggah foto:', error)
+      setGalat((g) => ({ ...g, foto: error?.message || 'Foto gagal dibaca.' }))
     } finally {
+      setUploadingFoto(false)
       if (event.target) event.target.value = ''
     }
   }
 
-  function hapusFoto() {
-    setFoto('')
-    setFotoDiubah(true)
-    setPesan('')
+  async function hapusFoto() {
+    if (!window.confirm('Apakah Anda yakin ingin menghapus foto profil ini?')) return
+    setUploadingFoto(true)
+    setPesan('Menghapus foto profil...')
     setGalat((g) => ({ ...g, foto: '' }))
+
+    try {
+      const targetFoto = staff?.foto || foto
+      if (targetFoto) {
+        await deleteStaffPhoto(staff, targetFoto)
+      }
+      setFoto('')
+      setFotoDiubah(true)
+      if (dispatch) {
+        dispatch({
+          type: 'UPDATE_STAFF_PROFILE',
+          payload: { foto: '' },
+        })
+      }
+      setPesan('Foto profil berhasil dihapus.')
+      setGalat((g) => ({ ...g, foto: '' }))
+    } catch (error) {
+      console.warn('Gagal menghapus foto profil:', error)
+      setGalat((g) => ({ ...g, foto: error?.message || 'Gagal menghapus foto profil.' }))
+    } finally {
+      setUploadingFoto(false)
+    }
   }
 
   async function simpan(event) {
@@ -83,20 +139,7 @@ export function FormEditProfil({ staff, unit, onSimpan, onBatal }) {
     setSibuk(true)
     setPesan('')
     try {
-      // Foto diunggah ke Supabase Storage (bucket avatars) jika ada perubahan foto
-      if (fotoDiubah) {
-        let finalFoto = foto
-        if (foto) {
-          setPesan('Menyimpan foto ke Supabase Storage...')
-          finalFoto = await uploadStaffPhoto(staff, foto)
-        } else if (staff?.foto) {
-          await deleteStaffPhoto(staff, staff.foto)
-          finalFoto = ''
-        }
-        await onSimpan({ ...isian, foto: finalFoto }, { foto: finalFoto })
-      } else {
-        await onSimpan(isian, {})
-      }
+      await onSimpan({ ...isian, foto }, { foto })
       setPesan('Data pribadi berhasil diperbarui dan langsung masuk ke Data Guru/Pegawai.')
     } catch (error) {
       setPesan(error?.message || 'Data gagal disimpan.')
@@ -117,7 +160,7 @@ export function FormEditProfil({ staff, unit, onSimpan, onBatal }) {
             <img
               src={foto}
               alt={`Foto ${staff?.name || ''}`}
-              className="w-28 h-28 rounded-2xl object-cover border border-outline-variant/40"
+              className="w-28 h-28 rounded-2xl object-cover border border-outline-variant/40 shadow-sm"
             />
           ) : (
             <div className="w-28 h-28 rounded-2xl bg-surface-container flex items-center justify-center">
@@ -125,28 +168,35 @@ export function FormEditProfil({ staff, unit, onSimpan, onBatal }) {
             </div>
           )}
           <div className="flex flex-col items-center gap-2">
-            <label
-              htmlFor="profil-foto"
-              className="sp-press sp-btn px-4 py-2.5 bg-[#323d8f] hover:bg-[#252e6d] text-white rounded-xl shadow-xs font-label-md text-label-md flex items-center gap-1.5 active:scale-[0.98] transition-all cursor-pointer"
-            >
-              <Icon name="photo_camera" className="text-[18px] shrink-0" />
-              {foto ? 'Ganti foto' : 'Unggah foto'}
-            </label>
-            {foto && (
+            <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={hapusFoto}
-                className="sp-press sp-btn px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl shadow-xs font-label-md text-label-md flex items-center gap-1.5 active:scale-[0.98] transition-all cursor-pointer"
+                onClick={() => inputFoto.current?.click()}
+                disabled={uploadingFoto || sibuk}
+                className="sp-press sp-btn px-4 py-2.5 bg-[#323d8f] hover:bg-[#252e6d] text-white rounded-xl shadow-xs font-label-md text-label-md flex items-center gap-1.5 active:scale-[0.98] transition-all cursor-pointer disabled:opacity-60"
               >
-                <Icon name="delete" className="text-[18px] shrink-0" />
-                Hapus foto
+                <Icon
+                  name={uploadingFoto ? 'hourglass_top' : 'photo_camera'}
+                  className={`text-[18px] shrink-0 ${uploadingFoto ? 'animate-spin' : ''}`}
+                />
+                <span>{uploadingFoto ? 'Menyimpan...' : (foto ? 'Ganti foto' : 'Unggah foto')}</span>
               </button>
-            )}
+              {Boolean(foto) && (
+                <button
+                  type="button"
+                  onClick={hapusFoto}
+                  disabled={uploadingFoto || sibuk}
+                  className="sp-press sp-btn px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl shadow-xs font-label-md text-label-md flex items-center gap-1.5 active:scale-[0.98] transition-all cursor-pointer disabled:opacity-60"
+                >
+                  <Icon name="delete" className="text-[18px] shrink-0" />
+                  <span>Hapus foto</span>
+                </button>
+              )}
+            </div>
             <input
               ref={inputFoto}
-              id="profil-foto"
               type="file"
-              accept="image/jpeg,image/png,image/webp"
+              accept="image/jpeg,image/png,image/webp,image/jpg"
               onChange={pilihFoto}
               className="sr-only"
             />

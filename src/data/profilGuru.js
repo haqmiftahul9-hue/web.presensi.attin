@@ -164,7 +164,16 @@ export function bacaFoto(berkas) {
       reject(new Error('Berkas foto tidak dipilih.'))
       return
     }
-    if (!TIPE_FOTO_DITERIMA.includes(berkas.type)) {
+    const type = (berkas.type || '').toLowerCase()
+    const name = (berkas.name || '').toLowerCase()
+    const isImageMime = TIPE_FOTO_DITERIMA.includes(type) ||
+      type === 'image/jpg' ||
+      type === 'image/pjpeg' ||
+      type === 'image/jfif' ||
+      (type.startsWith('image/') && ['jpg', 'jpeg', 'png', 'webp'].some((ext) => type.includes(ext)))
+    const isImageExt = /\.(jpe?g|png|webp)$/i.test(name)
+
+    if (!isImageMime && !isImageExt) {
       reject(new Error('Format foto harus JPG, PNG, atau WebP.'))
       return
     }
@@ -173,7 +182,10 @@ export function bacaFoto(berkas) {
       return
     }
     const pembaca = new FileReader()
-    pembaca.onerror = () => reject(new Error('Foto gagal dibaca.'))
+    pembaca.onerror = () => {
+      console.warn('FileReader error saat membaca foto:', pembaca.error)
+      reject(new Error(pembaca.error?.message || 'Foto gagal dibaca.'))
+    }
     pembaca.onload = () => resolve(String(pembaca.result || ''))
     pembaca.readAsDataURL(berkas)
   })
