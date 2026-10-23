@@ -1,7 +1,6 @@
 // Single source of truth SimPres.
-// Empat unit terdaftar: TK 22 + SD 65 + SMP 48 + SMA 54 = 189 pegawai.
-// (Angka "209" yang pernah tertulis di sini menghitung unit kelima yang sudah
-// tidak ada — UNITS di bawah ini yang jadi acuan.)
+// Empat unit terdaftar: TK 1 + SD 6 + SMP 1 + SMA 0 = 10 pegawai (data uji coba sekolah).
+// Data sintetis (buildFullStaff) tidak lagi dihasilkan; hanya STAFF di atas yang digunakan.
 //
 // Unit TIDAK lagi menyimpan jam masuk/pulang sendiri: jam kerja bersifat global
 // per hari (Senin-Kamis 07:10-16:00, Jumat 07:10 tanpa batas pulang, Sabtu
@@ -12,10 +11,10 @@ import {
 } from './jamKerja.js'
 
 export const UNITS = [
-  { id: 'tk', kode: 'UNT-TK-01', nama: 'TKIT Attin Sumbar', alamat: 'Jl. Cendekia No. 41', radius: 50, total: 22, hadir: 21, icon: 'child_care', latitude: -6.28945, longitude: 106.79234, geofenceActive: true },
-  { id: 'sd', kode: 'UNT-SD-02', nama: 'SDIT Attin Sumbar', alamat: 'Jl. Cendekia No. 43, Cilandak', radius: 75, total: 65, hadir: 61, icon: 'school', latitude: -6.28955, longitude: 106.79244, geofenceActive: true },
-  { id: 'smp', kode: 'UNT-SMP-03', nama: 'SMPIT Attin Sumbar', alamat: 'Jl. Cendekia No. 45', radius: 50, total: 48, hadir: 44, icon: 'school', latitude: -6.28965, longitude: 106.79254, geofenceActive: true },
-  { id: 'sma', kode: 'UNT-SMA-04', nama: 'SMAIT Attin Sumbar', alamat: 'Jl. Cendekia No. 47', radius: 80, total: 54, hadir: 48, icon: 'school', latitude: -6.28975, longitude: 106.79264, geofenceActive: true },
+  { id: 'tk', kode: 'UNT-TK-01', nama: 'TKIT Attin Sumbar', alamat: 'Jl. Cendekia No. 41', radius: 50, total: 1, hadir: 1, icon: 'child_care', latitude: -6.28945, longitude: 106.79234, geofenceActive: true },
+  { id: 'sd', kode: 'UNT-SD-02', nama: 'SDIT Attin Sumbar', alamat: 'Jl. Cendekia No. 43, Cilandak', radius: 75, total: 6, hadir: 6, icon: 'school', latitude: -6.28955, longitude: 106.79244, geofenceActive: true },
+  { id: 'smp', kode: 'UNT-SMP-03', nama: 'SMPIT Attin Sumbar', alamat: 'Jl. Cendekia No. 45', radius: 50, total: 1, hadir: 1, icon: 'school', latitude: -6.28965, longitude: 106.79254, geofenceActive: true },
+  { id: 'sma', kode: 'UNT-SMA-04', nama: 'SMAIT Attin Sumbar', alamat: 'Jl. Cendekia No. 47', radius: 80, total: 2, hadir: 1, icon: 'school', latitude: -6.28975, longitude: 106.79264, geofenceActive: true },
 ]
 
 // Field `foto` dibaca lewat cardPhotoOf() (dipakai Cetak Kartu ID dan modul
@@ -31,6 +30,7 @@ export const STAFF = [
   { id: 7, niy: '049033108', name: 'Hendra Kurniawan, S.Pd.I', role: 'Guru Agama', unitId: 'sd', status: 'Aktif', masuk: null, method: null, lateMinutes: 0, alpha: false, foto: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAjdgkgO9xnqglSqom5PGQPOnWpKDM4PuWSeTuRTW865YOYa64INb-nuOfD2D3VSRbRKOfI6rWrxHBOTbvDf39XGdupMMKKJbVTBVe0sK7FjPqw6lZ0dwGxEfv-s82nKGMMIIrNl-HbHiIvqTpwd0Y8ee1T43iJnyKO2mKjSmQceTIIC-4tcr8UZHwdzhaEpPIbJOepESXnyCXGtlQJvtPkN-5TwXom1lzKUazjmykrK9JSIBB3M0RO', pendidikanAsal: 'UIN Imam Bonjol', nomorIdentitas: '3174012345678907', kontak: '081234567896', email: 'hendra@simpres.sch.id', gelar: 'S.Pd.I', tempatLahir: 'Jakarta', tanggalLahir: '1987-07-20', jenisKelamin: 'Laki-laki', agama: 'Islam', alamat: 'Jl. Cendekia No. 43, Cilandak', statusPegawai: 'Guru Magang', tanggalMasuk: '2013-07-01', skPengangkatan: 'SK-007/2013', pendTerakhir: 'S1 Pendidikan Agama Islam', jurusan: 'Pendidikan Agama Islam', npwp: '12.345.678.9-012.006', bpjsKesehatan: '1234567896', bpjsKetenagakerjaan: '0987654327', rekeningBank: 'BNI - 1234567896', namaRekening: 'Hendra Kurniawan, S.Pd.I' },
   { id: 8, niy: '049023183', name: 'Silvana Monica, S.Ak', role: 'Staf Administrasi', unitId: 'sma', status: 'Aktif', masuk: null, method: null, lateMinutes: 0, outsideRadius: false, pendidikanAsal: 'Universitas Negeri Padang', nomorIdentitas: '3174012345678908', kontak: '081234567897', email: 'silvana@simpres.sch.id', gelar: 'S.Ak', tempatLahir: 'Jakarta', tanggalLahir: '1989-08-30', jenisKelamin: 'Perempuan', agama: 'Islam', alamat: 'Jl. Cendekia No. 47', statusPegawai: 'Pegawai Tetap Yayasan', tanggalMasuk: '2014-08-01', skPengangkatan: 'SK-008/2014', pendTerakhir: 'S1 Akuntansi', jurusan: 'Akuntansi', npwp: '12.345.678.9-012.007', bpjsKesehatan: '1234567897', bpjsKetenagakerjaan: '0987654328', rekeningBank: 'Mandiri - 1234567897', namaRekening: 'Silvana Monica, S.Ak' },
   { id: 9, niy: '029045122', name: 'Rizal Ramli, S.Pd.I', role: 'Guru PAI', unitId: 'sd', status: 'Aktif', masuk: null, method: null, lateMinutes: 0, pendidikanAsal: 'UIN Imam Bonjol', nomorIdentitas: '3174012345678909', kontak: '081234567898', email: 'rizal.r@sd.rj.sch.id', gelar: 'S.Pd.I', tempatLahir: 'Jakarta', tanggalLahir: '1986-09-12', jenisKelamin: 'Laki-laki', agama: 'Islam', alamat: 'Jl. Cendekia No. 43, Cilandak', statusPegawai: 'Guru Tetap Yayasan', tanggalMasuk: '2016-01-01', skPengangkatan: 'SK-009/2016', pendTerakhir: 'S1 Pendidikan Agama Islam', jurusan: 'Pendidikan Agama Islam', npwp: '12.345.678.9-012.008', bpjsKesehatan: '1234567898', bpjsKetenagakerjaan: '0987654329', rekeningBank: 'BCA - 1234567898', namaRekening: 'Rizal Ramli, S.Pd.I' },
+  { id: 10, niy: '029056134', name: 'Dewi Sartika, S.Pd', role: 'Guru Kelas 2', unitId: 'sd', status: 'Aktif', masuk: null, method: null, lateMinutes: 0, pendidikanAsal: 'Universitas Negeri Padang', nomorIdentitas: '3174012345678910', kontak: '081234567899', email: 'dewi.s@sd.rj.sch.id', gelar: 'S.Pd', tempatLahir: 'Jakarta', tanggalLahir: '1991-11-08', jenisKelamin: 'Perempuan', agama: 'Islam', alamat: 'Jl. Cendekia No. 43, Cilandak', statusPegawai: 'Guru Kontrak', tanggalMasuk: '2017-03-01', skPengangkatan: 'SK-010/2017', pendTerakhir: 'S1 Pendidikan Dasar', jurusan: 'Pendidikan Guru Sekolah Dasar', npwp: '12.345.678.9-012.009', bpjsKesehatan: '1234567899', bpjsKetenagakerjaan: '0987654330', rekeningBank: 'BNI - 1234567899', namaRekening: 'Dewi Sartika, S.Pd' },
 ]
 
 export const LEAVES = [
@@ -256,85 +256,7 @@ function hashN(n) {
 }
 
 export function buildFullStaff() {
-  const out = [...STAFF]
-  const plan = [
-    { unitId: 'tk', need: 22 }, { unitId: 'sd', need: 65 }, { unitId: 'smp', need: 48 },
-    { unitId: 'sma', need: 54 },
-  ]
-  let id = 100
-  plan.forEach(({ unitId, need }) => {
-    const have = out.filter((s) => s.unitId === unitId).length
-    const unit = UNITS.find((u) => u.id === unitId)
-    const targetHadir = unit ? unit.hadir : need
-    const haveHadir = out.filter((s) => s.unitId === unitId && s.masuk).length
-    let hadirCount = haveHadir
-    for (let i = have; i < need; i++) {
-      const h = hashN(id * 7 + unitId.length)
-      const name = `${FIRST[h % FIRST.length]} ${LAST[(h >> 3) % LAST.length]}, ${TITLES[(h >> 6) % TITLES.length]}`
-      const roles = ROLES_BY_UNIT[unitId]
-      const role = roles[h % roles.length]
-      const isHadir = hadirCount < targetHadir
-      if (isHadir) hadirCount++
-      // Keterlambatan dihitung dari batas jam masuk global (07:10), dan jam
-      // masuk diturunkan dari nilai itu — jadi data contoh selalu konsisten
-      // dengan calculateAttendanceStatus().
-      const lateMinutes = isHadir && h % 13 === 0 ? 5 + (h % 15) : 0
-      const menitMasuk = jamKeMenit(JAM_MASUK_SENIN_KAMIS) + lateMinutes - (isHadir && lateMinutes === 0 ? h % 9 : 0)
-      const hh = String(Math.floor(menitMasuk / 60)).padStart(2, '0')
-      const mm = String(menitMasuk % 60).padStart(2, '0')
-      const gender = h % 2 === 0 ? 'Laki-laki' : 'Perempuan'
-      const statusPegawai = [
-        'Guru Magang',
-        'Guru Kontrak',
-        'Guru Tetap Yayasan',
-        'Pegawai Magang',
-        'Pegawai Kontrak',
-        'Pegawai Tetap Yayasan',
-      ][h % 6]
-      const gelar = TITLES[(h >> 6) % TITLES.length]
-      const jurusanList = {
-        tk: 'Pendidikan Anak Usia Dini',
-        sd: 'Pendidikan Guru Sekolah Dasar',
-        smp: 'Pendidikan Matematika',
-        sma: 'Pendidikan Biologi',
-      }
-      out.push({
-        id: id++,
-        niy: `049${String(100000 + (h % 899999))}`,
-        name, role, unitId, status: 'Aktif',
-        masuk: null,
-        pulang: null,
-        method: null,
-        lateMinutes: 0,
-        pendidikanAsal: [
-          'Universitas Negeri Padang',
-          'Universitas Andalas',
-          'UIN Imam Bonjol',
-          'Universitas Negeri Jakarta',
-          'Universitas Pendidikan Indonesia',
-        ][h % 5],
-        nomorIdentitas: `3174${String((h % 99) + 1).padStart(2, '0')}${String(1 + (h % 60)).padStart(2, '0')}${String(1 + ((h >> 3) % 40)).padStart(2, '0')}${String(100000 + (h % 900000))}`,
-        kontak: `081${String(200000000 + (h % 800000000))}`,
-        email: `${FIRST[h % FIRST.length].toLowerCase()}.${LAST[(h >> 3) % LAST.length].toLowerCase()}@simpres.sch.id`,
-        gelar,
-        tempatLahir: 'Jakarta',
-        tanggalLahir: `19${String(70 + (h % 30))}-${String((h % 12) + 1).padStart(2, '0')}-${String((h % 28) + 1).padStart(2, '0')}`,
-        jenisKelamin: gender,
-        alamat: unit ? unit.alamat : 'Jl. Cendekia',
-        statusPegawai,
-        tanggalMasuk: `20${String(10 + (h % 15)).padStart(2, '0')}-${String((h % 12) + 1).padStart(2, '0')}-01`,
-        skPengangkatan: `SK-${String(100 + (h % 900))}/${2010 + (h % 15)}`,
-        pendTerakhir: `S1 ${jurusanList[unitId] || 'Pendidikan'}`,
-        jurusan: jurusanList[unitId] || 'Pendidikan',
-        npwp: `12.345.678.9-${String(10000 + (h % 90000)).padStart(6, '0')}`,
-        bpjsKesehatan: `${100000000 + (h % 900000000)}`,
-        bpjsKetenagakerjaan: `${100000000 + ((h + 100) % 900000000)}`,
-        rekeningBank: ['BCA', 'BRI', 'BNI', 'Mandiri'][h % 4] + ` - ${100000000 + (h % 900000000)}`,
-        namaRekening: name,
-      })
-    }
-  })
-  return out
+  return [...STAFF]
 }
 
 /**
