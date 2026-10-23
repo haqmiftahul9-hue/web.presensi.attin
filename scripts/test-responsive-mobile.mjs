@@ -327,7 +327,7 @@ uji('Kata sapaan tampil tepat 1x', hitungTeks(sapaanPegawai), 1)
 uji('Sapaan "Halo," hanya satu kali', hitungTeks('Halo,'), 1)
 uji('NIY tampil tepat 1x', hitungTeks(staffBeranda.niy), 1)
 uji('Unit tampil tepat 1x', hitungTeks(unitBeranda?.nama), 1)
-uji('Jabatan tampil tepat 1x', hitungTeks(staffBeranda.role), 1)
+uji('Jabatan dihapus dari ringkasan profil dashboard', hitungTeks(staffBeranda.role), 0)
 uji('Foto pegawai hanya satu', (htmlBeranda.match(/<img/g) || []).length, 1)
 
 // Kartu identitas kedua harus benar-benar tidak ada.

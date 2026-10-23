@@ -1,6 +1,6 @@
-import Icon from '../../components/Icon.jsx'
-﻿import { useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import Icon from '../../components/Icon.jsx'
 import {
   useSimPres, selectSelfStaff, selectSelfPresensi, selectRiwayatPresensiSaya, selectSelfLeaves,
   selectUnitById,
@@ -89,9 +89,24 @@ function MobileSlipPage() {
       <section className="sp-hero sp-page-container pt-4 pb-6">
         <span className="sp-pattern-dots" aria-hidden="true" />
         <span className="sp-blob sp-blob-a" aria-hidden="true" />
-        <div className="relative z-[1]">
-        <span className="font-label-sm text-label-sm text-on-primary-container">Dokumen Kehadiran</span>
-        <h1 className="font-headline-sm text-headline-sm text-white">Slip Kehadiran</h1>
+        <div className="relative z-[1] flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              aria-label="Kembali"
+              className="w-10 h-10 rounded-xl bg-white border border-[#E0E6F2] text-[#323D8F] flex items-center justify-center shrink-0 shadow-xs active:scale-95 transition-all cursor-pointer"
+            >
+              <Icon name="arrow_back" className="text-[20px]" />
+            </button>
+            <div className="flex flex-col">
+              <span className="font-label-sm text-label-sm text-[#77819A]">Dokumen Kehadiran</span>
+              <h1 className="font-headline-sm text-headline-sm text-[#20243A] font-bold">Slip Kehadiran</h1>
+            </div>
+          </div>
+          <span className="w-10 h-10 rounded-xl bg-[#EEF0FC] border border-[#323D8F]/20 flex items-center justify-center text-[#323D8F] shrink-0 shadow-xs">
+            <Icon name="receipt_long" className="text-[22px]" />
+          </span>
         </div>
       </section>
 
@@ -103,10 +118,10 @@ function MobileSlipPage() {
               type="button"
               onClick={() => setBulan(key)}
               aria-pressed={key === bulan}
-              className={`shrink-0 px-3.5 py-2.5 rounded-full font-label-md text-label-md transition-all ${
+              className={`shrink-0 px-3.5 py-2 rounded-full font-label-md text-label-md transition-all cursor-pointer ${
                 key === bulan
-                  ? 'bg-[#323d8f] text-white shadow-sm font-semibold'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  ? 'bg-[#323D8F] text-white shadow-xs font-semibold'
+                  : 'bg-white border border-[#E0E6F2] text-[#20243A] hover:bg-slate-50'
               }`}
             >
               {BULAN_PENDEK[Number(key.split('-')[1]) - 1]} {key.split('-')[0].slice(2)}
@@ -115,33 +130,33 @@ function MobileSlipPage() {
         </div>
 
         {/* Dokumen slip: satu blok putih yang ikut tercetak apa adanya. */}
-        <section className="sp-card p-4 sp-print-slip flex flex-col gap-3.5">
+        <section className="sp-card p-4 sp-print-slip flex flex-col gap-3.5 bg-white border border-[#E0E6F2] rounded-2xl shadow-xs">
           <div className="sp-card-head">
             <div className="flex items-center gap-2 min-w-0">
-              <span className="w-9 h-9 rounded-xl bg-[#323d8f]/10 flex items-center justify-center shrink-0">
-                <Icon name="fingerprint" className="text-[#323d8f] text-[20px]" />
+              <span className="w-9 h-9 rounded-xl bg-[#EEF0FC] text-[#323D8F] flex items-center justify-center shrink-0">
+                <Icon name="fingerprint" className="text-[20px]" />
               </span>
               <div className="flex flex-col min-w-0">
-                <span className="font-headline-sm text-headline-sm text-on-surface font-semibold truncate">SIMPEG Kepegawaian</span>
-                <span className="font-label-sm text-label-sm text-on-surface-variant truncate">
+                <span className="font-headline-sm text-headline-sm text-[#20243A] font-bold truncate">SIMPEG Kepegawaian</span>
+                <span className="font-label-sm text-label-sm text-[#77819A] truncate">
                   {unit?.nama || '-'}
                 </span>
               </div>
             </div>
-            <span className="font-label-sm text-label-sm text-on-surface-variant shrink-0">
+            <span className="font-label-sm text-label-sm text-[#77819A] shrink-0 font-medium">
               Periode {namaBulan} {bulan.split('-')[0]}
             </span>
           </div>
 
-          <div className="flex items-center gap-3.5 p-3 rounded-2xl bg-slate-50 border border-slate-200/80">
-            <StaffAvatar staff={staff} size="w-12 h-12" textClass="font-headline-sm text-headline-sm" ring="ring-2 ring-white shadow-sm" />
+          <div className="flex items-center gap-3.5 p-3 rounded-xl bg-[#F3F5FC] border border-[#E0E6F2]">
+            <StaffAvatar staff={staff} size="w-12 h-12" textClass="font-headline-sm text-headline-sm" ring="ring-2 ring-[#323D8F]/20 shadow-xs" />
             <div className="flex flex-col min-w-0 flex-1">
-              <span className="font-headline-sm text-headline-sm text-slate-900 font-bold truncate">{staff.name}</span>
+              <span className="font-headline-sm text-headline-sm text-[#20243A] font-bold truncate">{staff.name}</span>
               <div className="flex items-center gap-2 mt-0.5">
-                <span className="px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-700 font-label-sm text-label-sm font-semibold tabular-nums shrink-0">
+                <span className="px-2 py-0.5 rounded-md bg-white border border-[#E0E6F2] text-[#323D8F] font-label-sm text-label-sm font-semibold tabular-nums shrink-0">
                   NIY {staff.niy}
                 </span>
-                <span className="font-label-sm text-label-sm text-slate-500 font-medium truncate">
+                <span className="font-label-sm text-label-sm text-[#77819A] font-medium truncate">
                   {staff.role} • {unit?.nama}
                 </span>
               </div>
@@ -151,77 +166,77 @@ function MobileSlipPage() {
           <div className="grid grid-cols-4 gap-2">
             {[
               { label: 'Hadir', nilai: rekap.hadir, tone: 'text-emerald-600' },
-              { label: 'Tepat', nilai: rekap.tepatWaktu, tone: 'text-on-surface' },
+              { label: 'Tepat', nilai: rekap.tepatWaktu, tone: 'text-[#20243A]' },
               { label: 'Telat', nilai: rekap.terlambat, tone: 'text-amber-600' },
-              { label: 'Izin', nilai: disetujui.length, tone: 'text-secondary' },
+              { label: 'Izin', nilai: disetujui.length, tone: 'text-[#323D8F]' },
             ].map((item) => (
-              <div key={item.label} className="flex flex-col items-center gap-1 rounded-xl bg-surface-container-low px-1 py-3">
+              <div key={item.label} className="flex flex-col items-center gap-1 rounded-xl bg-[#F3F5FC] border border-[#E0E6F2] px-1 py-3">
                 <span className={`font-display-lg-mobile text-[18px] font-bold leading-none ${item.tone}`}>
                   {item.nilai}
                 </span>
-                <span className="font-label-sm text-label-sm text-on-surface-variant">{item.label}</span>
+                <span className="font-label-sm text-label-sm text-[#77819A] font-medium">{item.label}</span>
               </div>
             ))}
           </div>
 
           <div className="flex items-center justify-between gap-2">
-            <span className="font-label-sm text-label-sm text-on-surface-variant">Rincian kehadiran harian</span>
-            <span className="font-label-sm text-label-sm text-on-surface-variant">
+            <span className="font-label-sm text-label-sm text-[#77819A] font-medium">Rincian kehadiran harian</span>
+            <span className="font-label-sm text-label-sm text-[#77819A]">
               {rataTelat ? `Rata-rata telat ${rataTelat}′` : 'Tanpa keterlambatan'}
             </span>
           </div>
 
           {baris.length ? (
-              <ul className="divide-y divide-surface-container border-t border-surface-container pt-1">
-                {baris.map((h) => {
-                  const status = statusBaris(h)
-                  return (
-                    <li key={`${h.date}-${h.id}`} className="flex items-center gap-2 py-2.5">
-                      <span className="font-label-sm text-label-sm text-on-surface-variant w-8 shrink-0">
-                        {hariPendekISO(h.date)}
-                      </span>
-                      <span className="font-body-sm-medium text-body-sm-medium text-on-surface w-11 shrink-0">
-                        {tanggalPendekISO(h.date)}
-                      </span>
-                      <span className="font-body-sm text-body-sm text-on-surface-variant tabular-nums shrink-0">
-                        {jamPendek(h.masuk) || '--:--'}
-                      </span>
-                      <span className="font-body-sm text-body-sm text-on-surface-variant tabular-nums shrink-0">
-                        {jamPendek(h.pulang) || '--:--'}
-                      </span>
-                      <span className={`ml-auto px-2 py-0.5 rounded-full font-label-sm text-label-sm shrink-0 ${status.kelas}`}>
-                        {status.label}
-                      </span>
-                    </li>
-                  )
-                })}
-              </ul>
-            ) : (
-              <EmptyState
-                ikon="receipt_long"
-                judul="Belum ada data kehadiran"
-                detail="Slip ini akan terisi otomatis setelah ada presensi pada bulan yang dipilih."
-              />
-            )}
+            <ul className="divide-y divide-[#E0E6F2] border-t border-[#E0E6F2] pt-1">
+              {baris.map((h) => {
+                const status = statusBaris(h)
+                return (
+                  <li key={`${h.date}-${h.id}`} className="flex items-center gap-2 py-2.5">
+                    <span className="font-label-sm text-label-sm text-[#77819A] w-8 shrink-0">
+                      {hariPendekISO(h.date)}
+                    </span>
+                    <span className="font-body-sm-medium text-body-sm-medium text-[#20243A] font-semibold w-11 shrink-0">
+                      {tanggalPendekISO(h.date)}
+                    </span>
+                    <span className="font-body-sm text-body-sm text-[#77819A] tabular-nums shrink-0">
+                      {jamPendek(h.masuk) || '--:--'}
+                    </span>
+                    <span className="font-body-sm text-body-sm text-[#77819A] tabular-nums shrink-0">
+                      {jamPendek(h.pulang) || '--:--'}
+                    </span>
+                    <span className={`ml-auto px-2 py-0.5 rounded-full font-label-sm text-label-sm font-medium shrink-0 ${status.kelas}`}>
+                      {status.label}
+                    </span>
+                  </li>
+                )
+              })}
+            </ul>
+          ) : (
+            <EmptyState
+              ikon="receipt_long"
+              judul="Belum ada data kehadiran"
+              detail="Slip ini akan terisi otomatis setelah ada presensi pada bulan yang dipilih."
+            />
+          )}
 
-          <p className="font-label-sm text-label-sm text-on-surface-variant leading-snug">
+          <p className="font-label-sm text-label-sm text-[#77819A] leading-snug">
             Jam kerja global {zonaWaktu}: {ringkasanJamKerja} Slip ini dihasilkan langsung dari data presensi SimPres.
           </p>
 
-          <div className="grid grid-cols-2 gap-4 text-center">
+          <div className="grid grid-cols-2 gap-4 text-center pt-2">
             <div className="flex flex-col items-center gap-1.5">
-              <span className="font-label-sm text-label-sm text-on-surface-variant">Mengetahui,</span>
-              <span className="font-label-sm text-label-sm text-on-surface-variant">Kepala Unit</span>
+              <span className="font-label-sm text-label-sm text-[#77819A]">Mengetahui,</span>
+              <span className="font-label-sm text-label-sm text-[#77819A]">Kepala Unit</span>
               <span className="h-10" />
-              <span className="font-body-sm-medium text-body-sm-medium text-on-surface underline">
+              <span className="font-body-sm-medium text-body-sm-medium text-[#20243A] underline font-semibold">
                 {state.adminUsers?.find((u) => u.unitId === staff.unitId)?.name || 'Kepala Unit'}
               </span>
             </div>
             <div className="flex flex-col items-center gap-1.5">
-              <span className="font-label-sm text-label-sm text-on-surface-variant">{unit?.nama || 'Cilegon'},</span>
-              <span className="font-label-sm text-label-sm text-on-surface-variant">Pegawai concerned</span>
+              <span className="font-label-sm text-label-sm text-[#77819A]">{unit?.nama || 'Cilegon'},</span>
+              <span className="font-label-sm text-label-sm text-[#77819A]">Pegawai concerned</span>
               <span className="h-10" />
-              <span className="font-body-sm-medium text-body-sm-medium text-on-surface underline">{staff.name}</span>
+              <span className="font-body-sm-medium text-body-sm-medium text-[#20243A] underline font-semibold">{staff.name}</span>
             </div>
           </div>
         </section>
@@ -230,7 +245,7 @@ function MobileSlipPage() {
           <button
             type="button"
             onClick={() => window.print()}
-            className="sp-btn flex-1 py-3 bg-[#323d8f] hover:bg-[#252e6d] text-white font-label-md text-label-md font-semibold rounded-xl flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-sm"
+            className="sp-btn flex-1 py-3.5 bg-[#323D8F] hover:bg-[#283273] text-white font-label-md text-label-md font-semibold rounded-xl flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-md shadow-[#323D8F]/20 cursor-pointer"
           >
             <Icon name="print" className="text-[18px] shrink-0" />
             Cetak Slip
@@ -238,9 +253,9 @@ function MobileSlipPage() {
           <button
             type="button"
             onClick={() => navigate('/mobile/riwayat')}
-            className="sp-btn flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-label-md text-label-md font-semibold rounded-xl flex items-center justify-center gap-2 active:scale-[0.98] transition-all border border-slate-200/80"
+            className="sp-btn flex-1 py-3.5 bg-white hover:bg-slate-50 text-[#20243A] font-label-md text-label-md font-semibold rounded-xl flex items-center justify-center gap-2 active:scale-[0.98] transition-all border border-[#E0E6F2] shadow-xs cursor-pointer"
           >
-            <Icon name="calendar_month" className="text-[18px] shrink-0" />
+            <Icon name="calendar_month" className="text-[18px] shrink-0 text-[#323D8F]" />
             Riwayat
           </button>
         </div>

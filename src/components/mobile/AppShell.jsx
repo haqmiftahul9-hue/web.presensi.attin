@@ -48,41 +48,41 @@ export function AppBackground({ children }) {
  */
 export function GlassTopBar({ staff }) {
   return (
-    <div className="h-14 px-3 flex items-center justify-between gap-2 sp-glass-bar">
+    <div className="h-14 px-3.5 flex items-center justify-between gap-2 sp-glass-bar">
       <NavLink
         to="/mobile/home"
-        className="sp-press flex items-center gap-2 min-w-0 h-11 px-1.5 rounded-xl"
+        className="sp-press flex items-center gap-2.5 min-w-0 h-11 px-1 rounded-xl"
         aria-label="SIMPEG Kepegawaian"
       >
         <span
-          className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-md text-white border border-white/25"
+          className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-xs text-white"
           style={{ backgroundColor: '#323d8f' }}
         >
           <Icon name="fingerprint" className="text-white text-[20px]" />
         </span>
         <span className="flex flex-col min-w-0">
-          <span className="font-headline-sm text-headline-sm text-white font-bold tracking-tight leading-tight truncate">
+          <span className="font-headline-sm text-headline-sm text-[#20243a] font-bold tracking-tight leading-tight truncate">
             SIMPEG
           </span>
-          <span className="font-label-sm text-label-sm text-white/70 truncate">Kepegawaian</span>
+          <span className="font-label-sm text-label-sm text-[#77819a] font-medium truncate">Kepegawaian</span>
         </span>
       </NavLink>
 
-      <div className="flex items-center gap-1.5 shrink-0">
+      <div className="flex items-center gap-2 shrink-0">
         <button
           type="button"
           aria-label="Notifikasi"
-          className="sp-press w-10 h-10 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 border border-white/15 relative transition-colors"
+          className="sp-press w-9 h-9 rounded-full flex items-center justify-center bg-[#f3f5fc] hover:bg-[#eef0fc] border border-[#e0e6f2] text-[#20243a] relative transition-colors"
         >
-          <Icon name="notifications" className="text-white text-[20px]" />
-          <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-emerald-400 ring-2 ring-[#181d48]" />
+          <Icon name="notifications" className="text-[#323d8f] text-[19px]" />
+          <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-white" />
         </button>
-        <NavLink to="/mobile/profil" aria-label="Profil saya" className="sp-press w-10 h-10 rounded-full flex items-center justify-center">
+        <NavLink to="/mobile/profil" aria-label="Profil saya" className="sp-press w-9 h-9 rounded-full flex items-center justify-center">
           <StaffAvatar
             staff={staff}
             size="w-9 h-9"
             textClass="font-label-sm text-label-sm font-semibold"
-            ring="ring-2 ring-white/30"
+            ring="ring-2 ring-[#e0e6f2]"
           />
         </NavLink>
       </div>
@@ -106,12 +106,12 @@ export function ShortcutGrid({ items, columns = 2 }) {
           to={item.to}
           className={`sp-shortcut sp-rise sp-rise-${Math.min(i + 1, 4)} hover:border-[#323d8f]/30 transition-all`}
         >
-          <span className={`sp-shortcut-icon ${item.warna || 'bg-slate-100 text-slate-800'}`}>
+          <span className={`sp-shortcut-icon ${item.warna || 'bg-[#eef0fc] text-[#323d8f]'}`}>
             <Icon name={item.ikon} className="text-[22px]" />
           </span>
           <span className="text-center leading-tight">
-            <span className="block font-label-md text-label-md text-slate-900 font-semibold">{item.judul}</span>
-            {item.sub && <span className="block font-label-sm text-label-sm text-slate-500 mt-0.5">{item.sub}</span>}
+            <span className="block font-label-md text-label-md text-[#20243a] font-semibold">{item.judul}</span>
+            {item.sub && <span className="block font-label-sm text-label-sm text-[#77819a] mt-0.5">{item.sub}</span>}
           </span>
         </NavLink>
       ))}
@@ -125,31 +125,36 @@ export function SectionTitle({ ikon, judul, aksi }) {
     <div className="flex items-center justify-between gap-2">
       <span className="flex items-center gap-2 min-w-0">
         {ikon && (
-          <span className="w-8 h-8 rounded-xl bg-[#323d8f]/10 border border-[#323d8f]/15 flex items-center justify-center shrink-0">
+          <span className="w-8 h-8 rounded-xl bg-[#eef0fc] border border-[#323d8f]/15 flex items-center justify-center shrink-0 shadow-2xs">
             <Icon name={ikon} className="text-[17px] text-[#323d8f]" />
           </span>
         )}
-        <span className="font-headline-sm text-headline-sm text-slate-900 font-bold tracking-tight truncate">{judul}</span>
+        <span className="font-headline-sm text-headline-sm text-[#20243a] font-bold tracking-tight truncate">{judul}</span>
       </span>
       {aksi}
     </div>
   )
 }
 
-/** Satu sensor pada baris "Status Sensor" (lokasi / waktu / kamera). */
+/** Satu sensor pada baris "Status Sensor" (lokasi / waktu / kamera).
+ *
+ * Latar konsisten soft blue dan ikon seragam navy; status hanya disampaikan
+ * melalui warna teks nilai (bukan bingkai/ikon berbeda-beda per sensor) agar
+ * tidak terlihat dekoratif dan tetap terarah.
+ */
 export function Sensor({ ikon, label, nilai, tone = 'netral' }) {
-  const warna = {
-    baik: 'bg-emerald-50 text-emerald-700 border border-emerald-200/60',
-    lambat: 'bg-amber-50 text-amber-800 border border-amber-200/60',
-    netral: 'bg-slate-100 text-slate-700 border border-slate-200/60',
-  }[tone] || 'bg-slate-100 text-slate-700 border border-slate-200/60'
+  const nilaiWarna = {
+    baik: 'text-emerald-600',
+    lambat: 'text-amber-600',
+    netral: 'text-[#20243a]',
+  }[tone] || 'text-[#20243a]'
   return (
-    <div className="rounded-2xl bg-white border border-slate-200/80 p-3 flex flex-col items-center gap-1.5 min-w-0 shadow-xs">
-      <span className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${warna}`}>
-        <Icon name={ikon} className="text-[18px]" />
+    <div className="rounded-2xl bg-[#eef0fc] border border-[#323d8f]/15 p-3 flex flex-col items-center gap-1.5 min-w-0 shadow-2xs">
+      <span className="w-9 h-9 rounded-full bg-[#323d8f]/15 flex items-center justify-center shrink-0">
+        <Icon name={ikon} className="text-[18px] text-[#323d8f]" />
       </span>
-      <span className="font-label-sm text-label-sm text-slate-500 font-medium">{label}</span>
-      <span className="font-label-md text-label-md text-slate-900 font-semibold text-center leading-snug break-words">
+      <span className="font-label-sm text-label-sm text-[#77819a] font-medium">{label}</span>
+      <span className={`font-label-md text-label-md font-semibold text-center leading-snug break-words ${nilaiWarna}`}>
         {nilai}
       </span>
     </div>

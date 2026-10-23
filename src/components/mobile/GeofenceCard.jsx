@@ -29,7 +29,7 @@ function GeofenceCard({ geofence, namaTitik, koordinatTeks }) {
     // `gap-3.5` (14px) adalah jarak antar blok: badge status → radar →
     // baris koordinat. Baris koordinat memakai `border-t` + `pt-3`, jadi
     // jaraknya ke divider (12px) sama dengan jarak teks di bawahnya.
-    <section className="sp-card p-4 flex flex-col gap-3.5">
+    <section className="sp-card p-4 flex flex-col gap-3.5 border border-[#e0e6f2]">
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <div
           className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border min-w-0 ${

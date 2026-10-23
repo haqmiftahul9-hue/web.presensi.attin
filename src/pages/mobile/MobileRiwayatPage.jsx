@@ -26,7 +26,9 @@ function ChipFilter({ label, aktif, onClick }) {
       onClick={onClick}
       aria-pressed={aktif}
       className={`shrink-0 px-3.5 py-2 rounded-full font-label-md text-label-md transition-all ${
-        aktif ? 'bg-[#323d8f] text-white shadow-sm font-semibold' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+        aktif
+          ? 'bg-[#323d8f] text-white shadow-xs font-semibold'
+          : 'bg-[#f3f5fc] border border-[#e0e6f2] text-[#20243a] hover:bg-[#eef0fc]'
       }`}
     >
       {label}
@@ -77,21 +79,21 @@ function KartuHari({ tanggal, masuk, pulang, lateMinutes, status, metode, titikL
             sendiri — karena itu label memakai `break-words`: kalau tidak, teksnya
             keluar dari kotaknya dan menabrak kotak sebelah. */}
         <div className="grid grid-cols-3 gap-2">
-          <div className="rounded-xl bg-slate-50 border border-slate-100 px-3 py-2.5 flex flex-col gap-1 min-w-0">
-            <span className="font-label-sm text-label-sm text-slate-500 font-medium break-words">Masuk</span>
-            <span className="font-body-md-medium text-body-md-medium text-slate-900 font-semibold tabular-nums">
+          <div className="rounded-xl bg-[#f3f5fc] border border-[#e0e6f2] px-3 py-2.5 flex flex-col gap-1 min-w-0">
+            <span className="font-label-sm text-label-sm text-[#77819a] font-medium break-words">Masuk</span>
+            <span className="font-body-md-medium text-body-md-medium text-[#20243a] font-semibold tabular-nums">
               {masuk ? jamPendek(masuk) : '--:--'}
             </span>
           </div>
-          <div className="rounded-xl bg-slate-50 border border-slate-100 px-3 py-2.5 flex flex-col gap-1 min-w-0">
-            <span className="font-label-sm text-label-sm text-slate-500 font-medium break-words">Pulang</span>
-            <span className="font-body-md-medium text-body-md-medium text-slate-900 font-semibold tabular-nums">
+          <div className="rounded-xl bg-[#f3f5fc] border border-[#e0e6f2] px-3 py-2.5 flex flex-col gap-1 min-w-0">
+            <span className="font-label-sm text-label-sm text-[#77819a] font-medium break-words">Pulang</span>
+            <span className="font-body-md-medium text-body-md-medium text-[#20243a] font-semibold tabular-nums">
               {pulang ? jamPendek(pulang) : '--:--'}
             </span>
           </div>
-          <div className="rounded-xl bg-slate-50 border border-slate-100 px-3 py-2.5 flex flex-col gap-1 min-w-0">
-            <span className="font-label-sm text-label-sm text-slate-500 font-medium break-words">Keterlambatan</span>
-            <span className={`font-body-md-medium text-body-md-medium font-semibold tabular-nums truncate ${lateMinutes > 0 ? 'text-amber-700' : 'text-slate-900'}`}>
+          <div className="rounded-xl bg-[#f3f5fc] border border-[#e0e6f2] px-3 py-2.5 flex flex-col gap-1 min-w-0">
+            <span className="font-label-sm text-label-sm text-[#77819a] font-medium break-words">Keterlambatan</span>
+            <span className={`font-body-md-medium text-body-md-medium font-semibold tabular-nums truncate ${lateMinutes > 0 ? 'text-amber-700' : 'text-[#20243a]'}`}>
               {lateMinutes} menit
             </span>
           </div>
@@ -175,7 +177,7 @@ function FilterPeriode({ mode, form, daftarTahun, tahunBerjalan, onUbahMode, onU
       </div>
 
       {/* Pemilih mode: Bulanan atau Rentang Tanggal. */}
-      <div className="grid grid-cols-2 gap-1.5 p-1 rounded-2xl bg-slate-100 border border-slate-200/60">
+      <div className="grid grid-cols-2 gap-1.5 p-1 rounded-2xl bg-[#f3f5fc] border border-[#e0e6f2]">
         {[
           { nilai: MODE_BULANAN, label: 'Bulanan', ikon: 'calendar_month' },
           { nilai: MODE_RENTANG, label: 'Rentang Tanggal', ikon: 'date_range' },
@@ -188,7 +190,7 @@ function FilterPeriode({ mode, form, daftarTahun, tahunBerjalan, onUbahMode, onU
             className={`flex items-center justify-center gap-1.5 min-h-[44px] px-3 py-2.5 rounded-xl font-label-md text-label-md transition-all ${
               mode === opsi.nilai
                 ? 'bg-[#323d8f] text-white shadow-xs font-semibold'
-                : 'text-slate-600 hover:text-slate-900'
+                : 'text-[#77819a] hover:text-[#20243a]'
             }`}
           >
             <Icon name={opsi.ikon} className="text-[16px] shrink-0" />
@@ -435,29 +437,28 @@ function MobileRiwayatPage() {
 
   return (
     <div className="sp-page">
-      {/* Hero ringkas: periode aktif + ringkasan angka. */}
-      <section className="sp-hero sp-page-container pt-4 pb-6">
-        <span className="sp-pattern-dots" aria-hidden="true" />
-        <span className="sp-blob sp-blob-a" aria-hidden="true" />
-        <div className="relative z-[1]">
+      {/* Hero ringkas: periode aktif + ringkasan angka. Area ringkasan pakai
+          permukaan soft blue agar terpisah dari filter putih di bawahnya. */}
+      <section className="sp-hero sp-page-container pt-3.5 pb-3">
+        <div className="sp-card p-4 flex flex-col gap-3.5 border border-[#323d8f]/20 rounded-2xl" style={{ backgroundColor: '#eef0fc' }}>
           <div className="flex items-center gap-3">
-            <StaffAvatar staff={staff} size="w-12 h-12" textClass="font-headline-sm text-headline-sm" ring="ring-[3px] ring-white/20" />
+            <StaffAvatar staff={staff} size="w-12 h-12" textClass="font-headline-sm text-headline-sm font-bold text-white" ring="ring-2 ring-white/60" className="shadow-xs" />
             <div className="flex flex-col min-w-0">
-              <span className="font-label-sm text-label-sm text-white/70">Riwayat Kehadiran</span>
-              <h1 className="font-headline-sm text-headline-sm text-white truncate">{labelPeriodeAktif}</h1>
+              <span className="font-label-sm text-label-sm text-[#77819a] font-medium">Riwayat Kehadiran</span>
+              <h1 className="font-headline-sm text-headline-sm text-[#20243a] font-bold tracking-tight truncate">{labelPeriodeAktif}</h1>
             </div>
           </div>
 
-          <div className="mt-4 flex items-center">
+          <div className="grid grid-cols-4 gap-2 pt-2">
             {[
-              { label: 'Hadir', nilai: rekap.hadir, tone: 'text-white' },
-              { label: 'Tepat', nilai: rekap.tepatWaktu, tone: 'text-emerald-300' },
-              { label: 'Terlambat', nilai: rekap.terlambat, tone: 'text-amber-300' },
-              { label: 'Izin/Cuti', nilai: rekap.izin + rekap.cuti, tone: 'text-blue-200' },
-            ].map((item, i) => (
-              <div key={item.label} className={`flex-1 flex flex-col items-center gap-0.5 ${i > 0 ? 'border-l border-white/10' : ''}`}>
-                <span className={`font-display-lg-mobile text-display-lg-mobile leading-none ${item.tone}`}>{item.nilai}</span>
-                <span className="font-label-sm text-label-sm text-white/70 text-center">{item.label}</span>
+              { label: 'Hadir', nilai: rekap.hadir, tone: 'text-[#323d8f]' },
+              { label: 'Tepat', nilai: rekap.tepatWaktu, tone: 'text-emerald-600' },
+              { label: 'Terlambat', nilai: rekap.terlambat, tone: 'text-amber-600' },
+              { label: 'Izin/Cuti', nilai: rekap.izin + rekap.cuti, tone: 'text-[#323d8f]' },
+            ].map((item) => (
+              <div key={item.label} className="rounded-xl bg-[#ffffff] border border-[#dfe5f2] p-3 flex flex-col items-center gap-0.5 min-w-0">
+                <span className={`font-display-lg-mobile text-[22px] font-bold leading-none ${item.tone}`}>{item.nilai}</span>
+                <span className="font-label-sm text-[11px] text-[#77819a] text-center font-medium mt-0.5">{item.label}</span>
               </div>
             ))}
           </div>

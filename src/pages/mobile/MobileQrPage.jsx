@@ -61,50 +61,50 @@ function MobileQrPage() {
         <span className="sp-pattern-dots" aria-hidden="true" />
         <span className="sp-blob sp-blob-a" aria-hidden="true" />
         <div className="relative z-[1]">
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => navigate(-1)}
-            aria-label="Kembali"
-            className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center shrink-0"
-          >
-            <Icon name="arrow_back" className="text-[20px]" />
-          </button>
-          <StaffAvatar staff={staff} size="w-12 h-12" textClass="font-headline-sm text-headline-sm" />
-          <div className="flex flex-col min-w-0">
-            <span className="font-label-sm text-label-sm text-white/70">QR Presensi</span>
-            <h1 className="font-headline-sm text-headline-sm text-white truncate">
-              {getEmployeeGreeting(staff, { unit })}
-            </h1>
-            <span className="font-label-sm text-label-sm text-white/70 truncate">{unit?.nama}</span>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              aria-label="Kembali"
+              className="w-10 h-10 rounded-xl bg-white border border-[#E0E6F2] text-[#323D8F] flex items-center justify-center shrink-0 shadow-xs active:scale-95 transition-all"
+            >
+              <Icon name="arrow_back" className="text-[20px]" />
+            </button>
+            <StaffAvatar staff={staff} size="w-12 h-12" textClass="font-headline-sm text-headline-sm" ring="ring-2 ring-[#323D8F]/20" />
+            <div className="flex flex-col min-w-0">
+              <span className="font-label-sm text-label-sm text-[#77819A]">QR Presensi</span>
+              <h1 className="font-headline-sm text-headline-sm text-[#20243A] font-bold truncate">
+                {getEmployeeGreeting(staff, { unit })}
+              </h1>
+              <span className="font-label-sm text-label-sm text-[#77819A] truncate">{unit?.nama}</span>
+            </div>
           </div>
-        </div>
         </div>
       </section>
 
       <div className="px-4 relative z-[2] flex flex-col gap-4 pb-2">
-        <section className="sp-card p-5 flex flex-col items-center gap-4">
+        <section className="sp-card p-5 flex flex-col items-center gap-4 bg-white border border-[#E0E6F2] rounded-2xl shadow-xs">
           {/* QR sebesar mungkin supaya mudah dipindai dari layar. */}
-          <div className="w-full max-w-[300px] aspect-square rounded-3xl bg-white border border-slate-200/80 p-4 shadow-sm flex items-center justify-center">
-            <QRCodeSvg value={employeeQrPayload(staff)} className="h-full w-full text-[#323d8f]" title="QR presensi pegawai" />
+          <div className="w-full max-w-[280px] aspect-square rounded-2xl bg-white border-2 border-[#EEF0FC] p-4 shadow-sm flex items-center justify-center">
+            <QRCodeSvg value={employeeQrPayload(staff)} className="h-full w-full text-[#323D8F]" title="QR presensi pegawai" />
           </div>
 
           <div className="text-center flex flex-col gap-1">
-            <span className="font-label-sm text-label-sm text-on-surface-variant">Kode pegawai ({qr.sumber})</span>
-            <span className="font-mono text-headline-sm text-headline-sm text-on-surface tracking-widest break-all">
+            <span className="font-label-sm text-label-sm text-[#77819A]">Kode pegawai ({qr.sumber})</span>
+            <span className="font-mono text-headline-sm text-headline-sm text-[#20243A] font-bold tracking-widest break-all">
               {qr.identitas}
             </span>
           </div>
 
-          <div className="w-full rounded-2xl bg-surface-container-low px-3.5 py-3 text-center">
-            <span className="font-label-sm text-label-sm text-on-surface-variant block">Payload QR</span>
-            <span className="font-mono text-body-sm text-body-sm text-on-surface break-all">{qr.value}</span>
+          <div className="w-full rounded-xl bg-[#F3F5FC] border border-[#E0E6F2] px-3.5 py-3 text-center">
+            <span className="font-label-sm text-label-sm text-[#77819A] block">Payload QR</span>
+            <span className="font-mono text-body-sm text-body-sm text-[#20243A] font-medium break-all">{qr.value}</span>
           </div>
         </section>
 
-        <section className="sp-card p-4 flex flex-col gap-3.5">
+        <section className="sp-card p-4 flex flex-col gap-3.5 bg-white border border-[#E0E6F2] rounded-2xl shadow-xs">
           <div className="sp-card-head">
-            <span className="font-headline-sm text-headline-sm text-on-surface">Kegunaan Kode</span>
+            <span className="font-headline-sm text-headline-sm text-[#20243A] font-bold">Kegunaan Kode</span>
           </div>
           <Penggunaan
             ikon="how_to_reg"
@@ -124,32 +124,32 @@ function MobileQrPage() {
         </section>
 
         {barcode && (
-          <section className="sp-card p-4 flex flex-col items-center gap-2.5">
-            <span className="font-label-sm text-label-sm text-on-surface-variant">Barcode (cadangan pemindaian 1D)</span>
-            <div className="w-full max-w-[240px] text-primary">
+          <section className="sp-card p-4 flex flex-col items-center gap-2.5 bg-white border border-[#E0E6F2] rounded-2xl shadow-xs">
+            <span className="font-label-sm text-label-sm text-[#77819A]">Barcode (cadangan pemindaian 1D)</span>
+            <div className="w-full max-w-[240px] text-[#323D8F]">
               <BarcodeSvg value={barcode} className="h-[56px] w-full" />
             </div>
-            <span className="font-mono text-body-sm text-body-sm text-on-surface tracking-widest">{barcode}</span>
+            <span className="font-mono text-body-sm text-body-sm text-[#20243A] font-bold tracking-widest">{barcode}</span>
           </section>
         )}
 
         <button
           type="button"
           onClick={() => navigate('/mobile/kartu-id')}
-          className="sp-card sp-btn p-4 flex items-center gap-3 text-left active:scale-[0.99] transition-transform"
+          className="sp-card sp-btn p-4 flex items-center gap-3 text-left bg-white border border-[#E0E6F2] rounded-2xl shadow-xs hover:border-[#323D8F]/30 active:scale-[0.99] transition-all cursor-pointer"
         >
-          <span className="w-11 h-11 rounded-xl bg-surface-container flex items-center justify-center shrink-0">
-            <Icon name="contact_page" className="text-[22px] text-on-surface-variant" />
+          <span className="w-11 h-11 rounded-xl bg-[#EEF0FC] text-[#323D8F] flex items-center justify-center shrink-0">
+            <Icon name="contact_page" className="text-[22px]" />
           </span>
-          <span className="flex flex-col min-w-0 flex-1">
-            <span className="font-body-md-medium text-body-md-medium text-on-surface">Lihat Kartu ID</span>
-            <span className="font-label-sm text-label-sm text-on-surface-variant leading-snug">Pratinjau kartu PVC lengkap</span>
+          <span className="flex flex-col min-w-0 flex-1 gap-0.5">
+            <span className="font-body-md-medium text-body-md-medium text-[#20243A] font-semibold">Lihat Kartu ID</span>
+            <span className="font-label-sm text-label-sm text-[#77819A] leading-snug">Pratinjau kartu PVC lengkap</span>
           </span>
-          <Icon name="chevron_right" className="text-[20px] text-on-surface-variant shrink-0" />
+          <Icon name="chevron_right" className="text-[20px] text-[#77819A] shrink-0" />
         </button>
 
         {presensi && (
-          <p className="text-center font-label-sm text-label-sm text-on-surface-variant leading-snug">
+          <p className="text-center font-label-sm text-label-sm text-[#77819A] leading-snug">
             Presensi hari ini {presensi.rules.hari}: {presensi.sudahMasuk ? presensi.statusMasuk : 'belum tercatat'}
             {presensi.sudahPulang ? ` • pulang ${presensi.pulang}` : ''}
           </p>
@@ -162,12 +162,12 @@ function MobileQrPage() {
 function Penggunaan({ ikon, judul, detail }) {
   return (
     <div className="flex items-start gap-2.5">
-      <span className="w-9 h-9 rounded-xl bg-surface-container flex items-center justify-center shrink-0">
-        <Icon name={ikon} className="text-[18px] text-on-surface-variant" />
+      <span className="w-9 h-9 rounded-xl bg-[#EEF0FC] text-[#323D8F] flex items-center justify-center shrink-0">
+        <Icon name={ikon} className="text-[18px]" />
       </span>
-      <span className="flex flex-col min-w-0 gap-1">
-        <span className="font-body-sm-medium text-body-sm-medium text-on-surface">{judul}</span>
-        <span className="font-body-sm text-body-sm text-on-surface-variant leading-snug">{detail}</span>
+      <span className="flex flex-col min-w-0 gap-0.5">
+        <span className="font-body-sm-medium text-body-sm-medium text-[#20243A] font-semibold">{judul}</span>
+        <span className="font-body-sm text-body-sm text-[#77819A] leading-snug">{detail}</span>
       </span>
     </div>
   )

@@ -307,49 +307,40 @@ function MobileIzinCutiPage() {
 
   return (
     <div className="sp-page">
-      <section className="sp-hero sp-page-container pt-4 pb-6">
-        <span className="sp-pattern-dots" aria-hidden="true" />
-        <span className="sp-blob sp-blob-a" aria-hidden="true" />
-        <div className="relative z-[1]">
-        <div className="flex items-center gap-3">
-          <StaffAvatar staff={staff} size="w-12 h-12" textClass="font-headline-sm text-headline-sm" />
-          <div className="flex flex-col min-w-0">
-            <span className="font-label-sm text-label-sm text-on-primary-container">Pengajuan Saya</span>
-            <h1 className="font-headline-sm text-headline-sm text-white">Izin &amp; Cuti</h1>
-            <span className="font-label-sm text-label-sm text-on-primary-container truncate">{unit?.nama}</span>
-          </div>
-        </div>
-
-        {/* Ringkasan tiga status pengajuan. */}
-        <div className="mt-4 flex items-center">
-          {STATUS_PENGAJUAN.map((status, i) => (
-            <div
-              key={status}
-              className={`flex-1 flex flex-col items-center gap-0.5 ${i > 0 ? 'border-l border-white/10' : ''}`}
-            >
-              <span
-                className={`font-display-lg-mobile text-display-lg-mobile leading-none ${
-                  status === 'Menunggu' ? 'text-amber-300' : status === 'Disetujui' ? 'text-emerald-300' : 'text-rose-300'
-                }`}
-              >
-                {jumlah(status)}
-              </span>
-              <span className="font-label-sm text-label-sm text-white/70 text-center">
-                {LABEL_STATUS_PANJANG[status]}
-              </span>
+      <section className="sp-hero sp-page-container pt-3.5 pb-3">
+        {/* Ringkasan statistik pengajuan: permukaan soft blue agar terpisah
+            dari area riwayat (putih) dan tombol aksi (navy) di bawahnya. */}
+        <div className="sp-card p-4 flex flex-col gap-3.5 border border-[#323d8f]/20 rounded-2xl" style={{ backgroundColor: '#eef0fc' }}>
+          <div className="flex items-center gap-3">
+            <StaffAvatar staff={staff} size="w-12 h-12" textClass="font-headline-sm text-headline-sm font-bold text-white" ring="ring-2 ring-white/60" className="shadow-xs" />
+            <div className="flex flex-col min-w-0">
+              <span className="font-label-sm text-label-sm text-[#77819a] font-medium">Pengajuan Saya</span>
+              <h1 className="font-headline-sm text-headline-sm text-[#20243a] font-bold tracking-tight">Izin &amp; Cuti</h1>
+              <span className="font-label-sm text-label-sm text-[#77819a] truncate">{unit?.nama}</span>
             </div>
-          ))}
-        </div>
+          </div>
+
+          {/* Ringkasan tiga status pengajuan. */}
+          <div className="grid grid-cols-3 gap-2 pt-2">
+            {STATUS_PENGAJUAN.map((status) => (
+              <div key={status} className="rounded-xl bg-[#ffffff] border border-[#dfe5f2] p-3 flex flex-col items-center gap-0.5 min-w-0">
+                <span
+                  className={`font-display-lg-mobile text-[22px] font-bold leading-none ${
+                    status === 'Menunggu' ? 'text-amber-600' : status === 'Disetujui' ? 'text-emerald-600' : 'text-rose-600'
+                  }`}
+                >
+                  {jumlah(status)}
+                </span>
+                <span className="font-label-sm text-[11px] text-[#77819a] text-center font-medium mt-0.5">
+                  {LABEL_STATUS_PANJANG[status]}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
       <div className="px-4 relative z-[2] flex flex-col gap-4 pb-2">
-        {/*
-          Tombol utama pengajuan. Sengaja dibuat besar, full width, dengan
-          border putih tebal dan warna biru kontras terhadap header gelap di
-          atasnya: ini aksi paling penting di halaman ini dan harus langsung
-          terlihat tanpa harus mencari.
-        */}
         {!formTerbuka && (
           <button
             type="button"
@@ -358,9 +349,9 @@ function MobileIzinCutiPage() {
               setPesan('')
               setGalat('')
             }}
-            className="sp-btn w-full min-h-[60px] py-4 bg-gradient-to-r from-[#181d48] via-[#252e6d] to-[#323d8f] text-white border-[3px] border-[#323d8f]/40 shadow-lg shadow-blue-950/20 font-headline-sm text-headline-sm flex items-center justify-center gap-2.5 active:scale-[0.98] transition-all hover:brightness-105"
+            className="sp-btn w-full min-h-[60px] py-3.5 bg-[#323d8f] hover:bg-[#283273] text-white border-[3px] border-[#323d8f] shadow-lg shadow-[#323d8f]/20 font-headline-sm text-headline-sm flex items-center justify-center gap-2 rounded-2xl active:scale-[0.98] transition-all"
           >
-            <Icon name="add" className="text-[26px] shrink-0 text-white" />
+            <Icon name="add" className="text-[22px] shrink-0 text-white" />
             <span className="text-white font-semibold tracking-wide">Buat Pengajuan</span>
           </button>
         )}

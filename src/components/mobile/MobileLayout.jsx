@@ -117,7 +117,7 @@ function MobileLayout() {
                       </span>
                       <span
                         className={`font-label-sm text-[10px] sm:text-[11px] font-bold ${
-                          isActive ? 'text-[#323d8f]' : 'text-slate-600'
+                          isActive ? 'text-[#323d8f]' : 'text-[#77819a]'
                         }`}
                       >
                         {item.label}
@@ -127,11 +127,11 @@ function MobileLayout() {
                     <>
                       <Icon
                         name={item.icon}
-                        className={`text-[21px] ${isActive ? 'text-white' : 'text-on-surface-variant'}`}
+                        className={`text-[21px] ${isActive ? 'text-white' : 'text-[#77819a]'}`}
                       />
                       <span
                         className={`font-label-sm text-[10.5px] sm:text-[11.5px] leading-tight truncate max-w-full px-0.5 ${
-                          isActive ? 'text-white font-semibold' : 'text-on-surface-variant'
+                          isActive ? 'text-white font-semibold' : 'text-[#77819a]'
                         }`}
                       >
                         {item.label}

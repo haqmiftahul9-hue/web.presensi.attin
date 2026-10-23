@@ -68,22 +68,22 @@ function Bagian({ judul, ikon, terbuka, onToggle, children }) {
  *  Pembatas antar baris memakai `border-b` pada pembungkus di luar, bukan pada
  *  tombolnya. Dengan begitu divider-nya mengikuti area konten (16px dari sisi
  *  kartu) dan tidak pernah menyentuh border kartu. */
-function BarisMenu({ ikon, judul, sub, tone = 'text-on-surface', onClick }) {
+function BarisMenu({ ikon, judul, sub, tone = 'text-[#323D8F]', onClick }) {
   return (
     <div className="border-b border-surface-container last:border-b-0">
       <button
         type="button"
         onClick={onClick}
-        className="w-full flex items-center gap-3 py-3.5 text-left active:bg-surface-container-low transition-colors"
+        className="w-full flex items-center gap-3 py-3.5 text-left active:bg-slate-50 transition-colors cursor-pointer"
       >
-        <span className="w-8 h-8 rounded-xl bg-surface-container flex items-center justify-center shrink-0">
+        <span className="w-8 h-8 rounded-xl bg-[#EEF0FC] flex items-center justify-center shrink-0">
           <Icon name={ikon} className={`text-[18px] ${tone}`} />
         </span>
-        <span className="flex flex-col min-w-0 flex-1">
-          <span className="font-body-md-medium text-body-md-medium text-on-surface">{judul}</span>
-          {sub && <span className="font-label-sm text-label-sm text-on-surface-variant leading-snug">{sub}</span>}
+        <span className="flex flex-col min-w-0 flex-1 gap-0.5">
+          <span className="font-body-md-medium text-body-md-medium text-[#20243A] font-semibold">{judul}</span>
+          {sub && <span className="font-label-sm text-label-sm text-[#77819A] leading-snug">{sub}</span>}
         </span>
-        <Icon name="chevron_right" className="text-outline text-[20px] shrink-0" />
+        <Icon name="chevron_right" className="text-[#77819A] text-[20px] shrink-0" />
       </button>
     </div>
   )
@@ -199,16 +199,16 @@ function MobileProfilPage() {
         <span className="sp-blob sp-blob-a" aria-hidden="true" />
         <div className="relative z-[1] flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <span className="w-9 h-9 rounded-xl bg-white/15 border border-white/20 flex items-center justify-center shrink-0 shadow-sm backdrop-blur-md">
-              <Icon name="badge" className="text-white text-[20px]" />
+            <span className="w-9 h-9 rounded-xl bg-[#EEF0FC] border border-[#323D8F]/20 flex items-center justify-center shrink-0 shadow-xs text-[#323D8F]">
+              <Icon name="badge" className="text-[20px]" />
             </span>
             <div className="flex flex-col">
-              <h1 className="font-headline-sm text-headline-sm text-white font-bold tracking-tight">Profil Pegawai</h1>
-              <span className="font-label-sm text-label-sm text-white/75 text-[11px]">SIMPEG Attin Sumbar</span>
+              <h1 className="font-headline-sm text-headline-sm text-[#20243A] font-bold tracking-tight">Profil Pegawai</h1>
+              <span className="font-label-sm text-label-sm text-[#77819A] text-[11px]">SIMPEG Attin Sumbar</span>
             </div>
           </div>
-          <span className="px-2.5 py-1 rounded-full bg-white/12 border border-white/20 font-label-sm text-label-sm text-white/95 font-medium flex items-center gap-1 backdrop-blur-md">
-            <Icon name="verified_user" className="text-[14px] text-emerald-300" />
+          <span className="px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 font-label-sm text-label-sm text-emerald-700 font-medium flex items-center gap-1">
+            <Icon name="verified_user" className="text-[14px] text-emerald-600" />
             Terverifikasi
           </span>
         </div>
@@ -225,15 +225,15 @@ function MobileProfilPage() {
           </p>
         )}
 
-        {/* KARTU IDENTITAS UTAMA PEGAWAI (Shadcn Card) */}
-        <section className="sp-card p-5 flex flex-col items-center gap-4 text-center sp-rise">
-          <div className="relative group">
+        {/* IDENTITAS UTAMA — permukaan putih untuk informasi utama yang paling sering dibaca. */}
+        <section className="sp-card p-4 flex flex-col items-center gap-3 text-center sp-rise rounded-2xl">
+          <div className="relative group shrink-0">
             <StaffAvatar
               staff={staff}
               size="w-20 h-20"
               textClass="font-headline-sm text-headline-sm"
-              ring="ring-[3px] ring-[#323d8f]/20"
-              className="shadow-md"
+              ring="ring-[3px] ring-[#323D8F]/20"
+              className="shadow-sm"
             />
             <span
               className={`absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full ring-2 ring-white z-10 ${
@@ -247,19 +247,23 @@ function MobileProfilPage() {
               disabled={uploadingFoto}
               aria-label="Ubah foto profil"
               title="Ubah foto profil"
-              className="absolute -top-1 -right-1 w-7 h-7 rounded-full bg-[#323d8f] hover:bg-[#252e6d] text-white flex items-center justify-center shadow-md border-2 border-white active:scale-90 transition-all z-20 cursor-pointer"
+              className="absolute -top-1 -right-1 w-7 h-7 rounded-full bg-[#323D8F] hover:bg-[#283273] text-white flex items-center justify-center shadow-md border-2 border-white active:scale-90 transition-all z-20 cursor-pointer"
             >
               <Icon name={uploadingFoto ? 'hourglass_top' : 'photo_camera'} className={`text-[14px] ${uploadingFoto ? 'animate-spin' : ''}`} />
             </button>
           </div>
 
-          <div className="flex flex-col items-center min-w-0 max-w-full">
-            <span className="font-headline-sm text-headline-sm text-slate-900 font-bold tracking-tight truncate max-w-full">
+          <div className="flex flex-col items-center min-w-0 max-w-full gap-1">
+            <span className="font-headline-sm text-headline-sm text-[#20243A] font-bold tracking-tight truncate max-w-full">
               {getEmployeeGreeting(staff, { unit })}
             </span>
-            <span className="font-label-sm text-label-sm text-slate-500 font-medium truncate max-w-full mt-0.5 flex items-center justify-center gap-1">
-              <Icon name="domain" className="text-[14px] text-slate-400 shrink-0" />
+            <span className="font-label-sm text-label-sm text-[#77819A] font-medium truncate max-w-full flex items-center justify-center gap-1">
+              <Icon name="domain" className="text-[14px] text-[#77819A] shrink-0" />
               <span className="truncate">{staff.role} • {unit?.nama || '-'}</span>
+            </span>
+            <span className="font-label-sm text-label-sm text-[#323d8f] font-medium truncate max-w-full flex items-center justify-center gap-1">
+              <Icon name="badge" className="text-[14px] shrink-0" />
+              <span className="truncate">NIY {staff.niy}</span>
             </span>
           </div>
 
@@ -269,7 +273,7 @@ function MobileProfilPage() {
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={uploadingFoto}
-              className="px-3 py-1.5 rounded-xl bg-[#323d8f] hover:bg-[#252e6d] text-white font-label-md text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-all active:scale-[0.98] cursor-pointer"
+              className="px-3 py-1.5 rounded-xl bg-[#323D8F] hover:bg-[#283273] text-white font-label-md text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-all active:scale-[0.98] cursor-pointer"
             >
               <Icon name={uploadingFoto ? 'hourglass_top' : 'photo_camera'} className={`text-[15px] ${uploadingFoto ? 'animate-spin' : ''}`} />
               <span>{uploadingFoto ? 'Menyimpan...' : (staff.foto ? 'Ganti Foto' : 'Tambah Foto')}</span>
@@ -293,45 +297,51 @@ function MobileProfilPage() {
               className="sr-only"
             />
           </div>
+        </section>
 
-          {/* Symmetrical 2x2 Bento Badges Grid */}
-          <div className="w-full grid grid-cols-2 gap-2 text-left pt-1">
-            <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-slate-50/90 border border-slate-200/80 min-w-0">
-              <span className="w-8 h-8 rounded-lg bg-white border border-slate-200/90 flex items-center justify-center shrink-0 shadow-2xs">
-                <Icon name="badge" className="text-[#323d8f] text-[17px]" />
+        {/* Metadata kelompok — soft blue untuk informasi pendukung yang tidak perlu
+            lebih tegas dari identitas utama. Digunakan untuk Status Akun,
+            Kepegawaian, Hari kerja, dan Jam kerja sebagai satu kelompok metadata. */}
+        <section className="sp-card p-3.5 flex flex-col gap-2.5 rounded-2xl" style={{ backgroundColor: '#eef0fc' }}>
+          <div className="sp-card-head-plain pb-2">
+            <span className="font-headline-sm text-headline-sm text-[#20243A] font-bold">Metadata Pegawai</span>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="flex items-center gap-2 p-2 rounded-xl bg-[#323d8f]/10 border border-[#323d8f]/15 min-w-0">
+              <span className="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-700 flex items-center justify-center shrink-0">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 {${
+                  staff.status === 'Aktif' ? 'animate-pulse' : ''
+                }}" />
               </span>
               <div className="flex flex-col min-w-0">
-                <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">NIY</span>
-                <span className="font-label-sm text-label-sm font-bold text-slate-900 truncate tabular-nums">{staff.niy}</span>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-slate-50/90 border border-slate-200/80 min-w-0">
-              <span className="w-8 h-8 rounded-lg bg-white border border-slate-200/90 flex items-center justify-center shrink-0 shadow-2xs">
-                <Icon name="assignment_ind" className="text-blue-600 text-[17px]" />
-              </span>
-              <div className="flex flex-col min-w-0">
-                <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Kepegawaian</span>
-                <span className="font-label-sm text-label-sm font-bold text-slate-900 truncate">{staff.statusPegawai || 'Pegawai'}</span>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-200/70 min-w-0">
-              <span className="w-8 h-8 rounded-lg bg-emerald-100/80 border border-emerald-200 flex items-center justify-center shrink-0 shadow-2xs">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 animate-pulse" />
-              </span>
-              <div className="flex flex-col min-w-0">
-                <span className="text-[10px] font-semibold text-emerald-600 uppercase tracking-wider">Status Akun</span>
+                <span className="text-[10px] font-semibold text-[#77819A] uppercase tracking-wider">Status Akun</span>
                 <span className="font-label-sm text-label-sm font-bold text-emerald-800 truncate">{staff.status}</span>
               </div>
             </div>
-
-            <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-indigo-50/60 border border-indigo-200/60 min-w-0">
-              <span className="w-8 h-8 rounded-lg bg-white border border-indigo-100 flex items-center justify-center shrink-0 shadow-2xs">
-                <Icon name="schedule" className="text-[#323d8f] text-[17px]" />
+            <div className="flex items-center gap-2 p-2 rounded-xl bg-[#323d8f]/10 border border-[#323d8f]/15 min-w-0">
+              <span className="w-8 h-8 rounded-full bg-[#323d8f]/20 text-[#323d8f] flex items-center justify-center shrink-0">
+                <Icon name="assignment_ind" className="text-[15px]" />
               </span>
               <div className="flex flex-col min-w-0">
-                <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">{rules.hari}</span>
+                <span className="text-[10px] font-semibold text-[#77819A] uppercase tracking-wider">Kepegawaian</span>
+                <span className="font-label-sm text-label-sm font-bold text-[#20243A] truncate">{staff.statusPegawai || 'Pegawai'}</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 p-2 rounded-xl bg-[#323d8f]/10 border border-[#323d8f]/15 min-w-0">
+              <span className="w-8 h-8 rounded-full bg-[#323d8f]/20 text-[#323d8f] flex items-center justify-center shrink-0">
+                <Icon name="today" className="text-[15px]" />
+              </span>
+              <div className="flex flex-col min-w-0">
+                <span className="text-[10px] font-semibold text-[#77819A] uppercase tracking-wider">Hari Kerja</span>
+                <span className="font-label-sm text-label-sm font-bold text-[#323d8f] truncate">{rules.hari}</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 p-2 rounded-xl bg-[#323d8f]/10 border border-[#323d8f]/15 min-w-0">
+              <span className="w-8 h-8 rounded-full bg-[#323d8f]/20 text-[#323d8f] flex items-center justify-center shrink-0">
+                <Icon name="schedule" className="text-[15px]" />
+              </span>
+              <div className="flex flex-col min-w-0">
+                <span className="text-[10px] font-semibold text-[#77819A] uppercase tracking-wider">Jam Kerja</span>
                 <span className="font-label-sm text-label-sm font-bold text-[#323d8f] truncate tabular-nums">{rules.jamKerja}</span>
               </div>
             </div>
@@ -339,13 +349,13 @@ function MobileProfilPage() {
         </section>
 
         {/* Informasi utama sesuai data kepegawaian. */}
-        <section className="sp-card p-4 flex flex-col gap-3.5">
+        <section className="sp-card p-4 flex flex-col gap-3.5 bg-white border border-[#E0E6F2] rounded-2xl shadow-xs">
           <div className="sp-card-head">
             <div className="flex items-center gap-2 min-w-0">
-              <span className="w-8 h-8 rounded-xl bg-[#323d8f]/10 flex items-center justify-center shrink-0">
-                <Icon name="badge" className="text-[#323d8f] text-[18px]" />
+              <span className="w-8 h-8 rounded-xl bg-[#EEF0FC] flex items-center justify-center shrink-0">
+                <Icon name="badge" className="text-[#323D8F] text-[18px]" />
               </span>
-              <span className="font-headline-sm text-headline-sm text-on-surface truncate">Informasi Kepegawaian</span>
+              <span className="font-headline-sm text-headline-sm text-[#20243A] font-bold truncate">Informasi Kepegawaian</span>
             </div>
           </div>
           <div>
@@ -364,13 +374,13 @@ function MobileProfilPage() {
         </section>
 
         {/* Jadwal jam kerja global — inilah satu-satunya acuan presensi, tanpa shift. */}
-        <section className="sp-card p-4 flex flex-col gap-3.5">
+        <section className="sp-card p-4 flex flex-col gap-3.5 bg-white border border-[#E0E6F2] rounded-2xl shadow-xs">
           <div className="sp-card-head">
             <div className="flex items-center gap-2 min-w-0">
-              <span className="w-8 h-8 rounded-xl bg-[#323d8f]/10 flex items-center justify-center shrink-0">
-                <Icon name="schedule" className="text-[#323d8f] text-[18px]" />
+              <span className="w-8 h-8 rounded-xl bg-[#EEF0FC] flex items-center justify-center shrink-0">
+                <Icon name="schedule" className="text-[#323D8F] text-[18px]" />
               </span>
-              <span className="font-headline-sm text-headline-sm text-on-surface truncate">Jam Kerja Global</span>
+              <span className="font-headline-sm text-headline-sm text-[#20243A] font-bold truncate">Jam Kerja Global</span>
             </div>
           </div>
           <div>
@@ -378,7 +388,7 @@ function MobileProfilPage() {
               <Baris key={h.hari} label={h.hari} nilai={h.jamKerja} />
             ))}
           </div>
-          <p className="font-label-sm text-label-sm text-on-surface-variant leading-snug">
+          <p className="font-label-sm text-label-sm text-[#77819A] leading-snug">
             Jumat tidak memiliki batas minimal jam pulang. Status Tepat Waktu / Terlambat ditentukan dari batas jam masuk hari tersebut.
           </p>
         </section>
@@ -386,9 +396,9 @@ function MobileProfilPage() {
         {/* Menu: data pribadi, kartu ID, ubah password, keluar.
             `sp-card-flush` + pembungkus `px-4` membuat isi dan divider menu
             sama-sama berjarak 16px dari sisi kartu. */}
-        <section className="sp-card sp-card-flush overflow-hidden">
+        <section className="sp-card sp-card-flush overflow-hidden bg-white border border-[#E0E6F2] rounded-2xl shadow-xs">
           <div className="px-4 pt-4 pb-3">
-            <span className="font-headline-sm text-headline-sm text-on-surface">Menu</span>
+            <span className="font-headline-sm text-headline-sm text-[#20243A] font-bold">Menu</span>
           </div>
 
           <div className="px-4">
@@ -427,7 +437,7 @@ function MobileProfilPage() {
 
             {bukaPribadi && (
               <div className="pb-4 -mt-1 animate-sp-rise">
-                <div className="rounded-2xl bg-slate-50 border border-slate-100 p-4">
+                <div className="rounded-2xl bg-[#F3F5FC] border border-[#E0E6F2] p-4">
                   <Baris label="Tempat, tanggal lahir" nilai={[staff.tempatLahir, staff.tanggalLahir].filter(Boolean).join(', ')} />
                   <Baris label="Jenis kelamin" nilai={staff.jenisKelamin} />
                   <Baris label="Pendidikan asal" nilai={staff.pendidikanAsal} />

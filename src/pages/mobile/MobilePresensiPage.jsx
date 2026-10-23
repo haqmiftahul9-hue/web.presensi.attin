@@ -67,52 +67,51 @@ function PresensiHariIniCard({ presensi, zonaWaktu, tanggal }) {
   )
 
   return (
-    <section className="sp-card p-4 flex flex-col gap-3.5">
+    <section className="sp-card p-4 flex flex-col gap-3.5 border border-[#e0e6f2] shadow-xs">
       <div className="sp-card-head">
         <div className="flex items-center gap-2 min-w-0">
-          <span className="w-8 h-8 rounded-xl bg-[#323d8f]/10 border border-[#323d8f]/15 flex items-center justify-center shrink-0">
+          <span className="w-8 h-8 rounded-xl bg-[#eef0fc] border border-[#323d8f]/15 flex items-center justify-center shrink-0 shadow-2xs">
             <Icon name="history_toggle_off" className="text-[#323d8f] text-[18px]" />
           </span>
-          <span className="font-headline-sm text-headline-sm text-slate-900 font-bold tracking-tight truncate">Presensi Hari Ini</span>
+          <span className="font-headline-sm text-headline-sm text-[#20243a] font-bold tracking-tight truncate">Presensi Hari Ini</span>
         </div>
-        <span className="font-label-sm text-label-sm text-slate-500 font-medium shrink-0">{tanggalPendek(tanggal)}</span>
+        <span className="font-label-sm text-label-sm text-[#77819a] font-medium shrink-0">{tanggalPendek(tanggal)}</span>
       </div>
 
       {baris(
         'Jam Masuk',
         masuk,
-        masuk ? (lateMinutes > 0 ? 'bg-amber-50 text-amber-800 border border-amber-200/60 font-semibold' : 'bg-emerald-50 text-emerald-700 border border-emerald-200/60 font-semibold') : 'bg-slate-100 text-slate-600',
+        masuk ? (lateMinutes > 0 ? 'bg-amber-50 text-amber-800 border border-amber-200/80 font-semibold' : 'bg-emerald-50 text-emerald-700 border border-emerald-200/80 font-semibold') : 'bg-[#f3f5fc] text-[#77819a] border border-[#e0e6f2]',
         masuk ? (lateMinutes > 0 ? 'schedule' : 'task_alt') : 'hourglass_empty',
         masuk ? statusMasuk : 'Belum Masuk',
       )}
 
-      {/* Divider mengikuti lebar area konten kartu: 14px di atas dan di bawah
-          (dari `gap-3.5` kartu), tidak pernah menyentuh sisi card. */}
+      {/* Divider mengikuti lebar area konten kartu */}
       <div className="sp-divider" />
 
       {baris(
         'Jam Pulang',
         pulang,
-        pulang ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/60 font-semibold' : 'bg-slate-100 text-slate-600',
+        pulang ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/80 font-semibold' : 'bg-[#f3f5fc] text-[#77819a] border border-[#e0e6f2]',
         pulang ? 'task_alt' : 'hourglass_empty',
         pulang ? 'Sudah Absen' : (rules.pulangBebas ? 'Bebas' : `Menunggu ${rules.jamPulang}`),
       )}
 
-      {/* Informasi hari kerja — menggantikan informasi shift. */}
+      {/* Informasi hari kerja */}
       <div className="grid grid-cols-2 gap-2.5">
-        <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex flex-col gap-1 min-w-0">
-          <span className="font-label-sm text-label-sm text-slate-500 font-medium">Hari kerja</span>
-          <span className="font-body-md-medium text-body-md-medium text-slate-900 font-semibold truncate">{hari}</span>
+        <div className="p-3 rounded-xl bg-[#f3f5fc] border border-[#e0e6f2] flex flex-col gap-1 min-w-0">
+          <span className="font-label-sm text-label-sm text-[#77819a] font-medium">Hari kerja</span>
+          <span className="font-body-md-medium text-body-md-medium text-[#20243a] font-semibold truncate">{hari}</span>
         </div>
-        <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex flex-col gap-1 min-w-0">
-          <span className="font-label-sm text-label-sm text-slate-500 font-medium">Jam kerja</span>
-          <span className="font-body-md-medium text-body-md-medium text-slate-900 font-semibold tabular-nums truncate">
+        <div className="p-3 rounded-xl bg-[#f3f5fc] border border-[#e0e6f2] flex flex-col gap-1 min-w-0">
+          <span className="font-label-sm text-label-sm text-[#77819a] font-medium">Jam kerja</span>
+          <span className="font-body-md-medium text-body-md-medium text-[#323d8f] font-semibold tabular-nums truncate">
             {rules.jamKerja}
           </span>
         </div>
       </div>
 
-      <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-start gap-2.5 text-amber-900">
+      <div className="p-3.5 rounded-2xl bg-amber-50/70 border border-amber-200/70 flex items-start gap-2.5 text-amber-900">
         <Icon name="info" className="text-[17px] text-amber-600 shrink-0 mt-0.5" />
         <div className="flex flex-col gap-0.5 min-w-0">
           <span className="font-body-sm-medium text-body-sm-medium font-bold text-amber-950">
@@ -124,7 +123,7 @@ function PresensiHariIniCard({ presensi, zonaWaktu, tanggal }) {
         </div>
       </div>
 
-      <p className="font-label-sm text-label-sm text-slate-500 leading-snug">
+      <p className="font-label-sm text-label-sm text-[#77819a] leading-snug">
         Jam kerja {rules.hari} {rules.jamKerja} {zonaWaktu}
         {method ? ` • metode ${method}` : ''}
       </p>
@@ -651,76 +650,72 @@ function MobilePresensiPage() {
 
   return (
     <div className="sp-page">
-      {/* 1. HERO: identitas + jam real-time. Gelap, dengan bentuk dekoratif. */}
-      <section className="sp-hero sp-page-container pt-4 pb-20">
-        <span className="sp-pattern-dots" aria-hidden="true" />
-        <span className="sp-blob sp-blob-a" aria-hidden="true" />
-        <span className="sp-blob sp-blob-b" aria-hidden="true" />
-
-        <div className="relative z-[1]">
+      {/* 1. HERO: identitas + jam real-time. Light & Clean Minimalist */}
+      <section className="sp-page-container pt-3.5 pb-1">
+        <div className="sp-card bg-white p-4 flex flex-col gap-3.5 border border-[#e0e6f2] shadow-sm rounded-2xl">
           <div className="flex items-center gap-3">
             <div className="relative shrink-0">
               <StaffAvatar
                 staff={staff}
                 size="w-14 h-14"
-                textClass="font-headline-sm text-headline-sm"
-                ring="ring-[3px] ring-white/20"
+                textClass="font-headline-sm text-headline-sm font-bold text-white"
+                ring="ring-2 ring-[#eef0fc]"
               />
               <span
-                className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full ring-[3px] ring-[#181d48] ${
-                  state.currentUser?.status === 'Aktif' ? 'bg-emerald-400' : 'bg-outline'
+                className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full ring-2 ring-white ${
+                  state.currentUser?.status === 'Aktif' ? 'bg-emerald-500' : 'bg-slate-400'
                 }`}
                 title={state.currentUser?.status === 'Aktif' ? 'Online' : 'Offline'}
               />
             </div>
             <div className="flex flex-col min-w-0 flex-1">
-              <span className="font-label-sm text-label-sm text-white/70">Halo,</span>
+              <span className="font-label-sm text-label-sm text-[#77819a] font-medium">Halo,</span>
               {/* Sapaan dari gender + unit pegawai, lewat fungsi terpusat. */}
-              <span className="font-headline-sm text-headline-sm text-white truncate">
+              <span className="font-headline-sm text-headline-sm text-[#20243a] font-bold truncate">
                 {getEmployeeGreeting(staff, { unit })}
               </span>
-              <span className="font-label-sm text-label-sm text-white/70 truncate">
+              <span className="font-label-sm text-label-sm text-[#77819a] truncate">
                 {staff.name}
               </span>
             </div>
-            <span className="px-2.5 py-1 rounded-full bg-white/12 text-white/95 border border-white/20 font-label-sm text-label-sm flex items-center gap-1 shrink-0">
+            <span className="px-2.5 py-1 rounded-full bg-[#eef0fc] text-[#323d8f] border border-[#323d8f]/15 font-label-sm text-label-sm font-semibold flex items-center gap-1 shrink-0">
               <Icon name="badge" className="text-[14px]" />
               ID {staff.niy}
             </span>
           </div>
 
-          <div className="mt-3.5 grid grid-cols-2 gap-2">
-            <div className="flex items-center gap-2 rounded-xl bg-white/15 border border-white/20 px-2.5 py-2 min-w-0">
-              <Icon name="domain" className="text-[15px] text-white/90 shrink-0" />
-              <span className="font-label-sm text-label-sm text-white font-medium truncate">{unit?.nama || '-'}</span>
+          <div className="grid grid-cols-2 gap-2 pt-1 border-t border-[#e0e6f2]/80">
+            <div className="flex items-center gap-2 rounded-xl bg-[#eef0fc] border border-[#323d8f]/10 px-2.5 py-2 min-w-0">
+              <Icon name="domain" className="text-[15px] text-[#323d8f] shrink-0" />
+              <span className="font-label-sm text-label-sm text-[#20243a] font-medium truncate">{unit?.nama || '-'}</span>
             </div>
-            <div className="flex items-center gap-2 rounded-xl bg-white/15 border border-white/20 px-2.5 py-2 min-w-0">
-              <Icon name="work" className="text-[15px] text-white/90 shrink-0" />
-              <span className="font-label-sm text-label-sm text-white font-medium truncate">{staff.role}</span>
+            <div className="flex items-center gap-2 rounded-xl bg-[#eef0fc] border border-[#323d8f]/10 px-2.5 py-2 min-w-0">
+              <Icon name="work" className="text-[15px] text-[#323d8f] shrink-0" />
+              <span className="font-label-sm text-label-sm text-[#20243a] font-medium truncate">{staff.role}</span>
             </div>
           </div>
-          <div className="mt-2 flex items-center gap-2 rounded-xl bg-white/15 border border-white/20 px-3 py-2 min-w-0">
-            <Icon name="schedule" className="text-[15px] text-white/90 shrink-0" />
-            <span className="font-label-sm text-label-sm text-white font-medium truncate">
+          <div className="flex items-center gap-2 rounded-xl bg-[#eef0fc] border border-[#323d8f]/15 px-3 py-2 min-w-0">
+            <Icon name="schedule" className="text-[15px] text-[#323d8f] shrink-0" />
+            <span className="font-label-sm text-label-sm text-[#323d8f] font-medium truncate">
               Jam Kerja {rules.hari}: <span className="font-semibold">{rules.jamKerja}</span>
             </span>
           </div>
 
-          {/* Jam WIB real-time + tanggal hari ini. */}
-          <div className="mt-4 flex items-end justify-between gap-3">
+          {/* Jam WIB real-time + tanggal hari ini (Aksen Navy Terarah pada area presensi). */}
+          <div className="mt-1 p-3.5 rounded-2xl bg-[#323d8f] border border-[#283273] text-white flex items-end justify-between gap-3 shadow-xs">
             <div className="flex flex-col">
-              <span className="font-display-lg text-[40px] leading-none text-white font-bold tabular-nums">
+              <span className="font-display-lg text-[36px] sm:text-[40px] leading-none text-white font-extrabold tracking-tight tabular-nums drop-shadow-sm">
                 {jamDetik(now)}
               </span>
-              <span className="font-label-sm text-label-sm text-white/70 mt-1.5">
+              <span className="font-label-sm text-label-sm text-blue-100/90 mt-1.5 font-medium">
                 {tanggalPanjang(now)} · {zonaWaktu}
               </span>
             </div>
             <span
-              className={`px-3 py-1.5 rounded-full border font-label-sm text-label-sm flex items-center gap-1.5 shrink-0 ${
+              className={`px-3 py-1.5 rounded-full border font-label-sm text-label-sm font-semibold flex items-center gap-1.5 shrink-0 ${
                 presensi.sudahMasuk
-                  ? 'bg-emerald-400/15 border-emerald-300/30 text-emerald-200'
-                  : 'bg-white/10 border-white/12 text-white/90'
+                  ? 'bg-emerald-400 border-emerald-300 text-slate-900 font-bold'
+                  : 'bg-white/20 border-white/30 text-white font-semibold'
               }`}
             >
               <Icon name={presensi.sudahMasuk ? (presensi.lateMinutes > 0 ? 'schedule' : 'task_alt') : 'hourglass_empty'} className="text-[15px]" />
@@ -793,7 +788,7 @@ function MobilePresensiPage() {
             />
           )}
 
-          <div className="grid grid-cols-2 p-1.5 gap-1.5 bg-slate-100/90 border border-slate-200/60 rounded-2xl">
+          <div className="grid grid-cols-2 p-1.5 gap-1.5 bg-[#f3f5fc] border border-[#e0e6f2] rounded-2xl">
             {TABS.map((tab) => (
               <button
                 key={tab.id}
@@ -806,8 +801,8 @@ function MobilePresensiPage() {
                 aria-pressed={mode === tab.id}
                 className={`flex items-center justify-center gap-1.5 min-h-[44px] px-3 py-2.5 rounded-xl font-label-md text-label-md transition-all ${
                   mode === tab.id
-                    ? 'bg-[#323d8f] text-white shadow-sm font-semibold'
-                    : 'bg-transparent text-slate-600 hover:text-slate-900'
+                    ? 'bg-[#323d8f] text-white shadow-xs font-semibold'
+                    : 'bg-transparent text-[#77819a] hover:text-[#20243a]'
                 }`}
               >
                 <Icon name={tab.icon} className="text-[18px] shrink-0" />
@@ -964,12 +959,12 @@ function MobilePresensiPage() {
               type="button"
               onClick={onTombolAksi}
               disabled={tombolAksiDisabled}
-              className={`sp-btn w-full py-4 font-headline-sm text-headline-sm flex items-center justify-center gap-2 shadow-lg transition-all active:scale-[0.99] disabled:opacity-60 disabled:active:scale-100 ${
+              className={`sp-btn w-full py-4 font-headline-sm text-headline-sm flex items-center justify-center gap-2 shadow-md transition-all active:scale-[0.99] disabled:opacity-60 disabled:active:scale-100 ${
                 belumMasuk
-                  ? 'bg-gradient-to-r from-[#20275e] to-[#323d8f] text-white'
+                  ? 'bg-[#323d8f] hover:bg-[#283273] text-white'
                   : belumPulang
-                    ? 'bg-gradient-to-r from-[#181d48] to-[#323d8f] text-white'
-                    : 'bg-emerald-700 text-white'
+                    ? 'bg-[#283273] hover:bg-[#181d48] text-white'
+                    : 'bg-emerald-600 hover:bg-emerald-700 text-white'
               }`}
             >
               <Icon name={busy ? 'progress_activity' : belumMasuk ? 'check_circle' : belumPulang ? 'logout' : 'task_alt'} className={`text-[20px] shrink-0 ${busy ? 'animate-spin' : ''}`} />
