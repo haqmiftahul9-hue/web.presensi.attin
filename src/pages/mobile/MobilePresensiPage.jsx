@@ -7,14 +7,12 @@ import {
   tanggalPanjang, tanggalPendek, jamDetik, jamPendek,
   jamMenitDariDate, cekJendelaPresensi, langkahValidasi, formatMeter,
 } from '../../data/presensiMobile.js'
-import { getEmployeeGreeting } from '../../data/sapaanPegawai.js'
 import { calculateAttendanceStatus } from '../../data/jamKerja.js'
 import { useGeofence } from '../../hooks/useGeofence.js'
 import { useDeviceCamera } from '../../hooks/useDeviceCamera.js'
 import GeofenceCard from '../../components/mobile/GeofenceCard.jsx'
 import { SectionTitle, Sensor } from '../../components/mobile/AppShell.jsx'
 import ScanFrame from '../../components/mobile/ScanFrame.jsx'
-import StaffAvatar from '../../components/mobile/StaffAvatar.jsx'
 import SuccessSheet from '../../components/mobile/SuccessSheet.jsx'
 import ValidationSteps from '../../components/mobile/ValidationSteps.jsx'
 import { ErrorState, LoadingState } from '../../components/mobile/Feedback.jsx'
@@ -650,59 +648,21 @@ function MobilePresensiPage() {
 
   return (
     <div className="sp-page">
-      {/* 1. HERO: identitas + jam real-time. Light & Clean Minimalist */}
+      {/* 1. HEADER SEDERHANA: judul + tanggal. Identitas pengguna sudah
+          ditampilkan di Beranda, jadi tidak diulang di sini. */}
       <section className="sp-page-container pt-3.5 pb-1">
-        <div className="sp-card bg-white p-4 flex flex-col gap-3.5 border border-[#e0e6f2] shadow-sm rounded-2xl">
-          <div className="flex items-center gap-3">
-            <div className="relative shrink-0">
-              <StaffAvatar
-                staff={staff}
-                size="w-14 h-14"
-                textClass="font-headline-sm text-headline-sm font-bold text-white"
-                ring="ring-2 ring-[#eef0fc]"
-              />
-              <span
-                className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full ring-2 ring-white ${
-                  state.currentUser?.status === 'Aktif' ? 'bg-emerald-500' : 'bg-slate-400'
-                }`}
-                title={state.currentUser?.status === 'Aktif' ? 'Online' : 'Offline'}
-              />
-            </div>
-            <div className="flex flex-col min-w-0 flex-1">
-              <span className="font-label-sm text-label-sm text-[#77819a] font-medium">Halo,</span>
-              {/* Sapaan dari gender + unit pegawai, lewat fungsi terpusat. */}
-              <span className="font-headline-sm text-headline-sm text-[#20243a] font-bold truncate">
-                {getEmployeeGreeting(staff, { unit })}
-              </span>
-              <span className="font-label-sm text-label-sm text-[#77819a] truncate">
-                {staff.name}
-              </span>
-            </div>
-            <span className="px-2.5 py-1 rounded-full bg-[#eef0fc] text-[#323d8f] border border-[#323d8f]/15 font-label-sm text-label-sm font-semibold flex items-center gap-1 shrink-0">
-              <Icon name="badge" className="text-[14px]" />
-              ID {staff.niy}
-            </span>
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex flex-col min-w-0">
+            <h1 className="font-headline-sm text-headline-sm text-[#20243a] font-bold tracking-tight">Presensi</h1>
+            <span className="font-label-sm text-label-sm text-[#77819a] font-medium truncate">{tanggalPanjang(now)}</span>
           </div>
+        </div>
+      </section>
 
-          <div className="grid grid-cols-2 gap-2 pt-1 border-t border-[#e0e6f2]/80">
-            <div className="flex items-center gap-2 rounded-xl bg-[#eef0fc] border border-[#323d8f]/10 px-2.5 py-2 min-w-0">
-              <Icon name="domain" className="text-[15px] text-[#323d8f] shrink-0" />
-              <span className="font-label-sm text-label-sm text-[#20243a] font-medium truncate">{unit?.nama || '-'}</span>
-            </div>
-            <div className="flex items-center gap-2 rounded-xl bg-[#eef0fc] border border-[#323d8f]/10 px-2.5 py-2 min-w-0">
-              <Icon name="work" className="text-[15px] text-[#323d8f] shrink-0" />
-              <span className="font-label-sm text-label-sm text-[#20243a] font-medium truncate">{staff.role}</span>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 rounded-xl bg-[#eef0fc] border border-[#323d8f]/15 px-3 py-2 min-w-0">
-            <Icon name="schedule" className="text-[15px] text-[#323d8f] shrink-0" />
-            <span className="font-label-sm text-label-sm text-[#323d8f] font-medium truncate">
-              Jam Kerja {rules.hari}: <span className="font-semibold">{rules.jamKerja}</span>
-            </span>
-          </div>
-
-          {/* Jam WIB real-time + tanggal hari ini (Aksen Navy Terarah pada area presensi). */}
-          <div className="mt-1 p-3.5 rounded-2xl bg-[#323d8f] border border-[#283273] text-white flex items-end justify-between gap-3 shadow-xs">
+      {/* 2. JAM DIGITAL + STATUS PRESENSI (navy, fokus utama). */}
+      <section className="sp-page-container pb-1">
+        <div className="sp-card p-3.5 flex flex-col gap-3 border border-[#283273] rounded-2xl" style={{ backgroundColor: '#323d8f' }}>
+          <div className="flex items-end justify-between gap-3">
             <div className="flex flex-col">
               <span className="font-display-lg text-[36px] sm:text-[40px] leading-none text-white font-extrabold tracking-tight tabular-nums drop-shadow-sm">
                 {jamDetik(now)}
@@ -720,6 +680,12 @@ function MobilePresensiPage() {
             >
               <Icon name={presensi.sudahMasuk ? (presensi.lateMinutes > 0 ? 'schedule' : 'task_alt') : 'hourglass_empty'} className="text-[15px]" />
               {presensi.sudahMasuk ? presensi.statusMasuk : `Batas ${presensi.batasMasuk}`}
+            </span>
+          </div>
+          <div className="flex items-center gap-2 rounded-xl bg-white/15 border border-white/20 px-3 py-2 min-w-0">
+            <Icon name="schedule" className="text-[15px] text-blue-200 shrink-0" />
+            <span className="font-label-sm text-label-sm text-white font-medium truncate">
+              Jam Kerja {rules.hari}: <span className="font-semibold">{rules.jamKerja}</span>
             </span>
           </div>
         </div>
@@ -842,7 +808,7 @@ function MobilePresensiPage() {
           <div className="sp-card p-4 flex flex-col gap-3 bg-amber-50/70 border border-amber-200/80">
             <div className="flex items-start gap-2.5">
               <span className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-900 flex items-center justify-center shrink-0">
-                <Icon name="face_retouching_natural" className="text-[18px]" />
+                <Icon name="scan_face" className="text-[18px]" />
               </span>
               <div className="flex flex-col min-w-0 flex-1">
                 <span className="font-headline-sm text-sm font-bold text-amber-950">Wajah Belum Terdaftar</span>

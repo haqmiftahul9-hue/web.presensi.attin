@@ -153,7 +153,6 @@ ujiBenar('Tidak ada kata sapaan hardcode di luar modul', hardcode.length === 0, 
 // Halaman yang menampilkan sapaan wajib memanggil fungsi terpusat.
 const PEMAKAI = [
   'src/pages/mobile/MobileBerandaPage.jsx',
-  'src/pages/mobile/MobilePresensiPage.jsx',
   'src/pages/mobile/MobileProfilPage.jsx',
   'src/components/cards/EmployeeIdCard.jsx',
   'src/components/StaffTable.jsx',
@@ -246,7 +245,6 @@ const server2 = await createServer({
 const { SimPresProvider } = await server2.ssrLoadModule('/src/store/simPresStore.jsx')
 const Beranda = (await server2.ssrLoadModule('/src/pages/mobile/MobileBerandaPage.jsx')).default
 const Profil = (await server2.ssrLoadModule('/src/pages/mobile/MobileProfilPage.jsx')).default
-const Presensi = (await server2.ssrLoadModule('/src/pages/mobile/MobilePresensiPage.jsx')).default
 const { EmployeeIdCard } = await server2.ssrLoadModule('/src/components/cards/EmployeeIdCard.jsx')
 const { mergeCardWithStaff } = await server2.ssrLoadModule('/src/data/employeeCard.js')
 await server2.close()
@@ -266,9 +264,6 @@ ujiBenar('Beranda tidak lagi menampilkan Bapak/Ibu', !/(^|[^A-Za-z])(Bapak|Bu|Ib
 const htmlProfil = renderToString(h(MemoryRouter, null, h(SimPresProvider, null, h(Profil))))
 ujiBenar('Profil menampilkan sapaan', htmlProfil.includes(`Ustadz ${namaDepan}`))
 ujiBenar('Profil tetap menampilkan nama resmi', htmlProfil.includes(erianto.name))
-
-const htmlPresensi = renderToString(h(MemoryRouter, null, h(SimPresProvider, null, h(Presensi))))
-ujiBenar('Halaman presensi menampilkan sapaan', htmlPresensi.includes(`Ustadz ${namaDepan}`))
 
 // Kartu ID memakai baris gabungan dari mergeCardWithStaff.
 const barisKartu = mergeCardWithStaff(null, erianto)

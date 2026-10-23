@@ -111,6 +111,38 @@ const PATHS = {
   wifi_off: <><path d="M5 12.5a10 10 0 0 1 14 0" /><path d="M8.5 16a5.5 5.5 0 0 1 7 0" /><circle cx="12" cy="19.5" r="1.2" /><path d="M4 4l16 16" /></>,
   no_photography: <><path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1Z" /><circle cx="12" cy="13" r="3.2" /><path d="M4 4l16 16" /></>,
   apps: <><circle cx="6" cy="6" r="1.4" /><circle cx="12" cy="6" r="1.4" /><circle cx="18" cy="6" r="1.4" /><circle cx="6" cy="12" r="1.4" /><circle cx="12" cy="12" r="1.4" /><circle cx="18" cy="12" r="1.4" /><circle cx="6" cy="18" r="1.4" /><circle cx="12" cy="18" r="1.4" /><circle cx="18" cy="18" r="1.4" /></>,
+  // Sinkronisasi nama ikon Material yang dipakai di codebase (alias ke glyph
+  // yang sudah ada) supaya tidak ada ikon yang gagal render jadi kotak putus-putus.
+  face_retouching_natural: <><circle cx="12" cy="12" r="9" /><path d="M9 10h.01M15 10h.01" /><path d="M8.5 14.5a4.5 4.5 0 0 0 7 0" /></>,
+  camera_alt: <><path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1Z" /><circle cx="12" cy="13" r="3.2" /></>,
+  hourglass_top: <><path d="M7 3h10M7 21h10" /><path d="M8 3v3.5c0 2 4 4 4 5.5s-4 3.5-4 5.5V21" /><path d="M16 3v3.5c0 2-4 4-4 5.5s4 3.5 4 5.5V21" /></>,
+
+  // Aksi media & foto
+  delete: <><path d="M3 6h18" /><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" /><path d="M10 11v6M14 11v6" /></>,
+  check: <><path d="M20 6 9 17l-5-5" /></>,
+  add_a_photo: <><path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1Z" /><circle cx="12" cy="13" r="3.2" /><path d="M19 3v4M17 5h4" /></>,
+
+  // Status & verifikasi biometrik
+  center_focus_strong: <><circle cx="12" cy="12" r="3" /><path d="M4 8V5.5A1.5 1.5 0 0 1 5.5 4H8M16 4h2.5A1.5 1.5 0 0 1 20 5.5V8M20 16v2.5a1.5 1.5 0 0 1-1.5 1.5H16M8 20H5.5A1.5 1.5 0 0 1 4 18.5V16" /></>,
+  block: <><circle cx="12" cy="12" r="9" /><path d="M5.5 5.5 18.5 18.5" /></>,
+  verified: <><circle cx="12" cy="12" r="9" /><path d="m8.5 12.5 2.5 2.5 4.5-5" /></>,
+  sync: <><path d="M21 12a9 9 0 0 0-9-9 9.5 9.5 0 0 0-5 2.12l3 2M4 12a9 9 0 0 0 9 9 9.5 9.5 0 0 0 5-2.12l-3-2" /></>,
+  verified_user: <><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="8.5" cy="7" r="4" /><path d="m16 1 1.5 3 3.5.5-2.5 2.5.6 3.5-3.1-1.6-3.1 1.6.6-3.5L13 4.5 16.5 4z" /></>,
+  user_round_x: <><circle cx="12" cy="8" r="4" /><path d="M5 21a7 7 0 0 1 7-7v4a7 7 0 0 0-7 7" /><path d="M17 17l-4 4M13 17l4 4" /></>,
+  user_round_check: <><circle cx="12" cy="8" r="4" /><path d="M5 21a7 7 0 0 1 7-7v4a7 7 0 0 0-7 7" /><path d="m16 11-2 3-4-4" /></>,
+  assignment_ind: <><rect x="3" y="3" width="18" height="18" rx="3" /><circle cx="12" cy="10" r="3" /><path d="M7.5 17a4.5 4.5 0 0 1 9 0" /></>,
+
+  // Jenis izin/cuti
+  luggage: <><path d="M6 7V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2" /><rect x="3" y="7" width="18" height="13" rx="2" /><path d="M3 12h18" /></>,
+  medication: <><path d="M4.5 9h15l-1.5 11H6z" /><path d="M9 9V6a3 3 0 0 1 6 0v3" /><path d="M9 14h6" /></>,
+  child_care: <><circle cx="12" cy="8" r="3" /><path d="M5 21a7 7 0 0 1 14 0" /><path d="M17 8a2 2 0 1 0-4 0" /></>,
+  travel_explore: <><circle cx="12" cy="12" r="9" /><path d="M15 9l-6 6M9 9l6 6" /><path d="M12 3v2M12 19v2M3 12h2M19 12h2" /></>,
+  priority_high: <><path d="M12 3v12" /><path d="M8 7h8" /><circle cx="12" cy="19" r="1.5" /></>,
+  favorite: <><path d="M12 20.5 4.5 13a4.5 4.5 0 0 1 6.4-6.4L12 7.7l1.1-1.1a4.5 4.5 0 0 1 6.4 6.4z" /></>,
+  hiking: <><path d="M13 4a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" /><path d="M9 21l3-6 2 2 3-4" /><path d="M6 13l3-3 2 2" /></>,
+  event_note: <><rect x="3" y="5" width="18" height="16" rx="2.5" /><path d="M3 10h18M8 3v4M16 3v4" /><path d="M7 14h4M7 17h10" /></>,
+  scan: <><path d="M4 8V5.5A1.5 1.5 0 0 1 5.5 4H8M16 4h2.5A1.5 1.5 0 0 1 20 5.5V8M20 16v2.5a1.5 1.5 0 0 1-1.5 1.5H16M8 20H5.5A1.5 1.5 0 0 1 4 18.5V16" /><path d="M8 12h8" /><path d="M12 8v8" /></>,
+  scan_face: <><path d="M4 8V5.5A1.5 1.5 0 0 1 5.5 4H8M16 4h2.5A1.5 1.5 0 0 1 20 5.5V8M20 16v2.5a1.5 1.5 0 0 1-1.5 1.5H16M8 20H5.5A1.5 1.5 0 0 1 4 18.5V16" /><circle cx="12" cy="12" r="3" /><path d="M9 10h.01M15 10h.01" /></>,
 }
 
 // Ikon yang secara visual lebih baik digambar penuh.

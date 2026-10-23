@@ -468,7 +468,7 @@ function MobileProfilPage() {
             />
 
             <BarisMenu
-              ikon="face_retouching_natural"
+              ikon="scan_face"
               judul="Pendaftaran Scan Wajah"
               sub={registeredFace ? 'Biometrik wajah terdaftar & aktif' : 'Wajah belum terdaftar — klik untuk mendaftar'}
               onClick={() => navigate('/mobile/presensi?mode=face')}

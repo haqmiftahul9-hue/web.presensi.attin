@@ -458,7 +458,7 @@ export function FaceEnrollmentModal({
         <div className="p-4 bg-gradient-to-r from-[#181d48] to-[#323d8f] text-white flex items-center justify-between">
           <div className="flex items-center gap-2 min-w-0">
             <span className="w-8 h-8 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
-              <Icon name="face_retouching_natural" className="text-white text-[18px]" />
+              <Icon name="scan_face" className="text-white text-[18px]" />
             </span>
             <div className="flex flex-col min-w-0">
               <span className="font-headline-sm text-sm font-bold truncate">Pendaftaran Scan Wajah</span>

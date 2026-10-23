@@ -18,7 +18,7 @@ const QUICK_MENU = [
     to: '/mobile/presensi',
     judul: 'Presensi Sekarang',
     sub: 'Wajah / barcode',
-    ikon: 'face_retouch_natural',
+    ikon: 'scan_face',
     kartu: 'bg-[#eef0fc] text-[#323d8f]',
     utama: true,
   },
