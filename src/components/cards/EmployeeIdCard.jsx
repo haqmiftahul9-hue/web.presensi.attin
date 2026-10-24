@@ -2,7 +2,6 @@ import QRCodeSvg from './QRCodeSvg.jsx'
 import BarcodeSvg from './BarcodeSvg.jsx'
 import { UnitLogo } from './CardLogos.jsx'
 import { cardStatusStyle, cardPhotoOf, formatDateID, CARD_QR_PREFIX_LABEL } from '../../data/employeeCard.js'
-import { getEmployeeGreeting } from '../../data/sapaanPegawai.js'
 
 /**
  * Wajah kartu ID PVC (CR80 85.60 x 53.98 mm).
@@ -27,8 +26,7 @@ function CardFace({ row, settings, unit, className = '' }) {
   const initials = row.initials || staff.name
   const statusGroup = row.statusGroup
   const namaYayasan = settings?.namaYayasan || 'Yayasan Islam Attin Indonesia'
-  // Sapaan mengikuti gender + unit, bukan ditulis manual di kartu.
-  const sapaan = row.greeting || getEmployeeGreeting(staff, { unit })
+// Sapaan (Ustadz/Ustadzah) dihilangkan; nama resmi saja yang tercetak.
 
   return (
     <div
@@ -58,7 +56,7 @@ function CardFace({ row, settings, unit, className = '' }) {
       </div>
 
       {/* Body: foto + identitas | QR 22 mm */}
-      <div className="flex min-h-0 flex-1 items-center gap-[var(--sp-gap)] px-[var(--sp-pad-x)] py-[var(--sp-body-pad-y)]">
+      <div className="flex min-h-0 flex-1 items-start gap-[var(--sp-gap)] px-[var(--sp-pad-x)] pt-[calc(var(--sp-body-pad-y)*1.2)] pb-[calc(var(--sp-body-pad-y)*0.3)]">
         <div className="flex shrink-0 flex-col items-center gap-[var(--sp-badge-gap)]">
           <div
             className="relative shrink-0 overflow-hidden border border-outline/25 bg-surface-container"
@@ -96,22 +94,13 @@ function CardFace({ row, settings, unit, className = '' }) {
           </span>
         </div>
 
-        <div className="flex min-w-0 flex-1 flex-col justify-center">
-          {/* Nama dagang (Umi / Ustadz / Ustadzah) dihitung dari gender + unit
-              pegawai. Nama resmi tetap ikut tercetak di bawahnya: kartu adalah
-              dokumen identitas, jadi nama resminya tidak boleh hilang. */}
+        <div className="flex min-w-0 flex-1 flex-col justify-start">
           <h3
             className="truncate text-[length:var(--sp-name)] font-bold leading-[1.15] tracking-[-0.01em] text-on-surface"
-            title={sapaan}
-          >
-            {sapaan}
-          </h3>
-          <p
-            className="truncate text-[length:var(--sp-role)] font-semibold leading-[1.2] text-secondary"
             title={staff.name}
           >
             {staff.name}
-          </p>
+          </h3>
           <p
             className="truncate text-[length:var(--sp-role)] font-medium leading-[1.2] text-on-surface-variant"
             title={staff.role}
