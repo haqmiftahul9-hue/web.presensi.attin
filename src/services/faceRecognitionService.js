@@ -42,13 +42,12 @@ export async function loadFaceApiModels(onProgress) {
   if (modelsLoaded) return true
   if (loadingModelsPromise) return loadingModelsPromise
 
-  loadingModelsPromise = (async () => {
+loadingModelsPromise = (async () => {
     const faceapi = await getFaceApi()
     if (!faceapi) return false
 
     onProgress?.('Memuat model deteksi wajah...')
-    
-    // Coba memuat dari public/models/face-api lokal terlebih dahulu
+
     try {
       await Promise.all([
         faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_BASE_PATH),
@@ -69,6 +68,7 @@ export async function loadFaceApiModels(onProgress) {
         return true
       } catch (errCdn) {
         console.error('Gagal memuat model face-api dari lokal maupun CDN:', errCdn)
+        loadingModelsPromise = null
         throw new Error('Gagal memuat model Face Recognition. Periksa koneksi atau berkas model.')
       }
     }
@@ -300,11 +300,13 @@ export async function saveRegisteredFaceDataToSupabase({ staff, descriptor, phot
         { onConflict: 'staff_id' },
       )
       if (error) {
-        console.warn('[FaceRec] Upsert Supabase gagal, fallback ke localStorage:', error.message)
+        console.warn('[FaceRec] Upsert Supabase gagal:', error.message)
+        throw new Error(error.message || 'Gagal menyimpan wajah ke Supabase')
       }
-    } catch (err) {
-      console.warn('[FaceRec] Error upsert Supabase:', err)
-    }
+} catch (err) {
+        console.warn('[FaceRec] Error upsert Supabase:', err)
+        throw err instanceof Error ? err : new Error(String(err))
+      }
   }
 
   // 2. Selalu simpan ke localStorage sebagai cache offline
