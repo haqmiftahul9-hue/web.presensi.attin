@@ -8,6 +8,7 @@ import LeaveDetailModal from '../components/LeaveDetailModal.jsx'
 import * as XLSX from 'xlsx'
 import { jsPDF } from 'jspdf'
 import autoTable from 'jspdf-autotable'
+import { downloadBlob } from '../utils/download.js'
 
 const statusStyles = {
   good: 'bg-emerald-50 text-emerald-700 border border-emerald-200/80',
@@ -484,7 +485,8 @@ function exportPresensiToExcel(data, unitLabel, periodLabel, yayasanInfo = null,
     
     const fileName = `Rekap_Presensi_${unitLabel}_${periodLabel}.xlsx`
     console.log('[exportPresensiToExcel] Writing file:', fileName)
-    XLSX.writeFile(wb, fileName)
+    const out = XLSX.write(wb, { bookType: 'xlsx', type: 'array' })
+    downloadBlob(new Blob([out], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), fileName)
     console.log('[exportPresensiToExcel] File write completed')
   } catch (e) {
     console.error('[exportPresensiToExcel] Error:', e)
@@ -576,7 +578,8 @@ function exportCutiToExcel(data, unitLabel, periodLabel, yayasanInfo = null, sig
     
     const fileName = `Rekap_Cuti_Izin_${unitLabel}_${periodLabel}.xlsx`
     console.log('[exportCutiToExcel] Writing file:', fileName)
-    XLSX.writeFile(wb, fileName)
+    const out = XLSX.write(wb, { bookType: 'xlsx', type: 'array' })
+    downloadBlob(new Blob([out], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), fileName)
     console.log('[exportCutiToExcel] File write completed')
   } catch (e) {
     console.error('[exportCutiToExcel] Error:', e)
@@ -1063,7 +1066,7 @@ function exportPresensiToPDF(data, unitLabel, periodLabel, yayasanInfo = null, s
   drawFooterSignatureAt(doc, unitLabel, footerY, signatory, 'presensi')
   
   const fileName = `Rekap_Presensi_${unitLabel.replace(/\s+/g, '_')}_${periodLabel}.pdf`
-  doc.save(fileName)
+  downloadBlob(doc.output('blob'), fileName)
 }
 
 // Helper function to draw footer at specific Y position (from top)
@@ -1277,7 +1280,7 @@ function exportCutiToPDF(data, unitLabel, periodLabel, yayasanInfo = null, signa
   drawFooterSignatureAt(doc, unitLabel, footerY, signatory, 'cuti')
   
   const fileName = `Rekap_Cuti_Izin_${unitLabel.replace(/\s+/g, '_')}_${periodLabel}.pdf`
-  doc.save(fileName)
+  downloadBlob(doc.output('blob'), fileName)
 }
 
 function DetailModal({ employee, isOpen, onClose, state }) {

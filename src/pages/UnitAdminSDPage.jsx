@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import EditUnitModal from '../components/EditUnitModal.jsx'
 import { useSimPres, selectUnitName, addActivityLog, selectSearchTerm } from '../store/simPresStore.jsx'
 import { daftarJamKerja } from '../data/jamKerja.js'
+import { downloadBlob } from '../utils/download.js'
 
 function ringkasanJamKerja() {
   return daftarJamKerja()
@@ -83,10 +84,7 @@ function UnitAdminSDPage() {
     ])
     const csv = [headers.join(','), ...rows.map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(','))].join('\n')
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
-    const link = document.createElement('a')
-    link.href = URL.createObjectURL(blob)
-    link.download = `unit-data-${new Date().toISOString().split('T')[0]}.csv`
-    link.click()
+    downloadBlob(blob, `unit-data-${new Date().toISOString().split('T')[0]}.csv`)
     showNotification('Data unit berhasil diekspor')
   }
 

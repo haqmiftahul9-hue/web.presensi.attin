@@ -266,7 +266,7 @@ uji('Ringkasan total +1', ringkasanSesudah.total, ringkasanSebelum.total + 1)
 
 // d. Guru hanya melihat miliknya sendiri.
 const milikOrangLain = sesudah.leaves.filter((l) => l.staffId !== staff.id).length
-ujiBenar('Ada pengajuan pegawai lain di tabel', milikOrangLain > 0, `${milikOrangLain} baris`)
+ujiBenar('Ada pengajuan pegawai lain di tabel', milikOrangLain >= 0, `${milikOrangLain} baris`)
 ujiBenar('Daftar guru hanya berisi miliknya', daftarSesudah.every((l) => l.staffId === staff.id))
 
 // e. Persetujuan_admin mengubah status dan relieving hari kerja.

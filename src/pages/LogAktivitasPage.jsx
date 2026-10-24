@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useSimPres, selectSearchTerm } from '../store/simPresStore.jsx'
 import { initialsOf, selectUnitName, selectCurrentUser, selectCurrentUserRole, hasMenuPermission, selectScopedLogs, selectScopedAdminUsers, selectActiveUnitId } from '../store/simPresStore.jsx'
+import { downloadBlob } from '../utils/download.js'
 
 const actionStyles = {
   tambah: 'bg-primary/10 text-primary border-primary/20',
@@ -399,11 +400,7 @@ function LogAktivitasPage() {
 
     const csvContent = [headers.join(','), ...rows].join('\n')
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-    const link = document.createElement('a')
-    link.href = URL.createObjectURL(blob)
-    link.download = filename
-    link.click()
-    URL.revokeObjectURL(link.href)
+    downloadBlob(blob, filename)
   }
 
   const detailData = getDetailLogData()

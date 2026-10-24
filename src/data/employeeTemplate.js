@@ -1,4 +1,5 @@
 import * as XLSX from 'xlsx'
+import { downloadBlob } from '../utils/download.js'
 import { EMPLOYEE_COLUMNS, toExcelRow } from './employeeSchema.js'
 
 const PANDUAN = [
@@ -72,14 +73,5 @@ export function downloadTemplate(state) {
   const blob = new Blob([out], {
     type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = 'template_import_pegawai.xlsx'
-  document.body.appendChild(link)
-  link.click()
-  link.remove()
-  // Objek URL baru aman dilepas setelah browser sempat membaca blob-nya;
-  // dilepas seketika kadang membatalkan unduhan di beberapa browser.
-  setTimeout(() => URL.revokeObjectURL(url), 2000)
+  downloadBlob(blob, 'template_import_pegawai.xlsx')
 }

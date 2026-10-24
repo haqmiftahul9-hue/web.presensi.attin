@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useSimPres, selectActiveStaff, selectRecentActivity, selectUnitName } from '../store/simPresStore.jsx'
 import { calculateAttendanceStatus } from '../data/jamKerja.js'
 import { initialsOf } from '../data/seed.js'
+import { downloadBlob } from '../utils/download.js'
 
 // Warna badge unit dibuat melingkar agar beberapa unit terlihat berbeda tanpa
 // menitipkan warna ke data.
@@ -54,10 +55,7 @@ function RecentActivity() {
   const totalHadir = selectRecentActivity(state).length
   const exportCsv = () => {
     const csv = ['nama;niy;unit;masuk', ...rows.map((s) => `${s.name};${s.niy};${unitMap[s.unitId]?.nama};${s.masuk}`)].join('\n')
-    const a = document.createElement('a')
-    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }))
-    a.download = 'rekap-presensi.csv'
-    a.click()
+    downloadBlob(new Blob([csv], { type: 'text/csv' }), 'rekap-presensi.csv')
     notify('Rekap CSV diunduh.')
   }
 

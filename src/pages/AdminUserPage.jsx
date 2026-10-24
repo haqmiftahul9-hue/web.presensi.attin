@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useSimPres, selectUnitName, initialsOf, ROLE_OPTIONS, MENU_OPTIONS, PERMISSION_ACTIONS, getRolePermissions, addActivityLog, selectScopedAdminUsers, selectCanSwitchUnit, selectActiveUnitId, selectUnitOptionsById, ALL_UNITS, selectSearchTerm } from '../store/simPresStore.jsx'
 import ConfirmDialog from '../components/ConfirmDialog.jsx'
+import { downloadBlob } from '../utils/download.js'
 
 const roleMap = {
   Superadmin: { roleBg: 'bg-primary/10', roleText: 'text-primary', roleDot: 'bg-primary', unitIcon: 'account_balance' },
@@ -278,11 +279,7 @@ function AdminUserPage() {
       ...rows.map((r) => r.map((cell) => `"${cell}"`).join(',')),
     ].join('\n')
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-    const link = document.createElement('a')
-    link.href = URL.createObjectURL(blob)
-    link.download = `manajemen-admin-user-${new Date().toISOString().slice(0, 10)}.csv`
-    link.click()
-    URL.revokeObjectURL(link.href)
+    downloadBlob(blob, `manajemen-admin-user-${new Date().toISOString().slice(0, 10)}.csv`)
     addActivityLog(dispatch, state, 'Ekspor', 'Admin User', 'Ekspor data admin/user ke CSV', null, null, currentUser?.unitId)
   }
 

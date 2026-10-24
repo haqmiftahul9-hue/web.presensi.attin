@@ -8,6 +8,7 @@
 // sehingga "resolusi" QR di PDF tidak terbatas — bukan gambar 72 dpi.
 
 import { jsPDF } from 'jspdf'
+import { downloadBlob } from './download.js'
 import { encodeQrMatrix, QR_QUIET_ZONE } from './qrcode.js'
 import { toBarRuns, BARCODE_QUIET_MODULES } from './barcode.js'
 import {
@@ -373,7 +374,7 @@ export async function exportCardsToPdf(rows, { settings, units, layout = 'cr80',
   if (onProgress) onProgress({ stage: 'draw', done: rows.length, total: rows.length })
 
   const name = fileName || DEFAULT_PDF_FILE_NAME
-  doc.save(name)
+  downloadBlob(doc.output('blob'), name)
   return { ok: true, fileName: name, pages: Math.ceil(rows.length / perPage) }
 }
 

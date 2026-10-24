@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useSimPres, selectRankingDataFiltered, selectCanSwitchUnit, selectActiveUnitId, selectActiveUnitLabel, selectUnitOptionsById, ALL_UNITS } from '../store/simPresStore.jsx'
 import * as XLSX from 'xlsx'
+import { downloadBlob } from '../utils/download.js'
 
 function RankingKehadiranPage() {
   const { state, dispatch } = useSimPres()
@@ -205,7 +206,8 @@ function RankingKehadiranPage() {
     
     // Generate filename and download
     const fileName = generateFileName()
-    XLSX.writeFile(wb, fileName)
+    const out = XLSX.write(wb, { bookType: 'xlsx', type: 'array' })
+    downloadBlob(new Blob([out], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), fileName)
   }
   
   const unitOptions = [

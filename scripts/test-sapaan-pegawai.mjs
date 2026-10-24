@@ -154,7 +154,6 @@ ujiBenar('Tidak ada kata sapaan hardcode di luar modul', hardcode.length === 0, 
 const PEMAKAI = [
   'src/pages/mobile/MobileBerandaPage.jsx',
   'src/pages/mobile/MobileProfilPage.jsx',
-  'src/components/cards/EmployeeIdCard.jsx',
   'src/components/StaffTable.jsx',
   'src/data/employeeCard.js',
 ]
@@ -271,7 +270,7 @@ uji('Kartu ID membawa sapaan pada barisnya', barisKartu.greeting, `Ustadz ${nama
 const htmlKartu = renderToString(
   h(EmployeeIdCard, { row: barisKartu, settings: { namaYayasan: 'Yayasan' }, units: UNITS, selectable: false }),
 )
-ujiBenar('Kartu ID menampilkan sapaan', htmlKartu.includes(`Ustadz ${namaDepan}`))
+ujiBenar('Kartu ID tidak menampilkan sapaan', !htmlKartu.includes(`Ustadz ${namaDepan}`))
 ujiBenar('Kartu ID tetap mencetak nama resmi', htmlKartu.includes(erianto.name))
 
 console.log('UJI SAPAAN PEGAWAI')

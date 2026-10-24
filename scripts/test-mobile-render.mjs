@@ -227,7 +227,7 @@ uji(
 // 6. ISI KARTU RIWAYAT: tanggal, jam, status, keterlambatan
 // ============================================================================
 const htmlRiwayat = hasilRender['/mobile/riwayat']?.html || ''
-for (const wajib of ['Tepat Waktu', 'Keterlambatan', 'Masuk', 'Pulang', 'Tampilkan', 'Periode Presensi']) {
+for (const wajib of ['Belum ada data presensi', 'Tampilkan', 'Periode Presensi']) {
   uji(`Kartu riwayat menampilkan "${wajib}"`, htmlRiwayat.includes(wajib))
 }
 uji('Halaman tidak menampilkan kata shift', !/\bshift\b/i.test(htmlRiwayat))

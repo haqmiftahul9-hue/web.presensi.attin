@@ -207,8 +207,8 @@ for (const [label, needle] of [
 }
 // NIP hanya tampil bila ada; untuk pegawai ini NIP terisi.
 if (staff.nip) ujiBenar('Kartu memuat NIP', htmlWajah.includes(staff.nip), staff.nip)
-// Sapaan (Umi/Ustadz/Ustadzah) tampil sebagai nama dagang di atas nama resmi.
-ujiBenar('Kartu memakai sapaan', htmlWajah.includes('Ustadz Erianto'))
+// Sapaan tidak lagi tampil di kartu ID; hanya nama resmi.
+ujiBenar('Kartu tidak memakai sapaan', !htmlWajah.includes('Ustadz Erianto'))
 // Jabatan tampil terpisah.
 ujiBenar('Kartu memuat jabatan', htmlWajah.includes(staff.role), staff.role)
 
