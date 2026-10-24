@@ -102,7 +102,7 @@ export const INITIAL_LOGS = [
 export const INITIAL_SETTINGS = {
   namaAplikasi: 'SIMPEG',
   tagline: 'Sistem Presensi Kepegawaian Terpadu',
-  logo: null,
+  logo: '/icons/logo-simpeg.png',
   logoPerUnit: {
     tk: null,
     sd: null,

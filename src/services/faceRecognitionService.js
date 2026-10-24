@@ -436,59 +436,47 @@ export function cropFaceFromVideo(videoElement, box, padding = 20) {
   return canvas
 }
 
+import {
+  uploadAttendanceFacePhoto,
+  compressFaceSnapshot,
+  getUnitAttendanceBucket,
+  syncAttendanceToSupabase,
+  UNIT_ATTENDANCE_BUCKETS,
+} from './attendancePhotoService.js'
+
+export {
+  uploadAttendanceFacePhoto,
+  compressFaceSnapshot,
+  getUnitAttendanceBucket,
+  syncAttendanceToSupabase,
+  UNIT_ATTENDANCE_BUCKETS,
+}
+
 /**
- * Crop area wajah, kompres ke WebP 0.5, upload ke Supabase Storage bucket face-snapshots.
- * Target ukuran file < 30KB.
+ * Crop area wajah, kompres ke WebP 0.55 (< 30KB), upload ke Supabase Storage
+ * bucket per unit (presensi-tk, presensi-sd, presensi-smp, presensi-sma).
  *
- * @param {{ id: number|string, niy: string, name: string }} staff
- * @param {HTMLVideoElement} videoElement
- * @param {{ x: number, y: number, width: number, height: number }} detectionBox - dari result.box
+ * @param {{ id: number|string, niy: string, name: string, unitId?: string }} staff
+ * @param {HTMLVideoElement|HTMLCanvasElement} videoElement
+ * @param {{ x: number, y: number, width: number, height: number }|null} [detectionBox]
+ * @param {object} [options]
+ * @param {'masuk'|'pulang'} [options.type='masuk']
+ * @param {string} [options.unitId]
  * @returns {Promise<string|null>} URL publik file yang di-upload, atau null jika gagal
  */
-export async function uploadFaceProofPhoto(staff, videoElement, detectionBox) {
-  if (!isSupabaseConfigured || !supabase) {
-    console.warn('[FaceRec] Supabase tidak dikonfigurasi, skip upload foto bukti presensi.')
-    return null
-  }
-  if (!videoElement || !detectionBox) return null
+export async function uploadFaceProofPhoto(staff, videoElement, detectionBox, options = {}) {
+  if (!videoElement) return null
 
   try {
-    // 1. Crop wajah dari video frame
-    const faceCanvas = cropFaceFromVideo(videoElement, detectionBox, 20)
-    if (!faceCanvas) return null
+    const result = await uploadAttendanceFacePhoto({
+      staff,
+      unitId: options.unitId || staff?.unitId,
+      type: options.type || 'masuk',
+      imageSource: videoElement,
+      detectionBox,
+    })
 
-    // 2. Kompres ke WebP kualitas 0.5 (target < 30KB)
-    const dataUrl = faceCanvas.toDataURL('image/webp', 0.5)
-    if (!dataUrl || dataUrl === 'data:,') return null
-
-    // 3. Konversi data URL ke Blob
-    const response = await fetch(dataUrl)
-    const blob = await response.blob()
-
-    // 4. Buat nama file unik berdasarkan NIY + timestamp
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
-    const filePath = `proof/${staff.niy}/${timestamp}.webp`
-
-    // 5. Upload ke Supabase Storage bucket 'face-snapshots'
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from('face-snapshots')
-      .upload(filePath, blob, {
-        contentType: 'image/webp',
-        cacheControl: '3600',
-        upsert: false,
-      })
-
-    if (uploadError) {
-      console.warn('[FaceRec] Gagal upload foto bukti presensi:', uploadError.message)
-      return null
-    }
-
-    // 6. Ambil URL publik (signed URL selama 1 tahun untuk audit)
-    const { data: urlData } = supabase.storage
-      .from('face-snapshots')
-      .getPublicUrl(uploadData?.path || filePath)
-
-    return urlData?.publicUrl || null
+    return result?.url || null
   } catch (err) {
     console.warn('[FaceRec] Error upload foto bukti presensi:', err)
     return null

@@ -964,6 +964,10 @@ logs: [
         method: action.payload.method,
         lateMinutes: hasilCheckIn.lateMinutes,
         status: hasilCheckIn.status,
+        faceSnapshotUrl: action.payload.faceSnapshotUrl || null,
+        faceSnapshotMasukUrl: action.payload.faceSnapshotUrl || null,
+        faceConfidenceMasuk: action.payload.faceConfidence || null,
+        photoBucket: action.payload.photoBucket || null,
       } : null
       const nextStaffCheckIn = state.staff.map((s) =>
         s.id === action.payload.id
@@ -974,6 +978,10 @@ logs: [
               lateMinutes: hasilCheckIn.lateMinutes,
               status: 'Aktif',
               attendanceDate: hasilCheckIn.tanggal,
+              faceSnapshotUrl: action.payload.faceSnapshotUrl || s.faceSnapshotUrl || null,
+              faceSnapshotMasukUrl: action.payload.faceSnapshotUrl || s.faceSnapshotMasukUrl || null,
+              faceConfidenceMasuk: action.payload.faceConfidence || s.faceConfidenceMasuk || null,
+              photoBucket: action.payload.photoBucket || s.photoBucket || null,
             }
           : s,
       )
@@ -1014,6 +1022,8 @@ logs: [
               pulang: action.payload.pulang,
               pulangMethod: action.payload.method || s.pulangMethod || null,
               latePulangMinutes: hasilPulang.terlambatPulang || 0,
+              faceSnapshotPulangUrl: action.payload.faceSnapshotPulangUrl || s.faceSnapshotPulangUrl || null,
+              faceConfidencePulang: action.payload.faceConfidence || s.faceConfidencePulang || null,
             }
           : s,
       )
@@ -1037,7 +1047,14 @@ logs: [
         // Riwayat harian sudah punya baris untuk hari ini (dibuat saat presensi
         // masuk), jadi pulang cukup ditambahkan ke baris itu, bukan baris baru.
         attendanceHistory: state.attendanceHistory.map((h) =>
-          h.staffId === staffOut.id && h.date === tanggalPulang ? { ...h, pulang: action.payload.pulang } : h,
+          h.staffId === staffOut.id && h.date === tanggalPulang
+            ? {
+                ...h,
+                pulang: action.payload.pulang,
+                faceSnapshotPulangUrl: action.payload.faceSnapshotPulangUrl || h.faceSnapshotPulangUrl || null,
+                faceConfidencePulang: action.payload.faceConfidence || h.faceConfidencePulang || null,
+              }
+            : h,
         ),
       }
     }

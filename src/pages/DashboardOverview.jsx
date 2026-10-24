@@ -72,8 +72,8 @@ function TopBar({ onBukaMenu }) {
           {settings.logo ? (
             <img src={settings.logo} alt={settings.namaAplikasi || 'SimPres'} className="w-7 h-7 rounded-md object-cover border border-border shadow-2xs" />
           ) : (
-            <div className="w-7 h-7 rounded-md bg-primary text-primary-foreground flex items-center justify-center shadow-2xs">
-              <span className="material-symbols-outlined text-[16px]">domain</span>
+            <div className="w-7 h-7 flex items-center justify-center">
+              <img src="/icons/logo-simpeg.png" alt="SIMPEG" className="w-7 h-7 object-contain" />
             </div>
           )}
           <div className="hidden lg:flex flex-col text-left">
@@ -122,13 +122,13 @@ function DashboardOverview() {
             {/* Judul halaman */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-1 border-b border-border">
               <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-2xs">
-                  {settings.logo ? (
-                    <img src={settings.logo} alt={settings.namaAplikasi} className="w-11 h-11 rounded-xl object-cover" />
-                  ) : (
-                    <span className="material-symbols-outlined text-[24px]">space_dashboard</span>
-                  )}
-                </div>
+<div className="w-11 h-11 flex items-center justify-center">
+  {settings.logo ? (
+    <img src={settings.logo} alt={settings.namaAplikasi} className="w-11 h-11 object-contain" />
+  ) : (
+    <img src="/icons/logo-simpeg.png" alt="SIMPEG" className="w-11 h-11 object-contain" />
+  )}
+</div>
                 <div className="flex flex-col">
                   <div className="flex items-center gap-2">
                     <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground leading-tight">

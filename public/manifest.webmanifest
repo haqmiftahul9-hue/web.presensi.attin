@@ -21,28 +21,16 @@
       "purpose": "any"
     },
     {
-      "src": "/icons/icon-192.png",
-      "sizes": "192x192",
+      "src": "/icons/logo-simpeg.png",
+      "sizes": "1024x1024",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icons/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/icons/icon-maskable-512.png",
-      "sizes": "512x512",
+      "src": "/icons/logo-simpeg.png",
+      "sizes": "1024x1024",
       "type": "image/png",
       "purpose": "maskable"
-    },
-    {
-      "src": "/icons/apple-touch-icon.png",
-      "sizes": "180x180",
-      "type": "image/png",
-      "purpose": "any"
     }
   ],
   "shortcuts": [
@@ -51,21 +39,21 @@
       "short_name": "Presensi",
       "description": "Buka halaman presensi langsung",
       "url": "/mobile/presensi",
-      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+      "icons": [{ "src": "/icons/logo-simpeg.png", "sizes": "1024x1024", "type": "image/png" }]
     },
     {
       "name": "Riwayat Presensi",
       "short_name": "Riwayat",
       "description": "Lihat rekap kehadiran bulanan",
       "url": "/mobile/riwayat",
-      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+      "icons": [{ "src": "/icons/logo-simpeg.png", "sizes": "1024x1024", "type": "image/png" }]
     },
     {
       "name": "Profil Saya",
       "short_name": "Profil",
       "description": "Data pegawai dan kartu ID",
       "url": "/mobile/profil",
-      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+      "icons": [{ "src": "/icons/logo-simpeg.png", "sizes": "1024x1024", "type": "image/png" }]
     }
   ]
 }

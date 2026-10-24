@@ -54,11 +54,8 @@ export function GlassTopBar({ staff }) {
         className="sp-press flex items-center gap-2.5 min-w-0 h-11 px-1 rounded-xl"
         aria-label="SIMPEG Kepegawaian"
       >
-        <span
-          className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-xs text-white"
-          style={{ backgroundColor: '#323d8f' }}
-        >
-          <Icon name="fingerprint" className="text-white text-[20px]" />
+        <span className="w-9 h-9 flex items-center justify-center shrink-0">
+          <img src="/icons/logo-simpeg.png" alt="SIMPEG" className="w-9 h-9 object-contain" />
         </span>
         <span className="flex flex-col min-w-0">
           <span className="font-headline-sm text-headline-sm text-[#20243a] font-bold tracking-tight leading-tight truncate">

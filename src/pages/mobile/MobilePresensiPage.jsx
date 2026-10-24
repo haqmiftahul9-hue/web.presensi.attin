@@ -25,6 +25,8 @@ import {
   loadFaceApiModels,
   isFaceApiLoaded,
   uploadFaceProofPhoto,
+  uploadAttendanceFacePhoto,
+  syncAttendanceToSupabase,
 } from '../../services/faceRecognitionService.js'
 
 const TABS = [
@@ -468,16 +470,42 @@ function MobilePresensiPage() {
                 judul: 'Validasi Wajah',
                 detail: `Wajah cocok ${comp.confidence}% dengan data biometrik ${staff.niy} (${staff.name})`,
               }
-              // Upload foto bukti presensi: crop wajah → WebP 0.5 → Supabase Storage
-              // Jalankan secara background (tidak menghambat alur presensi)
-              uploadFaceProofPhoto(staff, kamera.videoRef.current, det.box)
-                .then((photoUrl) => {
-                  if (photoUrl) {
-                    console.info('[FaceRec] Foto bukti presensi terupload:', photoUrl)
+              // Upload foto bukti presensi datang: crop wajah → kompres WebP (< 30KB) → Supabase Storage bucket per unit
+              // Berjalan di latar belakang (tidak menghambat UX presensi)
+              uploadAttendanceFacePhoto({
+                staff,
+                unitId: unit?.id || staff.unitId,
+                type: 'masuk',
+                imageSource: kamera.videoRef.current,
+                detectionBox: det.box,
+                date: saatPresensi,
+              })
+                .then((uploadRes) => {
+                  if (uploadRes?.url) {
+                    console.info('[FaceRec] Foto bukti presensi masuk terupload ke unit bucket:', uploadRes.bucket, uploadRes.url)
+                    // Sinkronisasi baris ke tabel attendance Supabase
+                    syncAttendanceToSupabase({
+                      staff,
+                      unitId: unit?.id || staff.unitId,
+                      tanggal: saatPresensi,
+                      jamMasuk: jamDetik(saatPresensi),
+                      status: hasilWaktu.lateMinutes > 0 ? 'Terlambat' : 'Tepat Waktu',
+                      lateMinutes: hasilWaktu.lateMinutes || 0,
+                      method: 'Face Recognition',
+                      faceSnapshotUrl: uploadRes.url,
+                      faceConfidence: comp.confidence,
+                      photoBucket: uploadRes.bucket,
+                      coordinates: {
+                        latitude: geofence.coords?.latitude,
+                        longitude: geofence.coords?.longitude,
+                        distance: geofence.jarak,
+                        outsideRadius: !geofence.dalamRadius,
+                      },
+                    })
                   }
                 })
                 .catch((err) => {
-                  console.warn('[FaceRec] Upload foto bukti presensi gagal (non-fatal):', err)
+                  console.warn('[FaceRec] Upload foto bukti presensi masuk gagal (non-fatal):', err)
                 })
             } else {
               setFaceStatus('mismatched')
@@ -590,6 +618,57 @@ function MobilePresensiPage() {
     }
     setStatusPenutup('berhasil')
     setPesanPenutup(`Absen pulang tersimpan pukul ${jamDetik(saatPresensi)} ${zonaWaktu}.`)
+
+    // Upload foto scan wajah presensi pulang jika mode face & kamera aktif
+    if (mode === 'face' && kamera.videoRef?.current) {
+      uploadAttendanceFacePhoto({
+        staff,
+        unitId: unit?.id || staff.unitId,
+        type: 'pulang',
+        imageSource: kamera.videoRef.current,
+        detectionBox: null,
+        date: saatPresensi,
+      })
+        .then((uploadRes) => {
+          if (uploadRes?.url) {
+            console.info('[FaceRec] Foto bukti presensi pulang terupload ke unit bucket:', uploadRes.bucket, uploadRes.url)
+            syncAttendanceToSupabase({
+              staff,
+              unitId: unit?.id || staff.unitId,
+              tanggal: saatPresensi,
+              jamPulang: jamDetik(saatPresensi),
+              method: 'Face Recognition',
+              faceSnapshotPulangUrl: uploadRes.url,
+              photoBucket: uploadRes.bucket,
+              coordinates: {
+                latitude: geofence.coords?.latitude,
+                longitude: geofence.coords?.longitude,
+                distance: geofence.jarak,
+                outsideRadius: !geofence.dalamRadius,
+              },
+            })
+          }
+        })
+        .catch((err) => {
+          console.warn('[FaceRec] Upload foto bukti presensi pulang gagal (non-fatal):', err)
+        })
+    } else {
+      // Sinkronisasi record presensi pulang ke Supabase (mode barcode/manual)
+      syncAttendanceToSupabase({
+        staff,
+        unitId: unit?.id || staff.unitId,
+        tanggal: saatPresensi,
+        jamPulang: jamDetik(saatPresensi),
+        method: mode === 'face' ? 'Face Recognition' : 'QR Code',
+        coordinates: {
+          latitude: geofence.coords?.latitude,
+          longitude: geofence.coords?.longitude,
+          distance: geofence.jarak,
+          outsideRadius: !geofence.dalamRadius,
+        },
+      })
+    }
+
     dispatch({
       type: 'CHECK_OUT',
       payload: {

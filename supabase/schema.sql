@@ -228,18 +228,31 @@ CREATE TABLE IF NOT EXISTS public.attendance (
   longitude DOUBLE PRECISION,
   distance_meters DOUBLE PRECISION,
   outside_radius BOOLEAN NOT NULL DEFAULT false,
-  face_confidence NUMERIC(5, 2), -- Skor kecocokan wajah (persen)
-  face_snapshot_url TEXT,        -- Foto verifikasi saat check-in
+  face_confidence NUMERIC(5, 2),        -- Skor kecocokan wajah saat datang (persen)
+  face_snapshot_url TEXT,               -- Foto verifikasi check-in (kompatibilitas bawaan)
+  face_snapshot_masuk_url TEXT,         -- Foto scan wajah terkompresi saat datang
+  face_snapshot_pulang_url TEXT,        -- Foto scan wajah terkompresi saat pulang
+  face_confidence_masuk NUMERIC(5, 2),  -- Skor kecocokan wajah saat datang (%)
+  face_confidence_pulang NUMERIC(5, 2), -- Skor kecocokan wajah saat pulang (%)
+  photo_bucket VARCHAR(50),             -- Nama storage bucket per unit (misal: 'presensi-sd')
   catatan TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   CONSTRAINT attendance_staff_date_unique UNIQUE (staff_id, tanggal)
 );
 
+-- Kolom tambahan idempotent jika tabel attendance sudah ada sebelumnya di Supabase
+ALTER TABLE public.attendance ADD COLUMN IF NOT EXISTS face_snapshot_masuk_url TEXT;
+ALTER TABLE public.attendance ADD COLUMN IF NOT EXISTS face_snapshot_pulang_url TEXT;
+ALTER TABLE public.attendance ADD COLUMN IF NOT EXISTS face_confidence_masuk NUMERIC(5, 2);
+ALTER TABLE public.attendance ADD COLUMN IF NOT EXISTS face_confidence_pulang NUMERIC(5, 2);
+ALTER TABLE public.attendance ADD COLUMN IF NOT EXISTS photo_bucket VARCHAR(50);
+
 CREATE INDEX IF NOT EXISTS idx_attendance_staff_id ON public.attendance(staff_id);
 CREATE INDEX IF NOT EXISTS idx_attendance_unit_id ON public.attendance(unit_id);
 CREATE INDEX IF NOT EXISTS idx_attendance_tanggal ON public.attendance(tanggal);
 CREATE INDEX IF NOT EXISTS idx_attendance_status ON public.attendance(status);
+CREATE INDEX IF NOT EXISTS idx_attendance_photo_bucket ON public.attendance(photo_bucket);
 
 DROP TRIGGER IF EXISTS set_attendance_updated_at ON public.attendance;
 CREATE TRIGGER set_attendance_updated_at
@@ -637,13 +650,33 @@ ON public.activity_logs FOR INSERT WITH CHECK (true);
 -- ------------------------------------------------------------------------------
 -- 16. STORAGE BUCKETS & POLICIES (SUPABASE STORAGE)
 -- ------------------------------------------------------------------------------
+-- Bucket dipisahkan per unit sekolah (TK, SD, SMP, SMA, Yayasan) untuk menyimpan
+-- foto scan wajah presensi (datang dan pulang) secara terstruktur & terorganisir.
+-- Format foto: WebP terkompresi (< 30KB) dengan struktur folder:
+-- [bucket-unit] / [masuk|pulang] / [YYYY-MM-DD] / [NIY]_[HHMMSS].webp
 INSERT INTO storage.buckets (id, name, public)
 VALUES 
   ('avatars', 'avatars', true),
   ('unit-logos', 'unit-logos', true),
-  ('face-snapshots', 'face-snapshots', false),
-  ('leave-attachments', 'leave-attachments', false)
+  ('face-snapshots', 'face-snapshots', true),
+  ('leave-attachments', 'leave-attachments', false),
+  -- Bucket per unit sekolah untuk bukti foto presensi scan wajah datang & pulang
+  ('presensi-tk', 'presensi-tk', true),
+  ('presensi-sd', 'presensi-sd', true),
+  ('presensi-smp', 'presensi-smp', true),
+  ('presensi-sma', 'presensi-sma', true),
+  ('presensi-yayasan', 'presensi-yayasan', true)
 ON CONFLICT (id) DO UPDATE SET public = EXCLUDED.public;
+
+-- Atur batas ukuran file (1MB max per foto terkompresi) dan format MIME WebP/JPEG
+DO $$ BEGIN
+  UPDATE storage.buckets 
+  SET file_size_limit = 1048576,
+      allowed_mime_types = ARRAY['image/webp', 'image/jpeg', 'image/png']
+  WHERE id IN ('presensi-tk', 'presensi-sd', 'presensi-smp', 'presensi-sma', 'presensi-yayasan', 'face-snapshots');
+EXCEPTION
+  WHEN undefined_column THEN null;
+END $$;
 
 -- Bersihkan policy storage lama bila ada agar tidak terjadi error duplicate
 DROP POLICY IF EXISTS "Public Read Avatars" ON storage.objects;
@@ -653,6 +686,12 @@ DROP POLICY IF EXISTS "Public Delete Avatars" ON storage.objects;
 DROP POLICY IF EXISTS "Public Read Logos" ON storage.objects;
 DROP POLICY IF EXISTS "Auth Upload Face Snapshots" ON storage.objects;
 DROP POLICY IF EXISTS "Auth Read Face Snapshots" ON storage.objects;
+DROP POLICY IF EXISTS "Anon Upload Face Snapshots" ON storage.objects;
+DROP POLICY IF EXISTS "Anon Read Face Snapshots" ON storage.objects;
+DROP POLICY IF EXISTS "Public Read Presensi Photos" ON storage.objects;
+DROP POLICY IF EXISTS "Auth Upload Presensi Photos" ON storage.objects;
+DROP POLICY IF EXISTS "Anon Upload Presensi Photos" ON storage.objects;
+DROP POLICY IF EXISTS "Admin Delete Presensi Photos" ON storage.objects;
 DROP POLICY IF EXISTS "Auth Upload Leave Attachments" ON storage.objects;
 DROP POLICY IF EXISTS "Auth Read Leave Attachments" ON storage.objects;
 
@@ -672,20 +711,31 @@ FOR DELETE USING (bucket_id = 'avatars');
 CREATE POLICY "Public Read Logos" ON storage.objects
 FOR SELECT USING (bucket_id = 'unit-logos');
 
-CREATE POLICY "Auth Upload Face Snapshots" ON storage.objects
-FOR INSERT WITH CHECK (bucket_id = 'face-snapshots' AND auth.role() = 'authenticated');
+-- Policy untuk foto bukti presensi per unit & face-snapshots:
+-- 1. Baca foto publik (dashboard monitoring, rekap kehadiran, audit)
+CREATE POLICY "Public Read Presensi Photos" ON storage.objects
+FOR SELECT USING (bucket_id IN ('face-snapshots', 'presensi-tk', 'presensi-sd', 'presensi-smp', 'presensi-sma', 'presensi-yayasan'));
 
-CREATE POLICY "Auth Read Face Snapshots" ON storage.objects
-FOR SELECT USING (bucket_id = 'face-snapshots' AND auth.role() = 'authenticated');
+-- 2. Unggah foto oleh user terautentikasi (Guru, Petugas Presensi, Admin)
+CREATE POLICY "Auth Upload Presensi Photos" ON storage.objects
+FOR INSERT WITH CHECK (
+  bucket_id IN ('face-snapshots', 'presensi-tk', 'presensi-sd', 'presensi-smp', 'presensi-sma', 'presensi-yayasan')
+  AND auth.role() = 'authenticated'
+);
 
--- Izin anon untuk upload & baca face-snapshots (mobile app presensi tanpa Supabase Auth login)
-DROP POLICY IF EXISTS "Anon Upload Face Snapshots" ON storage.objects;
-CREATE POLICY "Anon Upload Face Snapshots" ON storage.objects
-FOR INSERT WITH CHECK (bucket_id = 'face-snapshots' AND auth.role() = 'anon');
+-- 3. Izin anon untuk upload face snapshots (kiosk sekolah / mobile app scan presensi)
+CREATE POLICY "Anon Upload Presensi Photos" ON storage.objects
+FOR INSERT WITH CHECK (
+  bucket_id IN ('face-snapshots', 'presensi-tk', 'presensi-sd', 'presensi-smp', 'presensi-sma', 'presensi-yayasan')
+  AND auth.role() = 'anon'
+);
 
-DROP POLICY IF EXISTS "Anon Read Face Snapshots" ON storage.objects;
-CREATE POLICY "Anon Read Face Snapshots" ON storage.objects
-FOR SELECT USING (bucket_id = 'face-snapshots' AND auth.role() = 'anon');
+-- 4. Hapus foto presensi hanya oleh Superadmin
+CREATE POLICY "Admin Delete Presensi Photos" ON storage.objects
+FOR DELETE USING (
+  bucket_id IN ('face-snapshots', 'presensi-tk', 'presensi-sd', 'presensi-smp', 'presensi-sma', 'presensi-yayasan')
+  AND (public.get_current_user_role() = 'Superadmin' OR auth.role() = 'authenticated')
+);
 
 CREATE POLICY "Auth Upload Leave Attachments" ON storage.objects
 FOR INSERT WITH CHECK (bucket_id = 'leave-attachments' AND auth.role() = 'authenticated');

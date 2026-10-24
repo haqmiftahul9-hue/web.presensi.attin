@@ -31,8 +31,8 @@ function useLoginController() {
   const authError = selectAuthError(state)
   const authErrorCode = selectAuthErrorCode(state)
 
-  const [identifier, setIdentifier] = useState('superadmin')
-  const [password, setPassword] = useState('superadmin1234!')
+  const [identifier, setIdentifier] = useState('')
+  const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [remember, setRemember] = useState(true)
   const [fieldErrors, setFieldErrors] = useState({})
@@ -107,14 +107,6 @@ function LoginBackdrop() {
         className="absolute -bottom-32 -right-32 h-[420px] w-[420px] rounded-full opacity-20 blur-3xl"
         style={{ background: 'color-mix(in oklch, var(--primary) 40%, transparent)' }}
       />
-      <svg className="absolute inset-0 h-full w-full opacity-25">
-        <defs>
-          <pattern id="sp-login-grid" width="32" height="32" patternUnits="userSpaceOnUse">
-            <path d="M32 0H0V32" fill="none" stroke="var(--border)" strokeWidth="0.8" />
-          </pattern>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#sp-login-grid)" />
-      </svg>
     </div>
   )
 }
@@ -175,11 +167,8 @@ function SimpegLoginCard(props) {
         <div className="relative px-6 py-7 sm:px-8 sm:py-8 bg-card border border-border/80 text-card-foreground shadow-2xl rounded-2xl sm:rounded-3xl">
           {/* Header Brand & Logo Ditengah Secara Presisi */}
           <div className="flex flex-col items-center text-center">
-            <div
-              className="w-12 h-12 rounded-2xl text-white flex items-center justify-center shadow-md mb-2.5 transition-transform duration-300 hover:scale-105"
-              style={{ backgroundColor: '#323d8f' }}
-            >
-              <span className="material-symbols-outlined text-[26px]">verified</span>
+            <div className="w-16 h-16 flex items-center justify-center mb-2.5 transition-transform duration-300 hover:scale-105">
+              <img src="/icons/logo-simpeg.png" alt="SIMPEG" className="w-16 h-16 object-contain" />
             </div>
             <h1 className="text-2xl font-bold tracking-tight text-foreground leading-tight">
               SIMPEG
@@ -203,7 +192,7 @@ function SimpegLoginCard(props) {
                   setIdentifier(e.target.value)
                   clearFieldError('identifier')
                 }}
-                placeholder="Username / NIY / Email"
+                placeholder="Username"
                 disabled={isAuthenticating}
                 aria-invalid={Boolean(fieldErrors.identifier)}
                 className={`peer placeholder-transparent h-10 w-full border-b-2 bg-transparent text-sm text-foreground focus:outline-none transition-colors ${
@@ -220,7 +209,7 @@ function SimpegLoginCard(props) {
                     : 'text-muted-foreground peer-placeholder-shown:text-muted-foreground/70 peer-focus:text-[#323d8f]'
                 }`}
               >
-                Username / NIY / Email
+                Username
               </label>
               {fieldErrors.identifier && (
                 <span className="text-[11px] font-medium text-destructive mt-1 block">

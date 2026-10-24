@@ -298,8 +298,8 @@ function SidebarNav({ open = false, onTutup } = {}) {
           {/* Brand header */}
           <div className="h-16 px-4 flex items-center justify-between border-b border-sidebar-border/80 sticky top-0 z-10 bg-sidebar">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-primary text-primary-foreground flex items-center justify-center shadow-xs">
-                <span className="material-symbols-outlined text-[20px]">verified</span>
+              <div className="w-9 h-9 flex items-center justify-center">
+                <img src="/icons/logo-simpeg.png" alt="SIMPEG" className="w-9 h-9 object-contain" />
               </div>
               <div className="flex flex-col">
                 <span className="font-headline-sm text-sm font-bold text-sidebar-foreground tracking-tight leading-tight">SIMPEG</span>

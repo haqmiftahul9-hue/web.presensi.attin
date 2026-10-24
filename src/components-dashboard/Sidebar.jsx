@@ -17,8 +17,8 @@ function SidebarNav() {
       <div className="flex flex-col">
         <div className="h-16 px-space-md flex items-center justify-between bg-primary-container">
           <div className="flex items-center gap-space-xs">
-            <div className="w-9 h-9 rounded-lg bg-secondary flex items-center justify-center">
-              <span className="material-symbols-outlined text-on-secondary text-[20px]">verified</span>
+            <div className="w-9 h-9 flex items-center justify-center">
+              <img src="/icons/logo-simpeg.png" alt="SIMPEG" className="w-9 h-9 object-contain" />
             </div>
             <div className="flex flex-col">
               <span className="font-headline-sm text-headline-sm text-on-primary tracking-tight leading-tight">SimPres</span>

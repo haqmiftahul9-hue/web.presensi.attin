@@ -202,48 +202,6 @@ function LogAktivitasPage() {
   const canViewLogs = hasMenuPermission(state, 'logAktivitas')
   const currentUserUnitId = selectActiveUnitId(state)
 
-  // Block access for users without permission (Guru, etc.)
-  if (!canViewLogs) {
-    return (
-      <div className="flex flex-col w-full">
-        <div className="px-space-lg py-space-md flex flex-col gap-space-md">
-          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
-            <div className="flex flex-col gap-1.5">
-              <nav className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <span className="hover:text-foreground cursor-pointer transition-colors">Home</span>
-                <span className="material-symbols-outlined text-[14px]">chevron_right</span>
-                <span className="hover:text-foreground cursor-pointer transition-colors">Pengaturan & Sistem</span>
-                <span className="material-symbols-outlined text-[14px]">chevron_right</span>
-                <span className="text-foreground font-semibold">Log Aktivitas</span>
-              </nav>
-              <div className="flex items-center gap-2 mt-1">
-                <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary flex-shrink-0">
-                  <span className="material-symbols-outlined text-[20px]">history</span>
-                </div>
-                <h1 className="text-2xl font-bold tracking-tight text-foreground leading-tight">Log Aktivitas</h1>
-              </div>
-              <p className="text-xs text-muted-foreground max-w-3xl leading-relaxed">
-                Anda tidak memiliki akses untuk melihat halaman ini.
-              </p>
-            </div>
-          </div>
-          <div className="bg-card rounded-xl border border-border p-8 shadow-xs flex items-center justify-center min-h-[320px]">
-            <div className="text-center max-w-md">
-              <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center mx-auto mb-3">
-                <span className="material-symbols-outlined text-[28px]">lock</span>
-              </div>
-              <h3 className="text-base font-bold text-foreground">Akses Ditolak</h3>
-              <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
-                Hanya Superadmin dan Admin Unit yang dapat mengakses Log Aktivitas.
-                Role Anda (<strong className="text-foreground">{currentUserRole}</strong>) tidak memiliki izin untuk melihat log audit sistem.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
   const search = selectSearchTerm(state)
   const [dateRange, setDateRange] = useState('monthly')
   const [customStart, setCustomStart] = useState('')
@@ -449,6 +407,48 @@ function LogAktivitasPage() {
   }
 
   const detailData = getDetailLogData()
+
+  // Block access for users without permission (Guru, etc.)
+  if (!canViewLogs) {
+    return (
+      <div className="flex flex-col w-full">
+        <div className="px-space-lg py-space-md flex flex-col gap-space-md">
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
+            <div className="flex flex-col gap-1.5">
+              <nav className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <span className="hover:text-foreground cursor-pointer transition-colors">Home</span>
+                <span className="material-symbols-outlined text-[14px]">chevron_right</span>
+                <span className="hover:text-foreground cursor-pointer transition-colors">Pengaturan & Sistem</span>
+                <span className="material-symbols-outlined text-[14px]">chevron_right</span>
+                <span className="text-foreground font-semibold">Log Aktivitas</span>
+              </nav>
+              <div className="flex items-center gap-2 mt-1">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary flex-shrink-0">
+                  <span className="material-symbols-outlined text-[20px]">history</span>
+                </div>
+                <h1 className="text-2xl font-bold tracking-tight text-foreground leading-tight">Log Aktivitas</h1>
+              </div>
+              <p className="text-xs text-muted-foreground max-w-3xl leading-relaxed">
+                Anda tidak memiliki akses untuk melihat halaman ini.
+              </p>
+            </div>
+          </div>
+          <div className="bg-card rounded-xl border border-border p-8 shadow-xs flex items-center justify-center min-h-[320px]">
+            <div className="text-center max-w-md">
+              <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center mx-auto mb-3">
+                <span className="material-symbols-outlined text-[28px]">lock</span>
+              </div>
+              <h3 className="text-base font-bold text-foreground">Akses Ditolak</h3>
+              <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
+                Hanya Superadmin dan Admin Unit yang dapat mengakses Log Aktivitas.
+                Role Anda (<strong className="text-foreground">{currentUserRole}</strong>) tidak memiliki izin untuk melihat log audit sistem.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <>
