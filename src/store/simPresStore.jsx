@@ -591,7 +591,7 @@ function buildInitialAttendanceHistory(staff, trend30) {
   return history
 }
 
-const initialAttendanceHistory = buildInitialAttendanceHistory(initialStaff, TREND_30)
+const initialAttendanceHistory = []
 
 // Unit awal untuk sebuah akun: Superadmin mulai dari "Semua Unit",
 // role lain langsung terkunci ke unit yang melekat pada akunnya.
@@ -604,7 +604,7 @@ export function initialUnitScope(user) {
 const initialState = {
   staff: initialStaff,
   units: initialUnits,
-  leaves: LEAVES,
+  leaves: [],
   adminUsers: ADMIN_USERS,
   // Tabel employee_card. Satu baris per pegawai; isinya hanya metadata
   // penerbitan kartu (QR, barcode, masa berlaku, riwayat cetak). Identitas,

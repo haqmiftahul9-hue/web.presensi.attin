@@ -33,14 +33,7 @@ export const STAFF = [
   { id: 10, niy: '029056134', name: 'Dewi Sartika, S.Pd', role: 'Guru Kelas 2', unitId: 'sd', status: 'Aktif', masuk: null, method: null, lateMinutes: 0, pendidikanAsal: 'Universitas Negeri Padang', nomorIdentitas: '3174012345678910', kontak: '081234567899', email: 'dewi.s@sd.rj.sch.id', gelar: 'S.Pd', tempatLahir: 'Jakarta', tanggalLahir: '1991-11-08', jenisKelamin: 'Perempuan', agama: 'Islam', alamat: 'Jl. Cendekia No. 43, Cilandak', statusPegawai: 'Guru Kontrak', tanggalMasuk: '2017-03-01', skPengangkatan: 'SK-010/2017', pendTerakhir: 'S1 Pendidikan Dasar', jurusan: 'Pendidikan Guru Sekolah Dasar', npwp: '12.345.678.9-012.009', bpjsKesehatan: '1234567899', bpjsKetenagakerjaan: '0987654330', rekeningBank: 'BNI - 1234567899', namaRekening: 'Dewi Sartika, S.Pd' },
 ]
 
-export const LEAVES = [
-  { id: 1, staffId: 4, jenis: 'Sakit', periode: '16-18 Sep 2026', durasi: '3 Hari', lampiran: 'Surat_Dokter.pdf', status: 'Menunggu' },
-  { id: 2, staffId: 7, jenis: 'Izin Pribadi', periode: '15 Sep 2026', durasi: '1 Hari', lampiran: 'Undangan.pdf', status: 'Menunggu' },
-  { id: 3, staffId: 6, jenis: 'Cuti Penting', periode: '18-25 Sep 2026', durasi: '6 Hari', lampiran: 'Berkas_Cuti.pdf', status: 'Menunggu' },
-  { id: 4, staffId: 3, jenis: 'Sakit', periode: '08-09 Sep 2026', durasi: '2 Hari', lampiran: 'Surat_Sakit.pdf', status: 'Disetujui' },
-  { id: 5, staffId: 8, jenis: 'Sakit', periode: '08-09 Sep 2026', durasi: '2 Hari', lampiran: 'Surat_Sakit_RS.pdf', status: 'Disetujui' },
-  { id: 6, staffId: 2, jenis: 'Izin Pribadi', periode: '02 Sep 2026', durasi: '1 Hari', lampiran: 'Dispensasi.pdf', status: 'Ditolak' },
-]
+export const LEAVES = []
 
 // Kata sandi awal untuk seluruh akun pegawai (role Guru/Pegawai).
 // Satu nilai bersama supaya mudah dihafal saat pelatihan, dan TIDAK ikut
