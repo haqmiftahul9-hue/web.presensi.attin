@@ -12,7 +12,7 @@ const PANDUAN = [
 // Kolom yang bisa kehilangan nol di depan bila Excel mengubahnya jadi angka.
 const TEXT_FORMAT_KEYS = new Set([
   'niy', 'pendidikanAsal', 'kontak',
-  'tanggalLahir', 'tanggalMasuk', 'skPengangkatan',
+  'tanggalLahir', 'tanggalMasuk',
 ])
 
 export function buildTemplateSheet(state) {
@@ -32,7 +32,6 @@ export function buildTemplateSheet(state) {
       status: 'Aktif',
       statusPegawai: 'Guru Tetap Yayasan',
       tanggalMasuk: '2015-07-01',
-      skPengangkatan: 'SK-001/2015',
       pendTerakhir: 'S1 Pendidikan Guru Sekolah Dasar',
       jurusan: 'Pendidikan Guru Sekolah Dasar',
       kontak: '081234567890',

@@ -445,7 +445,6 @@ function MobileProfilPage() {
                   <Baris label="Telepon" nilai={staff.kontak} />
                   <Baris label="Email dinas" nilai={staff.email} />
                   <Baris label="Pendidikan" nilai={[staff.pendTerakhir, staff.jurusan].filter(Boolean).join(' - ')} />
-                  <Baris label="SK pengangkatan" nilai={staff.skPengangkatan} />
                   <Baris label="Tanggal masuk" nilai={staff.tanggalMasuk} />
                 </div>
               </div>

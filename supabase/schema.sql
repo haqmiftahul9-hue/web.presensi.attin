@@ -143,7 +143,6 @@ CREATE TABLE IF NOT EXISTS public.staff (
   kontak VARCHAR(30),
   email VARCHAR(150),
   tanggal_masuk DATE,
-  sk_pengangkatan VARCHAR(100),
   foto_url TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
