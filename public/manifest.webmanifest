@@ -1,7 +1,7 @@
 {
   "id": "/mobile/home",
-  "name": "SimPres Kepegawaian",
-  "short_name": "SimPres",
+  "name": "SIMPEG",
+  "short_name": "SIMPEG",
   "description": "Presensi digital Guru dan Pegawai SimPres: ambil presensi wajah/barcode, riwayat kehadiran, dan pengajuan izin.",
   "lang": "id",
   "dir": "ltr",
@@ -11,7 +11,7 @@
   "display_override": ["standalone", "minimal-ui", "browser"],
   "orientation": "portrait-primary",
   "theme_color": "#323d8f",
-  "background_color": "#F7F9FC",
+  "background_color": "#ffffff",
   "categories": ["business", "productivity", "education"],
   "icons": [
     {
@@ -21,13 +21,13 @@
       "purpose": "any"
     },
     {
-      "src": "/icons/logo-simpeg.png",
+      "src": "/icons/pwa-icon.png",
       "sizes": "1024x1024",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icons/logo-simpeg.png",
+      "src": "/icons/pwa-icon.png",
       "sizes": "1024x1024",
       "type": "image/png",
       "purpose": "maskable"
