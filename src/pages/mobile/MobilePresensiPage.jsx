@@ -201,7 +201,22 @@ function MobilePresensiPage() {
     return () => clearInterval(id)
   }, [])
 
-  useEffect(() => () => clearTimeout(timerRef.current), [])
+  // Selalu baca koordinat unit terbaru dari storage (superadmin mungkin baru
+  // mengubahnya) agar mobile tidak memakai koordinat lama yang tersimpan.
+  useEffect(() => {
+    if (!dispatch) return
+    try {
+      const raw = window.localStorage.getItem('simpres.units')
+      if (raw) {
+        const parsed = JSON.parse(raw)
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          dispatch({ type: 'SYNC_STORAGE_UNITS', payload: parsed })
+        }
+      }
+    } catch {
+      /* abaikan */
+    }
+  }, [dispatch])
 
   // Selaraskan data wajah terdaftar saat data staff diperbarui di store.
   // Coba ambil dari Supabase terlebih dahulu, fallback ke localStorage.
