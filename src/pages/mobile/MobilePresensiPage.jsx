@@ -31,7 +31,6 @@ import {
 
 const TABS = [
   { id: 'face', label: 'Presensi Wajah', icon: 'face' },
-  { id: 'barcode', label: 'Presensi Barcode', icon: 'qr_code_scanner' },
 ]
 
 function langkahSiaga() {
@@ -154,7 +153,7 @@ function MobilePresensiPage() {
   const unit = staff ? selectUnitById(state, staff.unitId) : null
   const rules = presensi?.rules
 
-  const [mode, setMode] = useState(() => (searchParams.get('mode') === 'barcode' ? 'barcode' : 'face'))
+  const [mode, setMode] = useState(() => 'face')
   const [facing, setFacing] = useState('user')
   const [now, setNow] = useState(() => new Date())
   const [langkah, setLangkah] = useState(langkahSiaga)
@@ -848,28 +847,7 @@ function MobilePresensiPage() {
             />
           )}
 
-          <div className="grid grid-cols-2 p-1.5 gap-1.5 bg-[#f3f5fc] border border-[#e0e6f2] rounded-2xl">
-            {TABS.map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => {
-                  const next = tab.id
-                  setMode(next)
-                  setSearchParams(next === 'barcode' ? { mode: 'barcode' } : {}, { replace: true })
-                }}
-                aria-pressed={mode === tab.id}
-                className={`flex items-center justify-center gap-1.5 min-h-[44px] px-3 py-2.5 rounded-xl font-label-md text-label-md transition-all ${
-                  mode === tab.id
-                    ? 'bg-[#323d8f] text-white shadow-xs font-semibold'
-                    : 'bg-transparent text-[#77819a] hover:text-[#20243a]'
-                }`}
-              >
-                <Icon name={tab.icon} className="text-[18px] shrink-0" />
-                <span className="truncate">{tab.label}</span>
-              </button>
-            ))}
-          </div>
+          {null}
 
           {/* Area kamera: bingkai wajah atau scanner QR kartu ID. */}
           <div className="flex justify-center">
