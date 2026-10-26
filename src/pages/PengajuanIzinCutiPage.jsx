@@ -8,7 +8,7 @@ import LeaveRequestModal from '../components/LeaveRequestModal.jsx'
 import LeaveDetailModal from '../components/LeaveDetailModal.jsx'
 import {
   JENIS_UTAMA, SEMUA_JENIS, kelompokIzinCuti,
-  WARNA_STATUS_PORTAL, WARNA_TITIK_STATUS,
+  WARNA_STATUS_PORTAL, WARNA_TITIK_STATUS, hitungSisaKuota,
 } from '../data/jenisIzinCuti.js'
 import { rentangPengajuan } from '../data/presensiMobile.js'
 
@@ -537,6 +537,7 @@ function PengajuanIzinCutiPage() {
                           <div className="flex flex-col min-w-0 overflow-hidden leading-tight">
                             <span className="text-xs font-semibold text-foreground truncate block">{row.name}</span>
                             <span className="text-[10.5px] text-muted-foreground font-mono truncate block mt-0.5">{row.niy} • {row.role}</span>
+                            <span className="text-[10px] text-muted-foreground truncate block mt-0.5">Kuota: Tahunan {hitungSisaKuota(row.staffId, 'Cuti Tahunan', allLeaves)}/7 • Menikah {hitungSisaKuota(row.staffId, 'Cuti Menikah', allLeaves)}/3 • Melahirkan {hitungSisaKuota(row.staffId, 'Cuti Melahirkan', allLeaves)}/90</span>
                           </div>
                         </div>
                       </td>

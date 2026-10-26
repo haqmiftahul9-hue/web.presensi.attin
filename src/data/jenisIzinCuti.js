@@ -32,13 +32,15 @@ export const JENIS_UTAMA = [
     kelompok: KELOMPOK_CUTI,
     ikon: 'luggage',
     ringkas: 'Cuti tahunan',
-    lampiran: 'tidak',
+    lampiran: 'wajib',
+    kuota: 7,
+    satuanKuota: 'hari/tahun',
     warna: 'bg-indigo-50 text-indigo-700',
     warnaAvatar: 'bg-indigo-100 text-indigo-900',
   },
   {
     nama: 'Cuti Sakit',
-    kelompok: KELOMPOK_CUTI,
+    kelompok: KELOMPOK_IZIN,
     ikon: 'medication',
     ringkas: 'Cuti sakit',
     lampiran: 'disarankan',
@@ -46,12 +48,24 @@ export const JENIS_UTAMA = [
     warnaAvatar: 'bg-emerald-100 text-emerald-900',
   },
   {
+    nama: 'Cuti Menikah',
+    kelompok: KELOMPOK_CUTI,
+    ikon: 'favorite',
+    ringkas: 'Cuti menikah',
+    lampiran: 'wajib',
+    kuota: 3,
+    satuanKuota: 'hari',
+    warna: 'bg-rose-50 text-rose-700',
+    warnaAvatar: 'bg-rose-100 text-rose-900',
+  },
+  {
     nama: 'Cuti Melahirkan',
     kelompok: KELOMPOK_CUTI,
     ikon: 'child_care',
     ringkas: 'Cuti melahirkan',
-    // Dokumen (surat keterangan dokter / RS) adalah bukti, jadi wajib.
     lampiran: 'wajib',
+    kuota: 90,
+    satuanKuota: 'hari (3 bulan)',
     warna: 'bg-rose-50 text-rose-700',
     warnaAvatar: 'bg-rose-100 text-rose-900',
   },
@@ -77,11 +91,11 @@ export const JENIS_UTAMA = [
 
 /** Nama lama yang masih muncul pada data tersimpan sebelum modul ini. */
 export const JENIS_LAMPAU = [
-  { nama: 'Sakit', kelompok: KELOMPOK_CUTI, ikon: 'medication', ringkas: 'Sakit', lampiran: 'disarankan', warna: 'bg-emerald-50 text-emerald-700', warnaAvatar: 'bg-emerald-100 text-emerald-900' },
+  { nama: 'Sakit', kelompok: KELOMPOK_IZIN, ikon: 'medication', ringkas: 'Sakit', lampiran: 'disarankan', warna: 'bg-emerald-50 text-emerald-700', warnaAvatar: 'bg-emerald-100 text-emerald-900' },
   { nama: 'Izin Pribadi', kelompok: KELOMPOK_IZIN, ikon: 'person', ringkas: 'Izin pribadi', lampiran: 'tidak', warna: 'bg-amber-50 text-amber-800', warnaAvatar: 'bg-amber-100 text-amber-900' },
   { nama: 'Cuti Penting', kelompok: KELOMPOK_CUTI, ikon: 'priority_high', ringkas: 'Cuti penting', lampiran: 'disarankan', warna: 'bg-indigo-50 text-indigo-700', warnaAvatar: 'bg-indigo-100 text-indigo-900' },
-  { nama: 'Cuti Menikah', kelompok: KELOMPOK_CUTI, ikon: 'favorite', ringkas: 'Cuti menikah', lampiran: 'disarankan', warna: 'bg-rose-50 text-rose-700', warnaAvatar: 'bg-rose-100 text-rose-900' },
-  { nama: 'Cuti Bersalin', kelompok: KELOMPOK_CUTI, ikon: 'child_care', ringkas: 'Cuti bersalin', lampiran: 'wajib', warna: 'bg-rose-50 text-rose-700', warnaAvatar: 'bg-rose-100 text-rose-900' },
+  { nama: 'Cuti Menikah', kelompok: KELOMPOK_CUTI, ikon: 'favorite', ringkas: 'Cuti menikah', lampiran: 'wajib', kuota: 3, satuanKuota: 'hari', warna: 'bg-rose-50 text-rose-700', warnaAvatar: 'bg-rose-100 text-rose-900' },
+  { nama: 'Cuti Bersalin', kelompok: KELOMPOK_CUTI, ikon: 'child_care', ringkas: 'Cuti bersalin', lampiran: 'wajib', kuota: 90, satuanKuota: 'hari (3 bulan)', warna: 'bg-rose-50 text-rose-700', warnaAvatar: 'bg-rose-100 text-rose-900' },
   { nama: 'Tugas Luar', kelompok: KELOMPOK_IZIN, ikon: 'hiking', ringkas: 'Tugas luar', lampiran: 'tidak', warna: 'bg-secondary-fixed text-on-secondary-fixed', warnaAvatar: 'bg-secondary-fixed text-on-secondary-fixed' },
 ]
 
@@ -130,7 +144,6 @@ export function kelompokIzinCuti(nama) {
   if (ditemukan) return ditemukan.kelompok
   const teks = kunci(nama)
   if (!teks) return ''
-  if (teks === 'sakit') return KELOMPOK_CUTI
   if (teks.startsWith('cuti')) return KELOMPOK_CUTI
   return KELOMPOK_IZIN
 }
@@ -261,4 +274,19 @@ export function validasiFormPengajuan({ jenis, mulai, selesai, alasan, lampiran 
   if (aturan === 'wajib' && !lampiran) return `${normalisasiJenis(jenis)} wajib melampirkan dokumen pendukung.`
   if (lampiran?.size > MAKS_LAMPIRAN) return 'Ukuran lampiran maksimal 5 MB.'
   return ''
+}
+/** Kuota (hari) untuk jenis cuti berkuota; null jika tidak berkuota. */
+export function kuotaJenis(nama) {
+  const d = jenisIzinCuti(nama)
+  return d?.kuota ?? null
+}
+
+/** Hitung sisa kuota cuti untuk staff berdasarkan daftar leaves (disetujui). */
+export function hitungSisaKuota(staffId, jenis, leaves = []) {
+  const kuota = kuotaJenis(jenis)
+  if (kuota === null) return null
+  const terpakai = (leaves || [])
+    .filter((l) => (l.staffId ?? l.staff_id) === staffId && normalisasiJenis(l.jenis) === normalisasiJenis(jenis) && (l.status === 'Disetujui' || l.status === 'Approved'))
+    .reduce((sum, l) => sum + (Number(l.durasi_hari ?? l.durasiHari ?? 1) || hitungDurasiHari(l.mulai ?? l.tanggal_mulai, l.selesai ?? l.tanggal_selesai)), 0)
+  return Math.max(0, kuota - terpakai)
 }

@@ -9,7 +9,7 @@ import {
   JENIS_FORM, jenisIzinCuti, kelompokIzinCuti, aturanLampiran, ikonJenis,
   warnaJenis, WARNA_STATUS, LABEL_STATUS_PANJANG, STATUS_PENGAJUAN,
   buildPengajuan, validasiFormPengajuan, formatPeriode, hitungDurasiHari,
-  MAKS_LAMPIRAN,
+  MAKS_LAMPIRAN, hitungSisaKuota, kuotaJenis,
 } from '../../data/jenisIzinCuti.js'
 import StaffAvatar from '../../components/mobile/StaffAvatar.jsx'
 import { SectionTitle } from '../../components/mobile/AppShell.jsx'
@@ -393,6 +393,19 @@ function MobileIzinCutiPage() {
             onKirim={kirim}
           />
         )}
+
+        <section className="sp-card p-4">
+          <SectionTitle ikon="event_available" judul="Sisa Kuota Cuti" />
+          <div className="grid grid-cols-3 gap-2 mt-2">
+            {['Cuti Tahunan', 'Cuti Menikah', 'Cuti Melahirkan'].map((j) => (
+              <div key={j} className="flex flex-col items-center p-2 rounded-xl bg-slate-50">
+                <span className="font-label-sm text-label-sm text-on-surface-variant">{j.replace('Cuti ', '')}</span>
+                <span className="font-headline-md text-headline-md text-[#323d8f]">{hitungSisaKuota(staff?.id, j, daftar)}</span>
+                <span className="font-label-sm text-label-sm text-on-surface-variant">dari {kuotaJenis(j)} hari</span>
+              </div>
+            ))}
+          </div>
+        </section>
 
         <section className="flex flex-col gap-2.5">
           <SectionTitle

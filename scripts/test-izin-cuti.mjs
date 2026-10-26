@@ -53,7 +53,7 @@ for (const nama of NAMA_WAJIB) {
 }
 
 uji('Cuti Tahunan -> kelompok Cuti', kelompokIzinCuti('Cuti Tahunan'), 'Cuti')
-uji('Cuti Sakit -> kelompok Cuti', kelompokIzinCuti('Cuti Sakit'), 'Cuti')
+uji('Cuti Sakit -> kelompok Izin', kelompokIzinCuti('Cuti Sakit'), 'Izin')
 uji('Cuti Melahirkan -> kelompok Cuti', kelompokIzinCuti('Cuti Melahirkan'), 'Cuti')
 uji('Izin Pribadi -> kelompok Izin', kelompokIzinCuti('Izin Pribadi'), 'Izin')
 uji('Izin Dinas -> kelompok Izin', kelompokIzinCuti('Izin Dinas'), 'Izin')
@@ -61,7 +61,7 @@ uji('Izin Dinas -> kelompok Izin', kelompokIzinCuti('Izin Dinas'), 'Izin')
 for (const nama of ['Sakit', 'Cuti Penting', 'Cuti Menikah', 'Cuti Bersalin', 'Tugas Luar']) {
   ujiBenar(`Jenis lama "${nama}" tetap dikenali`, jenisIzinCuti(nama) !== null)
 }
-uji('Jenis lama "Sakit" dihitung cuti', kelompokIzinCuti('Sakit'), 'Cuti')
+uji('Jenis lama "Sakit" dihitung izin', kelompokIzinCuti('Sakit'), 'Izin')
 uji('Jenis lama "Cuti Menikah" dihitung cuti', kelompokIzinCuti('Cuti Menikah'), 'Cuti')
 uji('Jenis lama "Tugas Luar" dihitung izin', kelompokIzinCuti('Tugas Luar'), 'Izin')
 
@@ -72,7 +72,7 @@ uji('Normalisasi kosong -> default', normalisasiJenis(''), 'Izin Pribadi')
 // Aturan lampiran: wajib hanya untuk Cuti Melahirkan.
 uji('Cuti Melahirkan wajib lampiran', aturanLampiran('Cuti Melahirkan'), 'wajib')
 uji('Cuti Sakit lampiran disarankan', aturanLampiran('Cuti Sakit'), 'disarankan')
-uji('Cuti Tahunan tanpa lampiran', aturanLampiran('Cuti Tahunan'), 'tidak')
+uji('Cuti Tahunan wajib lampiran', aturanLampiran('Cuti Tahunan'), 'wajib')
 uji('Izin Pribadi tanpa lampiran', aturanLampiran('Izin Pribadi'), 'tidak')
 uji('Izin Dinas lampiran disarankan', aturanLampiran('Izin Dinas'), 'disarankan')
 
@@ -357,8 +357,8 @@ ujiBenar('Form menampilkan tombol Batalkan', htmlForm.includes('Batalkan'))
 const htmlFormIzin = renderToString(h(FormPengajuan, { ...formProps, jenis: 'Izin Pribadi' }))
 // Chip jenis selalu menandai mana yang butuh lampiran, apa pun jenis terpilih.
 const hitungChip = (html, teks) => html.split(teks).length - 1
-uji('Label "Lampiran wajib" muncul tepat 1x (chip Cuti Melahirkan)', hitungChip(htmlForm, 'Lampiran wajib'), 1)
-uji('Label "Lampiran wajib" tetap 1x saat jenis lain dipilih', hitungChip(htmlFormIzin, 'Lampiran wajib'), 1)
+uji('Label "Lampiran wajib" muncul 3x (Cuti Tahunan, Menikah, Melahirkan)', hitungChip(htmlForm, 'Lampiran wajib'), 3)
+uji('Label "Lampiran wajib" tetap 3x saat jenis lain dipilih', hitungChip(htmlFormIzin, 'Lampiran wajib'), 3)
 
 // Pesan galat tampil apa adanya.
 const htmlFormGalat = renderToString(h(FormPengajuan, { ...formProps, galat: 'Alasan wajib diisi' }))
