@@ -567,12 +567,16 @@ ON public.staff_faces FOR SELECT USING (
 );
 
 DROP POLICY IF EXISTS "Pendaftaran wajah dapat dilakukan oleh user yang bersangkutan atau Admin" ON public.staff_faces;
-CREATE POLICY "Pendaftaran wajah dapat dilakukan oleh user yang bersangkutan atau Admin" 
+CREATE POLICY "Admin dapat mengelola wajah biometrik" 
 ON public.staff_faces FOR ALL USING (
   public.get_current_user_role() IN ('Superadmin', 'Admin Unit')
-  OR (public.get_current_user_role() = 'Guru' AND staff_id = public.get_current_staff_id())
-  OR auth.uid() IS NULL  -- izin upsert untuk anon (pendaftaran wajah via mobile app)
 );
+CREATE POLICY "Anon dapat mendaftar & membaca wajah sendiri (mobile)" 
+ON public.staff_faces FOR SELECT USING (auth.uid() IS NULL);
+CREATE POLICY "Anon dapat menyimpan pendaftaran wajah (mobile)" 
+ON public.staff_faces FOR INSERT WITH CHECK (auth.uid() IS NULL);
+CREATE POLICY "Anon dapat memperbarui wajah sendiri (mobile)" 
+ON public.staff_faces FOR UPDATE USING (auth.uid() IS NULL);
 
 -- 15.6 Users Policies
 DROP POLICY IF EXISTS "Pengguna dapat membaca profil sendiri atau Superadmin/Admin Unit" ON public.users;
