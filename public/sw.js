@@ -21,7 +21,7 @@
  * mobile terpasang.
  */
 
-const VERSI_CACHE = 'simpres-v1'
+const VERSI_CACHE = 'simpres-v2'
 const CACHE_ASET = `${VERSI_CACHE}-assets`
 const CACHE_SHELL = `${VERSI_CACHE}-shell`
 const SHELL_URL = '/index.html'
@@ -30,7 +30,7 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches
       .open(CACHE_SHELL)
-      .then((cache) => cache.addAll(['/', SHELL_URL, '/manifest.webmanifest', '/icons/icon-192.png']))
+      .then((cache) => cache.addAll(['/', SHELL_URL, '/manifest.webmanifest', '/icons/pwa-icon.png']))
       .catch(() => undefined)
       .then(() => self.skipWaiting()),
   )
