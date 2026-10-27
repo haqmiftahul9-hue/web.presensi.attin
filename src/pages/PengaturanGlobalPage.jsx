@@ -9,6 +9,7 @@ const tabs = [
   { id: 'operasional', label: 'Parameter Operasional', icon: 'settings' },
   { id: 'keamanan', label: 'Kebijakan Keamanan', icon: 'shield_lock' },
   { id: 'default', label: 'Default Sistem', icon: 'tune' },
+  { id: 'backup', label: 'Backup & Restore', icon: 'backup' },
 ]
 
 const ALLOWED_LOGO_TYPES = ['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml']
@@ -216,6 +217,55 @@ function PengaturanGlobalPage() {
       if (fileInputRef.current) fileInputRef.current.value = ''
       showNotification('Perubahan dibatalkan, data dikembalikan ke nilai terakhir disimpan', 'info')
     }
+  }
+
+  const backupInputRef = useRef(null)
+
+  const handleExportBackup = () => {
+    const payload = {
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      staff: state.staff,
+      units: state.units,
+      leaves: state.leaves,
+      settings: state.settings,
+      holidays: state.holidays,
+    }
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `simpres-backup-${new Date().toISOString().slice(0, 10)}.json`
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    setTimeout(() => URL.revokeObjectURL(url), 2000)
+    showNotification('Backup data berhasil diunduh', 'success')
+    addActivityLog(dispatch, state, 'Ubah', 'Backup & Restore', 'Ekspor backup data sistem', null, null, state.currentUser?.unitId)
+  }
+
+  const handleImportBackup = (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = () => {
+      try {
+        const parsed = JSON.parse(reader.result)
+        if (!parsed || typeof parsed !== 'object') throw new Error('Format backup tidak valid')
+        if (parsed.staff) localStorage.setItem('simpres.staff', JSON.stringify(parsed.staff))
+        if (parsed.units) localStorage.setItem('simpres.units', JSON.stringify(parsed.units))
+        if (parsed.leaves) localStorage.setItem('simpres.leaves', JSON.stringify(parsed.leaves))
+        if (parsed.settings) localStorage.setItem('simpres.settings', JSON.stringify(parsed.settings))
+        if (parsed.holidays) localStorage.setItem('simpres.holidays', JSON.stringify(parsed.holidays))
+        showNotification('Backup berhasil dipulihkan. Halaman akan dimuat ulang.', 'success')
+        addActivityLog(dispatch, state, 'Ubah', 'Backup & Restore', 'Impor backup data sistem', null, null, state.currentUser?.unitId)
+        setTimeout(() => window.location.reload(), 1200)
+      } catch (err) {
+        showNotification(`Gagal memulihkan backup: ${err?.message || 'file tidak valid'}`, 'error')
+      }
+    }
+    reader.readAsText(file)
+    e.target.value = ''
   }
 
   const ToggleSwitch = ({ checked, onChange }) => (
@@ -1021,6 +1071,45 @@ function PengaturanGlobalPage() {
               </div>
             </div>
           </>
+        )
+      case 'backup':
+        return (
+          <div className="bg-card rounded-xl border border-border p-6 shadow-xs space-y-6">
+            <div className="border-b border-border pb-4">
+              <h2 className="text-sm font-bold text-foreground tracking-tight">Backup & Restore Data</h2>
+              <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+                Ekspor seluruh data (pegawai, unit, pengajuan izin/cuti, pengaturan, hari libur) ke file JSON, atau pulihkan dari file backup.
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                type="button"
+                onClick={handleExportBackup}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-semibold shadow-xs hover:bg-primary/90 transition-colors cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[16px]">download</span>
+                Ekspor Backup (JSON)
+              </button>
+              <button
+                type="button"
+                onClick={() => backupInputRef.current?.click()}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-input bg-card text-foreground text-xs font-semibold shadow-xs hover:bg-accent transition-colors cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[16px]">upload</span>
+                Pulihkan dari Backup
+              </button>
+              <input
+                ref={backupInputRef}
+                type="file"
+                accept="application/json"
+                className="hidden"
+                onChange={handleImportBackup}
+              />
+            </div>
+            <p className="text-[11px] text-muted-foreground">
+              Peringatan: pemulihan akan menimpa data lokal (pegawai, unit, pengajuan, pengaturan) dan memuat ulang halaman.
+            </p>
+          </div>
         )
       case 'default':
         return (
