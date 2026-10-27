@@ -158,6 +158,28 @@ BEFORE UPDATE ON public.staff
 FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
 
 -- ------------------------------------------------------------------------------
+-- 6b. TABEL: PENGUMUMAN (ANNOUNCEMENTS) SUPERADMIN/ADMIN → MOBILE
+-- ------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.announcements (
+  id BIGSERIAL PRIMARY KEY,
+  title TEXT NOT NULL,
+  body TEXT NOT NULL,
+  author TEXT,
+  target TEXT NOT NULL DEFAULT 'all', -- 'all' atau NIY pegawai (target tertentu)
+  target_unit TEXT, -- null = semua unit, atau id unit
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  expires_at TIMESTAMPTZ
+);
+
+ALTER TABLE public.announcements ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "anon read announcements" ON public.announcements;
+DROP POLICY IF EXISTS "anon insert announcements" ON public.announcements;
+DROP POLICY IF EXISTS "anon delete announcements" ON public.announcements;
+CREATE POLICY "anon read announcements" ON public.announcements FOR SELECT USING (true);
+CREATE POLICY "anon insert announcements" ON public.announcements FOR INSERT WITH CHECK (true);
+CREATE POLICY "anon delete announcements" ON public.announcements FOR DELETE USING (true);
+
+-- ------------------------------------------------------------------------------
 -- 7. TABEL: BIOMETRIK PENDAFTARAN WAJAH (FACE-API.JS 128-D EMBEDDINGS)
 -- ------------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.staff_faces (

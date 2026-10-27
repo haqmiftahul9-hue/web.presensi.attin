@@ -1,7 +1,8 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useSimPres, addActivityLog } from '../store/simPresStore.jsx'
 import { daftarJamKerja } from '../data/jamKerja.js'
+import { loadAllAnnouncements, addAnnouncement, deleteAnnouncement } from '../services/announcementService.js'
 
 const tabs = [
   { id: 'informasi', label: 'Informasi Aplikasi', icon: 'info' },
@@ -10,6 +11,7 @@ const tabs = [
   { id: 'keamanan', label: 'Kebijakan Keamanan', icon: 'shield_lock' },
   { id: 'default', label: 'Default Sistem', icon: 'tune' },
   { id: 'backup', label: 'Backup & Restore', icon: 'backup' },
+  { id: 'pengumuman', label: 'Pengumuman', icon: 'campaign' },
 ]
 
 const ALLOWED_LOGO_TYPES = ['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml']
@@ -266,6 +268,52 @@ function PengaturanGlobalPage() {
     }
     reader.readAsText(file)
     e.target.value = ''
+  }
+
+  const [announcementTitle, setAnnouncementTitle] = useState('')
+  const [announcementBody, setAnnouncementBody] = useState('')
+  const [announcementTarget, setAnnouncementTarget] = useState('all')
+  const [announcementTargetUnit, setAnnouncementTargetUnit] = useState('')
+  const [announcementTargetNiy, setAnnouncementTargetNiy] = useState('')
+  const [announcements, setAnnouncements] = useState([])
+
+  useEffect(() => {
+    let mounted = true
+    loadAllAnnouncements().then((list) => {
+      if (mounted) setAnnouncements(list)
+    })
+    return () => { mounted = false }
+  }, [])
+
+  const handleAddAnnouncement = async () => {
+    if (!announcementTitle.trim() || !announcementBody.trim()) {
+      showNotification('Judul dan isi pengumuman wajib diisi', 'error')
+      return
+    }
+    const target = announcementTarget === 'niy' ? (announcementTargetNiy.trim() || 'all') : announcementTarget
+    const targetUnit = announcementTarget === 'unit' ? announcementTargetUnit : null
+    const item = await addAnnouncement({
+      title: announcementTitle.trim(),
+      body: announcementBody.trim(),
+      author: state.currentUser?.name || 'Superadmin',
+      target,
+      targetUnit,
+    })
+    setAnnouncements((prev) => [item, ...prev.filter((a) => a.id !== item.id)])
+    setAnnouncementTitle('')
+    setAnnouncementBody('')
+    setAnnouncementTarget('all')
+    setAnnouncementTargetUnit('')
+    setAnnouncementTargetNiy('')
+    showNotification('Pengumuman berhasil dipublikasikan', 'success')
+    addActivityLog(dispatch, state, 'Tambah', 'Pengumuman', `Mempublikasikan pengumuman: ${announcementTitle.trim()}`, null, null, state.currentUser?.unitId)
+  }
+
+  const handleDeleteAnnouncement = async (id) => {
+    if (!confirm('Hapus pengumuman ini?')) return
+    await deleteAnnouncement(id)
+    setAnnouncements((prev) => prev.filter((a) => a.id !== id))
+    showNotification('Pengumuman dihapus', 'info')
   }
 
   const ToggleSwitch = ({ checked, onChange }) => (
@@ -1111,6 +1159,99 @@ function PengaturanGlobalPage() {
             </p>
           </div>
         )
+      case 'pengumuman':
+        return (
+          <div className="bg-card rounded-xl border border-border p-6 shadow-xs space-y-6">
+            <div className="border-b border-border pb-4">
+              <h2 className="text-sm font-bold text-foreground tracking-tight">Pengumuman ke Unit</h2>
+              <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+                Buat pengumuman yang akan tampil di beranda mobile guru/pegawai.
+              </p>
+            </div>
+            <div className="space-y-3">
+              <input
+                type="text"
+                value={announcementTitle}
+                onChange={(e) => setAnnouncementTitle(e.target.value)}
+                placeholder="Judul pengumuman"
+                className="w-full h-9 text-xs text-foreground bg-card border border-input rounded-lg px-3 focus:outline-none focus:ring-1 focus:ring-ring"
+              />
+              <textarea
+                value={announcementBody}
+                onChange={(e) => setAnnouncementBody(e.target.value)}
+                placeholder="Isi pengumuman..."
+                rows={4}
+                className="w-full text-xs text-foreground bg-card border border-input rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-ring resize-none"
+              />
+              <div className="flex flex-col sm:flex-row gap-2">
+                <select
+                  value={announcementTarget}
+                  onChange={(e) => setAnnouncementTarget(e.target.value)}
+                  className="h-9 text-xs text-foreground bg-card border border-input rounded-lg px-3 focus:outline-none focus:ring-1 focus:ring-ring"
+                >
+                  <option value="all">Massal (semua user)</option>
+                  <option value="unit">Unit tertentu</option>
+                  <option value="niy">Pegawai tertentu (NIY)</option>
+                </select>
+                {announcementTarget === 'unit' && (
+                  <select
+                    value={announcementTargetUnit}
+                    onChange={(e) => setAnnouncementTargetUnit(e.target.value)}
+                    className="h-9 text-xs text-foreground bg-card border border-input rounded-lg px-3 focus:outline-none focus:ring-1 focus:ring-ring"
+                  >
+                    <option value="">Pilih unit</option>
+                    <option value="tk">TKIT</option>
+                    <option value="sd">SDIT</option>
+                    <option value="smp">SMPIT</option>
+                    <option value="sma">SMAIT</option>
+                  </select>
+                )}
+                {announcementTarget === 'niy' && (
+                  <input
+                    type="text"
+                    value={announcementTargetNiy}
+                    onChange={(e) => setAnnouncementTargetNiy(e.target.value)}
+                    placeholder="NIY pegawai"
+                    className="h-9 text-xs text-foreground bg-card border border-input rounded-lg px-3 focus:outline-none focus:ring-1 focus:ring-ring"
+                  />
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={handleAddAnnouncement}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-semibold shadow-xs hover:bg-primary/90 transition-colors cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[16px]">campaign</span>
+                Publikasikan
+              </button>
+            </div>
+            <div className="space-y-2">
+              {announcements.length === 0 ? (
+                <p className="text-xs text-muted-foreground">Belum ada pengumuman.</p>
+              ) : (
+                announcements.map((a) => (
+                  <div key={a.id} className="p-3 rounded-lg border border-border bg-muted/30">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="text-xs font-semibold text-foreground">{a.title}</p>
+                        <p className="text-[11px] text-muted-foreground mt-0.5 whitespace-pre-wrap">{a.body}</p>
+                        <p className="text-[10px] text-muted-foreground mt-1">{new Date(a.createdAt).toLocaleString('id-ID')} • {a.author}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteAnnouncement(a.id)}
+                        className="text-muted-foreground hover:text-destructive shrink-0"
+                        title="Hapus"
+                      >
+                        <span className="material-symbols-outlined text-[16px]">delete</span>
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )
       case 'default':
         return (
           <>
@@ -1684,7 +1825,7 @@ function PengaturanGlobalPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 p-1 bg-muted rounded-xl border border-border overflow-x-auto">
+        <div className="flex items-center gap-1.5 p-1 bg-muted rounded-xl border border-border overflow-x-auto max-w-full">
           {tabs.map((tab) => (
             <button
               key={tab.id}

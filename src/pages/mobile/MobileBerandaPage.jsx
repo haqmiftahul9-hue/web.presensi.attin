@@ -9,6 +9,7 @@ import {
   jamMenitDariDate, cekJendelaPresensi,
 } from '../../data/presensiMobile.js'
 import { getEmployeeSalutation } from '../../data/sapaanPegawai.js'
+import { loadAnnouncements } from '../../services/announcementService.js'
 import StaffAvatar from '../../components/mobile/StaffAvatar.jsx'
 import { SectionTitle, ShortcutGrid } from '../../components/mobile/AppShell.jsx'
 import { ErrorState, LoadingState } from '../../components/mobile/Feedback.jsx'
@@ -75,6 +76,14 @@ function MobileBerandaPage() {
   const staff = state ? selectSelfStaff(state) : null
   const presensi = state ? selectSelfPresensi(state) : null
   const unit = staff ? selectUnitById(state, staff.unitId) : null
+  const [announcements, setAnnouncements] = useState([])
+  useEffect(() => {
+    let mounted = true
+    loadAnnouncements({ unitId: staff?.unitId, niy: staff?.niy }).then((list) => {
+      if (mounted) setAnnouncements(list)
+    })
+    return () => { mounted = false }
+  }, [staff?.unitId, staff?.niy])
   const [jam, setJam] = useState(() => new Date())
 
   useEffect(() => {
@@ -313,6 +322,20 @@ function MobileBerandaPage() {
             </span>
           </div>
         </section>
+
+        {/* 4b. PENGUMUMAN dari superadmin */}
+        {announcements.length > 0 && (
+          <section className="flex flex-col gap-2.5 sp-rise sp-rise-2">
+            <SectionTitle ikon="campaign" judul="Pengumuman" />
+            {announcements.slice(0, 3).map((a) => (
+              <div key={a.id} className="sp-card p-3.5">
+                <p className="font-label-md text-label-md text-foreground">{a.title}</p>
+                <p className="text-xs text-on-surface-variant mt-1 whitespace-pre-wrap">{a.body}</p>
+                <p className="text-[10px] text-on-surface-variant mt-1.5">{new Date(a.createdAt).toLocaleDateString('id-ID')} • {a.author}</p>
+              </div>
+            ))}
+          </section>
+        )}
 
         {/* 5. MENU CEPAT — grid 2x2 dengan ikon lingkaran, bukan list. */}
         <section className="flex flex-col gap-2.5 sp-rise sp-rise-3">
