@@ -11,6 +11,7 @@ function EditUnitModal({ unit, onClose, onSave }) {
   const [gpsLoading, setGpsLoading] = useState(false)
   const [gpsSuccess, setGpsSuccess] = useState(false)
   const [errors, setErrors] = useState({})
+  const [koordinatPaste, setKoordinatPaste] = useState('')
   const [touched, setTouched] = useState({})
 
   const radiusSize = Math.min(Math.max((parseInt(radius) || 50) * 1.8, 90), 180)
@@ -107,6 +108,26 @@ function EditUnitModal({ unit, onClose, onSave }) {
     )
   }
 
+  const parseKoordinatPaste = (teks) => {
+    const m = String(teks || '').match(/(-?\d+(?:\.\d+)?)[,\s]+(-?\d+(?:\.\d+)?)/)
+    if (!m) return false
+    const lat = parseFloat(m[1])
+    const lng = parseFloat(m[2])
+    if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) return false
+    const latStr = lat.toFixed(6)
+    const lngStr = lng.toFixed(6)
+    setLatitude(latStr)
+    setLongitude(lngStr)
+    handleBlur('latitude', latStr)
+    handleBlur('longitude', lngStr)
+    return true
+  }
+
+  const bukaPeta = () => {
+    const lat = parseFloat(latitude) || -6.28945
+    const lng = parseFloat(longitude) || 106.79234
+    window.open(`https://www.google.com/maps/@${lat},${lng},18z`, '_blank', 'noopener')
+  }
   const validateAll = () => {
     const newErrors = {
       name: validateField('name', name),
@@ -325,14 +346,25 @@ function EditUnitModal({ unit, onClose, onSave }) {
                 </div>
               </div>
 
-              <div className="absolute bottom-3 left-3 z-10">
+              <div className="absolute bottom-3 left-3 z-10 flex flex-col gap-1.5">
                 <button
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-card hover:bg-accent text-foreground text-xs font-semibold shadow-xs border border-border transition-colors cursor-pointer"
                   type="button"
+                  onClick={bukaPeta}
                 >
-                  <span className="material-symbols-outlined text-[15px] text-primary">my_location</span>
-                  <span>Pilih di Peta</span>
+                  <span className="material-symbols-outlined text-[15px] text-primary">map</span>
+                  <span>Pilih di Peta (Google Maps)</span>
                 </button>
+                <input
+                  type="text"
+                  value={koordinatPaste}
+                  onChange={(e) => {
+                    setKoordinatPaste(e.target.value)
+                    if (parseKoordinatPaste(e.target.value)) setKoordinatPaste('')
+                  }}
+                  placeholder="Tempel koordinat dari peta (lat, lng)"
+                  className="px-2 py-1 rounded-md bg-card/95 text-[11px] border border-border w-44"
+                />
               </div>
             </div>
           </div>
