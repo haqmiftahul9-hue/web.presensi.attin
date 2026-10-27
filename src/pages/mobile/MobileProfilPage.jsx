@@ -472,6 +472,37 @@ function MobileProfilPage() {
               sub={registeredFace ? 'Biometrik wajah terdaftar & aktif' : 'Wajah belum terdaftar — klik untuk mendaftar'}
               onClick={() => navigate('/mobile/presensi?mode=face')}
             />
+            {registeredFace?.registeredAt && (() => {
+              const ms = Date.now() - new Date(registeredFace.registeredAt).getTime()
+              const sixMonths = 6 * 30 * 24 * 60 * 60 * 1000
+              if (ms < sixMonths) return null
+              return (
+                <div className="mt-2 p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs">
+                  Biometrik wajah terdaftar lebih dari 6 bulan lalu. Disarankan mendaftar ulang untuk akurasi.
+                </div>
+              )
+            })()}
+
+            <div className="mt-3 pt-3 border-t border-slate-100">
+              <p className="font-label-sm text-label-sm text-on-surface-variant mb-2">Tampilan</p>
+              <div className="flex items-center justify-between gap-3 mt-2">
+                <span className="text-xs text-foreground">Ukuran font</span>
+                <select
+                  defaultValue={(typeof localStorage !== 'undefined' && localStorage.getItem('simpres.fontScale')) || '1'}
+                  onChange={(e) => {
+                    const v = e.target.value
+                    try { localStorage.setItem('simpres.fontScale', v) } catch { /* ignore */ }
+                    document.documentElement.style.fontSize = `${Number(v) * 100}%`
+                  }}
+                  className="h-8 text-xs bg-slate-50 border border-slate-200 rounded-lg px-2"
+                >
+                  <option value="0.9">Kecil</option>
+                  <option value="1">Normal</option>
+                  <option value="1.1">Besar</option>
+                  <option value="1.25">Sangat besar</option>
+                </select>
+              </div>
+            </div>
 
             {bolehGantiSandi && (
               <BarisMenu

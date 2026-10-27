@@ -48,9 +48,15 @@ function MobileLayout() {
     }
   }, [])
 
-  // Pre-warm GPS lokasi perangkat agar koordinat langsung siap sebelum guru membuka presensi
+  // Terapkan preferensi tampilan (dark mode & ukuran font) yang tersimpan.
   useEffect(() => {
-    prewarmGeolocation()
+    try {
+      if (localStorage.getItem('simpres.darkMode') === '1') document.documentElement.classList.add('dark')
+      const scale = localStorage.getItem('simpres.fontScale')
+      if (scale) document.documentElement.style.fontSize = `${Number(scale) * 100}%`
+    } catch {
+      /* ignore */
+    }
   }, [])
 
   // Setiap kali berpindah tab, halaman dimulai dari atas — perilaku yang

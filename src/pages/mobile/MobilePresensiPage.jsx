@@ -200,6 +200,27 @@ function MobilePresensiPage() {
     return () => clearInterval(id)
   }, [])
 
+  // Sinkronisasi antrian presensi offline saat koneksi kembali.
+  useEffect(() => {
+    if (!dispatch) return
+    const sync = () => {
+      try {
+        const raw = localStorage.getItem('simpres.offlineQueue')
+        const q = raw ? JSON.parse(raw) : []
+        if (!Array.isArray(q) || q.length === 0) return
+        q.forEach((item) => {
+          if (item?.type === 'CHECK_IN' || item?.type === 'CHECK_OUT') dispatch({ type: item.type, payload: item.payload })
+        })
+        localStorage.removeItem('simpres.offlineQueue')
+      } catch {
+        /* ignore */
+      }
+    }
+    if (navigator.onLine) sync()
+    window.addEventListener('online', sync)
+    return () => window.removeEventListener('online', sync)
+  }, [dispatch])
+
   // Selalu baca koordinat unit terbaru dari storage (superadmin mungkin baru
   // mengubahnya) agar mobile tidak memakai koordinat lama yang tersimpan.
   useEffect(() => {
@@ -572,16 +593,31 @@ function MobilePresensiPage() {
         }
         setStatusPenutup('simpan')
         setPesanPenutup('Semua validasi lolos, menyimpan presensi...')
-        timerRef.current = setTimeout(() => {
-          dispatch({
-            type: 'CHECK_IN',
-            payload: {
+          timerRef.current = setTimeout(() => {
+            const payload = {
               id: staff.id,
               masuk: jamDetik(saatPresensi),
               method: mode === 'face' ? 'Face Recognition' : 'QR Code',
-            },
-          })
-          setHasilSimpan({
+            }
+            if (typeof navigator !== 'undefined' && !navigator.onLine) {
+              try {
+                const q = JSON.parse(localStorage.getItem('simpres.offlineQueue') || '[]')
+                q.push({ type: 'CHECK_IN', payload, at: new Date().toISOString() })
+                localStorage.setItem('simpres.offlineQueue', JSON.stringify(q))
+              } catch { /* ignore */ }
+              setHasilSimpan({
+                judul: 'Disimpan Offline',
+                detail: 'Presensi masuk disimpan lokal dan akan disinkronkan saat online.',
+                jam: jamDetik(saatPresensi),
+                method: mode === 'face' ? 'Face Recognition' : 'QR Code',
+                lateMinutes: hasilWaktu.lateMinutes,
+              })
+              setSheetTerbuka(true)
+              setStatusPenutup('berhasil')
+              return
+            }
+            dispatch({ type: 'CHECK_IN', payload })
+            setHasilSimpan({
             judul: 'Presensi Berhasil',
             detail: hasilWaktu.lateMinutes > 0
               ? `Tercatat ${hasilWaktu.detail}. Keterlambatan tetap tercatat pada rekap.`
@@ -681,6 +717,23 @@ function MobilePresensiPage() {
           outsideRadius: !geofence.dalamRadius,
         },
       })
+    }
+
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      try {
+        const q = JSON.parse(localStorage.getItem('simpres.offlineQueue') || '[]')
+        q.push({ type: 'CHECK_OUT', payload: { id: staff.id, pulang: jamDetik(saatPresensi), method: mode === 'face' ? 'Face Recognition' : 'QR Code' }, at: new Date().toISOString() })
+        localStorage.setItem('simpres.offlineQueue', JSON.stringify(q))
+      } catch { /* ignore */ }
+      setHasilSimpan({
+        judul: 'Disimpan Offline',
+        detail: 'Presensi pulang disimpan lokal dan akan disinkronkan saat online.',
+        jam: jamDetik(saatPresensi),
+        method: mode === 'face' ? 'Face Recognition' : 'QR Code',
+        lateMinutes: hasilWaktu.lateMinutes,
+      })
+      setSheetTerbuka(true)
+      return
     }
 
     dispatch({

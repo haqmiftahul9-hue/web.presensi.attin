@@ -589,6 +589,10 @@ ON public.staff_faces FOR SELECT USING (
 );
 
 DROP POLICY IF EXISTS "Pendaftaran wajah dapat dilakukan oleh user yang bersangkutan atau Admin" ON public.staff_faces;
+DROP POLICY IF EXISTS "Admin dapat mengelola wajah biometrik" ON public.staff_faces;
+DROP POLICY IF EXISTS "Anon dapat mendaftar & membaca wajah sendiri (mobile)" ON public.staff_faces;
+DROP POLICY IF EXISTS "Anon dapat menyimpan pendaftaran wajah (mobile)" ON public.staff_faces;
+DROP POLICY IF EXISTS "Anon dapat memperbarui wajah sendiri (mobile)" ON public.staff_faces;
 CREATE POLICY "Admin dapat mengelola wajah biometrik" 
 ON public.staff_faces FOR ALL USING (
   public.get_current_user_role() IN ('Superadmin', 'Admin Unit')
