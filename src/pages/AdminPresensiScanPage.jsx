@@ -21,9 +21,10 @@ function AdminPresensiScanPage() {
   const [staff, setStaff] = useState(null)
   const [pesan, setPesan] = useState('')
   const [busy, setBusy] = useState(false)
+  const [facing, setFacing] = useState('environment')
 
   const kamera = useDeviceCamera({
-    facingMode: 'environment',
+    facingMode: facing,
     aktif: true,
     onQrValue: (value) => {
       const cleaned = String(value || '').replace(/^SIMPRESPEG-/i, '').trim()
@@ -89,9 +90,18 @@ function AdminPresensiScanPage() {
       <div className="p-4 bg-card rounded-xl border border-border flex flex-col gap-3">
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-bold text-foreground">Scan Kamera (QR Kartu ID)</h2>
-          <span className="text-[11px] text-muted-foreground">
-            {kamera.status === 'aktif' ? 'Kamera aktif' : kamera.status === 'ditolak' ? 'Kamera tidak dapat diakses' : 'Memuat kamera...'}
-          </span>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setFacing((v) => (v === 'user' ? 'environment' : 'user'))}
+              className="h-8 px-2.5 rounded-lg bg-muted hover:bg-muted/80 border border-border text-foreground text-[11px] font-semibold"
+            >
+              {facing === 'user' ? 'Kamera Depan' : 'Kamera Belakang'}
+            </button>
+            <span className="text-[11px] text-muted-foreground">
+              {kamera.status === 'aktif' ? 'Kamera aktif' : kamera.status === 'ditolak' ? 'Kamera tidak dapat diakses' : 'Memuat kamera...'}
+            </span>
+          </div>
         </div>
         <div className="flex justify-center">
           <video
