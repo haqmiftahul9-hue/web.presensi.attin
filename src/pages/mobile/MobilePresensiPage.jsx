@@ -496,14 +496,20 @@ function MobilePresensiPage() {
           const det = await detectSingleFaceAndDescriptor(kamera.videoRef.current, { inputSize: 224, scoreThreshold: 0.5 })
           if (det.detected && det.descriptor) {
             const comp = await compareFaceDescriptors(det.descriptor, curRegistered.descriptor)
-            if (comp.match) {
+            // Retry 1x dengan threshold sedikit lebih longgar jika gagal (pencahayaan buruk)
+            let finalComp = comp
+            if (!comp.match) {
+              const retry = await compareFaceDescriptors(det.descriptor, curRegistered.descriptor, 0.62)
+              if (retry.match) finalComp = retry
+            }
+            if (finalComp.match) {
               setFaceStatus('matched')
-              setFaceConfidence(comp.confidence)
+              setFaceConfidence(finalComp.confidence)
               hasilBiometri = {
                 ok: true,
                 icon: 'face',
                 judul: 'Validasi Wajah',
-                detail: `Wajah cocok ${comp.confidence}% dengan data biometrik ${staff.niy} (${staff.name})`,
+                detail: `Wajah cocok ${finalComp.confidence}% dengan data biometrik ${staff.niy} (${staff.name})`,
               }
               // Upload foto bukti presensi datang: crop wajah → kompres WebP (< 30KB) → Supabase Storage bucket per unit
               // Berjalan di latar belakang (tidak menghambat UX presensi)

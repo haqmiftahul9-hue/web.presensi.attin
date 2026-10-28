@@ -866,3 +866,10 @@ END $$;
 -- ==============================================================================
 -- AKHIR SKEMA DATABASE SUPABASE
 -- ==============================================================================
+
+-- Retensi foto scan wajah: hapus scan > 90 hari (jalankan via pg_cron / Supabase scheduled job)
+-- SELECT cron.schedule('cleanup-old-face-scans', '0 2 * * *', 
+--   DELETE FROM storage.objects
+--   WHERE bucket_id IN ('presensi-tk','presensi-sd','presensi-smp','presensi-sma','presensi-yayasan')
+--     AND created_at < now() - interval '90 days';
+-- );
