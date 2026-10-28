@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useSimPres, addActivityLog } from '../store/simPresStore.jsx'
 import { daftarJamKerja } from '../data/jamKerja.js'
-import { loadAllAnnouncements, addAnnouncement, deleteAnnouncement } from '../services/announcementService.js'
+import { loadAllAnnouncements, addAnnouncement, deleteAnnouncement, subscribeAnnouncements } from '../services/announcementService.js'
 
 const tabs = [
   { id: 'informasi', label: 'Informasi Aplikasi', icon: 'info' },
@@ -279,10 +279,14 @@ function PengaturanGlobalPage() {
 
   useEffect(() => {
     let mounted = true
-    loadAllAnnouncements().then((list) => {
-      if (mounted) setAnnouncements(list)
-    })
-    return () => { mounted = false }
+    const reload = () => {
+      loadAllAnnouncements().then((list) => {
+        if (mounted) setAnnouncements(list)
+      })
+    }
+    reload()
+    const unsub = subscribeAnnouncements(reload)
+    return () => { mounted = false; unsub() }
   }, [])
 
   const handleAddAnnouncement = async () => {

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import {
@@ -33,7 +33,35 @@ function useLoginController() {
 
   const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
+  const [loginAttempts, setLoginAttempts] = useState(() => {
+    try {
+      const raw = localStorage.getItem('simpres.loginAttempts')
+      return raw ? JSON.parse(raw) : { count: 0, lockedUntil: 0 }
+    } catch {
+      return { count: 0, lockedUntil: 0 }
+    }
+  })
+  const [lockRemaining, setLockRemaining] = useState(0)
+
+  // Hitung sisa waktu kunci login
+  useEffect(() => {
+    const tick = () => {
+      const now = Date.now()
+      if (loginAttempts.lockedUntil > now) {
+        setLockRemaining(Math.ceil((loginAttempts.lockedUntil - now) / 1000))
+      } else {
+        setLockRemaining(0)
+        if (loginAttempts.lockedUntil && loginAttempts.lockedUntil <= now && loginAttempts.count >= 5) {
+          const next = { count: 0, lockedUntil: 0 }
+          setLoginAttempts(next)
+          try { localStorage.setItem('simpres.loginAttempts', JSON.stringify(next)) } catch { /* ignore */ }
+        }
+      }
+    }
+    tick()
+    const id = setInterval(tick, 1000)
+    return () => clearInterval(id)
+  }, [loginAttempts])
   const [remember, setRemember] = useState(true)
   const [fieldErrors, setFieldErrors] = useState({})
   const [forgotMsg, setForgotMsg] = useState(false)
@@ -42,6 +70,10 @@ function useLoginController() {
   const handleSubmit = async (event) => {
     event.preventDefault()
     if (isAuthenticating || isNavigating) return
+    if (lockRemaining > 0) {
+      toast.error(`Akun terkunci. Coba lagi dalam ${lockRemaining} detik.`)
+      return
+    }
 
     const errors = {}
     if (!identifier.trim()) errors.identifier = AUTH_ERRORS.EMPTY_IDENTIFIER
@@ -59,11 +91,21 @@ function useLoginController() {
     })
 
     if (result.ok) {
+      const next = { count: 0, lockedUntil: 0 }
+      setLoginAttempts(next)
+      try { localStorage.setItem('simpres.loginAttempts', JSON.stringify(next)) } catch { /* ignore */ }
       setIsNavigating(true)
       toast.success('Login berhasil')
       setTimeout(() => {
         navigate(result.path, { replace: true })
       }, 500)
+    } else {
+      const count = (loginAttempts.count || 0) + 1
+      const lockedUntil = count >= 5 ? Date.now() + 5 * 60 * 1000 : 0
+      const next = { count, lockedUntil }
+      setLoginAttempts(next)
+      try { localStorage.setItem('simpres.loginAttempts', JSON.stringify(next)) } catch { /* ignore */ }
+      if (lockedUntil) toast.error('Terlalu banyak percobaan. Akun terkunci 5 menit.')
     }
   }
 
@@ -89,11 +131,10 @@ function useLoginController() {
     forgotMsg,
     setForgotMsg,
     isNavigating,
+    lockRemaining,
   }
 }
 
-/**
- * Background dekoratif halus untuk kedalaman visual
  */
 function LoginBackdrop() {
   return (
@@ -147,6 +188,7 @@ function SimpegLoginCard(props) {
     forgotMsg,
     setForgotMsg,
     isNavigating,
+    lockRemaining,
   } = props
 
   return (
@@ -334,7 +376,7 @@ function SimpegLoginCard(props) {
             <div className="pt-2">
               <button
                 type="submit"
-                disabled={isAuthenticating || isNavigating}
+                disabled={isAuthenticating || isNavigating || lockRemaining > 0}
                 className="w-full text-white font-semibold rounded-xl px-4 py-2.5 text-sm shadow-md hover:shadow-lg transition-all duration-300 active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
                 style={{ backgroundColor: '#323d8f' }}
               >
@@ -343,12 +385,17 @@ function SimpegLoginCard(props) {
                     <Spinner className="h-4 w-4" />
                     <span>{isNavigating ? 'Login berhasil, mengalihkan...' : 'Memverifikasi akun...'}</span>
                   </>
-                ) : (
-                  <>
-                    <span>Masuk</span>
-                    <span className="material-symbols-outlined text-[17px]">arrow_forward</span>
-                  </>
-                )}
+                 ) : lockRemaining > 0 ? (
+                   <>
+                     <span>Terkunci {lockRemaining}s</span>
+                     <span className="material-symbols-outlined text-[17px]">lock</span>
+                   </>
+                 ) : (
+                   <>
+                     <span>Masuk</span>
+                     <span className="material-symbols-outlined text-[17px]">arrow_forward</span>
+                   </>
+                 )}
               </button>
             </div>
           </form>

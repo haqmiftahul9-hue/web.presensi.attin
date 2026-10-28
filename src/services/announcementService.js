@@ -105,6 +105,18 @@ export async function deleteAnnouncement(id) {
   return true
 }
 
+export function subscribeAnnouncements(callback) {
+  if (!isSupabaseConfigured || !supabase) return () => {}
+  const channel = supabase
+    .channel('announcements-changes')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'announcements' }, () => {
+      callback?.()
+    })
+    .subscribe()
+  return () => {
+    try { supabase.removeChannel(channel) } catch { /* ignore */ }
+  }
+}
 export async function loadAllAnnouncements() {
   if (isSupabaseConfigured && supabase) {
     try {

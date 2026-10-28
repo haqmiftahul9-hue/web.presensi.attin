@@ -9,7 +9,7 @@ import {
   jamMenitDariDate, cekJendelaPresensi,
 } from '../../data/presensiMobile.js'
 import { getEmployeeSalutation } from '../../data/sapaanPegawai.js'
-import { loadAnnouncements } from '../../services/announcementService.js'
+import { loadAnnouncements, subscribeAnnouncements } from '../../services/announcementService.js'
 import StaffAvatar from '../../components/mobile/StaffAvatar.jsx'
 import { SectionTitle, ShortcutGrid } from '../../components/mobile/AppShell.jsx'
 import { ErrorState, LoadingState } from '../../components/mobile/Feedback.jsx'
@@ -79,10 +79,14 @@ function MobileBerandaPage() {
   const [announcements, setAnnouncements] = useState([])
   useEffect(() => {
     let mounted = true
-    loadAnnouncements({ unitId: staff?.unitId, niy: staff?.niy }).then((list) => {
-      if (mounted) setAnnouncements(list)
-    })
-    return () => { mounted = false }
+    const reload = () => {
+      loadAnnouncements({ unitId: staff?.unitId, niy: staff?.niy }).then((list) => {
+        if (mounted) setAnnouncements(list)
+      })
+    }
+    reload()
+    const unsub = subscribeAnnouncements(reload)
+    return () => { mounted = false; unsub() }
   }, [staff?.unitId, staff?.niy])
   const [jam, setJam] = useState(() => new Date())
 
