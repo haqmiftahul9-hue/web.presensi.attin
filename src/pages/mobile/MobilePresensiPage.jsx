@@ -772,7 +772,8 @@ function MobilePresensiPage() {
       setPesanKode('Masukkan kode pada kartu ID, contoh SIMPRESPEG-NIY.')
       return
     }
-    if (kode === qrMilikSaya.toUpperCase()) {
+    const kodeLengkap = kode.startsWith(CARD_QR_PREFIX) ? kode : `${CARD_QR_PREFIX}${kode}`
+    if (kodeLengkap === qrMilikSaya.toUpperCase()) {
       setQrTerbaca(qrMilikSaya)
       setPesanKode('')
       setKodeManual('')
@@ -910,6 +911,28 @@ function MobilePresensiPage() {
           )}
 
           {null}
+
+          {/* Pemilih mode presensi: wajah (biometrik) atau QR/barcode (manual). */}
+          <div className="flex gap-1 p-1 bg-slate-100/80 rounded-xl">
+            <button
+              type="button"
+              onClick={() => setMode('face')}
+              className={`flex-1 py-2 px-3 rounded-lg text-xs font-semibold transition-all ${
+                mode === 'face' ? 'bg-white text-[#323d8f] shadow-sm' : 'text-slate-600 hover:text-slate-800'
+              }`}
+            >
+              Wajah
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode('barcode')}
+              className={`flex-1 py-2 px-3 rounded-lg text-xs font-semibold transition-all ${
+                mode === 'barcode' ? 'bg-white text-[#323d8f] shadow-sm' : 'text-slate-600 hover:text-slate-800'
+              }`}
+            >
+              QR / Barcode
+            </button>
+          </div>
 
           {/* Area kamera: bingkai wajah atau scanner QR kartu ID. */}
           <div className="flex justify-center">
