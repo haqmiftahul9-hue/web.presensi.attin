@@ -1,6 +1,7 @@
 import { useSimPres, selectUnitName } from '../store/simPresStore.jsx'
 import { calculateAttendanceStatus } from '../data/jamKerja.js'
 import { EMPLOYEE_COLUMNS, EMPLOYEE_GROUPS } from '../data/employeeSchema.js'
+import { cardPhotoOf } from '../data/employeeCard.js'
 
 const FIELD_CLASS = 'text-xs font-semibold text-foreground mt-0.5 block break-words'
 const LABEL_CLASS = 'text-[11px] font-semibold text-muted-foreground uppercase tracking-wider block'
@@ -52,8 +53,16 @@ function DetailEmployeeModal({ staff, onClose }) {
       >
         <div className="px-6 py-4 border-b border-border flex items-start justify-between bg-muted/30">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-9 h-9 rounded-lg bg-primary/10 text-primary border border-primary/20 flex items-center justify-center font-bold text-xs flex-shrink-0">
-              {(staff.name || '?').charAt(0).toUpperCase()}
+            <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary border border-primary/20 flex items-center justify-center font-bold text-sm flex-shrink-0 overflow-hidden">
+              {cardPhotoOf(staff) ? (
+                <img
+                  src={cardPhotoOf(staff)}
+                  alt={staff.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                (staff.name || '?').charAt(0).toUpperCase()
+              )}
             </div>
             <div className="min-w-0">
               <h2 className="text-base font-bold text-foreground leading-snug" id="modalTitle">

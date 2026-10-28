@@ -1,7 +1,9 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useSimPres } from '../store/simPresStore.jsx'
 import EmployeeFormFields from './EmployeeFormFields.jsx'
 import { toEmployeeForm, validateEmployee } from '../data/employeeSchema.js'
+import { bacaFoto, MAKS_FOTO_BYTES } from '../data/profilGuru.js'
+import { uploadStaffPhoto, deleteStaffPhoto } from '../services/photoStorageService.js'
 
 function EditEmployeeModal({ staff, onClose, onSave }) {
   const { state } = useSimPres()
@@ -9,6 +11,10 @@ function EditEmployeeModal({ staff, onClose, onSave }) {
   const [errors, setErrors] = useState({})
   const [newPassword, setNewPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [foto, setFoto] = useState(staff?.foto || '')
+  const [uploadingFoto, setUploadingFoto] = useState(false)
+  const [fotoGalat, setFotoGalat] = useState('')
+  const inputFotoRef = useRef(null)
 
   const handleSave = () => {
     const found = validateEmployee(form, {
@@ -31,6 +37,7 @@ function EditEmployeeModal({ staff, onClose, onSave }) {
     onSave({
       ...trimmed,
       id: staff.id,
+      foto,
       ...(newPassword.trim() ? { password: newPassword.trim() } : {}),
       // Field presensi bukan milik form ini dan harus tetap terjaga.
       masuk: staff.masuk,
@@ -40,6 +47,44 @@ function EditEmployeeModal({ staff, onClose, onSave }) {
       outsideRadius: staff.outsideRadius,
     })
     onClose()
+  }
+
+  async function pilihFoto(event) {
+    const berkas = event.target.files?.[0]
+    if (!berkas) return
+    if (berkas.size > MAKS_FOTO_BYTES) {
+      setFotoGalat(`Ukuran foto maksimal ${Math.round(MAKS_FOTO_BYTES / (1024 * 1024))} MB.`)
+      if (event.target) event.target.value = ''
+      return
+    }
+    setUploadingFoto(true)
+    setFotoGalat('')
+    try {
+      const dataUrl = await bacaFoto(berkas)
+      const fotoUrl = await uploadStaffPhoto(staff, dataUrl)
+      setFoto(fotoUrl || dataUrl)
+    } catch (error) {
+      console.warn('Gagal membaca/mengunggah foto:', error)
+      setFotoGalat(error?.message || 'Foto gagal dibaca.')
+    } finally {
+      setUploadingFoto(false)
+      if (event.target) event.target.value = ''
+    }
+  }
+
+  async function hapusFoto() {
+    if (!window.confirm('Apakah Anda yakin ingin menghapus foto profil ini?')) return
+    setUploadingFoto(true)
+    setFotoGalat('')
+    try {
+      if (foto) await deleteStaffPhoto(staff, foto)
+      setFoto('')
+    } catch (error) {
+      console.warn('Gagal menghapus foto profil:', error)
+      setFotoGalat(error?.message || 'Gagal menghapus foto.')
+    } finally {
+      setUploadingFoto(false)
+    }
   }
 
   return (
@@ -71,6 +116,55 @@ function EditEmployeeModal({ staff, onClose, onSave }) {
         </div>
 
         <div className="p-6 overflow-y-auto space-y-5">
+          {/* Foto profil */}
+          <div className="flex flex-col sm:flex-row items-center gap-4 p-4 bg-muted/40 rounded-xl border border-border/60">
+            <div className="w-20 h-20 rounded-xl bg-card border border-border flex items-center justify-center overflow-hidden flex-shrink-0">
+              {foto ? (
+                <img src={foto} alt={`Foto ${staff?.name || ''}`} className="w-full h-full object-cover" />
+              ) : (
+                <span className="material-symbols-outlined text-[32px] text-muted-foreground">person</span>
+              )}
+            </div>
+            <div className="flex flex-col gap-2 flex-1 min-w-0">
+              <span className="text-xs font-bold text-foreground">Foto Profil Pegawai</span>
+              <p className="text-[11px] text-muted-foreground">
+                Superadmin/Admin dapat mengunggah atau mengganti foto profil. JPG/PNG/WebP, maksimal {Math.round(MAKS_FOTO_BYTES / (1024 * 1024))} MB.
+              </p>
+              <div className="flex items-center gap-2 flex-wrap">
+                <button
+                  type="button"
+                  onClick={() => inputFotoRef.current?.click()}
+                  disabled={uploadingFoto}
+                  className="h-8 px-3 rounded-lg bg-primary/10 hover:bg-primary/20 border border-primary/20 text-primary text-xs font-medium inline-flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-60"
+                >
+                  <span className="material-symbols-outlined text-[15px] leading-none">
+                    {uploadingFoto ? 'hourglass_top' : 'photo_camera'}
+                  </span>
+                  <span>{uploadingFoto ? 'Menyimpan...' : (foto ? 'Ganti foto' : 'Unggah foto')}</span>
+                </button>
+                {foto && (
+                  <button
+                    type="button"
+                    onClick={hapusFoto}
+                    disabled={uploadingFoto}
+                    className="h-8 px-3 rounded-lg bg-destructive/10 hover:bg-destructive/20 border border-destructive/20 text-destructive text-xs font-medium inline-flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-60"
+                  >
+                    <span className="material-symbols-outlined text-[15px] leading-none">delete</span>
+                    <span>Hapus foto</span>
+                  </button>
+                )}
+              </div>
+              <input
+                ref={inputFotoRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/jpg"
+                onChange={pilihFoto}
+                className="sr-only"
+              />
+              {fotoGalat && <span className="text-[11px] text-destructive">{fotoGalat}</span>}
+            </div>
+          </div>
+
           <EmployeeFormFields form={form} setForm={setForm} errors={errors} />
 
           {/* Opsi Kata Sandi Login Mobile */}

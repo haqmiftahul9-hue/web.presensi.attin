@@ -8,6 +8,7 @@ import DeleteConfirmationModal from './DeleteConfirmationModal.jsx'
 import ConfirmDialog from './ConfirmDialog.jsx'
 import ResetStaffPasswordModal from './ResetStaffPasswordModal.jsx'
 import { getEmployeeGreeting } from '../data/sapaanPegawai.js'
+import { cardPhotoOf } from '../data/employeeCard.js'
 
 // Label jabatan ringkas untuk tampilan; data asli tetap di store.
 const roleDisplayMap = {
@@ -209,8 +210,16 @@ function StaffTable({ unitFilter, searchTerm, statusFilter, currentPage, setCurr
                 </td>
                 <td className="h-14 px-3.5 align-middle">
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 text-primary font-bold text-xs flex items-center justify-center flex-shrink-0">
-                      {row.initials}
+                    <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 text-primary font-bold text-xs flex items-center justify-center flex-shrink-0 overflow-hidden">
+                      {cardPhotoOf(row.staff) ? (
+                        <img
+                          src={cardPhotoOf(row.staff)}
+                          alt={row.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        row.initials
+                      )}
                     </div>
                     <div className="flex flex-col min-w-0 leading-tight">
                       <span
