@@ -18,6 +18,7 @@ const navItems = [
   { path: '/data-guru-dan-pegawai', label: 'Data Guru/Pegawai', icon: 'badge', activePath: '/data-guru-dan-pegawai', menuKey: 'dataGuruPegawai' },
   { path: '/cetak-kartu-id', label: 'Cetak Kartu ID', icon: 'contact_page', activePath: '/cetak-kartu-id', menuKey: 'cetakKartuId' },
   { path: '/presensi', label: 'Presensi', icon: 'timer', activePath: '/presensi', menuKey: 'presensi' },
+  { path: '/presensi-scan', label: 'Scan Presensi (Kios)', icon: 'qr_code_scanner', activePath: '/presensi-scan', menuKey: 'presensi' },
   { path: '/rekap-dan-laporan', label: 'Rekap & Laporan', icon: 'summarize', activePath: '/rekap-dan-laporan', menuKey: 'rekapLaporan' },
   { path: '/ranking-kehadiran', label: 'Ranking Kehadiran', icon: 'leaderboard', activePath: '/ranking-kehadiran', menuKey: 'rankingKehadiran' },
   { path: '/pengajuan-izin-dan-cuti', label: 'Pengajuan Izin/Cuti', icon: 'event_available', activePath: '/pengajuan-izin-dan-cuti', menuKey: 'pengajuanIzinCuti' },

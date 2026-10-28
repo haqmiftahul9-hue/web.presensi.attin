@@ -16,6 +16,7 @@ import LogAktivitasPage from './pages/LogAktivitasPage.jsx'
 import PengaturanGlobalPage from './pages/PengaturanGlobalPage.jsx'
 import PengajuanIzinCutiPage from './pages/PengajuanIzinCutiPage.jsx'
 import MonitoringPresensiPage from './pages/MonitoringPresensiPage.jsx'
+import AdminPresensiScanPage from './pages/AdminPresensiScanPage.jsx'
 import MobileBerandaPage from './pages/mobile/MobileBerandaPage.jsx'
 import MobilePresensiPage from './pages/mobile/MobilePresensiPage.jsx'
 import MobileRiwayatPage from './pages/mobile/MobileRiwayatPage.jsx'
@@ -118,6 +119,7 @@ function App() {
           <Route path="/pengaturan-global" element={<ProtectedRoute><PengaturanGlobalPage /></ProtectedRoute>} />
           <Route path="/pengajuan-izin-dan-cuti" element={<ProtectedRoute><PengajuanIzinCutiPage /></ProtectedRoute>} />
           <Route path="/presensi" element={<ProtectedRoute><MonitoringPresensiPage /></ProtectedRoute>} />
+          <Route path="/presensi-scan" element={<ProtectedRoute><AdminPresensiScanPage /></ProtectedRoute>} />
         </Route>
 
         {/* Di luar daftar: kembali ke beranda mode yang sesuai. */}

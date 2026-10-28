@@ -336,6 +336,7 @@ export const ROUTE_MENU_KEYS = {
   '/data-guru-dan-pegawai': 'dataGuruPegawai',
   '/cetak-kartu-id': 'cetakKartuId',
   '/presensi': 'presensi',
+  '/presensi-scan': 'presensi',
   '/rekap-dan-laporan': 'rekapLaporan',
   '/ranking-kehadiran': 'rankingKehadiran',
   '/pengajuan-izin-dan-cuti': 'pengajuanIzinCuti',
