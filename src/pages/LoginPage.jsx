@@ -33,6 +33,7 @@ function useLoginController() {
 
   const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [loginAttempts, setLoginAttempts] = useState(() => {
     try {
       const raw = localStorage.getItem('simpres.loginAttempts')
