@@ -139,8 +139,9 @@ function LogoutRoute() {
   const { dispatch } = useSimPres()
   useEffect(() => {
     performLogout(dispatch)
+    window.location.replace('/login')
   }, [dispatch])
-  return <Navigate to="/login" replace />
+  return null
 }
 
 /** Beranda portal: Superadmin ke /superadmin, role unit lain ke /dashboard. */
