@@ -3,6 +3,7 @@ import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useSimPres, selectAppMode, selectAppHomePath, MODE_MOBILE } from './store/simPresStore.jsx'
 import SidebarNav from './components/Sidebar.jsx'
 import Header from './components/Header.jsx'
+import { fetchAttendanceFromSupabase, subscribeAttendance } from './services/attendanceRealtimeService.js'
 
 /**
  * Kerangka aplikasi desktop (Superadmin/Admin Unit/Petugas).
@@ -17,9 +18,23 @@ import Header from './components/Header.jsx'
  * Role mobile (Guru/Pegawai) dialihkan ke modul mobile-nya.
  */
 function Layout() {
-  const { state } = useSimPres()
+  const { state, dispatch } = useSimPres()
   const location = useLocation()
   const [drawerOpen, setDrawerOpen] = useState(false)
+
+  // Sinkronisasi presensi real-time dari Supabase (untuk admin/superadmin).
+  useEffect(() => {
+    if (!state?.currentUser || state.currentUser.role === 'Guru' || state.currentUser.role === 'Pegawai') return
+    let mounted = true
+    const sync = async () => {
+      const rows = await fetchAttendanceFromSupabase()
+      if (mounted && rows.length) dispatch({ type: 'SYNC_ATTENDANCE', payload: rows })
+    }
+    sync()
+    const unsub = subscribeAttendance(sync)
+    const id = setInterval(sync, 30000)
+    return () => { mounted = false; unsub(); clearInterval(id) }
+  }, [state?.currentUser?.id])
 
   // Tutup drawer setiap pindah halaman, seperti aplikasi native.
   useEffect(() => {

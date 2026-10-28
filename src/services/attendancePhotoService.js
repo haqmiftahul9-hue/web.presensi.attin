@@ -383,6 +383,7 @@ export async function syncAttendanceToSupabase({
   faceSnapshotPulangUrl = null,
   faceConfidence = null,
   photoBucket = null,
+  presensiId = null,
   coordinates = {},
 }) {
   if (!isSupabaseConfigured || !supabase || !staff?.id) return false
@@ -396,6 +397,7 @@ export async function syncAttendanceToSupabase({
       staff_id: staff.id,
       unit_id: targetUnit,
       tanggal: dateStr,
+      presensi_id: presensiId || `${staff.id}-${dateStr}-${Date.now()}`,
       hari,
       status,
       late_minutes: lateMinutes || 0,

@@ -524,6 +524,7 @@ function MobilePresensiPage() {
                       unitId: unit?.id || staff.unitId,
                       tanggal: saatPresensi,
                       jamMasuk: jamDetik(saatPresensi),
+                      presensiId: (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : `${staff.id}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
                       status: hasilWaktu.lateMinutes > 0 ? 'Terlambat' : 'Tepat Waktu',
                       lateMinutes: hasilWaktu.lateMinutes || 0,
                       method: 'Face Recognition',
@@ -682,11 +683,12 @@ function MobilePresensiPage() {
         .then((uploadRes) => {
           if (uploadRes?.url) {
             console.info('[FaceRec] Foto bukti presensi pulang terupload ke unit bucket:', uploadRes.bucket, uploadRes.url)
-            syncAttendanceToSupabase({
-              staff,
-              unitId: unit?.id || staff.unitId,
-              tanggal: saatPresensi,
-              jamPulang: jamDetik(saatPresensi),
+             syncAttendanceToSupabase({
+               staff,
+               unitId: unit?.id || staff.unitId,
+               tanggal: saatPresensi,
+               jamPulang: jamDetik(saatPresensi),
+               presensiId: (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : `${staff.id}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
               method: 'Face Recognition',
               faceSnapshotPulangUrl: uploadRes.url,
               photoBucket: uploadRes.bucket,
@@ -709,6 +711,7 @@ function MobilePresensiPage() {
         unitId: unit?.id || staff.unitId,
         tanggal: saatPresensi,
         jamPulang: jamDetik(saatPresensi),
+        presensiId: (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : `${staff.id}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
         method: mode === 'face' ? 'Face Recognition' : 'QR Code',
         coordinates: {
           latitude: geofence.coords?.latitude,

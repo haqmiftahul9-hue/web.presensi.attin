@@ -256,6 +256,7 @@ CREATE TABLE IF NOT EXISTS public.attendance (
   face_confidence_masuk NUMERIC(5, 2),  -- Skor kecocokan wajah saat datang (%)
   face_confidence_pulang NUMERIC(5, 2), -- Skor kecocokan wajah saat pulang (%)
   photo_bucket VARCHAR(50),             -- Nama storage bucket per unit (misal: 'presensi-sd')
+  presensi_id TEXT UNIQUE,             -- Kunci idempotensi untuk presensi bersamaan
   catatan TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -268,6 +269,8 @@ ALTER TABLE public.attendance ADD COLUMN IF NOT EXISTS face_snapshot_pulang_url 
 ALTER TABLE public.attendance ADD COLUMN IF NOT EXISTS face_confidence_masuk NUMERIC(5, 2);
 ALTER TABLE public.attendance ADD COLUMN IF NOT EXISTS face_confidence_pulang NUMERIC(5, 2);
 ALTER TABLE public.attendance ADD COLUMN IF NOT EXISTS photo_bucket VARCHAR(50);
+ALTER TABLE public.attendance ADD COLUMN IF NOT EXISTS presensi_id TEXT;
+CREATE UNIQUE INDEX IF NOT EXISTS idx_attendance_presensi_id ON public.attendance(presensi_id) WHERE presensi_id IS NOT NULL;
 
 CREATE INDEX IF NOT EXISTS idx_attendance_staff_id ON public.attendance(staff_id);
 CREATE INDEX IF NOT EXISTS idx_attendance_unit_id ON public.attendance(unit_id);

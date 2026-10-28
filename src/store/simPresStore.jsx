@@ -1246,7 +1246,17 @@ logs: [
         authError: action.payload,
         authErrorCode: action.code || null,
       }
-    case 'LOGOUT':
+      case 'SYNC_ATTENDANCE': {
+        const remote = action.payload || []
+        if (!Array.isArray(remote) || remote.length === 0) return state
+        const map = new Map(state.attendanceHistory.map((h) => [`${h.staffId ?? h.staff_id}-${h.tanggal}`, h]))
+        remote.forEach((r) => {
+          const key = `${r.staff_id}-${r.tanggal}`
+          const existing = map.get(key)
+          map.set(key, existing ? { ...existing, ...r } : r)
+        })
+        return { ...state, attendanceHistory: Array.from(map.values()) }
+      }
       return {
         ...state,
         currentUser: null,
