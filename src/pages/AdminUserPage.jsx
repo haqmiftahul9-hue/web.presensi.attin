@@ -22,7 +22,7 @@ function AdminUserPage() {
   const [formMode, setFormMode] = useState('add')
   const [editedUser, setEditedUser] = useState(null)
   const [form, setForm] = useState({
-    name: '', email: '', niy: '', role: 'Admin Unit', unitId: '', status: 'Aktif', password: '', forceChange: true,
+    name: '', email: '', username: '', niy: '', role: 'Admin Unit', unitId: '', status: 'Aktif', password: '', forceChange: true,
   })
   const [formErrors, setFormErrors] = useState({})
 
@@ -103,14 +103,14 @@ function AdminUserPage() {
   }
 
   const resetForm = () => {
-    setForm({ name: '', email: '', niy: '', role: 'Admin Unit', unitId: '', status: 'Aktif', password: '', forceChange: true })
+    setForm({ name: '', email: '', username: '', niy: '', role: 'Admin Unit', unitId: '', status: 'Aktif', password: '', forceChange: true })
     setFormErrors({})
   }
 
   const openAdd = () => {
     setFormMode('add')
     setEditedUser(null)
-    setForm({ name: '', email: '', niy: '', role: 'Admin Unit', unitId: '', status: 'Aktif', password: generatePassword(), forceChange: true })
+    setForm({ name: '', email: '', username: '', niy: '', role: 'Admin Unit', unitId: '', status: 'Aktif', password: generatePassword(), forceChange: true })
     setFormErrors({})
     setShowForm(true)
   }
@@ -118,7 +118,7 @@ function AdminUserPage() {
   const openEdit = (row) => {
     setFormMode('edit')
     setEditedUser(row)
-    setForm({ name: row.name, email: row.email, niy: row.niy, role: row.role, unitId: row.unitId, status: row.status, password: '', forceChange: false })
+    setForm({ name: row.name, email: row.email, username: row.username || '', niy: row.niy, role: row.role, unitId: row.unitId, status: row.status, password: '', forceChange: false })
     setFormErrors({})
     setShowForm(true)
   }
@@ -133,10 +133,12 @@ function AdminUserPage() {
     if (!form.name.trim()) e.name = 'Nama lengkap wajib diisi'
     if (!form.email.trim()) e.email = 'Email wajib diisi'
     else if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email)) e.email = 'Format email tidak valid'
+    if (!form.username.trim()) e.username = 'Username wajib diisi'
     // NIY opsional - boleh kosong, boleh diisi
     if (form.niy && form.niy.trim() && !/^\d+$/.test(form.niy.trim())) e.niy = 'NIY harus berupa angka'
     if (!form.role) e.role = 'Role wajib dipilih'
-    if (!form.unitId) e.unitId = 'Unit penugasan wajib dipilih'
+    const perluUnit = form.role === 'Admin Unit' || form.role === 'Petugas Presensi'
+    if (perluUnit && !form.unitId) e.unitId = 'Unit penugasan wajib dipilih'
     setFormErrors(e)
     return Object.keys(e).length === 0
   }
@@ -150,6 +152,7 @@ function AdminUserPage() {
           id: nextId,
           name: form.name.trim(),
           email: form.email.trim(),
+          username: form.username.trim(),
           niy: form.niy.trim(),
           role: form.role,
           unitId: form.unitId,
@@ -177,6 +180,7 @@ function AdminUserPage() {
           id: editedUser.id,
           name: form.name.trim(),
           email: form.email.trim(),
+          username: form.username.trim(),
           niy: form.niy.trim(),
           role: form.role,
           unitId: form.unitId,
@@ -752,6 +756,23 @@ function AdminUserPage() {
                   />
                 </div>
                 {formErrors.name && <span className="text-xs text-destructive mt-0.5">{formErrors.name}</span>}
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-foreground">
+                  Username Login <span className="text-destructive">*</span>
+                </label>
+                <div className="relative">
+                  <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-[18px] pointer-events-none">account_circle</span>
+                  <input
+                    className={`w-full h-9 pl-9 pr-3 bg-card border rounded-lg text-xs text-foreground placeholder:text-muted-foreground focus:outline-none transition-all ${formErrors.username ? 'border-destructive focus:ring-1 focus:ring-destructive' : 'border-input focus:ring-1 focus:ring-ring'}`}
+                    placeholder="e.g. admin_sd1"
+                    type="text"
+                    value={form.username}
+                    onChange={(e) => updateField('username', e.target.value)}
+                  />
+                </div>
+                {formErrors.username && <span className="text-xs text-destructive mt-0.5">{formErrors.username}</span>}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

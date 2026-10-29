@@ -677,13 +677,7 @@ export function simPresReducer(state, action) {
       const staffBaru = sebelum ? { ...sebelum, ...perubahan } : null
       if (!staffBaru) return state
 
-      const adminUsersUpdated = perubahan.password !== undefined
-        ? state.adminUsers.map((u) =>
-            u.niy === staffBaru.niy || u.staffId === staffBaru.id
-              ? { ...u, password: perubahan.password, ...(perubahan.mustChangePassword !== undefined ? { mustChangePassword: Boolean(perubahan.mustChangePassword) } : {}) }
-              : u,
-          )
-        : syncAdminUserFromStaff(state.adminUsers, staffBaru)
+      const adminUsersUpdated = state.adminUsers
 
       const nextStaff = state.staff.map((s) => (s.id === id ? staffBaru : s))
       writePersistedItem(PERSISTED_STAFF_KEY, nextStaff)
@@ -767,7 +761,7 @@ export function simPresReducer(state, action) {
       return {
         ...state,
         staff: nextStaff,
-        adminUsers: syncAdminUserFromStaff(state.adminUsers, staffToAdd, 'add'),
+        adminUsers: state.adminUsers,
         employeeCards: syncEmployeeCardsFromStaff(state.employeeCards, staffToAdd, 'add'),
         // AUTO CREATE ACCOUNT: begitu pegawai disimpan, akun login-nya langsung
         // ada (username = NIY, role GURU_PEGAWAI, unit mengikuti pegawai,
@@ -786,9 +780,7 @@ export function simPresReducer(state, action) {
       return {
         ...state,
         staff: nextStaff,
-        adminUsers: niyToDelete 
-          ? state.adminUsers.filter((u) => u.niy !== niyToDelete)
-          : state.adminUsers,
+        adminUsers: state.adminUsers,
         // Kartu ikut dibuang agar tabel employee_card tidak menyimpan baris
         // untuk pegawai yang sudah tidak ada di source data.
         employeeCards: state.employeeCards.filter((c) => c.employee_id !== staffId),
@@ -1128,11 +1120,6 @@ logs: [
           ? { ...a, password: newPassword, mustChangePassword: newMustChange }
           : a
       )
-      const nextAdminUsers = state.adminUsers.map((u) =>
-        (targetNiy && u.niy === targetNiy) || (targetId && u.staffId === targetId)
-          ? { ...u, password: newPassword, mustChangePassword: newMustChange }
-          : u
-      )
       const existsInAccounts = nextUserAccounts.some((a) =>
         (targetId && a.pegawaiId === targetId) || (targetNiy && a.niy === targetNiy)
       )
@@ -1147,7 +1134,6 @@ logs: [
       return {
         ...state,
         userAccounts: finalUserAccounts,
-        adminUsers: nextAdminUsers,
       }
     }
     case 'DELETE_ADMIN_USER':
@@ -3139,7 +3125,7 @@ export function selectCanSwitchUnit(state) {
 export function selectActiveUnitId(state) {
   const role = selectCurrentUserRole(state)
   if (role !== ROLE_SUPERADMIN) {
-    return state.currentUser?.unitId || ALL_UNITS
+    return state.currentUser?.unitId || null
   }
   const selected = state.selectedUnitId
   if (selected === ALL_UNITS) return ALL_UNITS
