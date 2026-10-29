@@ -447,6 +447,7 @@ export const ALL_UNITS = 'all'
 export const PERSISTED_UNITS_KEY = 'simpres.units'
 export const PERSISTED_SETTINGS_KEY = 'simpres.settings'
 export const PERSISTED_STAFF_KEY = 'simpres.staff'
+export const PERSISTED_LEAVES_KEY = 'simpres.leaves'
 
 export function readPersistedItem(key, fallback) {
   if (typeof window === 'undefined') return fallback
@@ -524,6 +525,7 @@ export function getInitialStaff() {
 }
 
 const initialStaff = getInitialStaff()
+const initialLeaves = readPersistedItem(PERSISTED_LEAVES_KEY, [])
 const initialUnits = getInitialUnits()
 const initialSettings = getInitialSettings()
 
@@ -605,7 +607,7 @@ export function initialUnitScope(user) {
 const initialState = {
   staff: initialStaff,
   units: initialUnits,
-  leaves: [],
+  leaves: initialLeaves,
   adminUsers: ADMIN_USERS,
   // Tabel employee_card. Satu baris per pegawai; isinya hanya metadata
   // penerbitan kartu (QR, barcode, masa berlaku, riwayat cetak). Identitas,
@@ -651,15 +653,21 @@ const initialState = {
 // Reducer diekspor agar aturan reduksi bisa diuji tanpa merender provider.
 export function simPresReducer(state, action) {
   switch (action.type) {
-    case 'UPDATE_LEAVE_STATUS':
+    case 'UPDATE_LEAVE_STATUS': {
+      const nextLeaves = state.leaves.map((l) =>
+        l.id === action.id ? { ...l, status: action.status } : l,
+      )
+      writePersistedItem(PERSISTED_LEAVES_KEY, nextLeaves)
       return {
         ...state,
-        leaves: state.leaves.map((l) =>
-          l.id === action.id ? { ...l, status: action.status } : l,
-        ),
+        leaves: nextLeaves,
       }
-    case 'ADD_LEAVE':
-      return { ...state, leaves: [...state.leaves, action.payload] }
+    }
+    case 'ADD_LEAVE': {
+      const nextLeaves = [...state.leaves, action.payload]
+      writePersistedItem(PERSISTED_LEAVES_KEY, nextLeaves)
+      return { ...state, leaves: nextLeaves }
+    }
     case 'UPDATE_STAFF': {
       /*
        * Edit dari portal Superadmin/Admin Unit.
@@ -1161,6 +1169,8 @@ logs: [
       return { ...state, units: action.payload }
     case 'SYNC_STORAGE_STAFF':
       return { ...state, staff: action.payload }
+    case 'SYNC_STORAGE_LEAVES':
+      return { ...state, leaves: action.payload }
     case 'SYNC_STORAGE_SETTINGS':
       return { ...state, settings: action.payload }
     // Kata kunci pencarian global dari Header — diperbarui saat pengguna
@@ -1698,6 +1708,9 @@ export function SimPresProvider({ children }) {
         } else if (e.key === PERSISTED_STAFF_KEY) {
           const parsed = JSON.parse(e.newValue)
           if (Array.isArray(parsed)) dispatch({ type: 'SYNC_STORAGE_STAFF', payload: parsed })
+        } else if (e.key === PERSISTED_LEAVES_KEY) {
+          const parsed = JSON.parse(e.newValue)
+          if (Array.isArray(parsed)) dispatch({ type: 'SYNC_STORAGE_LEAVES', payload: parsed })
         } else if (e.key === PERSISTED_SETTINGS_KEY) {
           const parsed = JSON.parse(e.newValue)
           if (parsed && typeof parsed === 'object') dispatch({ type: 'SYNC_STORAGE_SETTINGS', payload: parsed })
