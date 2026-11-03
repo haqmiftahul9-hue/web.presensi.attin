@@ -114,10 +114,14 @@ export function labelJamKerja({ jamMasuk, jamPulang }) {
  * jam pulang, dan batas presensi dari sini — tidak ada lagi override per unit
  * atau per shift.
  */
-export function jamKerjaRules(tanggal = new Date()) {
+export function jamKerjaRules(tanggal = new Date(), unitId = null, settings = null) {
   const hariIndex = hariIndexTanggal(tanggal)
   const hari = hariIndex == null ? '-' : HARI_ID[hariIndex]
-  const { jamMasuk, jamPulang } = hariIndex == null ? { jamMasuk: null, jamPulang: null } : aturanHari(hariIndex)
+  const presensi = settings?.presensi || {}
+  const override = (unitId && presensi.jamKerjaPerUnit?.[unitId]?.[hariIndex]) || null
+  const { jamMasuk, jamPulang } = hariIndex == null
+    ? { jamMasuk: null, jamPulang: null }
+    : (override || aturanHari(hariIndex))
   const hariKerja = Boolean(jamMasuk)
   return {
     tanggal: tanggalISO(tanggal),
@@ -153,7 +157,7 @@ export function hitungLateMinutes(jamMasuk, batasMasuk) {
  * lateMinutes 15. Jam masuk 07:10 tepat pada batasnya -> "Tepat Waktu".
  */
 export function calculateAttendanceStatus(tanggal = new Date(), jamMasuk = null, opsi = {}) {
-  const rules = jamKerjaRules(tanggal)
+  const rules = opsi.rules || jamKerjaRules(tanggal, opsi.unitId, opsi.settings)
   const jamMasukAktual = jamMasuk ? String(jamMasuk) : null
   const menitMasuk = jamMasukAktual ? jamKeMenit(jamMasukAktual) : null
   const jamPulangAktual = opsi.jamPulang ? String(opsi.jamPulang) : null

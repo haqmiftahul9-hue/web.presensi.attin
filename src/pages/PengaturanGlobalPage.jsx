@@ -33,18 +33,21 @@ function PengaturanGlobalPage() {
     alamatYayasan: settings.alamatYayasan || '',
     noWhatsapp: settings.noWhatsapp || '',
     zonaWaktu: settings.zonaWaktu || 'WIB',
-    presensi: settings.presensi || {
-      jamMasukDefault: '07:10',
-      jamPulangDefault: '16:00',
-      radiusGeofenceDefault: 50,
-      lokasiAktif: true,
-      radiusGeofencePerUnit: {
-        tk: 50,
-        sd: 75,
-        smp: 50,
-        sma: 80,
-      },
-    },
+    presensi: settings.presensi
+      ? { ...settings.presensi, jamKerjaPerUnit: settings.presensi.jamKerjaPerUnit || {} }
+      : {
+          jamMasukDefault: '07:10',
+          jamPulangDefault: '16:00',
+          radiusGeofenceDefault: 50,
+          lokasiAktif: true,
+          radiusGeofencePerUnit: {
+            tk: 50,
+            sd: 75,
+            smp: 50,
+            sma: 80,
+          },
+          jamKerjaPerUnit: {},
+        },
     rekap: settings.rekap || {
       formatNomorLaporan: 'LPR/{UNIT}/{TAHUN}/{BULAN}/{URUT:04d}',
       prefixDokumen: 'SIMPRES',
@@ -91,6 +94,7 @@ function PengaturanGlobalPage() {
   })
   const [isSaving, setIsSaving] = useState(false)
   const [notification, setNotification] = useState(null)
+  const [selectedJamUnit, setSelectedJamUnit] = useState(null)
   const fileInputRef = useRef(null)
 
   const handleInputChange = (field, value) => {
@@ -871,54 +875,87 @@ function PengaturanGlobalPage() {
                 </p>
               </div>
 
-              {/* 1. Jam kerja global */}
+              {/* 1. Jam kerja per unit (editable) */}
               <div className="space-y-4">
                 <div className="p-4 bg-muted/30 rounded-xl border border-border">
                   <div className="flex items-center gap-2 mb-3.5">
                     <span className="material-symbols-outlined text-primary text-[18px]">calendar_today</span>
-                    <h3 className="text-xs font-bold text-foreground">Jam Kerja Global</h3>
+                    <h3 className="text-xs font-bold text-foreground">Jam Kerja Per Unit</h3>
                   </div>
-                  <div className="overflow-x-auto rounded-lg border border-border bg-card">
-                    <table className="w-full text-xs">
-                      <thead>
-                        <tr className="bg-muted text-left text-[11px] font-bold text-muted-foreground uppercase tracking-wider border-b border-border">
-                          <th className="py-2.5 px-3.5">Hari</th>
-                          <th className="py-2.5 px-3.5">Jam Masuk</th>
-                          <th className="py-2.5 px-3.5">Jam Pulang</th>
-                          <th className="py-2.5 px-3.5">Keterangan</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-border">
-                        {daftarJamKerja().map((h) => (
-                          <tr key={h.hari} className="hover:bg-muted/40 transition-colors">
-                            <td className="py-2 px-3.5 font-semibold text-foreground">{h.hari}</td>
-                            <td className="py-2 px-3.5 text-foreground font-mono">{h.jamMasuk}</td>
-                            <td className="py-2 px-3.5 text-foreground font-mono">
-                              {h.jamPulang ?? 'Bebas'}
-                            </td>
-                            <td className="py-2 px-3.5 text-muted-foreground">
-                              {h.hari === 'Jumat'
-                                ? 'Tidak memiliki batas minimal jam pulang'
-                                : 'Masuk tepat pada batas = Tepat Waktu'}
-                            </td>
-                          </tr>
-                        ))}
-                        <tr className="hover:bg-muted/40 transition-colors">
-                          <td className="py-2 px-3.5 font-semibold text-foreground">Minggu</td>
-                          <td className="py-2 px-3.5 text-muted-foreground font-mono">-</td>
-                          <td className="py-2 px-3.5 text-muted-foreground font-mono">-</td>
-                          <td className="py-2 px-3.5 text-muted-foreground">Bukan hari kerja</td>
-                        </tr>
-                      </tbody>
-                    </table>
+                  <p className="text-[11px] text-muted-foreground mb-3 leading-relaxed">
+                    Atur jam kerja masing-masing unit. Perubahan langsung menjadi acuan presensi unit tersebut.
+                  </p>
+                  <div className="flex items-center gap-2 mb-3">
+                    <label className="text-xs font-semibold text-foreground">Unit:</label>
+                    <select
+                      className="h-9 px-3 bg-card border border-input rounded-lg text-xs text-foreground"
+                      value={selectedJamUnit || (state.units && state.units[0] ? state.units[0].id : '')}
+                      onChange={(e) => setSelectedJamUnit(e.target.value)}
+                    >
+                      {(state.units || []).map((u) => (
+                        <option key={u.id} value={u.id}>{u.nama}</option>
+                      ))}
+                    </select>
                   </div>
+                  {(() => {
+                    const uid = selectedJamUnit || (state.units && state.units[0] ? state.units[0].id : '')
+                    const defaultRows = daftarJamKerja()
+                    const rows = (formData.presensi && formData.presensi.jamKerjaPerUnit && formData.presensi.jamKerjaPerUnit[uid]) || defaultRows.map((h) => ({ jamMasuk: h.jamMasuk, jamPulang: h.jamPulang }))
+                    return (
+                      <div className="overflow-x-auto rounded-lg border border-border bg-card">
+                        <table className="w-full text-xs">
+                          <thead>
+                            <tr className="bg-muted text-left text-[11px] font-bold text-muted-foreground uppercase tracking-wider border-b border-border">
+                              <th className="py-2.5 px-3.5">Hari</th>
+                              <th className="py-2.5 px-3.5">Jam Masuk</th>
+                              <th className="py-2.5 px-3.5">Jam Pulang</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-border">
+                            {rows.map((r, idx) => (
+                              <tr key={idx} className="hover:bg-muted/40 transition-colors">
+                                <td className="py-2 px-3.5 font-semibold text-foreground">{defaultRows[idx] ? defaultRows[idx].hari : ''}</td>
+                                <td className="py-2 px-3.5">
+                                  <input
+                                    type="time"
+                                    className="h-8 px-2 bg-card border border-input rounded text-xs text-foreground"
+                                    value={r.jamMasuk || ''}
+                                    onChange={(e) => {
+                                      const newRows = [...rows]
+                                      newRows[idx] = { ...newRows[idx], jamMasuk: e.target.value || null }
+                                      const newPerUnit = { ...(formData.presensi?.jamKerjaPerUnit || {}) }
+                                      newPerUnit[uid] = newRows
+                                      handleInputChange('presensi.jamKerjaPerUnit', newPerUnit)
+                                    }}
+                                  />
+                                </td>
+                                <td className="py-2 px-3.5">
+                                  <input
+                                    type="time"
+                                    className="h-8 px-2 bg-card border border-input rounded text-xs text-foreground"
+                                    value={r.jamPulang || ''}
+                                    onChange={(e) => {
+                                      const newRows = [...rows]
+                                      newRows[idx] = { ...newRows[idx], jamPulang: e.target.value || null }
+                                      const newPerUnit = { ...(formData.presensi?.jamKerjaPerUnit || {}) }
+                                      newPerUnit[uid] = newRows
+                                      handleInputChange('presensi.jamKerjaPerUnit', newPerUnit)
+                                    }}
+                                  />
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )
+                  })()}
                   <p className="text-[11px] text-muted-foreground mt-3 leading-relaxed">
-                    Aturan ini adalah satu-satunya acuan status presensi. Keterlambatan dihitung otomatis
-                    dari selisih menit antara jam masuk dan batas jam masuk hari tersebut.
+                    Jam masuk/pulang per hari per unit. Perubahan tersimpan saat menekan Simpan Perubahan.
                   </p>
                 </div>
 
-                {/* 2. Geofence & validasi lokasi */}
+              {/* 2. Geofence & validasi lokasi */}
                 <div className="p-4 bg-muted/30 rounded-xl border border-border">
                   <div className="flex items-center gap-2 mb-3.5">
                     <span className="material-symbols-outlined text-primary text-[18px]">how_to_reg</span>

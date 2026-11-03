@@ -392,7 +392,7 @@ function MobilePresensiPage() {
     const jendela = cekJendelaPresensi(menit, rules)
     // Status & keterlambatan menit dihitung satu-satunya fungsi penentuan status,
     // yang sama dipakai monitoring, rekap, dan laporan PDF.
-    const hasil = calculateAttendanceStatus(saatPresensi, `${String(saatPresensi.getHours()).padStart(2, '0')}:${String(saatPresensi.getMinutes()).padStart(2, '0')}`)
+    const hasil = calculateAttendanceStatus(saatPresensi, `${String(saatPresensi.getHours()).padStart(2, '0')}:${String(saatPresensi.getMinutes()).padStart(2, '0')}`, { unitId: staff?.unitId, settings: state?.settings })
     const lateMinutes = hasil.lateMinutes
     return {
       ok: !jendela.terlaluAwal && !jendela.lewatJamPulang,

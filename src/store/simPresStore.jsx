@@ -1788,7 +1788,7 @@ export function selectTerlambat(state, tanggal = new Date()) {
   // Status tidak pernah dibaca dari field yang disimpan: dihitung ulang dari
   // jam masuk aktual vs batas jam kerja hari itu lewat fungsi yang sama dengan
   // halaman mobile dan laporan.
-  return selectActiveStaff(state).filter((s) => calculateAttendanceStatus(tanggal, s.masuk).lateMinutes > 0)
+  return selectActiveStaff(state).filter((s) => calculateAttendanceStatus(tanggal, s.masuk, { unitId: s.unitId, settings: state.settings }).lateMinutes > 0)
 }
 
 export function selectJumlahTerlambat(state, tanggal = new Date()) {
@@ -2278,7 +2278,7 @@ export function selectAttendanceSummary(state) {
 
 export function selectFilterTabCounts(state, tanggal = new Date()) {
   const hadir = selectHadirHariIni(state)
-  const tepat = hadir.filter((s) => calculateAttendanceStatus(tanggal, s.masuk).lateMinutes === 0).length
+  const tepat = hadir.filter((s) => calculateAttendanceStatus(tanggal, s.masuk, { unitId: s.unitId, settings: state.settings }).lateMinutes === 0).length
   const face = hadir.filter((s) => s.method === 'Face Recognition').length
   const qr = hadir.filter((s) => s.method === 'QR Code').length
   return { semua: hadir.length, tepat, terlambat: selectJumlahTerlambat(state, tanggal), face, qr }
@@ -2297,7 +2297,7 @@ export function selectRekapTableData(state, unitId = null, period = 'Bulanan', t
   return staff.map((s) => {
     const unit = state.units.find((u) => u.id === s.unitId)
     const isHadir = Boolean(s.masuk)
-    const status = calculateAttendanceStatus(tanggal, s.masuk)
+    const status = calculateAttendanceStatus(tanggal, s.masuk, { unitId: s.unitId, settings: state.settings })
     let stMasuk = 'Alpha'
     let stMasukType = 'alpha'
     let stPulang = 'Alpha'
@@ -2435,7 +2435,7 @@ export function selectRekapSummary(state, unitId = null, period = 'Bulanan', tan
   const hadir = staff.filter((s) => s.masuk).length
   // Angka Tepat Waktu / Terlambat di ringkasan dashboard memakai fungsi status
   // yang sama dengan rekap dan laporan PDF.
-  const statusHariIni = staff.map((s) => calculateAttendanceStatus(tanggal, s.masuk))
+  const statusHariIni = staff.map((s) => calculateAttendanceStatus(tanggal, s.masuk, { unitId: s.unitId, settings: state.settings }))
   const tepatWaktu = staff.filter((s, i) => s.masuk && statusHariIni[i].lateMinutes === 0).length
   const terlambat = staff.filter((s, i) => s.masuk && statusHariIni[i].lateMinutes > 0).length
   const totalLateMinutes = statusHariIni.reduce((sum, s) => sum + s.lateMinutes, 0)
@@ -2918,7 +2918,7 @@ export function selectMonitoringActivity(state, tanggal = new Date()) {
 
     // Keterlambatan dihitung dari jam kerja global hari ini (07:10, atau 07:30
     // untuk Sabtu) — bukan dari jam operasional unit seperti dulu.
-    const presensi = calculateAttendanceStatus(tanggal, s.masuk)
+    const presensi = calculateAttendanceStatus(tanggal, s.masuk, { unitId: s.unitId, settings: state.settings })
     const lateMinutes = presensi.lateMinutes
     let status = presensi.status
     let statusColor = 'bg-surface-container text-on-surface-variant'
@@ -3075,7 +3075,7 @@ export function selectPresensiRules(state, unitId, tanggal = new Date()) {
     ?? unit?.radius
     ?? presensi.radiusGeofenceDefault
     ?? 50
-  const jamKerja = jamKerjaRules(tanggal)
+  const jamKerja = jamKerjaRules(tanggal, unitId, state.settings)
   return {
     ...jamKerja,
     jamMasuk: jamKerja.jamMasuk,
@@ -3096,7 +3096,7 @@ export function selectSelfPresensi(state, tanggal = new Date()) {
   if (!staff) return null
   const unit = selectUnitById(state, staff.unitId)
   const rules = selectPresensiRules(state, staff.unitId, tanggal)
-  const status = calculateAttendanceStatus(tanggal, staff.masuk || null, { jamPulang: staff.pulang || null })
+  const status = calculateAttendanceStatus(tanggal, staff.masuk || null, { jamPulang: staff.pulang || null, rules })
   const pulang = staff.pulang ? calculateCheckoutStatus(tanggal, staff.pulang) : null
   return {
     staff,
@@ -3154,6 +3154,7 @@ export function selectCanSwitchUnit(state) {
 export function selectActiveUnitId(state) {
   const role = selectCurrentUserRole(state)
   if (role !== ROLE_SUPERADMIN) {
+    if (!state.currentUser) return ALL_UNITS
     return state.currentUser?.unitId || null
   }
   const selected = state.selectedUnitId
