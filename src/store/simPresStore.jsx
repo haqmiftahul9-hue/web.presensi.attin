@@ -1332,12 +1332,22 @@ logs: [
 function readStoredSession() {
   if (typeof window === 'undefined') return null
   const stores = []
-  try { stores.push(window.sessionStorage) } catch { /* storage diblokir */ }
-  try { stores.push(window.localStorage) } catch { /* storage diblokir */ }
-  for (const store of stores) {
+  try { stores.push({ store: window.sessionStorage, persistent: false }) } catch { /* storage diblokir */ }
+  try { stores.push({ store: window.localStorage, persistent: true }) } catch { /* storage diblokir */ }
+  for (const { store, persistent } of stores) {
     try {
       const raw = store.getItem(AUTH_SESSION_KEY)
-      if (raw) return JSON.parse(raw)
+      if (!raw) continue
+      const parsed = JSON.parse(raw)
+      const role = parsed?.user?.role
+      const isPortal = role && role !== ROLE_GURU_PEGAWAI
+      // Akun portal tidak boleh dihidupkan dari localStorage: sesi harus
+      // dimulai ulang dari halaman login setelah perangkat/browser ditutup.
+      if (persistent && isPortal) {
+        try { store.removeItem(AUTH_SESSION_KEY) } catch { /* ignore */ }
+        continue
+      }
+      return parsed
     } catch { /* data rusak / tidak terbaca */ }
   }
   return null
@@ -1618,12 +1628,18 @@ export async function performLogin({ state, dispatch, identifier, password, reme
   }
 
   const user = result.user
+  // Akun portal (superadmin/admin unit/petugas) tidak pernah disimpan ke
+  // localStorage agar sesi tidak bertahan setelah perangkat dimatikan:
+  // pengguna harus login ulang setiap kali membuka aplikasi.
+  const isPortalRole = user.role !== ROLE_GURU_PEGAWAI
+  const effectiveRemember = isPortalRole ? false : remember
+
   // Path dihitung dari state pasca-login, bukan state lama yang currentUser-nya null.
   const loggedInState = { ...state, currentUser: user, isAuthenticated: true, selectedUnitId: initialUnitScope(user) }
   const path = resolvePostLoginPath(loggedInState, user, requestedPath)
 
-  dispatch({ type: 'LOGIN_SUCCESS', payload: { user, remember } })
-  writeStoredSession({ user: sanitizeSessionUser(user), remember, at: Date.now() }, remember)
+  dispatch({ type: 'LOGIN_SUCCESS', payload: { user, remember: effectiveRemember } })
+  writeStoredSession({ user: sanitizeSessionUser(user), remember: effectiveRemember, at: Date.now() }, effectiveRemember)
   addActivityLog(
     dispatch,
     loggedInState,
