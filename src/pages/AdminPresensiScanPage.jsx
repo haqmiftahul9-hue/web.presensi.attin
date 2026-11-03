@@ -11,7 +11,11 @@ function resolveStaff(state, code) {
   const full = trimmed.startsWith(CARD_QR_PREFIX) ? trimmed : `${CARD_QR_PREFIX}${trimmed}`
   return state.staff.find((s) => {
     const qr = String(cardQrValue(s) || '').toUpperCase()
-    return qr === full || String(s.niy || '').toUpperCase() === trimmed
+    return (
+      qr === full ||
+      String(s.niy || '').toUpperCase() === trimmed ||
+      String(s.id) === trimmed
+    )
   }) || null
 }
 
@@ -93,10 +97,25 @@ function AdminPresensiScanPage() {
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => setFacing((v) => (v === 'user' ? 'environment' : 'user'))}
-              className="h-8 px-2.5 rounded-lg bg-muted hover:bg-muted/80 border border-border text-foreground text-[11px] font-semibold"
+              onClick={() => setFacing('user')}
+              className={`h-8 px-2.5 rounded-lg text-[11px] font-semibold border ${
+                facing === 'user'
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-muted text-foreground border-border hover:bg-muted/80'
+              }`}
             >
-              {facing === 'user' ? 'Kamera Depan' : 'Kamera Belakang'}
+              Kamera Depan
+            </button>
+            <button
+              type="button"
+              onClick={() => setFacing('environment')}
+              className={`h-8 px-2.5 rounded-lg text-[11px] font-semibold border ${
+                facing === 'environment'
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-muted text-foreground border-border hover:bg-muted/80'
+              }`}
+            >
+              Kamera Belakang
             </button>
             <span className="text-[11px] text-muted-foreground">
               {kamera.status === 'aktif' ? 'Kamera aktif' : kamera.status === 'ditolak' ? 'Kamera tidak dapat diakses' : 'Memuat kamera...'}
