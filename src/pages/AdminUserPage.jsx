@@ -7,6 +7,7 @@ const roleMap = {
   Superadmin: { roleBg: 'bg-primary/10', roleText: 'text-primary', roleDot: 'bg-primary', unitIcon: 'account_balance' },
   'Admin Unit': { roleBg: 'bg-blue-500/10', roleText: 'text-blue-600 dark:text-blue-400', roleDot: 'bg-blue-500', unitIcon: 'school' },
   Guru: { roleBg: 'bg-muted', roleText: 'text-muted-foreground', roleDot: 'bg-muted-foreground', unitIcon: 'school' },
+  'Kepala Sekolah': { roleBg: 'bg-muted', roleText: 'text-muted-foreground', roleDot: 'bg-muted-foreground', unitIcon: 'school' },
 }
 
 function AdminUserPage() {
@@ -137,7 +138,7 @@ function AdminUserPage() {
     // NIY opsional - boleh kosong, boleh diisi
     if (form.niy && form.niy.trim() && !/^\d+$/.test(form.niy.trim())) e.niy = 'NIY harus berupa angka'
     if (!form.role) e.role = 'Role wajib dipilih'
-    const perluUnit = form.role === 'Admin Unit' || form.role === 'Petugas Presensi'
+    const perluUnit = form.role === 'Admin Unit' || form.role === 'Petugas Presensi' || form.role === 'Kepala Sekolah'
     if (perluUnit && !form.unitId) e.unitId = 'Unit penugasan wajib dipilih'
     setFormErrors(e)
     return Object.keys(e).length === 0
@@ -244,7 +245,7 @@ function AdminUserPage() {
       `Reset kata sandi akun "${row.name}"? Kata sandi baru akan disetel dan pengguna dapat login dengan kredensial baru.`,
       () => {
         const pwd = generatePassword()
-        const isMobileUser = normalisasiRole(row.role) === 'Guru'
+        const isMobileUser = normalisasiRole(row.role) === 'Guru' || normalisasiRole(row.role) === 'Kepala Sekolah'
         dispatch({
           type: 'UPDATE_ADMIN_USER',
           payload: {

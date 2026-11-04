@@ -3,6 +3,7 @@ import { NavLink, Outlet, Navigate, useLocation } from 'react-router-dom'
 import Icon from '../Icon.jsx'
 import {
   useSimPres, selectSelfStaff, selectAppMode, selectAppHomePath, MODE_MOBILE,
+  selectCurrentUserRole, ROLE_KEPALA_SEKOLAH,
 } from '../../store/simPresStore.jsx'
 import MobileErrorBoundary from './MobileErrorBoundary.jsx'
 import InstallPrompt from './InstallPrompt.jsx'
@@ -11,13 +12,21 @@ import { prewarmGeolocation } from '../../hooks/useGeofence.js'
 
 // Bottom navigation modul mobile. Lima menu ini adalah seluruh navigasi
 // role Guru/Pegawai: Beranda, Riwayat, Presensi (tengah, menonjol), Izin/Cuti, Profil.
-const NAV_ITEMS = [
+const BASE_NAV_ITEMS = [
   { to: '/mobile/home', label: 'Beranda', icon: 'home', end: true },
   { to: '/mobile/riwayat', label: 'Riwayat', icon: 'calendar_month' },
   { to: '/mobile/presensi', label: 'Presensi', icon: 'face_retouch_natural', isCenter: true },
   { to: '/mobile/izin-cuti', label: 'Izin/Cuti', icon: 'event_available' },
   { to: '/mobile/profil', label: 'Profil', icon: 'person' },
 ]
+
+function buildNavItems(role) {
+  const items = [...BASE_NAV_ITEMS]
+  if (role === ROLE_KEPALA_SEKOLAH) {
+    items.push({ to: '/mobile/persetujuan-izin', label: 'Persetujuan', icon: 'task_alt' })
+  }
+  return items
+}
 
 /**
  * Kerangka aplikasi mobile untuk role Guru/Pegawai: device shell, bar atas
@@ -36,6 +45,7 @@ const NAV_ITEMS = [
 function MobileLayout() {
   const { state } = useSimPres()
   const location = useLocation()
+  const navItems = buildNavItems(selectCurrentUserRole(state))
 
   // Mengunci scroll dokumen luar agar pengguliran terpusat 100% pada kontainer mobile
   // tanpa konflik scroll atau jitter address bar di smartphone.
@@ -102,7 +112,7 @@ function MobileLayout() {
             lima menu dengan tombol presensi menonjol di tengah. */}
         <nav className="sp-mobile-nav sp-hide-print sp-nav-float" aria-label="Navigasi utama">
           <div className="sp-nav-row">
-            {NAV_ITEMS.map((item) => (
+            {navItems.map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}

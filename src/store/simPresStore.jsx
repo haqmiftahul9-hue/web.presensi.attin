@@ -94,7 +94,29 @@ export const PERMISSION_MATRIX = {
     presensi: ['view'],
     rekapLaporan: ['view'],
     rankingKehadiran: [],
-    pengajuanIzinCuti: ['view', 'add'],
+  pengajuanIzinCuti: ['view', 'add'],
+  logAktivitas: [],
+  pengaturanGlobal: [],
+  },
+  'Kepala Sekolah': {
+    aksesDeny: ['view'],
+    berandaMobile: ['view'],
+    presensiMobile: ['view'],
+    riwayatMobile: ['view'],
+    slipMobile: ['view'],
+    izinCutiMobile: ['view', 'add'],
+    kartuIdMobile: ['view', 'add'],
+    qrPresensiMobile: ['view'],
+    profilMobile: ['view'],
+    dashboard: ['view'],
+    manajemenUnit: [],
+    manajemenAdminUser: [],
+    dataGuruPegawai: [],
+    cetakKartuId: [],
+    presensi: ['view'],
+    rekapLaporan: ['view'],
+    rankingKehadiran: [],
+    pengajuanIzinCuti: ['view', 'edit'],
     logAktivitas: [],
     pengaturanGlobal: [],
   },
@@ -129,6 +151,7 @@ export const ROLE_SUPERADMIN = 'Superadmin'
 export const ROLE_ADMIN_UNIT = 'Admin Unit'
 export const ROLE_GURU_PEGAWAI = 'Guru'
 export const ROLE_PETUGAS_PRESENSI = 'Petugas Presensi'
+export const ROLE_KEPALA_SEKOLAH = 'Kepala Sekolah'
 
 // Alias lama; LOGIN memakai kode kanon di atas.
 export const ROLE_GURU = ROLE_GURU_PEGAWAI
@@ -138,6 +161,7 @@ export const ROLE_CODES = {
   ADMIN_UNIT: ROLE_ADMIN_UNIT,
   GURU_PEGAWAI: ROLE_GURU_PEGAWAI,
   PETUGAS_PRESENSI: ROLE_PETUGAS_PRESENSI,
+  KEPALA_SEKOLAH: ROLE_KEPALA_SEKOLAH,
 }
 
 // Variance penulisan role yang bisa muncul dari data impor atau form lama.
@@ -163,6 +187,13 @@ const ROLE_ALIASES = {
   petugas: ROLE_PETUGAS_PRESENSI,
   petugas_presensi: ROLE_PETUGAS_PRESENSI,
   'petugas presensi': ROLE_PETUGAS_PRESENSI,
+  'kepala sekolah': ROLE_KEPALA_SEKOLAH,
+  'kepala_sekolah': ROLE_KEPALA_SEKOLAH,
+  kepala_sekolah: ROLE_KEPALA_SEKOLAH,
+  kepalasekolah: ROLE_KEPALA_SEKOLAH,
+  'kepala unit': ROLE_KEPALA_SEKOLAH,
+  'kepala_unit': ROLE_KEPALA_SEKOLAH,
+  kepalaunit: ROLE_KEPALA_SEKOLAH,
 }
 
 /**
@@ -178,6 +209,7 @@ export function normalisasiRole(value) {
   if (lower.includes('superadmin') || lower.includes('super admin')) return ROLE_SUPERADMIN
   if (lower.includes('admin unit') || lower.includes('unit admin')) return ROLE_ADMIN_UNIT
   if (lower.includes('petugas')) return ROLE_PETUGAS_PRESENSI
+  if (lower.includes('kepala')) return ROLE_KEPALA_SEKOLAH
   if (
     lower.startsWith('guru') ||
     lower.includes('guru') ||
@@ -295,6 +327,7 @@ export const ROLE_APP_MODE = {
   [ROLE_ADMIN_UNIT]: MODE_DESKTOP,
   [ROLE_PETUGAS_PRESENSI]: MODE_DESKTOP,
   [ROLE_GURU]: MODE_MOBILE,
+  [ROLE_KEPALA_SEKOLAH]: MODE_MOBILE,
 }
 
 // Halaman tujuan setelah login untuk tiap role (lihat ROLE_HOME_CANDIDATES
@@ -306,6 +339,7 @@ export const ROLE_HOME_PATH = {
   [ROLE_ADMIN_UNIT]: '/dashboard',
   [ROLE_PETUGAS_PRESENSI]: '/dashboard',
   [ROLE_GURU_PEGAWAI]: '/mobile/home',
+  [ROLE_KEPALA_SEKOLAH]: '/mobile/home',
 }
 
 // Peta path -> menu key. Dipakai bersama oleh guard rute dan penentuan
@@ -317,6 +351,7 @@ export const ROUTE_MENU_KEYS = {
   '/mobile/riwayat': 'riwayatMobile',
   '/mobile/slip': 'slipMobile',
   '/mobile/izin-cuti': 'izinCutiMobile',
+  '/mobile/persetujuan-izin': 'pengajuanIzinCuti',
   '/mobile/kartu-id': 'kartuIdMobile',
   '/mobile/qr': 'qrPresensiMobile',
   '/mobile/profil': 'profilMobile',
@@ -356,13 +391,13 @@ export const ROUTE_ROLES = {
   '/manajemen-admin-user': [ROLE_SUPERADMIN],
   '/pengaturan-global': [ROLE_SUPERADMIN],
   '/cetak-kartu-id': [ROLE_SUPERADMIN, ROLE_ADMIN_UNIT],
-  // Seluruh prefix /mobile hanya untuk Guru/Pegawai.
-  '/mobile': [ROLE_GURU],
+  // Seluruh prefix /mobile untuk Guru/Pegawai dan Kepala Sekolah.
+  '/mobile': [ROLE_GURU, ROLE_KEPALA_SEKOLAH],
 }
 
 /** Role yang boleh membuka sebuah path, atau null bila path tidak membatasi role. */
 export function roleBolehPath(path, role) {
-  if (String(path || '').startsWith('/mobile')) return role === ROLE_GURU
+  if (String(path || '').startsWith('/mobile')) return role === ROLE_GURU || role === ROLE_KEPALA_SEKOLAH
   const daftar = ROUTE_ROLES[path]
   return daftar ? daftar.includes(role) : true
 }
@@ -384,13 +419,14 @@ export const ROLE_HOME_CANDIDATES = {
   // Guru/Pegawai hanya membuka aplikasi mobile; kandidat portal yang tersisa
   // dipakai hanya bila someday modul mobile ditutup untuk sebagian akun.
   [ROLE_GURU]: ['/mobile/home', '/mobile/presensi', '/mobile/riwayat', '/mobile/profil', '/mobile/slip', '/mobile/izin-cuti', '/mobile/kartu-id', '/mobile/qr'],
+  [ROLE_KEPALA_SEKOLAH]: ['/mobile/home', '/mobile/persetujuan-izin', '/mobile/presensi', '/mobile/riwayat', '/mobile/profil', '/mobile/slip', '/mobile/izin-cuti', '/mobile/kartu-id', '/mobile/qr'],
   [ROLE_PETUGAS_PRESENSI]: ['/dashboard', '/presensi', '/data-guru-dan-pegawai', '/rekap-dan-laporan', '/ranking-kehadiran', '/pengajuan-izin-dan-cuti', '/log-aktivitas'],
 }
 
 // Dibprocalkan agar ROLE_HOME_CANDIDATES tidak perlu diubah dua kali.
 export const MODE_APP_ROLES = {
   [MODE_DESKTOP]: ROLE_BEARING_ROLES,
-  [MODE_MOBILE]: [ROLE_GURU],
+  [MODE_MOBILE]: [ROLE_GURU, ROLE_KEPALA_SEKOLAH],
 }
 
 // Kata sandi awal seluruh akun seed yang tidak punya kata sandi sendiri
@@ -1090,7 +1126,7 @@ logs: [
       const targetUser = state.adminUsers.find((u) => u.id === payload.id)
       const targetNiy = payload.niy || targetUser?.niy
       const matchingStaff = staffSetelah.find((s) => (targetNiy && s.niy === targetNiy) || (payload.staffId && s.id === payload.staffId))
-      const shouldSyncUserAccount = (state.userAccounts || []).some((a) => (targetNiy && a.niy === targetNiy) || (payload.staffId && a.pegawaiId === payload.staffId)) || (matchingStaff && normalisasiRole(payload.role || targetUser?.role) === ROLE_GURU_PEGAWAI)
+      const shouldSyncUserAccount = (state.userAccounts || []).some((a) => (targetNiy && a.niy === targetNiy) || (payload.staffId && a.pegawaiId === payload.staffId))        || (matchingStaff && (normalisasiRole(payload.role || targetUser?.role) === ROLE_GURU_PEGAWAI || normalisasiRole(payload.role || targetUser?.role) === ROLE_KEPALA_SEKOLAH))
 
       return {
         ...state,
@@ -1402,7 +1438,7 @@ export function findAccountByIdentifier(state, identifier) {
 
   const adminUser = state.adminUsers.find((u) => identifierMatches(u, key))
   if (adminUser) {
-    const isGuru = normalisasiRole(adminUser.role) === ROLE_GURU_PEGAWAI
+    const isGuru = normalisasiRole(adminUser.role) === ROLE_GURU_PEGAWAI || normalisasiRole(adminUser.role) === ROLE_KEPALA_SEKOLAH
     const staffMatch = isGuru ? state.staff.find((s) => s.niy === adminUser.niy) : null
     return {
       ...adminUser,
@@ -1440,7 +1476,7 @@ function buildStaffAccount(state, staff) {
     niy: staff.niy,
     username: userAccount?.username || staff.niy,
     email: staff.email || '',
-    role: normalisasiRole(userAccount?.role || ROLE_GURU_PEGAWAI),
+    role: normalisasiRole(userAccount?.role || staff.role || ROLE_GURU_PEGAWAI),
     unitId: staff.unitId,
     status: staff.status,
     isStaffAccount: true,
@@ -1960,6 +1996,7 @@ export const ROLE_OPTIONS = [
   { value: 'Superadmin', label: 'Superadmin Pusat' },
   { value: 'Admin Unit', label: 'Admin Unit Sekolah' },
   { value: 'Guru', label: 'Guru / Staf' },
+  { value: 'Kepala Sekolah', label: 'Kepala Sekolah' },
   { value: 'Petugas Presensi', label: 'Petugas Presensi' },
 ]
 
@@ -1999,7 +2036,7 @@ function syncStaffFromAdminUser(staff, adminUser, action) {
   const existingStaffIndex = staff.findIndex((s) => s.niy === niy)
   // Akun dengan role GURU_PEGAWAI (apa pun penulisan aslinya: Guru, Guru/Pegawai,
   // Staff, Pegawai) selalu punya baris pegawai.
-  const isGuruOrStaff = role === ROLE_GURU_PEGAWAI
+  const isGuruOrStaff = role === ROLE_GURU_PEGAWAI || role === ROLE_KEPALA_SEKOLAH
 
   if (action === 'delete') {
     if (existingStaffIndex >= 0 && isGuruOrStaff) {
@@ -2076,7 +2113,7 @@ function syncAdminUserFromStaff(adminUsers, staffUser, action) {
   if (!niy) return adminUsers
 
   const existingAdminIndex = adminUsers.findIndex((u) => u.niy === niy)
-  const isGuruOrStaff = normalisasiRole(staffUser.role) === ROLE_GURU_PEGAWAI
+  const isGuruOrStaff = normalisasiRole(staffUser.role) === ROLE_GURU_PEGAWAI || normalisasiRole(staffUser.role) === ROLE_KEPALA_SEKOLAH
 
   if (action === 'add') {
     if (existingAdminIndex >= 0) {
@@ -3003,7 +3040,7 @@ export function selectCurrentUserRole(state) {
 // Role yang boleh mengganti kata sandinya sendiri dari menu pengguna.
 // Superadmin sengaja tidak ada di sini: akun pusat dikelola lewat prosedur
 // operasional, sehingga UI pengguna tidak menawarkan aksi tersebut sama sekali.
-const ROLES_CAN_CHANGE_PASSWORD = [ROLE_ADMIN_UNIT, ROLE_GURU, ROLE_PETUGAS_PRESENSI]
+const ROLES_CAN_CHANGE_PASSWORD = [ROLE_ADMIN_UNIT, ROLE_GURU, ROLE_KEPALA_SEKOLAH, ROLE_PETUGAS_PRESENSI]
 
 export function selectCanChangeOwnPassword(state) {
   return ROLES_CAN_CHANGE_PASSWORD.includes(selectCurrentUserRole(state))

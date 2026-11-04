@@ -23,6 +23,7 @@ import MobileRiwayatPage from './pages/mobile/MobileRiwayatPage.jsx'
 import MobileProfilPage from './pages/mobile/MobileProfilPage.jsx'
 import MobileSlipPage from './pages/mobile/MobileSlipPage.jsx'
 import MobileIzinCutiPage from './pages/mobile/MobileIzinCutiPage.jsx'
+import MobilePersetujuanIzinPage from './pages/mobile/MobilePersetujuanIzinPage.jsx'
 import MobileKartuIdPage from './pages/mobile/MobileKartuIdPage.jsx'
 import MobileQrPage from './pages/mobile/MobileQrPage.jsx'
 import MobileLayout from './components/mobile/MobileLayout.jsx'
@@ -57,6 +58,7 @@ function App() {
           <Route path="/mobile/riwayat" element={<MobileRiwayatPage />} />
           <Route path="/mobile/slip" element={<MobileSlipPage />} />
           <Route path="/mobile/izin-cuti" element={<MobileIzinCutiPage />} />
+          <Route path="/mobile/persetujuan-izin" element={<MobilePersetujuanIzinPage />} />
       {/* Kartu ID dan QR Presensi sengaja dua halaman terpisah, meski memakai
           satu payload QR yang sama (data/employeeCard.js). */}
       <Route path="/mobile/kartu-id" element={<MobileKartuIdPage />} />

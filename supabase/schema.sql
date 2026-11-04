@@ -19,8 +19,16 @@ DO $$ BEGIN
     'Superadmin',
     'Admin Unit',
     'Guru',
+    'Kepala Sekolah',
     'Petugas Presensi'
   );
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
+
+-- Tambah nilai enum untuk database yang sudah ada (idempotent)
+DO $$ BEGIN
+  ALTER TYPE public.user_role ADD VALUE IF NOT EXISTS 'Kepala Sekolah';
 EXCEPTION
   WHEN duplicate_object THEN null;
 END $$;
@@ -566,10 +574,11 @@ USING (public.get_current_user_role() = 'Superadmin');
 
 -- 15.4 Staff Policies
 DROP POLICY IF EXISTS "Staff dibaca oleh Superadmin, Admin Unit (sesuai unit), atau Guru (diri sendiri)" ON public.staff;
-CREATE POLICY "Staff dibaca oleh Superadmin, Admin Unit (sesuai unit), atau Guru (diri sendiri)" 
+DROP POLICY IF EXISTS "Staff dibaca oleh Superadmin, Admin Unit (sesuai unit), Kepala Sekolah (sesuai unit), atau Guru (diri sendiri)" ON public.staff;
+CREATE POLICY "Staff dibaca oleh Superadmin, Admin Unit (sesuai unit), Kepala Sekolah (sesuai unit), atau Guru (diri sendiri)" 
 ON public.staff FOR SELECT USING (
   public.get_current_user_role() = 'Superadmin'
-  OR (public.get_current_user_role() IN ('Admin Unit', 'Petugas Presensi') AND unit_id = public.get_current_user_unit())
+  OR (public.get_current_user_role() IN ('Admin Unit', 'Petugas Presensi', 'Kepala Sekolah') AND unit_id = public.get_current_user_unit())
   OR (public.get_current_user_role() = 'Guru' AND id = public.get_current_staff_id())
   OR auth.uid() IS NULL
 );
@@ -586,7 +595,7 @@ DROP POLICY IF EXISTS "Wajah biometrik dapat dibaca Superadmin, Admin Unit, atau
 CREATE POLICY "Wajah biometrik dapat dibaca Superadmin, Admin Unit, atau diri sendiri" 
 ON public.staff_faces FOR SELECT USING (
   public.get_current_user_role() = 'Superadmin'
-  OR (public.get_current_user_role() = 'Guru' AND staff_id = public.get_current_staff_id())
+  OR (public.get_current_user_role() IN ('Guru', 'Kepala Sekolah') AND staff_id = public.get_current_staff_id())
   OR public.get_current_user_role() IN ('Admin Unit', 'Petugas Presensi')
   OR auth.uid() IS NULL  -- izin baca untuk anon (mobile app tanpa login Supabase)
 );
@@ -625,18 +634,20 @@ ON public.users FOR ALL USING (
 
 -- 15.7 Attendance Policies
 DROP POLICY IF EXISTS "Presensi dibaca Superadmin, Admin Unit (unitnya), atau Guru (milik sendiri)" ON public.attendance;
-CREATE POLICY "Presensi dibaca Superadmin, Admin Unit (unitnya), atau Guru (milik sendiri)" 
+DROP POLICY IF EXISTS "Presensi dibaca Superadmin, Admin Unit (unitnya), Kepala Sekolah (milik sendiri), atau Guru (milik sendiri)" ON public.attendance;
+CREATE POLICY "Presensi dibaca Superadmin, Admin Unit (unitnya), Kepala Sekolah (milik sendiri), atau Guru (milik sendiri)" 
 ON public.attendance FOR SELECT USING (
   public.get_current_user_role() = 'Superadmin'
   OR (public.get_current_user_role() IN ('Admin Unit', 'Petugas Presensi') AND unit_id = public.get_current_user_unit())
-  OR (public.get_current_user_role() = 'Guru' AND staff_id = public.get_current_staff_id())
+  OR (public.get_current_user_role() IN ('Guru', 'Kepala Sekolah') AND staff_id = public.get_current_staff_id())
 );
 
 DROP POLICY IF EXISTS "Presensi ditambahkan oleh Pegawai bersangkutan atau Admin" ON public.attendance;
-CREATE POLICY "Presensi ditambahkan oleh Pegawai bersangkutan atau Admin" 
+DROP POLICY IF EXISTS "Presensi ditambahkan oleh Pegawai bersangkutan atau Admin (Kepala Sekolah)" ON public.attendance;
+CREATE POLICY "Presensi ditambahkan oleh Pegawai bersangkutan atau Admin (Kepala Sekolah)" 
 ON public.attendance FOR INSERT WITH CHECK (
   public.get_current_user_role() IN ('Superadmin', 'Admin Unit', 'Petugas Presensi')
-  OR (public.get_current_user_role() = 'Guru' AND staff_id = public.get_current_staff_id())
+  OR (public.get_current_user_role() IN ('Guru', 'Kepala Sekolah') AND staff_id = public.get_current_staff_id())
 );
 
 DROP POLICY IF EXISTS "Presensi diubah oleh Superadmin atau Admin Unit" ON public.attendance;
@@ -647,24 +658,28 @@ ON public.attendance FOR UPDATE USING (
 
 -- 15.8 Leaves Policies (Cuti & Izin)
 DROP POLICY IF EXISTS "Cuti dibaca Superadmin, Admin Unit (unitnya), atau Guru (milik sendiri)" ON public.leaves;
-CREATE POLICY "Cuti dibaca Superadmin, Admin Unit (unitnya), atau Guru (milik sendiri)" 
+DROP POLICY IF EXISTS "Cuti dibaca Superadmin, Admin Unit (unitnya), Kepala Sekolah (unitnya), atau Guru (milik sendiri)" ON public.leaves;
+CREATE POLICY "Cuti dibaca Superadmin, Admin Unit (unitnya), Kepala Sekolah (unitnya), atau Guru (milik sendiri)" 
 ON public.leaves FOR SELECT USING (
   public.get_current_user_role() = 'Superadmin'
-  OR (public.get_current_user_role() IN ('Admin Unit', 'Petugas Presensi') AND unit_id = public.get_current_user_unit())
+  OR (public.get_current_user_role() IN ('Admin Unit', 'Petugas Presensi', 'Kepala Sekolah') AND unit_id = public.get_current_user_unit())
   OR (public.get_current_user_role() = 'Guru' AND staff_id = public.get_current_staff_id())
 );
 
 DROP POLICY IF EXISTS "Cuti diajukan oleh Guru (diri sendiri) atau Admin" ON public.leaves;
-CREATE POLICY "Cuti diajukan oleh Guru (diri sendiri) atau Admin" 
+DROP POLICY IF EXISTS "Cuti diajukan oleh Guru/Kepala Sekolah (diri sendiri) atau Admin" ON public.leaves;
+CREATE POLICY "Cuti diajukan oleh Guru/Kepala Sekolah (diri sendiri) atau Admin" 
 ON public.leaves FOR INSERT WITH CHECK (
   public.get_current_user_role() IN ('Superadmin', 'Admin Unit')
-  OR (public.get_current_user_role() = 'Guru' AND staff_id = public.get_current_staff_id())
+  OR (public.get_current_user_role() IN ('Guru', 'Kepala Sekolah') AND staff_id = public.get_current_staff_id())
 );
 
 DROP POLICY IF EXISTS "Cuti disetujui/ditolak oleh Superadmin atau Admin Unit" ON public.leaves;
-CREATE POLICY "Cuti disetujui/ditolak oleh Superadmin atau Admin Unit" 
+DROP POLICY IF EXISTS "Cuti disetujui/ditolak oleh Superadmin, Admin Unit, atau Kepala Sekolah (unitnya)" ON public.leaves;
+CREATE POLICY "Cuti disetujui/ditolak oleh Superadmin, Admin Unit, atau Kepala Sekolah (unitnya)" 
 ON public.leaves FOR UPDATE USING (
   public.get_current_user_role() IN ('Superadmin', 'Admin Unit')
+  OR (public.get_current_user_role() = 'Kepala Sekolah' AND unit_id = public.get_current_user_unit())
 );
 
 -- 15.9 Activity Logs Policies
