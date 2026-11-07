@@ -781,7 +781,7 @@ FOR INSERT WITH CHECK (
 CREATE POLICY "Admin Delete Presensi Photos" ON storage.objects
 FOR DELETE USING (
   bucket_id IN ('face-snapshots', 'presensi-tk', 'presensi-sd', 'presensi-smp', 'presensi-sma', 'presensi-yayasan')
-  AND (public.get_current_user_role() = 'Superadmin' OR auth.role() = 'authenticated')
+  AND public.get_current_user_role() = 'Superadmin'
 );
 
 CREATE POLICY "Auth Upload Leave Attachments" ON storage.objects

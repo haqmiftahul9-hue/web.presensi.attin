@@ -657,7 +657,7 @@ function MobilePresensiPage() {
     timerRef.current = setTimeout(tick, 450)
   }
 
-  function jalankanPresensiPulang() {
+  async function jalankanPresensiPulang() {
     if (busy) return
     const saatPresensi = new Date()
     const hasilLokasi = validasiLokasi()
@@ -667,6 +667,11 @@ function MobilePresensiPage() {
       setSheetTerbuka(true)
       return
     }
+
+    // PERBAIKAN: Definisi jendelaPulangTerbuka di dalam scope fungsi
+    const jendelaPulangTerbuka = rules.pulangBebas
+      || jamMenitDariDate(now) >= (rules.jamPulangMenit ?? 15 * 60) - 60
+
     if (!jendelaPulangTerbuka) {
       setStatusPenutup('gagal')
       setPesanPenutup(`Jam pulang belum terbuka. Absen pulang tidak disimpan.`)
@@ -676,57 +681,86 @@ function MobilePresensiPage() {
     setStatusPenutup('berhasil')
     setPesanPenutup(`Absen pulang tersimpan pukul ${jamDetik(saatPresensi)} ${zonaWaktu}.`)
 
+    const presensiId = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : `${staff.id}-${Date.now()}-${Math.random().toString(36).slice(2)}`
+    const coordinates = {
+      latitude: geofence.coords?.latitude,
+      longitude: geofence.coords?.longitude,
+      distance: geofence.jarak,
+      outsideRadius: !geofence.dalamRadius,
+    }
+
     // Upload foto scan wajah presensi pulang jika mode face & kamera aktif
     if (mode === 'face' && kamera.videoRef?.current) {
-      uploadAttendanceFacePhoto({
-        staff,
-        unitId: unit?.id || staff.unitId,
-        type: 'pulang',
-        imageSource: kamera.videoRef.current,
-        detectionBox: null,
-        date: saatPresensi,
-      })
-        .then((uploadRes) => {
-          if (uploadRes?.url) {
-            console.info('[FaceRec] Foto bukti presensi pulang terupload ke unit bucket:', uploadRes.bucket, uploadRes.url)
-             syncAttendanceToSupabase({
-               staff,
-               unitId: unit?.id || staff.unitId,
-               tanggal: saatPresensi,
-               jamPulang: jamDetik(saatPresensi),
-               presensiId: (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : `${staff.id}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-              method: 'Face Recognition',
-              faceSnapshotPulangUrl: uploadRes.url,
-              photoBucket: uploadRes.bucket,
-              coordinates: {
-                latitude: geofence.coords?.latitude,
-                longitude: geofence.coords?.longitude,
-                distance: geofence.jarak,
-                outsideRadius: !geofence.dalamRadius,
-              },
-            })
-          }
+      try {
+        const uploadRes = await uploadAttendanceFacePhoto({
+          staff,
+          unitId: unit?.id || staff.unitId,
+          type: 'pulang',
+          imageSource: kamera.videoRef.current,
+          detectionBox: null,
+          date: saatPresensi,
         })
-        .catch((err) => {
-          console.warn('[FaceRec] Upload foto bukti presensi pulang gagal (non-fatal):', err)
+
+        if (uploadRes?.url) {
+          console.info('[FaceRec] Foto bukti presensi pulang terupload ke unit bucket:', uploadRes.bucket, uploadRes.url)
+          await syncAttendanceToSupabase({
+            staff,
+            unitId: unit?.id || staff.unitId,
+            tanggal: saatPresensi,
+            jamPulang: jamDetik(saatPresensi),
+            presensiId,
+            method: 'Face Recognition',
+            faceSnapshotPulangUrl: uploadRes.url,
+            photoBucket: uploadRes.bucket,
+            coordinates,
+          })
+        } else {
+          // Fallback: simpan tanpa foto jika upload gagal
+          await syncAttendanceToSupabase({
+            staff,
+            unitId: unit?.id || staff.unitId,
+            tanggal: saatPresensi,
+            jamPulang: jamDetik(saatPresensi),
+            presensiId,
+            method: 'Face Recognition',
+            coordinates,
+          })
+        }
+      } catch (err) {
+        console.warn('[FaceRec] Upload foto bukti presensi pulang gagal:', err)
+        // Tetap simpan presensi meski foto gagal
+        await syncAttendanceToSupabase({
+          staff,
+          unitId: unit?.id || staff.unitId,
+          tanggal: saatPresensi,
+          jamPulang: jamDetik(saatPresensi),
+          presensiId,
+          method: 'Face Recognition',
+          coordinates,
         })
+      }
     } else {
       // Sinkronisasi record presensi pulang ke Supabase (mode barcode/manual)
-      syncAttendanceToSupabase({
+      await syncAttendanceToSupabase({
         staff,
         unitId: unit?.id || staff.unitId,
         tanggal: saatPresensi,
         jamPulang: jamDetik(saatPresensi),
-        presensiId: (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : `${staff.id}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        presensiId,
         method: mode === 'face' ? 'Face Recognition' : 'QR Code',
-        coordinates: {
-          latitude: geofence.coords?.latitude,
-          longitude: geofence.coords?.longitude,
-          distance: geofence.jarak,
-          outsideRadius: !geofence.dalamRadius,
-        },
+        coordinates,
       })
     }
+
+    // Simpan ke store lokal (selalu dieksekusi meski Supabase gagal)
+    dispatch({
+      type: 'CHECK_OUT',
+      payload: {
+        id: staff.id,
+        pulang: jamDetik(saatPresensi),
+        method: mode === 'face' ? 'Face Recognition' : 'QR Code',
+      },
+    })
 
     if (typeof navigator !== 'undefined' && !navigator.onLine) {
       try {
@@ -739,20 +773,12 @@ function MobilePresensiPage() {
         detail: 'Presensi pulang disimpan lokal dan akan disinkronkan saat online.',
         jam: jamDetik(saatPresensi),
         method: mode === 'face' ? 'Face Recognition' : 'QR Code',
-        lateMinutes: hasilWaktu.lateMinutes,
+        lateMinutes: 0,
       })
       setSheetTerbuka(true)
       return
     }
 
-    dispatch({
-      type: 'CHECK_OUT',
-      payload: {
-        id: staff.id,
-        pulang: jamDetik(saatPresensi),
-        method: mode === 'face' ? 'Face Recognition' : 'QR Code',
-      },
-    })
     setHasilSimpan({
       judul: 'Absen Pulang Tercatat',
       detail: presensi.statusPulang?.keterangan || 'Kehadiran hari ini sudah lengkap.',
@@ -790,6 +816,16 @@ function MobilePresensiPage() {
   const jendelaPulangTerbuka = rules.pulangBebas
     || jamMenitDariDate(now) >= (rules.jamPulangMenit ?? 15 * 60) - 60
   const geofenceOk = !rules.lokasiAktif || unit?.geofenceActive === false || geofence.dalamRadius
+
+  // Indikator antrian offline: tampilkan badge jika ada presensi menunggu sinkronisasi
+  const offlineQueueCount = (() => {
+    try {
+      const raw = typeof localStorage !== 'undefined' ? localStorage.getItem('simpres.offlineQueue') : null
+      if (!raw) return 0
+      const q = JSON.parse(raw)
+      return Array.isArray(q) ? q.length : 0
+    } catch { return 0 }
+  })()
 
   // Tombol presensi utama hanya muncul saat wajah sudah terdaftar. Kalau belum
   // terdaftar, tombol "Daftarkan Wajah Sekarang" di banner (baris di atas) sudah
@@ -846,6 +882,25 @@ function MobilePresensiPage() {
           </div>
         </div>
       </section>
+
+      {/* Indikator antrian offline */}
+      {offlineQueueCount > 0 && (
+        <section className="sp-page-container pb-2">
+          <div className="sp-card p-3 flex flex-col gap-2 border border-amber-200 bg-amber-50 rounded-xl">
+            <div className="flex items-center gap-2">
+              <span className="w-6 h-6 rounded-full bg-amber-600 text-white flex items-center justify-center shrink-0 text-[12px] font-bold">
+                {offlineQueueCount}
+              </span>
+              <span className="font-label-sm text-label-sm text-amber-900 font-medium">
+                Ada {offlineQueueCount} presensi menunggu sinkronisasi
+              </span>
+              <span className="ml-auto text-[10px] text-amber-700 font-medium">
+                Akan tersinkron otomatis saat online
+              </span>
+            </div>
+          </div>
+        </section>
+      )}
 
       <div className="px-4 relative z-[2] flex flex-col gap-4 pb-2">
         {/* 2. STATUS SENSOR di atas: lokasi, waktu, dan kamera. Tiga kotak

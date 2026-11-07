@@ -397,7 +397,7 @@ export async function syncAttendanceToSupabase({
       staff_id: staff.id,
       unit_id: targetUnit,
       tanggal: dateStr,
-      presensi_id: presensiId || `${staff.id}-${dateStr}-${Date.now()}`,
+      presensi_id: presensiId || `${staff.id}-${dateStr}`,
       hari,
       status,
       late_minutes: lateMinutes || 0,

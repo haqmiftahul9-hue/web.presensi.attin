@@ -82,6 +82,12 @@ export const ADMIN_USERS = [
   { id: 10, name: 'Admin TKIT Attin Sumbar', niy: '019001010', username: 'admintk', email: 'admintk@simpres.sch.id', role: 'Admin Unit', unitId: 'tk', status: 'Aktif', password: 'TKattin@2026', mustChangePassword: false, demo: true },
   { id: 11, name: 'Admin SMPIT Attin Sumbar', niy: '019001011', username: 'adminsmp', email: 'adminsmp@simpres.sch.id', role: 'Admin Unit', unitId: 'smp', status: 'Aktif', password: 'SMPattin@2026', mustChangePassword: false, demo: true },
   { id: 12, name: 'Admin SMAIT Attin Sumbar', niy: '019001012', username: 'adminsma', email: 'adminsma@simpres.sch.id', role: 'Admin Unit', unitId: 'sma', status: 'Aktif', password: 'SMAattin@2026', mustChangePassword: false, demo: true },
+
+  // Kepala Sekolah: mode mobile, persetujuan izin/cuti
+  { id: 13, name: 'Kepala Sekolah SDIT', niy: '019001013', username: 'kepalasd', email: 'kepala.sd@simpres.sch.id', role: 'Kepala Sekolah', unitId: 'sd', status: 'Aktif', password: 'KepalaSekolah@2026', mustChangePassword: false, demo: true },
+  { id: 14, name: 'Kepala Sekolah SMPIT', niy: '019001014', username: 'kepalasmp', email: 'kepala.smp@simpres.sch.id', role: 'Kepala Sekolah', unitId: 'smp', status: 'Aktif', password: 'KepalaSekolah@2026', mustChangePassword: false, demo: true },
+  { id: 15, name: 'Kepala Sekolah SMAIT', niy: '019001015', username: 'kepalasma', email: 'kepala.sma@simpres.sch.id', role: 'Kepala Sekolah', unitId: 'sma', status: 'Aktif', password: 'KepalaSekolah@2026', mustChangePassword: false, demo: true },
+  { id: 16, name: 'Kepala Sekolah TKIT', niy: '019001016', username: 'kepalatk', email: 'kepala.tk@simpres.sch.id', role: 'Kepala Sekolah', unitId: 'tk', status: 'Aktif', password: 'KepalaSekolah@2026', mustChangePassword: false, demo: true },
 ]
 
 export const INITIAL_LOGS = [
