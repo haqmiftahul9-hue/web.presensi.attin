@@ -17,6 +17,11 @@ import PengaturanGlobalPage from './pages/PengaturanGlobalPage.jsx'
 import PengajuanIzinCutiPage from './pages/PengajuanIzinCutiPage.jsx'
 import MonitoringPresensiPage from './pages/MonitoringPresensiPage.jsx'
 import AdminPresensiScanPage from './pages/AdminPresensiScanPage.jsx'
+import AdminPresensiManualPage from './pages/AdminPresensiManualPage.jsx'
+import AttendanceApprovalsPage from './pages/AttendanceApprovalsPage.jsx'
+import EditPresensiPage from './pages/EditPresensiPage.jsx'
+import TwoFactorSetupPage from './pages/TwoFactorSetupPage.jsx'
+import TwoFactorVerifyPage from './pages/TwoFactorVerifyPage.jsx'
 import MobileBerandaPage from './pages/mobile/MobileBerandaPage.jsx'
 import MobilePresensiPage from './pages/mobile/MobilePresensiPage.jsx'
 import MobileRiwayatPage from './pages/mobile/MobileRiwayatPage.jsx'
@@ -122,6 +127,11 @@ function App() {
           <Route path="/pengajuan-izin-dan-cuti" element={<ProtectedRoute><PengajuanIzinCutiPage /></ProtectedRoute>} />
           <Route path="/presensi" element={<ProtectedRoute><MonitoringPresensiPage /></ProtectedRoute>} />
           <Route path="/presensi-scan" element={<ProtectedRoute><AdminPresensiScanPage /></ProtectedRoute>} />
+          <Route path="/presensi-manual" element={<ProtectedRoute><AdminPresensiManualPage /></ProtectedRoute>} />
+          <Route path="/attendance-approvals" element={<ProtectedRoute><AttendanceApprovalsPage /></ProtectedRoute>} />
+          <Route path="/edit-presensi" element={<ProtectedRoute><EditPresensiPage /></ProtectedRoute>} />
+          <Route path="/2fa-setup" element={<ProtectedRoute><TwoFactorSetupPage /></ProtectedRoute>} />
+          <Route path="/2fa-verify" element={<ProtectedRoute><TwoFactorVerifyPage /></ProtectedRoute>} />
         </Route>
 
         {/* Di luar daftar: kembali ke beranda mode yang sesuai. */}

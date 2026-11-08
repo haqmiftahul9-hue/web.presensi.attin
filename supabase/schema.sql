@@ -879,6 +879,177 @@ DO $$ BEGIN
 END $$;
 
 -- ==============================================================================
+-- 18. TABEL BARU: Presensi Manual Approval, 2FA, Password Policy, Push Subscription
+-- ==============================================================================
+
+-- 18.0 Fungsi get_current_user_context untuk RLS (harus dibuat sebelum policy)
+CREATE OR REPLACE FUNCTION public.get_current_user_context()
+RETURNS TABLE (
+    id INTEGER,
+    role TEXT,
+    unit_id TEXT,
+    current_unit_id TEXT
+) LANGUAGE plpgsql AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        s.id,
+        s.role,
+        s.unit_id,
+        COALESCE(s.current_unit_id, s.unit_id)
+    FROM public.staff s
+    WHERE s.id = auth.uid()::INTEGER;
+END $$;
+
+-- 18.1 attendance_approvals - Persetujuan presensi manual oleh Superadmin
+CREATE TABLE IF NOT EXISTS public.attendance_approvals (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    staff_id INTEGER NOT NULL,
+    unit_id TEXT NOT NULL,
+    requested_by INTEGER NOT NULL,
+    requested_by_role TEXT NOT NULL DEFAULT 'Admin Unit',
+    tanggal DATE NOT NULL,
+    jam_masuk TIME,
+    jam_pulang TIME,
+    status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
+    approved_by INTEGER,
+    approved_at TIMESTAMP WITH TIME ZONE,
+    rejection_reason TEXT,
+    method TEXT NOT NULL DEFAULT 'Manual',
+    catatan TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_attendance_approvals_status ON public.attendance_approvals(status);
+CREATE INDEX IF NOT EXISTS idx_attendance_approvals_staff_date ON public.attendance_approvals(staff_id, tanggal);
+CREATE INDEX IF NOT EXISTS idx_attendance_approvals_created ON public.attendance_approvals(created_at);
+
+ALTER TABLE public.attendance_approvals ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Superadmin manage all approvals" ON public.attendance_approvals;
+DROP POLICY IF EXISTS "Admin Unit manage own unit approvals" ON public.attendance_approvals;
+DROP POLICY IF EXISTS "Staff view own approvals" ON public.attendance_approvals;
+
+CREATE POLICY "Superadmin manage all approvals" ON public.attendance_approvals
+FOR ALL USING (public.get_current_user_role() = 'Superadmin');
+
+CREATE POLICY "Admin Unit manage own unit approvals" ON public.attendance_approvals
+FOR ALL USING (
+    public.get_current_user_role() = 'Admin Unit'
+    AND unit_id = (SELECT current_unit_id FROM public.get_current_user_context())
+);
+
+CREATE POLICY "Staff view own approvals" ON public.attendance_approvals
+FOR SELECT USING (
+    staff_id = (SELECT id FROM public.get_current_user_context())
+    AND public.get_current_user_role() IN ('Guru', 'Kepala Sekolah')
+);
+
+-- 18.2 two_factor_secrets - Simpan secret 2FA per user
+CREATE TABLE IF NOT EXISTS public.two_factor_secrets (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id INTEGER NOT NULL UNIQUE,
+    secret TEXT NOT NULL,
+    is_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+    backup_codes JSONB NOT NULL DEFAULT '[]',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE public.two_factor_secrets ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users manage own 2FA" ON public.two_factor_secrets;
+DROP POLICY IF EXISTS "Superadmin manage all 2FA" ON public.two_factor_secrets;
+
+CREATE POLICY "Users manage own 2FA" ON public.two_factor_secrets
+FOR ALL USING (
+    user_id = (SELECT id FROM public.get_current_user_context())
+);
+
+CREATE POLICY "Superadmin manage all 2FA" ON public.two_factor_secrets
+FOR ALL USING (public.get_current_user_role() = 'Superadmin');
+
+-- 18.3 password_policies - Kebijakan password sistem
+CREATE TABLE IF NOT EXISTS public.password_policies (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    min_length INTEGER NOT NULL DEFAULT 8,
+    require_uppercase BOOLEAN NOT NULL DEFAULT TRUE,
+    require_lowercase BOOLEAN NOT NULL DEFAULT TRUE,
+    require_numbers BOOLEAN NOT NULL DEFAULT TRUE,
+    require_symbols BOOLEAN NOT NULL DEFAULT TRUE,
+    max_age_days INTEGER NOT NULL DEFAULT 90,
+    prevent_reuse_count INTEGER NOT NULL DEFAULT 5,
+    lockout_attempts INTEGER NOT NULL DEFAULT 5,
+    lockout_duration_minutes INTEGER NOT NULL DEFAULT 30,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+INSERT INTO public.password_policies (min_length, require_uppercase, require_lowercase, require_numbers, require_symbols, max_age_days, prevent_reuse_count, lockout_attempts, lockout_duration_minutes)
+VALUES (8, TRUE, TRUE, TRUE, TRUE, 90, 5, 5, 30)
+ON CONFLICT DO NOTHING;
+
+ALTER TABLE public.password_policies ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Superadmin manage password policies" ON public.password_policies;
+DROP POLICY IF EXISTS "All view active policies" ON public.password_policies;
+
+CREATE POLICY "Superadmin manage password policies" ON public.password_policies
+FOR ALL USING (public.get_current_user_role() = 'Superadmin');
+
+CREATE POLICY "All view active policies" ON public.password_policies
+FOR SELECT USING (is_active = TRUE);
+
+-- 18.4 push_subscriptions - Web Push subscriptions
+CREATE TABLE IF NOT EXISTS public.push_subscriptions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id INTEGER NOT NULL,
+    endpoint TEXT NOT NULL,
+    p256dh_key TEXT NOT NULL,
+    auth_key TEXT NOT NULL,
+    device_info TEXT,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE public.push_subscriptions ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users manage own push subscriptions" ON public.push_subscriptions;
+DROP POLICY IF EXISTS "Superadmin manage all push subscriptions" ON public.push_subscriptions;
+
+CREATE POLICY "Users manage own push subscriptions" ON public.push_subscriptions
+FOR ALL USING (
+    user_id = (SELECT id FROM public.get_current_user_context())
+);
+
+CREATE POLICY "Superadmin manage all push subscriptions" ON public.push_subscriptions
+FOR ALL USING (public.get_current_user_role() = 'Superadmin');
+
+-- 18.6 Update RLS pada tabel attendance untuk mendukung approval flow
+ALTER TABLE public.attendance ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Staff view own attendance" ON public.attendance;
+DROP POLICY IF EXISTS "Admin Unit manage own unit attendance" ON public.attendance;
+DROP POLICY IF EXISTS "Superadmin manage all attendance" ON public.attendance;
+
+CREATE POLICY "Staff view own attendance" ON public.attendance
+FOR SELECT USING (
+    staff_id = (SELECT id FROM public.get_current_user_context())
+);
+
+CREATE POLICY "Admin Unit manage own unit attendance" ON public.attendance
+FOR ALL USING (
+    public.get_current_user_role() = 'Admin Unit'
+    AND unit_id = (SELECT current_unit_id FROM public.get_current_user_context())
+);
+
+CREATE POLICY "Superadmin manage all attendance" ON public.attendance
+FOR ALL USING (public.get_current_user_role() = 'Superadmin');
+
+-- ==============================================================================
 -- AKHIR SKEMA DATABASE SUPABASE
 -- ==============================================================================
 

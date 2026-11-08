@@ -22,6 +22,9 @@ const navItems = [
   { path: '/rekap-dan-laporan', label: 'Rekap & Laporan', icon: 'summarize', activePath: '/rekap-dan-laporan', menuKey: 'rekapLaporan' },
   { path: '/ranking-kehadiran', label: 'Ranking Kehadiran', icon: 'leaderboard', activePath: '/ranking-kehadiran', menuKey: 'rankingKehadiran' },
   { path: '/pengajuan-izin-dan-cuti', label: 'Pengajuan Izin/Cuti', icon: 'event_available', activePath: '/pengajuan-izin-dan-cuti', menuKey: 'pengajuanIzinCuti' },
+  { path: '/presensi-manual', label: 'Presensi Manual', icon: 'edit_calendar', activePath: '/presensi-manual', menuKey: 'presensiManual' },
+  { path: '/attendance-approvals', label: 'Persetujuan Presensi', icon: 'check_circle', activePath: '/attendance-approvals', menuKey: 'attendanceApprovals', onlyRole: 'Superadmin' },
+  { path: '/edit-presensi', label: 'Edit Presensi', icon: 'edit', activePath: '/edit-presensi', menuKey: 'editPresensi' },
   { path: '/log-aktivitas', label: 'Log Aktivitas', icon: 'history', activePath: '/log-aktivitas', menuKey: 'logAktivitas' },
   { path: '/pengaturan-global', label: 'Pengaturan Global', icon: 'settings', activePath: '/pengaturan-global', menuKey: 'pengaturanGlobal' },
 ]

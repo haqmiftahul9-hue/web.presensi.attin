@@ -1,112 +1,117 @@
-/* eslint-env serviceworker */
-/**
- * Service worker SimPres.
- *
- * Fungsinya dua:
- *  1. Membuat aplikasi bisa dipasang (installable) — Chrome mensyaratkan service
- *     worker dengan fetch handler sebelum menampilkan prompt pemasangan.
- *  2. Membuat halaman mobile tetap terbuka saat sinyal hilang — Guru/Pegawai
- *     memakai aplikasi ini di lapangan, di area dengan sinyal tidak stabil.
- *
- * Strategi cache:
- *  - Navigasi (halaman): network-first, jatuh ke cache, lalu /index.html
- *    (SPA) supaya rute /mobile/* tetap bisa dibuka offline.
- *  - Aset build (/assets/...): cache-first (nama berkas sudah ber-hash).
- *  - Modul sumber Vite (/src, /@vite, /node_modules): SANGAT DILEWATI agar
- *    HMR tetap benar saat pengembangan.
- *  - Permintaan lintas domain (Google Fonts, gambar profil): dilewati.
- *
- * Dashboard admin memakai shell SPA yang sama, jadi cache ini tidak mengubah
- * perilakunya di browser — hanya memberi kemampuan offline saat aplikasi
- * mobile terpasang.
- */
+// ============================================================================
+// Service Worker - SIMPEG Attin Push Notification & Background Sync
+// ============================================================================
 
-const VERSI_CACHE = 'simpres-v2'
-const CACHE_ASET = `${VERSI_CACHE}-assets`
-const CACHE_SHELL = `${VERSI_CACHE}-shell`
-const SHELL_URL = '/index.html'
+const CACHE_NAME = 'simpres-attin-v1'
+const OFFLINE_URL = '/offline.html'
 
+// Install event: cache static assets
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches
-      .open(CACHE_SHELL)
-      .then((cache) => cache.addAll(['/', SHELL_URL, '/manifest.webmanifest', '/icons/pwa-icon.png']))
-      .catch(() => undefined)
-      .then(() => self.skipWaiting()),
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll([
+        '/',
+        '/offline.html',
+      ])
+    })
   )
+  self.skipWaiting()
 })
 
+// Activate event: clean old caches
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches
-      .keys()
-      .then((keys) =>
-        Promise.all(keys.filter((key) => !key.startsWith(VERSI_CACHE)).map((key) => caches.delete(key))),
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.filter((name) => name !== CACHE_NAME)
+          .map((name) => caches.delete(name))
       )
-      .then(() => self.clients.claim()),
+    })
+  )
+  self.clients.claim()
+})
+
+// Fetch event: serve from cache, fallback to network
+self.addEventListener('fetch', (event) => {
+  event.respondWith(
+    caches.match(event.request).then((cachedResponse) => {
+      if (cachedResponse) return cachedResponse
+      return fetch(event.request).catch(() => {
+        if (event.request.mode === 'navigate') {
+          return caches.match(OFFLINE_URL)
+        }
+        return new Response('Offline', { status: 503, statusText: 'Offline' })
+      })
+    })
   )
 })
 
-// Halaman dimuat ulang: biarkan tab lama mengambil service worker baru.
-self.addEventListener('message', (event) => {
-  if (event.data === 'SKIP_WAITING') self.skipWaiting()
-})
-
-function bolehCache(url) {
-  if (url.origin !== self.location.origin) return false
-  if (url.pathname.startsWith('/src/')) return false
-  if (url.pathname.startsWith('/@')) return false
-  if (url.pathname.startsWith('/node_modules/')) return false
-  return true
-}
-
-self.addEventListener('fetch', (event) => {
-  const { request } = event
-  if (request.method !== 'GET') return
-
-  const url = new URL(request.url)
-  if (!bolehCache(url)) return
-
-  // Navigasi: coba jaringan dulu (data terbaru), lalu cache, lalu shell SPA.
-  if (request.mode === 'navigate') {
-    event.respondWith(
-      fetch(request)
-        .then((response) => {
-          const salinan = response.clone()
-          caches.open(CACHE_SHELL).then((cache) => cache.put(request, salinan)).catch(() => undefined)
-          return response
-        })
-        .catch(async () => {
-          const cache = await caches.open(CACHE_SHELL)
-          return (
-            (await cache.match(request)) ||
-            (await cache.match(SHELL_URL)) ||
-            (await cache.match('/')) ||
-            new Response('<h1>Offline</h1><p>SimPres sedang tidak tersambung.</p>', {
-              headers: { 'Content-Type': 'text/html; charset=utf-8' },
-              status: 503,
-            })
-          )
-        }),
-    )
-    return
+// Push event: handle incoming push notifications
+self.addEventListener('push', (event) => {
+  const data = event.data ? event.data.json() : {}
+  const title = data.title || 'SIMPEG Attin'
+  const options = {
+    body: data.body || 'Ada notifikasi baru dari sistem presensi.',
+    icon: '/icons/logo-simpeg.png',
+    badge: '/icons/logo-simpeg.png',
+    tag: data.tag || 'simpres-notification',
+    data: data.data || {},
+    actions: data.actions || [
+      { action: 'open', title: 'Buka Aplikasi' },
+      { action: 'close', title: 'Tutup' }
+    ]
   }
 
-  // Aset ber-hash: sajikan dari cache bila ada, lalu lengkapi di belakang.
-  if (url.pathname.startsWith('/assets/') || url.pathname.startsWith('/icons/')) {
-    event.respondWith(
-      caches.match(request).then((cached) => {
-        const dariJaringan = fetch(request)
-          .then((response) => {
-            if (response && response.status === 200 && response.type === 'basic') {
-              const salinan = response.clone()
-              caches.open(CACHE_ASET).then((cache) => cache.put(request, salinan)).catch(() => undefined)
-            }
-            return response
-          })
-          .catch(() => cached)
-        return cached || dariJaringan
-      }),
+  event.waitUntil(
+    self.registration.showNotification(title, options)
+  )
+})
+
+// Notification click event
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close()
+
+  if (event.action === 'close') return
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      // Jika sudah ada tab buka, fokuskan
+      for (const client of clientList) {
+        if (client.url === self.location.origin && 'focus' in client) {
+          return client.focus()
+        }
+      }
+      // Buka tab baru
+      if (clients.openWindow) {
+        return clients.openWindow('/')
+      }
+    })
+  )
+})
+
+// Background sync event: sinkronisasi data offline
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'sync-presensi') {
+    event.waitUntil(
+      // Sinkronisasi antrian presensi offline
+      fetch('/api/sync-offline-presensi', { method: 'POST' })
+        .then((response) => {
+          if (!response.ok) throw new Error('Sync failed')
+          return response.json()
+        })
+        .catch((err) => {
+          console.warn('Background sync failed:', err)
+        })
     )
+  }
+})
+
+// Message event: komunikasi dari main thread
+self.addEventListener('message', (event) => {
+  if (event.data === 'skipWaiting') {
+    self.skipWaiting()
+  }
+  if (event.data === 'getSubscription') {
+    event.ports[0].postMessage(self.registration.pushManager.getSubscription())
   }
 })

@@ -212,11 +212,13 @@ function MobilePresensiPage() {
           if (item?.type === 'CHECK_IN' || item?.type === 'CHECK_OUT') dispatch({ type: item.type, payload: item.payload })
         })
         localStorage.removeItem('simpres.offlineQueue')
-      } catch {
-        /* ignore */
-      }
+      } catch { /* ignore sync error */ }
     }
-    if (navigator.onLine) sync()
+
+    // Sinkronisasi saat halaman dimuat
+    sync()
+
+    // Sinkronisasi saat koneksi kembali (background sync)
     window.addEventListener('online', sync)
     return () => window.removeEventListener('online', sync)
   }, [dispatch])
