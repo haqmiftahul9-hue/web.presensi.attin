@@ -1,9 +1,15 @@
-import { useState, useEffect } from 'react'
-import { useSimPres } from '../store/simPresStore.jsx'
+import { useState, useEffect, useCallback } from 'react'
+import { useSimPres, selectScopedStaff, selectCurrentUser, selectCurrentUserRole, addActivityLog } from '../store/simPresStore.jsx'
+import { attendanceApprovalService } from '../services/attendanceApprovalService.js'
 import { toast } from 'react-hot-toast'
+import { calculateAttendanceStatus } from '../data/jamKerja.js'
 
 function AttendanceApprovalsPage() {
   const { state, dispatch } = useSimPres()
+  const currentUser = selectCurrentUser(state)
+  const currentRole = selectCurrentUserRole(state)
+  const isSuperadmin = currentRole === 'Superadmin'
+
   const [approvals, setApprovals] = useState([])
   const [loading, setLoading] = useState(true)
   const [processing, setProcessing] = useState(new Set())
@@ -12,24 +18,33 @@ function AttendanceApprovalsPage() {
     loadApprovals()
   }, [])
 
-  const loadApprovals = async () => {
+  const loadApprovals = useCallback(async () => {
+    setLoading(true)
     try {
-      setLoading(true)
-      const token = state.session?.access_token || localStorage.getItem('simpres.token') || ''
-      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/attendance_approvals?status=eq.pending&order=created_at.asc`, {
-        headers: {
-          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${token}`,
+      let data = await attendanceApprovalService.listApprovals({ status: 'pending', order: 'created_at.asc' })
+      if (!Array.isArray(data)) data = []
+
+      const staffMap = new Map((selectScopedStaff(state) || []).map((s) => [s.id, s]))
+      const enriched = data.map((a) => {
+        const staff = staffMap.get(a.staff_id || a.staffId)
+        return {
+          ...a,
+          id: a.id,
+          staff_id: a.staff_id || a.staffId,
+          unit_id: a.unit_id || a.unitId,
+          staff_name: staff ? staff.name : (a.staff_name || a.requested_by_name || '-'),
+          unit_name: staff ? (selectUnitNameById(state, staff.unitId) || staff.unitId) : (a.unit_id || a.unitId || '-'),
+          requested_by_name: a.requested_by_name || (staff ? staff.name : '-'),
         }
       })
-      const data = await res.json()
-      setApprovals(data || [])
+      setApprovals(enriched)
     } catch (err) {
       toast.error('Gagal memuat persetujuan presensi')
+      console.error(err)
     } finally {
       setLoading(false)
     }
-  }
+  }, [state, dispatch])
 
   const handleAction = async (approvalId, action, rejectionReason = '') => {
     if (action === 'rejected' && !rejectionReason) {
@@ -40,81 +55,88 @@ function AttendanceApprovalsPage() {
 
     setProcessing(prev => new Set([...prev, approvalId]))
     try {
-      const token = state.session?.access_token || localStorage.getItem('simpres.token') || ''
-      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/attendance_approvals?id=eq.${approvalId}`, {
-        method: 'PATCH',
-        headers: {
-          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-          'Prefer': 'return=representation'
-        },
-        body: JSON.stringify({
-          status: action,
-          approved_by: state.currentUser.id,
-          approved_at: new Date().toISOString(),
-          rejection_reason: action === 'rejected' ? rejectionReason : null,
-          updated_at: new Date().toISOString()
-        })
+      const updated = await attendanceApprovalService.updateApproval(approvalId, {
+        status: action,
+        approved_by: currentUser.id,
+        approved_at: new Date().toISOString(),
+        rejection_reason: action === 'rejected' ? rejectionReason : null,
+        updated_at: new Date().toISOString(),
       })
 
-      if (!res.ok) throw new Error(`Gagal ${action} persetujuan`)
+      const approval = updated && updated[0] ? updated[0] : (approvals.find((a) => a.id === approvalId) || {})
 
-      const updated = await res.json()
+      // Jika disetujui, buat record attendance di tabel + history agar Rekap terbaca
+      if (action === 'approved' && approval.staff_id) {
+        const staff = selectScopedStaff(state).find((s) => s.id === approval.staff_id || String(s.id) === String(approval.staff_id))
+        const tanggal = approval.tanggal
+        const jamMasuk = approval.jam_masuk || null
+        const jamPulang = approval.jam_pulang || null
+        const hasil = calculateAttendanceStatus(new Date(tanggal), jamMasuk, { jamPulang })
 
-      // Jika disetujui, buat record attendance
-      if (action === 'approved' && updated && updated[0]) {
-        const approval = updated[0]
-        const attendanceRes = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/attendance`, {
-          method: 'POST',
-          headers: {
-            'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-            'Prefer': 'return=representation'
-          },
-          body: JSON.stringify({
-            staff_id: approval.staff_id,
-            unit_id: approval.unit_id,
-            tanggal: approval.tanggal,
-            jam_masuk: approval.jam_masuk,
-            jam_pulang: approval.jam_pulang,
-            status: 'Tepat Waktu',
-            method: 'Manual',
-            presensi_id: `${approval.staff_id}-${approval.tanggal}`,
-            catatan: `Disetujui oleh Superadmin: ${approval.catatan || '-'}`,
-            photo_bucket: null,
-            updated_at: new Date().toISOString()
-          })
-        })
-
-        if (!attendanceRes.ok) {
-          console.warn('Persetujuan tersimpan tapi gagal membuat record attendance')
+        // Simpan ke tabel attendance Supabase (idempotent via presensi_id)
+        const presensiId = `${approval.staff_id}-${tanggal}`
+        const attendancePayload = {
+          staff_id: approval.staff_id,
+          unit_id: approval.unit_id,
+          tanggal,
+          jam_masuk: jamMasuk,
+          jam_pulang: jamPulang,
+          status: hasil.status,
+          late_minutes: hasil.lateMinutes,
+          method: 'Manual',
+          presensi_id,
+          catatan: `Disetujui oleh Superadmin: ${approval.catatan || '-'}`,
+          photo_bucket: null,
+          updated_at: new Date().toISOString(),
+          created_at: new Date().toISOString()
         }
+        try {
+          await attendanceApprovalService.upsertAttendance(attendancePayload)
+        } catch (err) {
+          console.warn('Gagal upsert attendance ke tabel:', err)
+        }
+
+        // Tambah ke attendanceHistory agar Rekap/Ranking langsung terupdate
+        const historyEntry = {
+          id: `approval-${approval.id}`,
+          staffId: approval.staff_id,
+          unitId: approval.unit_id,
+          name: staff ? staff.name : (approval.staff_name || '-'),
+          niy: staff ? staff.niy : (approval.staff_niy || '-'),
+          role: staff ? staff.role : (approval.staff_role || '-'),
+          date: tanggal,
+          tanggal,
+          hari: hasil.hari,
+          jamKerja: hasil.jamKerja,
+          jamMasuk: hasil.jamMasuk,
+          jamPulang: hasil.jamPulang,
+          masuk: jamMasuk,
+          pulang: jamPulang,
+          method: 'Manual',
+          lateMinutes: hasil.lateMinutes,
+          status: hasil.status,
+          source: 'manual_approval',
+          approvalId: approval.id,
+          createdAt: new Date().toISOString(),
+        }
+        dispatch({ type: 'ADD_ATTENDANCE_HISTORY', payload: historyEntry })
+
+        addActivityLog(dispatch, state, 'Setujui', 'Presensi Manual',
+          `Presensi manual ${staff ? staff.name : approval.staff_name} pada ${tanggal} disetujui`,
+          currentUser.name, currentRole, currentUser.unitId)
+      } else if (action === 'rejected') {
+        addActivityLog(dispatch, state, 'Tolak', 'Presensi Manual',
+          `Presensi manual ID ${approvalId} ditolak - Alasan: ${rejectionReason}`,
+          currentUser.name, currentRole, currentUser.unitId)
       }
 
-      // Log aktivitas
-      try {
-        const logId = (state.logs?.length || 0) === 0 ? 1 : Math.max(0, ...(state.logs || []).map((l) => l.id)) + 1
-        const now = new Date()
-        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
-        const time = `${String(now.getDate()).padStart(2,'0')} ${months[now.getMonth()]} ${now.getFullYear()}, ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`
-        dispatch({ type: 'ADD_LOG', payload: {
-          id: logId,
-          time,
-          actor: state.currentUser?.name || 'Superadmin',
-          role: 'Superadmin',
-          unit: state.currentUser?.unitId || '-',
-          action: action === 'approved' ? 'Setujui' : 'Tolak',
-          target: 'Presensi Manual',
-          desc: `Presensi manual ${action === 'approved' ? 'disetujui' : 'ditolak'} (ID: ${approvalId})${action === 'rejected' ? ` - Alasan: ${rejectionReason}` : ''}`
-        }})
-      } catch { /* ignore log error */ }
+      // Update status approval di store
+      dispatch({ type: 'UPDATE_ATTENDANCE_APPROVAL_STATUS', payload: { id: approvalId, changes: { status: action, rejection_reason: action === 'rejected' ? rejectionReason : null } } })
 
       toast.success(`Presensi manual ${action === 'approved' ? 'disetujui' : 'ditolak'}`)
       loadApprovals()
     } catch (err) {
-      toast.error(err.message)
+      toast.error(err.message || `Gagal ${action} persetujuan`)
     } finally {
       setProcessing(prev => {
         const next = new Set(prev)
@@ -130,7 +152,7 @@ function AttendanceApprovalsPage() {
         <div>
           <h1 className="text-2xl font-bold text-foreground">Persetujuan Presensi Manual</h1>
           <p className="text-muted-foreground">
-            Tinjau dan setujui atau tolak permintaan presensi manual dari Admin Unit.
+            Tinjau dan setujui atau tolak permintaan presensi manual dari Admin Unit. Disetujui otomatis tercatat ke Rekap.
           </p>
         </div>
         <button
@@ -175,7 +197,7 @@ function AttendanceApprovalsPage() {
               {approvals.map(a => (
                 <tr key={a.id} className="border-b border-border hover:bg-muted/50">
                   <td className="py-3 text-foreground font-medium">{a.staff_name || 'Tidak diketahui'}</td>
-                  <td className="py-3 text-muted-foreground">{a.unit_id}</td>
+                  <td className="py-3 text-muted-foreground">{a.unit_name || '-'}</td>
                   <td className="py-3 text-muted-foreground">{a.tanggal}</td>
                   <td className="py-3 text-muted-foreground">{a.jam_masuk || '-'}</td>
                   <td className="py-3 text-muted-foreground">{a.jam_pulang || '-'}</td>
@@ -207,6 +229,17 @@ function AttendanceApprovalsPage() {
       )}
     </div>
   )
+}
+
+function getToken() {
+  if (typeof window === 'undefined') return ''
+  return window.sessionStorage.getItem('simpres.token') || window.localStorage.getItem('simpres.token') || ''
+}
+
+function selectUnitNameById(state, unitId) {
+  if (!unitId) return '-'
+  const u = state.units.find((un) => un.id === unitId)
+  return u ? u.nama : unitId
 }
 
 export default AttendanceApprovalsPage

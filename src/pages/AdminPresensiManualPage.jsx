@@ -1,10 +1,20 @@
-import { useState, useEffect } from 'react'
-import { useSimPres } from '../store/simPresStore.jsx'
+import { useState, useEffect, useCallback } from 'react'
+import { useSimPres, selectScopedStaff, selectCurrentUserRole, selectCurrentUser, selectActiveUnitId, addActivityLog } from '../store/simPresStore.jsx'
+import { attendanceApprovalService } from '../services/attendanceApprovalService.js'
 import { toast } from 'react-hot-toast'
 
 function AdminPresensiManualPage() {
   const { state, dispatch } = useSimPres()
+  const currentUser = selectCurrentUser(state)
+  const currentRole = selectCurrentUserRole(state)
+  const activeUnitId = selectActiveUnitId(state)
+  const isSuperadmin = currentRole === 'Superadmin'
+  const isAdminUnit = currentRole === 'Admin Unit'
+
   const [staffList, setStaffList] = useState([])
+  const [approvals, setApprovals] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
   const [selectedStaff, setSelectedStaff] = useState(null)
   const [formData, setFormData] = useState({
     tanggal: '',
@@ -13,50 +23,60 @@ function AdminPresensiManualPage() {
     catatan: '',
     method: 'Manual'
   })
-  const [submitting, setSubmitting] = useState(false)
-  const [approvals, setApprovals] = useState([])
-  const [approvalsLoading, setApprovalsLoading] = useState(false)
 
-  useEffect(() => {
-    loadStaff()
-    loadMyApprovals()
-  }, [])
-
-  const loadStaff = async () => {
+  const loadStaff = useCallback(async () => {
     try {
-      const unitId = state.currentUser?.unitId || 'sd'
-      const token = state.session?.access_token || localStorage.getItem('simpres.token') || ''
-      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/staff?unit_id=eq.${unitId}&status=eq.Aktif&order=name.asc`, {
-        headers: {
-          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${token}`,
-        }
-      })
-      const data = await res.json()
-      setStaffList(data || [])
+      const scoped = selectScopedStaff(state)
+      const list = scoped.filter((s) => s.status === 'Aktif').map((s) => ({
+        id: s.id,
+        name: s.name,
+        niy: s.niy,
+        unitId: s.unitId,
+      }))
+      setStaffList(list)
     } catch (err) {
       console.error('Gagal memuat daftar pegawai:', err)
     }
-  }
+  }, [state])
 
-  const loadMyApprovals = async () => {
+  const loadApprovals = useCallback(async () => {
+    setLoading(true)
     try {
-      setApprovalsLoading(true)
-      const token = state.session?.access_token || localStorage.getItem('simpres.token') || ''
-      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/attendance_approvals?requested_by=eq.${state.currentUser?.id}&order=created_at.desc`, {
-        headers: {
-          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${token}`,
+      let data = await attendanceApprovalService.listApprovals({ order: 'created_at.desc' })
+      if (!Array.isArray(data)) data = []
+
+      // Scope: Admin Unit lihat hanya unitnya; Superadmin lihat semua
+      let filtered = data
+      if (isAdminUnit && activeUnitId) {
+        filtered = data.filter((a) => (a.unit_id || a.unitId) === activeUnitId)
+      }
+
+      // Enrich nama pegawai
+      const staffMap = new Map((selectScopedStaff(state) || []).map((s) => [s.id, s]))
+      const enriched = filtered.map((a) => {
+        const staff = staffMap.get(a.staff_id || a.staffId)
+        return {
+          ...a,
+          staff_id: a.staff_id || a.staffId,
+          unit_id: a.unit_id || a.unitId,
+          staff_name: staff ? staff.name : (a.staff_name || a.requested_by_name || '-'),
+          requested_by_name: a.requested_by_name || (staff ? staff.name : '-'),
         }
       })
-      const data = await res.json()
-      setApprovals(data || [])
+      setApprovals(enriched)
+      dispatch({ type: 'SYNC_ATTENDANCE_APPROVALS', payload: enriched })
     } catch (err) {
-      console.error('Gagal memuat riwayat persetujuan:', err)
+      toast.error('Gagal memuat riwayat presensi manual')
+      console.error(err)
     } finally {
-      setApprovalsLoading(false)
+      setLoading(false)
     }
-  }
+  }, [state, isAdminUnit, activeUnitId, dispatch])
+
+  useEffect(() => {
+    loadStaff()
+    loadApprovals()
+  }, [loadStaff, loadApprovals])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -71,65 +91,60 @@ function AdminPresensiManualPage() {
 
     setSubmitting(true)
     try {
-      const token = state.session?.access_token || localStorage.getItem('simpres.token') || ''
-      const approvalData = {
+      const payload = {
         staff_id: selectedStaff.id,
-        unit_id: selectedStaff.unitId,
-        requested_by: state.currentUser.id,
-        requested_by_role: state.currentUser.role,
+        unit_id: selectedStaff.unitId || activeUnitId,
+        requested_by: currentUser.id,
+        requested_by_role: currentRole,
+        requested_by_name: currentUser.name,
         tanggal: formData.tanggal,
         jam_masuk: formData.jamMasuk || null,
         jam_pulang: formData.jamPulang || null,
         status: 'pending',
         method: 'Manual',
-        catatan: formData.catatan || ''
+        catatan: formData.catatan || '',
+        created_at: new Date().toISOString(),
       }
 
-      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/attendance_approvals`, {
-        method: 'POST',
-        headers: {
-          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-          'Prefer': 'return=representation'
-        },
-        body: JSON.stringify(approvalData)
-      })
+      await attendanceApprovalService.createApproval(payload)
 
-      if (!res.ok) throw new Error('Gagal mengajukan presensi manual')
-
-      // Log aktivitas
-      try {
-        await addLog(dispatch, state, 'Tambah', 'Presensi Manual', `Presensi manual untuk ${selectedStaff.name} pada ${formData.tanggal} diajukan, menunggu persetujuan Superadmin`)
-      } catch { /* ignore log error */ }
+      addActivityLog(dispatch, state, 'Tambah', 'Presensi Manual',
+        `Presensi manual untuk ${selectedStaff.name} pada ${formData.tanggal} diajukan, menunggu persetujuan Superadmin`,
+        currentUser.name, currentRole, currentUser.unitId)
 
       toast.success('Presensi manual diajukan, menunggu persetujuan Superadmin')
       setFormData({ tanggal: '', jamMasuk: '', jamPulang: '', catatan: '', method: 'Manual' })
       setSelectedStaff(null)
-      loadMyApprovals()
+      loadApprovals()
     } catch (err) {
-      toast.error(err.message)
+      toast.error(err.message || 'Gagal mengajukan presensi manual')
     } finally {
       setSubmitting(false)
     }
   }
 
-  const handleCancel = (id) => {
+  const handleCancel = async (id) => {
     if (!window.confirm('Batalkan permintaan presensi manual ini?')) return
-    setSubmitting(true)
-    fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/attendance_approvals?id=eq.${id}&status=eq.pending`, {
-      method: 'DELETE',
-      headers: {
-        'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-        'Authorization': `Bearer ${state.session?.access_token || localStorage.getItem('simpres.token') || ''}`,
-      }
-    })
-      .then(() => {
-        toast.success('Permintaan presensi manual dibatalkan')
-        loadMyApprovals()
-      })
-      .catch(() => toast.error('Gagal membatalkan permintaan'))
-      .finally(() => setSubmitting(false))
+    try {
+      await attendanceApprovalService.deleteApproval(id)
+      toast.success('Permintaan presensi manual dibatalkan')
+      loadApprovals()
+    } catch (err) {
+      toast.error('Gagal membatalkan permintaan')
+    }
+  }
+
+  const statusBadge = (status) => {
+    switch (status) {
+      case 'approved': return 'bg-emerald-100 text-emerald-700'
+      case 'rejected': return 'bg-rose-100 text-rose-700'
+      default: return 'bg-amber-100 text-amber-700'
+    }
+  }
+  const statusLabel = (status) => {
+    if (status === 'pending') return 'Menunggu'
+    if (status === 'approved') return 'Disetujui'
+    return 'Ditolak'
   }
 
   return (
@@ -138,12 +153,12 @@ function AdminPresensiManualPage() {
         <div>
           <h1 className="text-2xl font-bold text-foreground">Presensi Manual</h1>
           <p className="text-muted-foreground">
-            Ajukan presensi masuk/pulang untuk pegawai. Perlu persetujuan Superadmin untuk mencegah penyalahgunaan.
+            Ajukan presensi masuk/pulang untuk pegawai. {isAdminUnit ? 'Perlu persetujuan Superadmin untuk mencegah penyalahgunaan.' : 'Kelola data presensi manual seluruh unit.'}
           </p>
         </div>
         <div className="flex gap-2">
           <button
-            onClick={() => { loadStaff(); loadMyApprovals() }}
+            onClick={() => { loadStaff(); loadApprovals() }}
             className="h-10 px-4 rounded-lg bg-muted text-foreground hover:bg-muted/80 text-sm font-medium"
           >
             Segarkan
@@ -162,7 +177,7 @@ function AdminPresensiManualPage() {
                   <label className="block text-sm font-medium text-foreground mb-1">Pegawai</label>
                   <select
                     value={selectedStaff?.id || ''}
-                    onChange={(e) => setSelectedStaff(staffList.find(s => s.id === Number(e.target.value)) || null)}
+                    onChange={(e) => setSelectedStaff(staffList.find(s => String(s.id) === e.target.value) || null)}
                     className="w-full h-10 rounded-lg border border-input bg-background px-3 text-sm focus:ring-2 focus:ring-primary"
                     disabled={submitting}
                   >
@@ -233,8 +248,8 @@ function AdminPresensiManualPage() {
 
           {/* Riwayat Permintaan */}
           <div className="bg-card p-6 rounded-xl border border-border">
-            <h2 className="text-lg font-bold text-foreground mb-4">Riwayat Permintaan Presensi Manual Saya</h2>
-            {approvalsLoading ? (
+            <h2 className="text-lg font-bold text-foreground mb-4">Riwayat Permintaan Presensi Manual</h2>
+            {loading ? (
               <div className="animate-pulse flex items-center justify-center py-8">
                 <span className="text-muted-foreground">Memuat riwayat...</span>
               </div>
@@ -248,41 +263,41 @@ function AdminPresensiManualPage() {
                   <thead>
                     <tr className="text-left border-b border-border">
                       <th className="pb-2 font-medium text-muted-foreground">Pegawai</th>
+                      <th className="pb-2 font-medium text-muted-foreground">Unit</th>
                       <th className="pb-2 font-medium text-muted-foreground">Tanggal</th>
                       <th className="pb-2 font-medium text-muted-foreground">Jam Masuk</th>
                       <th className="pb-2 font-medium text-muted-foreground">Jam Pulang</th>
                       <th className="pb-2 font-medium text-muted-foreground">Status</th>
                       <th className="pb-2 font-medium text-muted-foreground">Diajukan</th>
-                      <th className="pb-2 font-medium text-muted-foreground">Aksi</th>
+                      {isAdminUnit ? <th className="pb-2 font-medium text-muted-foreground text-center">Aksi</th> : null}
                     </tr>
                   </thead>
                   <tbody>
                     {approvals.map(a => (
                       <tr key={a.id} className="border-b border-border hover:bg-muted/50">
                         <td className="py-2 text-foreground font-medium">{a.staff_name || 'Tidak diketahui'}</td>
+                        <td className="py-2 text-muted-foreground">{a.unit_id || '-'}</td>
                         <td className="py-2 text-muted-foreground">{a.tanggal}</td>
                         <td className="py-2 text-muted-foreground">{a.jam_masuk || '-'}</td>
                         <td className="py-2 text-muted-foreground">{a.jam_pulang || '-'}</td>
                         <td className="py-2">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            a.status === 'approved' ? 'bg-emerald-100 text-emerald-700' :
-                            a.status === 'rejected' ? 'bg-rose-100 text-rose-700' :
-                            'bg-amber-100 text-amber-700'
-                          }`}>
-                            {a.status === 'pending' ? 'Menunggu' : a.status === 'approved' ? 'Disetujui' : 'Ditolak'}
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusBadge(a.status)}`}>
+                            {statusLabel(a.status)}
                           </span>
                         </td>
                         <td className="py-2 text-muted-foreground text-xs">{new Date(a.created_at).toLocaleDateString('id-ID')}</td>
-                        <td className="py-2">
-                          {a.status === 'pending' && (
-                            <button
-                              onClick={() => handleCancel(a.id)}
-                              className="px-2.5 py-1 rounded-lg bg-rose-600 text-white text-[10px] font-semibold hover:bg-rose-700"
-                            >
-                              Batalkan
-                            </button>
-                          )}
-                        </td>
+                        {isAdminUnit ? (
+                          <td className="py-2 text-center">
+                            {a.status === 'pending' && (
+                              <button
+                                onClick={() => handleCancel(a.id)}
+                                className="px-2.5 py-1 rounded-lg bg-rose-600 text-white text-[10px] font-semibold hover:bg-rose-700"
+                              >
+                                Batalkan
+                              </button>
+                            )}
+                          </td>
+                        ) : null}
                       </tr>
                     ))}
                   </tbody>
@@ -302,7 +317,7 @@ function AdminPresensiManualPage() {
               <li>Tambahkan catatan alasan presensi manual</li>
               <li>Klik "Ajukan Presensi Manual"</li>
               <li>Superadmin akan menyetujui atau menolak permintaan</li>
-              <li>Jika disetujui, data presensi akan tersimpan otomatis</li>
+              <li>Jika disetujui, data presensi akan tersimpan otomatis dan muncul di Rekap</li>
             </ol>
           </div>
           <div className="bg-amber-50 p-4 rounded-xl border border-amber-200">
@@ -315,24 +330,6 @@ function AdminPresensiManualPage() {
       </div>
     </div>
   )
-}
-
-function addLog(dispatch, state, action, target, desc) {
-  const logId = (state.logs?.length || 0) === 0 ? 1 : Math.max(0, ...(state.logs || []).map((l) => l.id)) + 1
-  const now = new Date()
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
-  const time = `${String(now.getDate()).padStart(2,'0')} ${months[now.getMonth()]} ${now.getFullYear()}, ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`
-  const log = {
-    id: logId,
-    time,
-    actor: state.currentUser?.name || 'Sistem',
-    role: state.currentUser?.role || 'Sistem',
-    unit: state.currentUser?.unitId || '-',
-    action,
-    target,
-    desc,
-  }
-  dispatch({ type: 'ADD_LOG', payload: log })
 }
 
 export default AdminPresensiManualPage

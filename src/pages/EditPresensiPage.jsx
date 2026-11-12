@@ -1,42 +1,61 @@
-import { useState, useEffect } from 'react'
-import { useSimPres } from '../store/simPresStore.jsx'
+import { useState, useEffect, useCallback } from 'react'
+import {
+  useSimPres,
+  selectScopedStaff,
+  selectCurrentUser,
+  selectCurrentUserRole,
+  selectActiveUnitId,
+  addActivityLog,
+} from '../store/simPresStore.jsx'
+import { attendanceApprovalService } from '../services/attendanceApprovalService.js'
 import { toast } from 'react-hot-toast'
+import { calculateAttendanceStatus } from '../data/jamKerja.js'
 
 function EditPresensiPage() {
   const { state, dispatch } = useSimPres()
+  const currentUser = selectCurrentUser(state)
+  const currentRole = selectCurrentUserRole(state)
+  const activeUnitId = selectActiveUnitId(state)
+  const isSuperadmin = currentRole === 'Superadmin'
+
   const [attendance, setAttendance] = useState([])
+  const [staffMap, setStaffMap] = useState(new Map())
   const [editing, setEditing] = useState(null)
   const [editData, setEditData] = useState({})
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(new Set())
 
-  useEffect(() => {
-    loadAttendance()
-  }, [])
+  const loadStaff = useCallback(() => {
+    const scoped = selectScopedStaff(state)
+    const map = new Map(scoped.map((s) => [s.id, s]))
+    setStaffMap(map)
+  }, [state])
 
-  const loadAttendance = async () => {
+  const loadAttendance = useCallback(async () => {
+    setLoading(true)
     try {
-      setLoading(true)
-      const activeUnitId = state.selectedUnitId || state.currentUser?.unitId || 'sd'
-      const token = state.session?.access_token || localStorage.getItem('simpres.token') || ''
-      const url = state.selectedUnitId === 'all' || state.selectedUnitId === 'Semua Unit'
-        ? `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/attendance?order=tanggal.desc`
-        : `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/attendance?unit_id=eq.${activeUnitId}&order=tanggal.desc`
-      const res = await fetch(url, {
-        headers: {
-          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${token}`,
-        }
-      })
-      const data = await res.json()
-      setAttendance(data || [])
+      const data = await attendanceApprovalService.listAttendance({ order: 'tanggal.desc' })
+      const rows = Array.isArray(data) ? data : []
+
+      let filtered = rows
+      if (!isSuperadmin && activeUnitId) {
+        filtered = rows.filter((a) => (a.unit_id || a.unitId) === activeUnitId)
+      }
+
+      loadStaff()
+      setAttendance(filtered)
     } catch (err) {
       toast.error('Gagal memuat data presensi')
+      console.error(err)
     } finally {
       setLoading(false)
     }
-  }
+  }, [state, isSuperadmin, activeUnitId, loadStaff])
+
+  useEffect(() => {
+    loadAttendance()
+  }, [loadAttendance])
 
   const startEdit = (record) => {
     setEditing(record.id)
@@ -44,54 +63,100 @@ function EditPresensiPage() {
       jam_masuk: record.jam_masuk || '',
       jam_pulang: record.jam_pulang || '',
       status: record.status || 'Tepat Waktu',
-      catatan: record.catatan || ''
+      catatan: record.catatan || '',
+      method: record.method || 'Manual',
+      late_minutes: record.late_minutes != null ? record.late_minutes : '',
     })
   }
 
   const saveEdit = async (id) => {
     setSaving(true)
     try {
-      const token = state.session?.access_token || localStorage.getItem('simpres.token') || ''
-      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/attendance?id=eq.${id}`, {
-        method: 'PATCH',
-        headers: {
-          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-          'Prefer': 'return=representation'
-        },
-        body: JSON.stringify({
-          ...editData,
-          updated_at: new Date().toISOString(),
-          edited_by: state.currentUser.id
-        })
+      const record = attendance.find((a) => a.id === id || String(a.id) === String(id))
+      if (!record) throw new Error('Data presensi tidak ditemukan')
+
+      const staff = staffMap.get(record.staff_id || record.staffId)
+      const tanggal = record.tanggal
+      const jamMasuk = editData.jam_masuk || null
+      const jamPulang = editData.jam_pulang || null
+      const lateMinutesInput = editData.late_minutes != null ? Number(editData.late_minutes) : null
+      const hasil = calculateAttendanceStatus(new Date(tanggal), jamMasuk, {
+        jamPulang,
+        lateMinutes: lateMinutesInput != null ? lateMinutesInput : undefined,
       })
 
-      if (!res.ok) throw new Error('Gagal menyimpan perubahan')
+      const changes = {
+        jam_masuk: jamMasuk,
+        jam_pulang: jamPulang,
+        status: editData.status || hasil.status,
+        catatan: editData.catatan || '',
+        method: editData.method || 'Manual',
+        late_minutes: hasil.lateMinutes,
+        updated_at: new Date().toISOString(),
+        edited_by: currentUser.id,
+      }
 
-      // Log aktivitas
-      try {
-        const logId = (state.logs?.length || 0) === 0 ? 1 : Math.max(0, ...(state.logs || []).map((l) => l.id)) + 1
-        const now = new Date()
-        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
-        const time = `${String(now.getDate()).padStart(2,'0')} ${months[now.getMonth()]} ${now.getFullYear()}, ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`
-        dispatch({ type: 'ADD_LOG', payload: {
-          id: logId,
-          time,
-          actor: state.currentUser?.name || 'Sistem',
-          role: state.currentUser?.role || 'Sistem',
-          unit: state.currentUser?.unitId || '-',
-          action: 'Ubah',
-          target: 'Presensi',
-          desc: `Edit data presensi ID ${id}: ${editData.jam_masuk || '-'} s/d ${editData.jam_pulang || '-'} (${editData.status})`
-        }})
-      } catch { /* ignore */ }
+      await attendanceApprovalService.patchAttendance(id, changes)
+
+      const historyEntry = {
+        id: `edit-${id}-${tanggal}`,
+        staffId: record.staff_id || record.staffId,
+        unitId: record.unit_id || record.unitId,
+        name: staff ? staff.name : (record.staff_name || '-'),
+        niy: staff ? staff.niy : (record.staff_niy || '-'),
+        role: staff ? staff.role : (record.staff_role || '-'),
+        date: tanggal,
+        tanggal,
+        hari: hasil.hari,
+        jamKerja: hasil.jamKerja,
+        jamMasuk: hasil.jamMasuk,
+        jamPulang: hasil.jamPulang,
+        masuk: jamMasuk,
+        pulang: jamPulang,
+        method: changes.method,
+        lateMinutes: hasil.lateMinutes,
+        status: changes.status,
+        source: 'manual_edit',
+        editId: id,
+        updatedAt: new Date().toISOString(),
+      }
+      dispatch({ type: 'ADD_ATTENDANCE_HISTORY', payload: historyEntry })
+
+      const today = new Date().toISOString().slice(0, 10)
+      if (tanggal === today) {
+        const staffRecord = state.staff.find(
+          (s) => s.id === record.staff_id || s.id === record.staffId
+        )
+        if (staffRecord) {
+          dispatch({
+            type: 'UPDATE_STAFF',
+            payload: {
+              id: staffRecord.id,
+              masuk: jamMasuk,
+              pulang: jamPulang,
+              method: changes.method,
+              lateMinutes: hasil.lateMinutes,
+            },
+          })
+        }
+      }
+
+      addActivityLog(
+        dispatch,
+        state,
+        'Ubah',
+        'Presensi',
+        `Edit data presensi ${staff ? staff.name : record.staff_name} pada ${tanggal}: ${jamMasuk || '-'} s/d ${jamPulang || '-'} (${changes.status})`,
+        currentUser.name,
+        currentRole,
+        currentUser.unitId
+      )
 
       toast.success('Data presensi berhasil diperbarui')
       setEditing(null)
       loadAttendance()
     } catch (err) {
-      toast.error(err.message)
+      toast.error(err.message || 'Gagal menyimpan perubahan')
     } finally {
       setSaving(false)
     }
@@ -100,25 +165,35 @@ function EditPresensiPage() {
   const deleteAttendance = async (id) => {
     if (!window.confirm('Yakin ingin menghapus data presensi ini? Tindakan tidak dapat dibatalkan.')) return
 
-    setDeleting(prev => new Set([...prev, id]))
+    const record = attendance.find((a) => a.id === id || String(a.id) === String(id))
+    if (!record) return
+
+    setDeleting((prev) => new Set([...prev, id]))
     try {
-      const token = state.session?.access_token || localStorage.getItem('simpres.token') || ''
-      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/attendance?id=eq.${id}`, {
-        method: 'DELETE',
-        headers: {
-          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${token}`,
-        }
+      await attendanceApprovalService.deleteAttendance(id)
+
+      dispatch({
+        type: 'REMOVE_ATTENDANCE_HISTORY',
+        payload: { staffId: record.staff_id || record.staffId, date: record.tanggal },
       })
 
-      if (!res.ok) throw new Error('Gagal menghapus data presensi')
+      addActivityLog(
+        dispatch,
+        state,
+        'Hapus',
+        'Presensi',
+        `Hapus data presensi ${record.staff_name || '-'} pada ${record.tanggal}`,
+        currentUser.name,
+        currentRole,
+        currentUser.unitId
+      )
 
       toast.success('Data presensi berhasil dihapus')
       loadAttendance()
     } catch (err) {
-      toast.error(err.message)
+      toast.error(err.message || 'Gagal menghapus data presensi')
     } finally {
-      setDeleting(prev => {
+      setDeleting((prev) => {
         const next = new Set(prev)
         next.delete(id)
         return next
@@ -128,12 +203,18 @@ function EditPresensiPage() {
 
   const statusColor = (status) => {
     switch (status) {
-      case 'Tepat Waktu': return 'bg-emerald-100 text-emerald-700'
-      case 'Terlambat': return 'bg-amber-100 text-amber-700'
-      case 'Alpha': return 'bg-rose-100 text-rose-700'
-      case 'Izin': return 'bg-blue-100 text-blue-700'
-      case 'Sakit': return 'bg-purple-100 text-purple-700'
-      default: return 'bg-muted text-foreground'
+      case 'Tepat Waktu':
+        return 'bg-emerald-100 text-emerald-700'
+      case 'Terlambat':
+        return 'bg-amber-100 text-amber-700'
+      case 'Alpha':
+        return 'bg-rose-100 text-rose-700'
+      case 'Izin':
+        return 'bg-blue-100 text-blue-700'
+      case 'Sakit':
+        return 'bg-purple-100 text-purple-700'
+      default:
+        return 'bg-muted text-foreground'
     }
   }
 
@@ -141,9 +222,10 @@ function EditPresensiPage() {
     <div className="px-space-xl py-space-lg">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Edit & Hapus Presensi</h1>
+          <h1 className="text-2xl font-bold text-foreground">Edit &amp; Hapus Presensi</h1>
           <p className="text-muted-foreground">
-            Koreksi data presensi yang salah tercatat. Hanya Superadmin dan Admin Unit berwenang.
+            Koreksi data presensi yang salah tercatat.{' '}
+            {isSuperadmin ? 'Seluruh unit.' : 'Hanya pegawai unit Anda.'} Perubahan langsung tercatat ke Rekap.
           </p>
         </div>
         <button
@@ -177,11 +259,14 @@ function EditPresensiPage() {
               </tr>
             </thead>
             <tbody>
-              {attendance.map(a => {
+              {attendance.map((a) => {
+                const staff = staffMap.get(a.staff_id || a.staffId)
                 const isEditing = editing === a.id
                 return (
                   <tr key={a.id} className="border-b border-border hover:bg-muted/50">
-                    <td className="py-3 text-foreground font-medium">{a.staff_name || 'Tidak diketahui'}</td>
+                    <td className="py-3 text-foreground font-medium">
+                      {staff ? staff.name : a.staff_name || 'Tidak diketahui'}
+                    </td>
                     <td className="py-3 text-muted-foreground">{a.tanggal}</td>
                     <td className="py-3 text-muted-foreground">{a.jam_masuk || '-'}</td>
                     <td className="py-3 text-muted-foreground">{a.jam_pulang || '-'}</td>
@@ -234,18 +319,23 @@ function EditPresensiPage() {
         </div>
       )}
 
-      {/* Edit Form Overlay */}
       {editing && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
           <div className="bg-card p-6 rounded-xl border border-border max-w-md w-full">
             <h2 className="text-lg font-bold text-foreground mb-4">Edit Presensi</h2>
-            <form onSubmit={(e) => { e.preventDefault(); saveEdit(editing) }} className="space-y-4">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault()
+                saveEdit(editing)
+              }}
+              className="space-y-4"
+            >
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1">Jam Masuk</label>
                 <input
                   type="time"
                   value={editData.jam_masuk}
-                  onChange={(e) => setEditData({...editData, jam_masuk: e.target.value})}
+                  onChange={(e) => setEditData({ ...editData, jam_masuk: e.target.value })}
                   className="w-full h-10 rounded-lg border border-input bg-background px-3 text-sm focus:ring-2 focus:ring-primary"
                   disabled={saving}
                 />
@@ -255,7 +345,7 @@ function EditPresensiPage() {
                 <input
                   type="time"
                   value={editData.jam_pulang}
-                  onChange={(e) => setEditData({...editData, jam_pulang: e.target.value})}
+                  onChange={(e) => setEditData({ ...editData, jam_pulang: e.target.value })}
                   className="w-full h-10 rounded-lg border border-input bg-background px-3 text-sm focus:ring-2 focus:ring-primary"
                   disabled={saving}
                 />
@@ -264,7 +354,7 @@ function EditPresensiPage() {
                 <label className="block text-sm font-medium text-foreground mb-1">Status</label>
                 <select
                   value={editData.status}
-                  onChange={(e) => setEditData({...editData, status: e.target.value})}
+                  onChange={(e) => setEditData({ ...editData, status: e.target.value })}
                   className="w-full h-10 rounded-lg border border-input bg-background px-3 text-sm focus:ring-2 focus:ring-primary"
                   disabled={saving}
                 >
@@ -276,10 +366,20 @@ function EditPresensiPage() {
                 </select>
               </div>
               <div>
+                <label className="block text-sm font-medium text-foreground mb-1">Keterlambatan (menit)</label>
+                <input
+                  type="number"
+                  value={editData.late_minutes}
+                  onChange={(e) => setEditData({ ...editData, late_minutes: e.target.value })}
+                  className="w-full h-10 rounded-lg border border-input bg-background px-3 text-sm focus:ring-2 focus:ring-primary"
+                  disabled={saving}
+                />
+              </div>
+              <div>
                 <label className="block text-sm font-medium text-foreground mb-1">Catatan</label>
                 <textarea
                   value={editData.catatan}
-                  onChange={(e) => setEditData({...editData, catatan: e.target.value})}
+                  onChange={(e) => setEditData({ ...editData, catatan: e.target.value })}
                   rows={3}
                   className="w-full h-32 rounded-lg border border-input bg-background px-3 text-sm focus:ring-2 focus:ring-primary"
                   disabled={saving}

@@ -70,7 +70,7 @@ export const PERMISSION_MATRIX = {
     presensi: ['view', 'add', 'edit'],
     presensiManual: ['view', 'add'],
     attendanceApprovals: [],
-    editPresensi: [],
+    editPresensi: ['view', 'edit', 'delete'],
     rekapLaporan: ['view'],
     rankingKehadiran: ['view'],
     pengajuanIzinCuti: ['view', 'add', 'edit'],
@@ -378,6 +378,9 @@ export const ROUTE_MENU_KEYS = {
   '/cetak-kartu-id': 'cetakKartuId',
   '/presensi': 'presensi',
   '/presensi-scan': 'presensi',
+  '/presensi-manual': 'presensiManual',
+  '/attendance-approvals': 'attendanceApprovals',
+  '/edit-presensi': 'editPresensi',
   '/rekap-dan-laporan': 'rekapLaporan',
   '/ranking-kehadiran': 'rankingKehadiran',
   '/pengajuan-izin-dan-cuti': 'pengajuanIzinCuti',
@@ -396,7 +399,10 @@ export const ROUTE_ROLES = {
   '/unit-sd-islam-rj': [ROLE_SUPERADMIN],
   '/manajemen-admin-user': [ROLE_SUPERADMIN],
   '/pengaturan-global': [ROLE_SUPERADMIN],
+  '/attendance-approvals': [ROLE_SUPERADMIN],
   '/cetak-kartu-id': [ROLE_SUPERADMIN, ROLE_ADMIN_UNIT],
+  '/presensi-manual': [ROLE_SUPERADMIN, ROLE_ADMIN_UNIT],
+  '/edit-presensi': [ROLE_SUPERADMIN, ROLE_ADMIN_UNIT],
   // Seluruh prefix /mobile untuk Guru/Pegawai dan Kepala Sekolah.
   '/mobile': [ROLE_GURU, ROLE_KEPALA_SEKOLAH],
 }
@@ -420,8 +426,8 @@ export function appModeOfRole(role) {
 export const ROLE_HOME_CANDIDATES = {
   // Superadmin tetap memakai dashboard desktop; '/superadmin' dipertahankan
   // sebagai halaman khusus Superadmin (bookmark lama) dan kandidat cadangan.
-  [ROLE_SUPERADMIN]: ['/dashboard', '/superadmin', '/manajemen-admin-user', '/unit-sd-islam-rj', '/data-guru-dan-pegawai', '/cetak-kartu-id', '/presensi', '/rekap-dan-laporan', '/pengaturan-global', '/log-aktivitas'],
-  [ROLE_ADMIN_UNIT]: ['/dashboard', '/data-guru-dan-pegawai', '/cetak-kartu-id', '/presensi', '/pengajuan-izin-dan-cuti', '/rekap-dan-laporan', '/ranking-kehadiran', '/log-aktivitas'],
+  [ROLE_SUPERADMIN]: ['/dashboard', '/superadmin', '/manajemen-admin-user', '/unit-sd-islam-rj', '/data-guru-dan-pegawai', '/cetak-kartu-id', '/presensi', '/presensi-manual', '/attendance-approvals', '/edit-presensi', '/rekap-dan-laporan', '/pengaturan-global', '/log-aktivitas'],
+  [ROLE_ADMIN_UNIT]: ['/dashboard', '/data-guru-dan-pegawai', '/cetak-kartu-id', '/presensi', '/presensi-manual', '/edit-presensi', '/pengajuan-izin-dan-cuti', '/rekap-dan-laporan', '/ranking-kehadiran', '/log-aktivitas'],
   // Guru/Pegawai hanya membuka aplikasi mobile; kandidat portal yang tersisa
   // dipakai hanya bila someday modul mobile ditutup untuk sebagian akun.
   [ROLE_GURU]: ['/mobile/home', '/mobile/presensi', '/mobile/riwayat', '/mobile/profil', '/mobile/slip', '/mobile/izin-cuti', '/mobile/kartu-id', '/mobile/qr'],
@@ -490,6 +496,7 @@ export const PERSISTED_UNITS_KEY = 'simpres.units'
 export const PERSISTED_SETTINGS_KEY = 'simpres.settings'
 export const PERSISTED_STAFF_KEY = 'simpres.staff'
 export const PERSISTED_LEAVES_KEY = 'simpres.leaves'
+export const PERSISTED_ATTENDANCE_HISTORY_KEY = 'simpres.attendanceHistory'
 
 export function readPersistedItem(key, fallback) {
   if (typeof window === 'undefined') return fallback
@@ -636,7 +643,7 @@ function buildInitialAttendanceHistory(staff, trend30) {
   return history
 }
 
-const initialAttendanceHistory = []
+const initialAttendanceHistory = readPersistedItem(PERSISTED_ATTENDANCE_HISTORY_KEY, [])
 
 // Unit awal untuk sebuah akun: Superadmin mulai dari "Semua Unit",
 // role lain langsung terkunci ke unit yang melekat pada akunnya.
@@ -651,6 +658,7 @@ const initialState = {
   units: initialUnits,
   leaves: initialLeaves,
   adminUsers: ADMIN_USERS,
+  attendanceApprovals: [],
   // Tabel employee_card. Satu baris per pegawai; isinya hanya metadata
   // penerbitan kartu (QR, barcode, masa berlaku, riwayat cetak). Identitas,
   // jabatan, unit, dan foto TIDAK disalin di sini — kartu membacanya langsung
@@ -1295,6 +1303,69 @@ logs: [
         map.set(key, existing ? { ...existing, ...r } : r)
       })
       return { ...state, attendanceHistory: Array.from(map.values()) }
+    }
+    case 'ADD_ATTENDANCE_HISTORY': {
+      // Menambahkan riwayat presensi baru (mis. hasil persetujuan presensi manual
+      // atau edit presensi) sehingga Rekap/Ranking/Monitoring langsung terupdate.
+      const entry = {
+        ...action.payload,
+        id: action.payload.id || Date.now(),
+        date: action.payload.date || action.payload.tanggal,
+        tanggal: action.payload.tanggal || action.payload.date,
+        staffId: action.payload.staffId,
+        unitId: action.payload.unitId,
+        createdAt: action.payload.createdAt || new Date().toISOString(),
+      }
+      const next = [entry, ...(state.attendanceHistory || [])]
+      writePersistedItem(PERSISTED_ATTENDANCE_HISTORY_KEY, next)
+      return { ...state, attendanceHistory: next }
+    }
+    case 'UPDATE_ATTENDANCE_HISTORY': {
+      const next = (state.attendanceHistory || []).map((h) =>
+        h.staffId === action.payload.staffId && h.date === action.payload.date
+          ? { ...h, ...action.payload.changes }
+          : h
+      )
+      writePersistedItem(PERSISTED_ATTENDANCE_HISTORY_KEY, next)
+      return { ...state, attendanceHistory: next }
+    }
+    case 'REMOVE_ATTENDANCE_HISTORY': {
+      const next = (state.attendanceHistory || []).filter(
+        (h) => !(h.staffId === action.payload.staffId && h.date === action.payload.date)
+      )
+      writePersistedItem(PERSISTED_ATTENDANCE_HISTORY_KEY, next)
+      return { ...state, attendanceHistory: next }
+    }
+    case 'SYNC_ATTENDANCE_APPROVALS': {
+      const remote = action.payload || []
+      if (!Array.isArray(remote)) return state
+      const map = new Map((state.attendanceApprovals || []).map((a) => [a.id, a]))
+      remote.forEach((r) => map.set(r.id, { ...r }))
+      return { ...state, attendanceApprovals: Array.from(map.values()) }
+    }
+    case 'UPDATE_ATTENDANCE_APPROVAL_STATUS': {
+      const next = (state.attendanceApprovals || []).map((a) =>
+        a.id === action.payload.id ? { ...a, ...action.payload.changes } : a
+      )
+      return { ...state, attendanceApprovals: next }
+    }
+    case 'UPDATE_STAFF': {
+      // Digunakan EditPresensiPage untuk sinkronisasi masuk/pulang/method/lateMinutes
+      // pada baris pegawai agar monitoring dan dashboard hari ini langsung reflect.
+      return {
+        ...state,
+        staff: state.staff.map((s) =>
+          s.id === action.payload.id
+            ? {
+                ...s,
+                ...(action.payload.masuk !== null ? { masuk: action.payload.masuk } : {}),
+                ...(action.payload.pulang !== null ? { pulang: action.payload.pulang } : {}),
+                ...(action.payload.method !== undefined ? { method: action.payload.method } : {}),
+                ...(action.payload.lateMinutes != null ? { lateMinutes: action.payload.lateMinutes } : {}),
+              }
+            : s
+        ),
+      }
     }
     case 'LOGOUT':
       // Reset sesi/auth saja: data domain tetap utuh di memori (aman karena
@@ -3375,4 +3446,107 @@ export function hasMenuPermission(state, menuKey) {
 
 export function getVisibleMenuKeys(state) {
   return MENU_OPTIONS.filter((menu) => hasMenuPermission(state, menu.key)).map((m) => m.key)
+}
+
+// ===== ATTENDANCE HISTORY / APPROVAL SELECTORS =====
+// Sumber kebenaran riwayat presensi untuk Rekap/Ranking/Monitoring. Setiap
+// approval disetujui atau edit presensi harus menambah/update entri di sini.
+
+export function selectAttendanceHistory(state) {
+  return state.attendanceHistory || []
+}
+
+export function selectAttendanceHistoryByStaffDate(state, staffId, date) {
+  return (state.attendanceHistory || []).find((h) => h.staffId === staffId && h.date === date) || null
+}
+
+export function selectAttendanceApprovals(state) {
+  return state.attendanceApprovals || []
+}
+
+export function selectPendingApprovals(state) {
+  return (state.attendanceApprovals || []).filter((a) => a.status === 'pending')
+}
+
+export function selectApprovalById(state, id) {
+  return (state.attendanceApprovals || []).find((a) => a.id === id) || null
+}
+
+export function selectApprovalsByStaff(state, staffId) {
+  return (state.attendanceApprovals || []).filter((a) => a.staff_id === staffId || a.staffId === staffId)
+}
+
+export function selectApprovalsByUnit(state, unitId) {
+  return (state.attendanceApprovals || []).filter((a) => a.unit_id === unitId || a.unitId === unitId)
+}
+
+/**
+ * Build entri riwayat presensi dari approval yang disetujui, sesuai format
+ * attendanceHistory agar Rekap dan Ranking langsung terbaca.
+ */
+export function buildAttendanceHistoryEntryFromApproval(approval, staff) {
+  const tanggal = approval.tanggal
+  const jamMasuk = approval.jam_masuk || null
+  const jamPulang = approval.jam_pulang || null
+  const rules = jamKerjaRules(new Date(tanggal), staff?.unitId, approval.settings)
+  const hasil = calculateAttendanceStatus(new Date(tanggal), jamMasuk)
+  return {
+    id: `approval-${approval.id}`,
+    staffId: staff ? staff.id : approval.staff_id,
+    unitId: staff ? staff.unitId : approval.unit_id,
+    name: staff ? staff.name : (approval.staff_name || '-'),
+    niy: staff ? staff.niy : (approval.staff_niy || '-'),
+    role: staff ? staff.role : (approval.staff_role || '-'),
+    date: tanggal,
+    tanggal,
+    hari: rules.hari,
+    jamKerja: rules.jamKerja,
+    jamMasuk: rules.jamMasuk,
+    jamPulang: rules.jamPulang,
+    masuk: jamMasuk,
+    pulang: jamPulang,
+    method: 'Manual',
+    lateMinutes: hasil.lateMinutes,
+    status: hasil.status,
+    source: 'manual_approval',
+    approvalId: approval.id,
+    createdAt: approval.created_at || new Date().toISOString(),
+  }
+}
+
+/**
+ * Build entri riwayat presensi dari hasil edit presensi (pada tabel attendance).
+ * Cocokkan format history agar Rekap/Ranking tidak beda.
+ */
+export function buildAttendanceHistoryEntryFromEdit(record, staff) {
+  const tanggal = record.tanggal
+  const jamMasuk = record.jam_masuk || null
+  const jamPulang = record.jam_pulang || null
+  const rules = jamKerjaRules(new Date(tanggal), staff?.unitId, record.settings)
+  const hasil = calculateAttendanceStatus(new Date(tanggal), jamMasuk, {
+    jamPulang,
+    lateMinutes: record.late_minutes != null ? record.late_minutes : hasil.lateMinutes,
+  })
+  return {
+    id: `edit-${record.id || record.staff_id}-${tanggal}`,
+    staffId: staff ? staff.id : record.staff_id,
+    unitId: staff ? staff.unitId : record.unit_id,
+    name: staff ? staff.name : (record.staff_name || '-'),
+    niy: staff ? staff.niy : (record.staff_niy || '-'),
+    role: staff ? staff.role : (record.staff_role || '-'),
+    date: tanggal,
+    tanggal,
+    hari: rules.hari,
+    jamKerja: rules.jamKerja,
+    jamMasuk: rules.jamMasuk,
+    jamPulang: rules.jamPulang,
+    masuk: jamMasuk,
+    pulang: jamPulang,
+    method: record.method || 'Manual',
+    lateMinutes: record.late_minutes != null ? record.late_minutes : hasil.lateMinutes,
+    status: record.status || hasil.status,
+    source: 'manual_edit',
+    editId: record.id,
+    updatedAt: record.updated_at || new Date().toISOString(),
+  }
 }
