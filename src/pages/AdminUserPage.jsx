@@ -135,9 +135,11 @@ function AdminUserPage() {
     if (!form.email.trim()) e.email = 'Email wajib diisi'
     else if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email)) e.email = 'Format email tidak valid'
     if (!form.username.trim()) e.username = 'Username wajib diisi'
-    // NIY opsional - boleh kosong, boleh diisi
-    if (form.niy && form.niy.trim() && !/^\d+$/.test(form.niy.trim())) e.niy = 'NIY harus berupa angka'
-    if (!form.role) e.role = 'Role wajib dipilih'
+    // NIY wajib untuk peran yang berasosiasi langsung dengan data pegawai (login akun mobile).
+    const niyWajib = form.role === 'Guru' || form.role === 'Kepala Sekolah';
+    if (niyWajib && !form.niy.trim()) e.niy = 'NIY wajib diisi untuk peran ini.';
+    if (form.niy && form.niy.trim() && !/^\d+$/.test(form.niy.trim())) e.niy = 'NIY harus berupa angka';
+    if (!form.role) e.role = 'Role wajib dipilih';
     const perluUnit = form.role === 'Admin Unit' || form.role === 'Petugas Presensi' || form.role === 'Kepala Sekolah'
     if (perluUnit && !form.unitId) e.unitId = 'Unit penugasan wajib dipilih'
     setFormErrors(e)
@@ -851,9 +853,9 @@ function AdminUserPage() {
                 </div>
               </div>
 
-              <p className="text-[11px] text-muted-foreground -mt-1.5">
-                Pilihan unit wajib untuk akun dengan peran <strong className="text-foreground font-semibold">Admin Unit</strong> dan <strong className="text-foreground font-semibold">Guru/Pegawai</strong>.
-              </p>
+                <p className="text-[11px] text-muted-foreground -mt-1.5">
+                  Pilihan unit wajib untuk akun dengan peran <strong className="text-foreground font-semibold">Admin Unit</strong> dan <strong className="text-foreground font-semibold">Petugas Presensi</strong>; NIY wajib untuk peran <strong className="text-foreground font-semibold">Guru/Pegawai</strong> dan <strong className="text-foreground font-semibold">Kepala Sekolah</strong> agar akun login dapat dibuat.
+                </p>
 
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-semibold text-foreground">

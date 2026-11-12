@@ -497,6 +497,8 @@ export const PERSISTED_SETTINGS_KEY = 'simpres.settings'
 export const PERSISTED_STAFF_KEY = 'simpres.staff'
 export const PERSISTED_LEAVES_KEY = 'simpres.leaves'
 export const PERSISTED_ATTENDANCE_HISTORY_KEY = 'simpres.attendanceHistory'
+export const PERSISTED_ADMIN_USERS_KEY = 'simpres.adminUsers'
+export const PERSISTED_USER_ACCOUNTS_KEY = 'simpres.userAccounts'
 
 export function readPersistedItem(key, fallback) {
   if (typeof window === 'undefined') return fallback
@@ -573,7 +575,26 @@ export function getInitialStaff() {
   })
 }
 
+/** Inisialisasi daftar admin user: prioritas data yang tersimpan, fallback ke seed. */
+function getInitialAdminUsers() {
+  const saved = readPersistedItem(PERSISTED_ADMIN_USERS_KEY, null)
+  if (Array.isArray(saved) && saved.length > 0) return saved
+  return ADMIN_USERS
+}
+
+/** Inisialisasi user accounts: gabungkan akun hasil build dari staff dengan data tersimpan. */
+function getInitialUserAccounts(staffList) {
+  const saved = readPersistedItem(PERSISTED_USER_ACCOUNTS_KEY, null)
+  const built = buildUserAccounts(staffList || [])
+  const byKey = new Map()
+  ;(built || []).forEach((a) => byKey.set(a.pegawaiId ?? a.niy, a))
+  ;(saved || []).forEach((a) => byKey.set(a.pegawaiId ?? a.niy, a))
+  return [...byKey.values()]
+}
+
 const initialStaff = getInitialStaff()
+const initialAdminUsers = getInitialAdminUsers()
+const initialUserAccounts = getInitialUserAccounts(initialStaff)
 const initialLeaves = readPersistedItem(PERSISTED_LEAVES_KEY, [])
 const initialUnits = getInitialUnits()
 const initialSettings = getInitialSettings()
@@ -657,7 +678,7 @@ const initialState = {
   staff: initialStaff,
   units: initialUnits,
   leaves: initialLeaves,
-  adminUsers: ADMIN_USERS,
+  adminUsers: initialAdminUsers,
   attendanceApprovals: [],
   // Tabel employee_card. Satu baris per pegawai; isinya hanya metadata
   // penerbitan kartu (QR, barcode, masa berlaku, riwayat cetak). Identitas,
@@ -672,7 +693,7 @@ const initialState = {
   // Kredensial hasil penggantian disimpan di tabel yang sama (lihat
   // buildUserAccount), jadi hanya ada satu sumber kebenaran untuk kredensial
   // pegawai — tidak ada lagi tabel terpisah per pegawai.
-  userAccounts: buildUserAccounts(initialStaff),
+  userAccounts: initialUserAccounts,
   logs: INITIAL_LOGS,
   settings: initialSettings,
   weeklyTrend: WEEKLY_TREND,
@@ -1117,21 +1138,27 @@ logs: [
       // dibuat dari Manajemen Admin & User langsung punya relasi pegawai + akun
       // mobile yang benar.
       const payload = { ...action.payload, role: normalisasiRole(action.payload.role) }
-      const staffBaru = syncStaffFromAdminUser(state.staff, payload, 'add').find(
-        (s) => s.niy === payload.niy && !state.staff.some((x) => x.niy === payload.niy),
-      )
+      const nextStaff = syncStaffFromAdminUser(state.staff, payload, 'add')
+      const targetStaff = payload.niy ? nextStaff.find((s) => s.niy === payload.niy) : null
+      const isMobileRole = payload.role === ROLE_GURU_PEGAWAI || payload.role === ROLE_KEPALA_SEKOLAH
+      const nextAdminUsers = [...state.adminUsers, payload]
+      const nextUserAccounts = (targetStaff && isMobileRole)
+        ? upsertUserAccount(state.userAccounts, targetStaff, {
+            action: 'add',
+            role: payload.role,
+            password: payload.password,
+            mustChangePassword: payload.mustChangePassword,
+          })
+        : state.userAccounts
+      writePersistedItem(PERSISTED_ADMIN_USERS_KEY, nextAdminUsers)
+      writePersistedItem(PERSISTED_USER_ACCOUNTS_KEY, nextUserAccounts)
       return {
         ...state,
-        adminUsers: [...state.adminUsers, payload],
-        staff: syncStaffFromAdminUser(state.staff, payload, 'add'),
-        userAccounts: staffBaru
-          ? upsertUserAccount(state.userAccounts, staffBaru, {
-              action: 'add',
-              role: payload.role,
-              password: payload.password,
-              mustChangePassword: payload.mustChangePassword,
-            })
-          : state.userAccounts,
+        adminUsers: nextAdminUsers,
+        staff: nextStaff,
+        // Akun login mobile dibuat/diperbarui untuk Guru & Kepala Sekolah
+        // (berpatokan NIY), baik staff-nya baru maupun sudah ada di master data.
+        userAccounts: nextUserAccounts,
       }
     }
     case 'UPDATE_ADMIN_USER': {
@@ -1140,27 +1167,31 @@ logs: [
       const targetUser = state.adminUsers.find((u) => u.id === payload.id)
       const targetNiy = payload.niy || targetUser?.niy
       const matchingStaff = staffSetelah.find((s) => (targetNiy && s.niy === targetNiy) || (payload.staffId && s.id === payload.staffId))
-      const shouldSyncUserAccount = (state.userAccounts || []).some((a) => (targetNiy && a.niy === targetNiy) || (payload.staffId && a.pegawaiId === payload.staffId))        || (matchingStaff && (normalisasiRole(payload.role || targetUser?.role) === ROLE_GURU_PEGAWAI || normalisasiRole(payload.role || targetUser?.role) === ROLE_KEPALA_SEKOLAH))
+      const shouldSyncUserAccount = (state.userAccounts || []).some((a) => (targetNiy && a.niy === targetNiy) || (payload.staffId && a.pegawaiId === payload.staffId)) || (matchingStaff && (normalisasiRole(payload.role || targetUser?.role) === ROLE_GURU_PEGAWAI || normalisasiRole(payload.role || targetUser?.role) === ROLE_KEPALA_SEKOLAH))
 
+      const nextAdminUsers = state.adminUsers.map((u) =>
+        u.id === payload.id ? { ...u, ...payload } : u,
+      )
+      const nextUserAccounts = shouldSyncUserAccount
+        ? upsertUserAccount(
+            state.userAccounts,
+            matchingStaff || { ...targetUser, ...payload, niy: targetNiy, id: payload.staffId ?? targetUser?.staffId ?? 0 },
+            {
+              action: 'update',
+              role: payload.role || targetUser?.role,
+              password: payload.password,
+              mustChangePassword: payload.mustChangePassword,
+            },
+          )
+        : state.userAccounts
+      writePersistedItem(PERSISTED_ADMIN_USERS_KEY, nextAdminUsers)
+      writePersistedItem(PERSISTED_USER_ACCOUNTS_KEY, nextUserAccounts)
       return {
         ...state,
-        adminUsers: state.adminUsers.map((u) =>
-          u.id === payload.id ? { ...u, ...payload } : u,
-        ),
+        adminUsers: nextAdminUsers,
         staff: staffSetelah,
-        // Akun mobile ikut diperbarui bila baris ini Manage sebuah pegawai / guru
-        userAccounts: shouldSyncUserAccount
-          ? upsertUserAccount(
-              state.userAccounts,
-              matchingStaff || { ...targetUser, ...payload, niy: targetNiy, id: payload.staffId ?? targetUser?.staffId ?? 0 },
-              {
-                action: 'update',
-                role: payload.role || targetUser?.role,
-                password: payload.password,
-                mustChangePassword: payload.mustChangePassword,
-              },
-            )
-          : state.userAccounts,
+        // Akun mobile ikut diperbarui bila baris mengelola pegawai/guru atau kepala sekolah
+        userAccounts: nextUserAccounts,
       }
     }
     case 'RESET_STAFF_PASSWORD': {
@@ -1189,17 +1220,28 @@ logs: [
           })
         : nextUserAccounts
 
+      writePersistedItem(PERSISTED_USER_ACCOUNTS_KEY, finalUserAccounts)
+
       return {
         ...state,
         userAccounts: finalUserAccounts,
       }
     }
-    case 'DELETE_ADMIN_USER':
+    case 'DELETE_ADMIN_USER': {
+      const nextAdminUsers = state.adminUsers.filter((u) => u.id !== action.payload)
+      const nextStaff = syncStaffFromAdminUser(state.staff, { id: action.payload }, 'delete')
+      const nextUserAccounts = (state.userAccounts || []).filter(
+        (a) => a.id !== `USR-${action.payload}` && !(a.niy && a.niy === state.adminUsers.find((u) => u.id === action.payload)?.niy),
+      )
+      writePersistedItem(PERSISTED_ADMIN_USERS_KEY, nextAdminUsers)
+      writePersistedItem(PERSISTED_USER_ACCOUNTS_KEY, nextUserAccounts)
       return {
         ...state,
-        adminUsers: state.adminUsers.filter((u) => u.id !== action.payload),
-        staff: syncStaffFromAdminUser(state.staff, { id: action.payload }, 'delete'),
+        adminUsers: nextAdminUsers,
+        staff: nextStaff,
+        userAccounts: nextUserAccounts,
       }
+    }
     case 'UPDATE_SETTINGS': {
       const nextSettings = {
         ...state.settings,
