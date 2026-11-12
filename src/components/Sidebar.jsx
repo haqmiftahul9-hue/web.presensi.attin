@@ -179,6 +179,7 @@ function UserMenu() {
   }
 
   const confirmLogout = () => {
+    setShowLogoutConfirm(false)
     performLogout(dispatch)
     navigate('/login', { replace: true })
   }

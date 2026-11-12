@@ -141,6 +141,7 @@ function UserMenu() {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
 
   const confirmLogout = () => {
+    setShowLogoutConfirm(false)
     performLogout(dispatch)
     navigate('/login', { replace: true })
   }

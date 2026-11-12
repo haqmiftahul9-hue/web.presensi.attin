@@ -113,6 +113,7 @@ function MobileProfilPage() {
   const [bukaEdit, setBukaEdit] = useState(false)
   const [pesan, setPesan] = useState('')
   const [konfirmasiKeluar, setKonfirmasiKeluar] = useState(false)
+  const [sedangKeluar, setSedangKeluar] = useState(false)
   const [uploadingFoto, setUploadingFoto] = useState(false)
   const fileInputRef = useRef(null)
   const registeredFace = staff ? getRegisteredFaceData(staff) : null
@@ -187,6 +188,9 @@ function MobileProfilPage() {
   }
 
   function keluar() {
+    if (sedangKeluar) return
+    setSedangKeluar(true)
+    setKonfirmasiKeluar(false)
     performLogout(dispatch)
     navigate('/login', { replace: true })
   }
@@ -541,16 +545,18 @@ function MobileProfilPage() {
                 <button
                   type="button"
                   onClick={() => setKonfirmasiKeluar(false)}
-                  className="sp-btn flex-1 min-h-[44px] py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-label-md text-label-md font-semibold rounded-xl"
+                  disabled={sedangKeluar}
+                  className="sp-btn flex-1 min-h-[44px] py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-label-md text-label-md font-semibold rounded-xl disabled:opacity-60"
                 >
                   Batal
                 </button>
                 <button
                   type="button"
                   onClick={keluar}
-                  className="sp-btn flex-1 min-h-[44px] py-2.5 bg-destructive hover:bg-destructive/90 text-white font-label-md text-label-md font-semibold rounded-xl shadow-sm"
+                  disabled={sedangKeluar}
+                  className="sp-btn flex-1 min-h-[44px] py-2.5 bg-destructive hover:bg-destructive/90 text-white font-label-md text-label-md font-semibold rounded-xl shadow-sm disabled:opacity-60"
                 >
-                  Ya, Keluar
+                  {sedangKeluar ? 'Keluar...' : 'Ya, Keluar'}
                 </button>
               </div>
             </div>

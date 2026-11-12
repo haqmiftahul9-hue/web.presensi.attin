@@ -1285,17 +1285,20 @@ logs: [
         authError: action.payload,
         authErrorCode: action.code || null,
       }
-      case 'SYNC_ATTENDANCE': {
-        const remote = action.payload || []
-        if (!Array.isArray(remote) || remote.length === 0) return state
-        const map = new Map(state.attendanceHistory.map((h) => [`${h.staffId ?? h.staff_id}-${h.tanggal}`, h]))
-        remote.forEach((r) => {
-          const key = `${r.staff_id}-${r.tanggal}`
-          const existing = map.get(key)
-          map.set(key, existing ? { ...existing, ...r } : r)
-        })
-        return { ...state, attendanceHistory: Array.from(map.values()) }
-      }
+    case 'SYNC_ATTENDANCE': {
+      const remote = action.payload || []
+      if (!Array.isArray(remote) || remote.length === 0) return state
+      const map = new Map(state.attendanceHistory.map((h) => [`${h.staffId ?? h.staff_id}-${h.tanggal}`, h]))
+      remote.forEach((r) => {
+        const key = `${r.staff_id}-${r.tanggal}`
+        const existing = map.get(key)
+        map.set(key, existing ? { ...existing, ...r } : r)
+      })
+      return { ...state, attendanceHistory: Array.from(map.values()) }
+    }
+    case 'LOGOUT':
+      // Reset sesi/auth saja: data domain tetap utuh di memori (aman karena
+      // identitas sudah dibersihkan). Konsisten dipakai performLogout & guard.
       return {
         ...state,
         currentUser: null,
@@ -1371,6 +1374,13 @@ logs: [
 // aplikasi langsung berlaku, dan akun yang sudah dihapus tidak bisa "dihidupkan"
 // lagi lewat sisa sesi di browser.
 
+// Persistensi mengikuti mode aplikasi: user mobile (Guru/Pegawai, Kepala
+// Sekolah) tetap login sampai logout eksplisit; role portal (Superadmin,
+// Admin Unit, Petugas) hanya bertahan selama sesi browser (non-persisten).
+function isMobileSessionRole(role) {
+  return appModeOfRole(normalisasiRole(role)) === MODE_MOBILE
+}
+
 function readStoredSession() {
   if (typeof window === 'undefined') return null
   const stores = []
@@ -1381,11 +1391,10 @@ function readStoredSession() {
       const raw = store.getItem(AUTH_SESSION_KEY)
       if (!raw) continue
       const parsed = JSON.parse(raw)
-      const role = parsed?.user?.role
-      const isPortal = role && role !== ROLE_GURU_PEGAWAI
-      // Akun portal tidak boleh dihidupkan dari localStorage: sesi harus
+      const mobile = isMobileSessionRole(parsed?.user?.role)
+      // Akun portal tidak boleh dipulihkan dari localStorage: sesi harus
       // dimulai ulang dari halaman login setelah perangkat/browser ditutup.
-      if (persistent && isPortal) {
+      if (persistent && !mobile) {
         try { store.removeItem(AUTH_SESSION_KEY) } catch { /* ignore */ }
         continue
       }
@@ -1402,7 +1411,8 @@ function clearStoredSession() {
 }
 
 // "Ingat saya" -> localStorage (bertahan setelah browser ditutup),
-// selain itu sessionStorage (hanya untuk tab ini saja).
+// selain itu sessionStorage (hanya untuk tab ini saja). User mobile selalu
+// persisten (abaikan toggle) sampai logout eksplisit.
 function writeStoredSession(session, remember) {
   if (typeof window === 'undefined') return
   clearStoredSession()
@@ -1670,11 +1680,11 @@ export async function performLogin({ state, dispatch, identifier, password, reme
   }
 
   const user = result.user
-  // Akun portal (superadmin/admin unit/petugas) tidak pernah disimpan ke
-  // localStorage agar sesi tidak bertahan setelah perangkat dimatikan:
-  // pengguna harus login ulang setiap kali membuka aplikasi.
-  const isPortalRole = user.role !== ROLE_GURU_PEGAWAI
-  const effectiveRemember = isPortalRole ? false : remember
+  // User mobile (Guru/Pegawai, Kepala Sekolah) selalu persisten sampai logout
+  // eksplisit agar tidak perlu login ulang. Akun portal (Superadmin/Admin
+  // Unit/Petugas) tidak pernah disimpan ke localStorage.
+  const mobileSession = isMobileSessionRole(user.role)
+  const effectiveRemember = mobileSession ? true : false
 
   // Path dihitung dari state pasca-login, bukan state lama yang currentUser-nya null.
   const loggedInState = { ...state, currentUser: user, isAuthenticated: true, selectedUnitId: initialUnitScope(user) }

@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { BrowserRouter, Navigate, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Navigate, Routes, Route, useNavigate } from 'react-router-dom'
 import {
   useSimPres, selectAppHomePath, selectIsAuthenticated, performLogout,
 } from './store/simPresStore.jsx'
@@ -151,11 +151,16 @@ function App() {
  */
 function LogoutRoute() {
   const { dispatch } = useSimPres()
+  const navigate = useNavigate()
   useEffect(() => {
     performLogout(dispatch)
-    window.location.replace('/login')
-  }, [dispatch])
-  return null
+    navigate('/login', { replace: true })
+  }, [dispatch, navigate])
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background text-muted-foreground text-sm" aria-live="polite">
+      Keluar dari akun…
+    </div>
+  )
 }
 
 /** Beranda portal: Superadmin ke /superadmin, role unit lain ke /dashboard. */

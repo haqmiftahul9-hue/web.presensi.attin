@@ -75,6 +75,7 @@ function ChangePasswordGate() {
   }
 
   const handleLogout = () => {
+    reset()
     performLogout(dispatch)
     navigate('/login', { replace: true })
   }
