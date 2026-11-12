@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react'
-import { useSimPres, selectUnitName, initialsOf, ROLE_OPTIONS, MENU_OPTIONS, PERMISSION_ACTIONS, getRolePermissions, addActivityLog, selectScopedAdminUsers, selectCanSwitchUnit, selectActiveUnitId, selectUnitOptionsById, ALL_UNITS, selectSearchTerm } from '../store/simPresStore.jsx'
+import { useSimPres, selectUnitName, initialsOf, ROLE_OPTIONS, MENU_OPTIONS, PERMISSION_ACTIONS, getRolePermissions, addActivityLog, selectScopedAdminUsers, selectCanSwitchUnit, selectActiveUnitId, selectUnitOptionsById, ALL_UNITS, selectSearchTerm, normalisasiRole, selectCurrentUser } from '../store/simPresStore.jsx'
 import ConfirmDialog from '../components/ConfirmDialog.jsx'
 import { downloadBlob } from '../utils/download.js'
 
@@ -12,6 +12,7 @@ const roleMap = {
 
 function AdminUserPage() {
   const { state, dispatch } = useSimPres()
+  const currentUser = selectCurrentUser(state)
   const searchTerm = selectSearchTerm(state)
   const [roleFilter, setRoleFilter] = useState('all')
   const [statusFilter, setStatusFilter] = useState('all')
@@ -264,7 +265,7 @@ function AdminUserPage() {
   }
 
   const resetFilters = () => {
-    setSearchTerm('')
+    dispatch({ type: 'SET_SEARCH_TERM', payload: '' })
     setRoleFilter('all')
     setUnitFilter('all')
     setStatusFilter('all')
@@ -460,7 +461,7 @@ function AdminUserPage() {
                 placeholder="Cari nama, email, atau NIY..."
                 type="text"
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => dispatch({ type: 'SET_SEARCH_TERM', payload: e.target.value })}
               />
             </div>
             <div className="relative">

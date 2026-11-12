@@ -299,7 +299,7 @@ function MonitoringPresensiPage() {
                     placeholder="Cari nama / NIY..."
                     type="text"
                     value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onChange={(e) => dispatch({ type: 'SET_SEARCH_TERM', payload: e.target.value })}
                   />
                 </div>
               </div>

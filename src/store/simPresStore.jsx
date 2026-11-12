@@ -674,7 +674,7 @@ export function initialUnitScope(user) {
   return user.unitId || ALL_UNITS
 }
 
-const initialState = {
+export const initialState = {
   staff: initialStaff,
   units: initialUnits,
   leaves: initialLeaves,
