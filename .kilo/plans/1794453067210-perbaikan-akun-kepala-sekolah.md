@@ -67,4 +67,50 @@
 ## Risiko & catatan
 - Persistensi `userAccounts` dapat mempertahankan kata sandi lama bila penggabungan dengan `buildUserAccounts(initialStaff)` tidak dikeykan dengan benar (`pegawaiId`/`niy`).
 - `selectScopedAdminUsers` (`simPresStore.jsx:3360`) menyembunyikan akun di luar unit aktif untuk non-Superadmin — perilaku sengaja, bukan bug; catat kepada user bahwa akun Kepala Sekolah di unit lain mungkin tidak muncul saat unit aktif berbeda.
+
+# ============================
+# FASE 2: Halaman Mobile Kosong Setelah Login Kepala Sekolah
+# ============================
+
+## Masalah baru (dilaporkan user)
+Setelah berhasil login sebagai Kepala Sekolah, aplikasi menampilkan bottom navigation (menus) dari `MobileLayout`, tetapi `<Outlet />` tidak merender konten halaman — tampak kosong atau menampilkan error "Data pegawai tidak ditemukan". User ingin Kepala Sekolah memiliki halaman mobile yang **sama persis** dengan Guru/Pegawai (Beranda, Presensi, Riwayat, Slip, Izin/Cuti, Profil, Kartu ID, QR) **ditambah** menu tambahan Persetujuan Izin.
+
+## Akar penyebab (kondisi saat ini)
+- Routing di `App.jsx`: SUDAH BENAR — semua rute `/mobile/*` tersedia untuk semua role mobile termasuk Kepala Sekolah.
+- Permission matrix di `simPresStore.jsx:107-128`: SUDAH BENAR — Kepala Sekolah punya `view`/`edit` untuk semua menu mobile incl. `pengajuanIzinCuti: ['view', 'edit']`.
+- Bottom nav di `MobileLayout.jsx:23-29`: SUDAH BENAR — menambah menu Persetujuan untuk `ROLE_KEPALA_SEKOLAH`.
+- `selectSelfStaffId` (`simPresStore.jsx:3204-3213`): mencari staff lewat `user.staffId` → `user.pegawaiId` → NIY match. Jika akun Kepala Sekolah tidak punya `pegawaiId`/`staffId` dan NIY kosong/tidak cocok, returns `null`.
+- `MobileBerandaPage.jsx:109-120`: jika `!staff || !presensi`, render `ErrorState` "Data pegawai tidak ditemukan" — ini bukan halaman beranda yang diharapkan user.
+- Akun Kepala Sekolah yang dibuat **sebelum** perbaikan Fase 1 (NIY wajib + sync userAccount) mungkin tidak memiliki `userAccount` yang terhubung ke staff, sehingga `selectSelfStaffId` returns `null`.
+
+## Tugas perbaikan Fase 2
+
+### T7 — Pastikan akun Kepala Sekolah terhubung ke data staff (`simPresStore.jsx`)
+- Saat `findAccountByIdentifier` menemukan `adminUser` dengan role `Kepala Sekolah` (atau `Guru`), pastikan `staffId` dan `pegawaiId` diisi dengan ID staff yang sesuai (berdasarkan NIY match terhadap `state.staff`).
+- Ini memastikan `selectSelfStaffId` dan `selectSelfStaff` dapat menemukan data pegawai untuk akun yang sudah ada.
+
+### T8 — Audit dan perbaiki error rendering di semua halaman mobile (`src/pages/mobile/*.jsx`)
+- Periksa setiap halaman mobile untuk karakter BOM, syntax error, atau null reference yang menyebabkan komponen tidak render.
+- Khusus: `MobileBerandaPage.jsx` line 2 memiliki karakter `﻿` (BOM) sebelum `import` — hapus.
+- Pastikan semua halaman mobile render fallback (LoadingState/ErrorState) yang jelas, tidak pernah blank.
+
+### T9 — Pastikan `selectSelfPresensi` dan `selectSelfLeaves` bekerja untuk Kepala Sekolah (`simPresStore.jsx`)
+- Verifikasi selector-selector ini menggunakan `selectSelfStaffId` yang sudah benar terhubung ke staff data.
+- Tanpa staff linkage, presensi dan riwayat izin tidak bisa ditampilkan.
+
+### T10 — Tes akhir keurutan login Kepala Sekolah
+- Login sebagai Kepala Sekolah → diarahkan ke `/mobile/home`.
+- Beranda menampilkan data pegawai (sama seperti Guru/Pegawai).
+- Semua menu bottom nav (Beranda, Presensi, Riwayat, Slip, Izin/Cuti, Profil + Persetujuan) bisa diklik dan menampilkan halaman yang sesuai.
+- `npm run build` lolos tanpa error.
+
+## Kriteria validasi Fase 2 (Definition of Done)
+1. Login Kepala Sekolah berhasil, route ke `/mobile/home`, halaman beranda menampilkan data pegawai (tidak blank, tidak error "Data pegawai tidak ditemukan").
+2. Setiap menu bottom nav untuk Kepala Sekolah (termasuk Persetujuan) membuka halaman yang benar.
+3. Semua fitur Guru/Pegawai tersedia untuk Kepala Sekolah: presensi, riwayat, slip, izin/cuti, profil, kartu ID, QR.
+4. `npm run build` lolos tanpa error.
+
+## Risiko Fase 2
+- Akun Kepala Sekolah lama (sebelum Fase 1) yang tidak punya NIY atau staff linkage perlu di-migrasi atau di-update ulang melalui AdminUserPage.
+- Perubahan pada `findAccountByIdentifier` dapat mempengaruhi login role lain (Guru, Superadmin, Admin Unit) — perlu regression test.
 - AdminUnit yang menambah Kepala Sekolah ke unit yang bukan unit aktifnya tidak akan melihatnya dalam daftar scoped (perancangan saat ini).

@@ -1568,7 +1568,9 @@ export function findAccountByIdentifier(state, identifier) {
   const adminUser = state.adminUsers.find((u) => identifierMatches(u, key))
   if (adminUser) {
     const isGuru = normalisasiRole(adminUser.role) === ROLE_GURU_PEGAWAI || normalisasiRole(adminUser.role) === ROLE_KEPALA_SEKOLAH
-    const staffMatch = isGuru ? state.staff.find((s) => s.niy === adminUser.niy) : null
+    const staffMatch = isGuru && adminUser.niy
+      ? state.staff.find((s) => normalizeIdentifier(s.niy) === normalizeIdentifier(adminUser.niy))
+      : null
     return {
       ...adminUser,
       role: normalisasiRole(adminUser.role),

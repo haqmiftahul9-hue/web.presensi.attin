@@ -1,5 +1,5 @@
 import Icon from '../../components/Icon.jsx'
-﻿import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   useSimPresOptional, selectSelfStaff, selectSelfPresensi, selectUnitById, selectSelfLeaves,
