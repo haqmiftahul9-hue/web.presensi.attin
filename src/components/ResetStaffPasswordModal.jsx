@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { DEFAULT_STAFF_PASSWORD } from '../data/seed.js'
 
 function generateRandomPassword() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789'
@@ -18,7 +17,7 @@ function ResetStaffPasswordModal({ staff, onClose, onConfirm }) {
   const [copied, setCopied] = useState(false)
   const [error, setError] = useState('')
 
-  const activePassword = passwordMode === 'default' ? DEFAULT_STAFF_PASSWORD : customPassword
+  const activePassword = passwordMode === 'default' ? staff.niy : customPassword
 
   const handleCopy = (text) => {
     if (!text) return
@@ -45,7 +44,7 @@ function ResetStaffPasswordModal({ staff, onClose, onConfirm }) {
         return
       }
     }
-    const finalPassword = passwordMode === 'default' ? DEFAULT_STAFF_PASSWORD : customPassword.trim()
+    const finalPassword = passwordMode === 'default' ? staff.niy : customPassword.trim()
     onConfirm({
       staff,
       password: finalPassword,
@@ -142,7 +141,7 @@ function ResetStaffPasswordModal({ staff, onClose, onConfirm }) {
                   </span>
                 </div>
                 <span className="text-[11px] text-muted-foreground">
-                  Gunakan sandi bawaan sistem: <code className="font-mono font-bold text-foreground">Attin123!</code>
+                  Gunakan sandi bawaan sistem (NIY): <code className="font-mono font-bold text-foreground">{staff.niy}</code>
                 </span>
               </button>
 

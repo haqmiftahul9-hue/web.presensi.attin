@@ -47,8 +47,9 @@ function ChangePasswordGate() {
   const dipaksa = Boolean(currentUser?.mustChangePassword)
   const dimintaSendiri = Boolean(state.passwordChangeRequested)
   const terbuka = selectCanChangeOwnPassword(state) && selectMustChangePassword(state)
-  // Bisa ditutup hanya bila pengguna yang membuka sendiri form ini.
-  const bisaTutup = dimintaSendiri && !dipaksa
+  // Bisa ditutup bila ada notifikasi sukses (kata sandi baru sudah tersimpan),
+  // atau bila pengguna membuka sendiri form ini dan tidak dipaksa.
+  const bisaTutup = Boolean(notice) || (dimintaSendiri && !dipaksa)
 
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')

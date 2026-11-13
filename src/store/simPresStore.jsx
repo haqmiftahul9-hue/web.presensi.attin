@@ -2,7 +2,6 @@ import { createContext, useContext, useReducer, useMemo, useEffect } from 'react
 import {
   UNITS, STAFF, LEAVES, ADMIN_USERS, INITIAL_LOGS,
   INITIAL_SETTINGS, WEEKLY_TREND, TREND_30, HOLIDAYS, buildFullStaff, buildAttendance, initialsOf,
-  initialStaffPassword, DEFAULT_STAFF_PASSWORD,
 } from '../data/seed.js'
 import {
   buildEmployeeCard, buildEmployeeCards, cardQrValue, cardBarcodeValue,
@@ -252,7 +251,7 @@ export function roleDikenal(role) {
 /** Bangun satu akun user dari baris pegawai. */
 export function buildUserAccount(staff, { credentials = null, role, password, mustChangePassword } = {}) {
   const roleKanon = normalisasiRole(role || ROLE_GURU_PEGAWAI)
-  const finalPassword = password || credentials?.password || initialStaffPassword()
+  const finalPassword = password || credentials?.password || staff.niy
   const finalMustChange = mustChangePassword !== undefined
     ? Boolean(mustChangePassword)
     : (credentials ? Boolean(credentials.mustChangePassword) : false)
@@ -289,7 +288,7 @@ function upsertUserAccount(accounts, staff, { action, role, password, mustChange
   const tanpaIni = list.filter((a) => a.pegawaiId !== staff.id && a.niy !== staff.niy)
   const lama = list.find((a) => a.pegawaiId === staff.id || a.niy === staff.niy)
   if (action === 'delete') return tanpaIni
-  const finalPassword = password !== undefined ? password : (lama?.password || initialStaffPassword())
+  const finalPassword = password !== undefined ? password : (lama?.password || staff.niy)
   const finalMustChange = mustChangePassword !== undefined
     ? Boolean(mustChangePassword)
     : (lama ? Boolean(lama.mustChangePassword) : false)
@@ -445,10 +444,9 @@ export const MODE_APP_ROLES = {
 // (mis. akun yang dibuat lewat portal). Pada aplikasi nyata nilai ini berasal
 // dari server; di sini satu konstanta agar alur login tetap bisa dicoba tanpa
 // backend, dan tetap bisa ditimpa per akun lewat field `password` (hasil
-// reset/kirim kredensial). Akun Guru/Pegawai memakai DEFAULT_STAFF_PASSWORD
-// dari data/seed.js ("Attin123!"), bukan konstanta ini.
+// reset/kirim kredensial). Akun Guru/Pegawai memakai NIY sebagai kata sandi
+// bawaan, bukan konstanta ini.
 export const INITIAL_ACCOUNT_PASSWORD = 'SimPresSecure2026!'
-export { DEFAULT_STAFF_PASSWORD }
 
 const AUTH_SESSION_KEY = 'simpres.auth.session'
 
@@ -1199,7 +1197,7 @@ logs: [
       const targetStaff = state.staff.find((s) => (staffId && s.id === staffId) || (niy && s.niy === niy))
       const targetNiy = niy || targetStaff?.niy
       const targetId = staffId || targetStaff?.id
-      const newPassword = password !== undefined ? password : initialStaffPassword()
+      const newPassword = password !== undefined ? password : targetStaff?.niy
       const newMustChange = mustChangePassword !== undefined ? Boolean(mustChangePassword) : false
 
       if (!targetNiy && !targetId) return state
@@ -1596,7 +1594,7 @@ export function accountLoginKey(account) {
 
 // Akun Guru/Pegawai dibuat otomatis oleh buildUserAccount(): username = NIY,
 // role GURU_PEGAWAI, unit mengikuti pegawai, kata sandi awal sama untuk semua
-// (lihat DEFAULT_STAFF_PASSWORD) dan langsung bisa masuk ke mobile.
+// (NIY sebagai default) dan langsung bisa masuk ke mobile.
 function buildStaffAccount(state, staff) {
   const userAccount = selectUserAccountByStaffId(state, staff.id)
   return {
@@ -1611,7 +1609,7 @@ function buildStaffAccount(state, staff) {
     unitId: staff.unitId,
     status: staff.status,
     isStaffAccount: true,
-    password: userAccount?.password || initialStaffPassword(),
+    password: userAccount?.password || staff.niy,
     mustChangePassword: userAccount ? Boolean(userAccount.mustChangePassword) : false,
   }
 }
@@ -1708,7 +1706,7 @@ export function authenticateCredentials(state, identifier, password) {
     return { ok: false, error: AUTH_ERRORS.UNIT_NOT_FOUND, code: 'UNIT_TIDAK_DITEMUKAN' }
   }
 
-  const expectedPassword = account.password || (account.isStaffAccount ? initialStaffPassword() : INITIAL_ACCOUNT_PASSWORD)
+  const expectedPassword = account.password || account.niy || INITIAL_ACCOUNT_PASSWORD
   if (password !== expectedPassword) return { ok: false, error: AUTH_ERRORS.WRONG_PASSWORD, code: 'PASSWORD_SALAH' }
 
   return { ok: true, user: { ...account, role, status } }
@@ -1747,7 +1745,7 @@ export function validatePasswordChange(state, { currentPassword, newPassword, co
     return { ok: false, error: `Kata sandi baru minimal ${selectMinPasswordLength(state)} karakter.` }
   }
   if (newPassword === currentPassword) return { ok: false, error: AUTH_ERRORS.PASSWORD_SAME }
-  if (currentPassword !== (account.password || INITIAL_ACCOUNT_PASSWORD)) {
+  if (currentPassword !== (account.password || account.niy || INITIAL_ACCOUNT_PASSWORD)) {
     return { ok: false, error: AUTH_ERRORS.WRONG_PASSWORD }
   }
   return { ok: true }
@@ -3418,7 +3416,7 @@ export function selectDemoLoginAccounts(state) {
     .filter((u) => u.demo && u.status === 'Aktif')
     .map((u) => ({
       username: accountLoginKey(u),
-      password: u.password || INITIAL_ACCOUNT_PASSWORD,
+      password: u.password || u.niy || INITIAL_ACCOUNT_PASSWORD,
       role: normalisasiRole(u.role),
       unit: u.unitId ? selectUnitName(state, u.unitId) : 'Semua Unit',
       mustChangePassword: Boolean(u.mustChangePassword),
@@ -3432,7 +3430,7 @@ export function selectDemoLoginAccounts(state) {
   const staff = staffAccount
     ? [{
         username: staffAccount.username,
-        password: staffAccount.password || initialStaffPassword(),
+        password: staffAccount.password || staffAccount.niy,
         role: staffAccount.role,
         unit: selectUnitName(state, staffAccount.unitId),
         mustChangePassword: Boolean(staffAccount.mustChangePassword),

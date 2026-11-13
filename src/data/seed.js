@@ -35,23 +35,10 @@ export const STAFF = [
 
 export const LEAVES = []
 
-// Kata sandi awal untuk seluruh akun pegawai (role Guru/Pegawai).
-// Satu nilai bersama supaya mudah dihafal saat pelatihan, dan TIDAK ikut
-// mencurigakan NIY orang (versi lama "<NIY>@2026" bisa dibaca sebagai data
-// pribadi). Akun pegawai TIDAK ber-wajibGantiSandi: setelah login guru langsung
-// masuk ke aplikasi mobile. Pengguna tetap bisa mengganti sendiri lewat menu
-// "Ubah password" di Profil.
-export const DEFAULT_STAFF_PASSWORD = 'Attin123!'
-
-// Dipertahankan untuk kompatibilitas pemanggil lama; kredensial pegawai kini
-// memakai satu password awal bersama, bukan per-NIY.
-export const STAFF_PASSWORD_SUFFIX = '@2026'
-
-export function initialStaffPassword() {
-  return DEFAULT_STAFF_PASSWORD
-}
-
-// Status akun mengikuti status pegawai: pegawai Nonaktif tidak bisa login.
+// Kata sandi default untuk seluruh akun pegawai (role Guru/Pegawai) adalah
+// NIY milik masing-masing pegawai. Akun pegawai TIDAK ber-wajibGantiSandi:
+// setelah login guru langsung masuk ke aplikasi mobile. Pengguna tetap bisa
+// mengganti sendiri lewat menu "Ubah password" di Profil.
 export const ACCOUNT_STATUS_AKTIF = 'Aktif'
 export const ACCOUNT_STATUS_NONAKTIF = 'Nonaktif'
 

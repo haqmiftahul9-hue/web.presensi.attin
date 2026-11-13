@@ -197,10 +197,10 @@ function EditEmployeeModal({ staff, onClose, onSave }) {
               </div>
               <button
                 type="button"
-                onClick={() => setNewPassword('Attin123!')}
+                onClick={() => setNewPassword(staff?.niy || '')}
                 className="h-9 px-3 rounded-lg border border-border bg-card hover:bg-muted text-foreground text-xs font-medium whitespace-nowrap cursor-pointer shadow-xs"
               >
-                Reset ke Attin123!
+                Reset ke NIY
               </button>
             </div>
           </div>

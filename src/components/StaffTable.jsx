@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from 'react'
 import {
   useSimPres, selectUnitName, addActivityLog, selectFilteredStaff, initialsOf,
+  selectCurrentUserRole, ROLE_SUPERADMIN,
 } from '../store/simPresStore.jsx'
 import DetailEmployeeModal from './DetailEmployeeModal.jsx'
 import EditEmployeeModal from './EditEmployeeModal.jsx'
@@ -38,6 +39,7 @@ const ROW_OPTIONS = [
 
 function StaffTable({ unitFilter, searchTerm, statusFilter, currentPage, setCurrentPage, focusStaffId }) {
   const { state, dispatch } = useSimPres()
+  const currentUserRole = selectCurrentUserRole(state)
   const [rowsPerPage, setRowsPerPage] = useState('20')
   const [modal, setModal] = useState(null)
   const [modalStaff, setModalStaff] = useState(null)
@@ -278,16 +280,18 @@ function StaffTable({ unitFilter, searchTerm, statusFilter, currentPage, setCurr
                       <span className="material-symbols-outlined text-[15px] leading-none">edit</span>
                       <span className="hidden 2xl:inline">Edit</span>
                     </button>
-                    <button
-                      onClick={() => openModal('reset', row.staff)}
-                      className="h-7 shrink-0 whitespace-nowrap px-2 rounded-md bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-xs font-medium inline-flex items-center gap-1 transition-colors cursor-pointer"
-                      title="Reset Sandi Presensi"
-                      aria-label="Reset Sandi Presensi"
-                      type="button"
-                    >
-                      <span className="material-symbols-outlined text-[15px] leading-none">lock_reset</span>
-                      <span className="hidden 2xl:inline">Reset</span>
-                    </button>
+                    {currentUserRole === ROLE_SUPERADMIN && (
+                      <button
+                        onClick={() => openModal('reset', row.staff)}
+                        className="h-7 shrink-0 whitespace-nowrap px-2 rounded-md bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-xs font-medium inline-flex items-center gap-1 transition-colors cursor-pointer"
+                        title="Reset Sandi Presensi"
+                        aria-label="Reset Sandi Presensi"
+                        type="button"
+                      >
+                        <span className="material-symbols-outlined text-[15px] leading-none">lock_reset</span>
+                        <span className="hidden 2xl:inline">Reset</span>
+                      </button>
+                    )}
                     <button
                       onClick={() => openModal('delete', row.staff)}
                       className={`h-7 shrink-0 whitespace-nowrap px-2 rounded-md text-xs font-medium inline-flex items-center gap-1 transition-colors cursor-pointer border ${

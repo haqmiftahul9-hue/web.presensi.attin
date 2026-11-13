@@ -247,7 +247,7 @@ function AdminUserPage() {
       'Reset Password',
       `Reset kata sandi akun "${row.name}"? Kata sandi baru akan disetel dan pengguna dapat login dengan kredensial baru.`,
       () => {
-        const pwd = generatePassword()
+        const pwd = row.niy
         const isMobileUser = normalisasiRole(row.role) === 'Guru' || normalisasiRole(row.role) === 'Kepala Sekolah'
         dispatch({
           type: 'UPDATE_ADMIN_USER',
@@ -257,8 +257,8 @@ function AdminUserPage() {
             mustChangePassword: !isMobileUser,
           },
         })
-        addActivityLog(dispatch, state, 'Reset Password', `Akun • ${row.name}`, `Reset kata sandi akun ${row.role} atas NIY ${row.niy}`, null, null, row.unitId)
-        setSuccessMessage(`Password akun "${row.name}" telah direset. Kredensial baru: ${pwd}. ${isMobileUser ? 'Pengguna dapat langsung login ke aplikasi mobile.' : ''}`)
+        addActivityLog(dispatch, state, 'Reset Password', `Akun • ${row.name}`, `Reset kata sandi akun ${row.role} ke NIY ${row.niy}`, null, null, row.unitId)
+        setSuccessMessage(`Password akun "${row.name}" telah direset ke NIY: ${pwd}. ${isMobileUser ? 'Pengguna dapat login langsung ke aplikasi mobile dengan NIY sebagai kata sandi.' : 'Pengguna wajib ganti kata sandi saat login berikutnya.'}`)
         setTimeout(() => setSuccessMessage(''), 6000)
       },
     )
