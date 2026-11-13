@@ -1,7 +1,7 @@
 const navItems = [
   { path: 'dashboard', label: 'Dashboard', icon: 'dashboard', active: true },
   { path: 'manajemen-unit', label: 'Manajemen Unit', icon: 'apartment', active: false },
-  { path: 'manajemen-admin-dan-user', label: 'Manajemen Admin & User', icon: 'manage_accounts', active: false },
+  { path: 'manajemen-admin-dan-user', label: 'Manajemen Admin', icon: 'manage_accounts', active: false },
   { path: 'data-guru-dan-pegawai', label: 'Data Guru/Pegawai', icon: 'badge', active: false },
   { path: 'presensi', label: 'Presensi', icon: 'timer', active: false },
   { path: 'rekap-dan-laporan', label: 'Rekap & Laporan', icon: 'summarize', active: false },

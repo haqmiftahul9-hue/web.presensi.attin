@@ -270,7 +270,7 @@ export function buildUserAccount(staff, { credentials = null, role, password, mu
     // Akun pegawai TIDAK dipaksa mengganti kata sandi saat login pertama: guru
     // dan pegawai harus bisa langsung masuk ke aplikasi mobile setelah
     // kata sandi awal dipakai. Aturan wajib-ganti tetap berlaku untuk akun portal
-    // (Superadmin/Admin Unit/Petugas) yang dibuat lewat Manajemen Admin & User.
+    // (Superadmin/Admin Unit/Petugas) yang dibuat lewat Manajemen Admin.
     mustChangePassword: finalMustChange,
   }
 }
@@ -748,6 +748,10 @@ export function simPresReducer(state, action) {
        * `SIMPRESPEG-<id>` ke kartu — kartu fisik lalu tidak cocok lagi dengan
        * QR di aplikasi. Karena itu record digabung lebih dulu di sini, lalu
        * record gabungan itulah yang dipakai bersama oleh semua tabel turunan.
+       *
+       * Ketika role berubah, akun login (userAccounts) ikut diupdate sehingga
+       * hak akses desktop vs mobile berubah secepatnya, dan perubahan
+       * dicatat ke log aktivitas.
        */
       const { id, ...perubahan } = action.payload || {}
       const sebelum = state.staff.find((s) => s.id === id)
@@ -759,19 +763,56 @@ export function simPresReducer(state, action) {
       const nextStaff = state.staff.map((s) => (s.id === id ? staffBaru : s))
       writePersistedItem(PERSISTED_STAFF_KEY, nextStaff)
 
-      return {
+      const roleSebelum = normalisasiRole(sebelum.role)
+      const roleBaru =
+        perubahan.role != null && String(perubahan.role).trim() !== ''
+          ? normalisasiRole(perubahan.role)
+          : roleSebelum
+      const roleBerubah = roleBaru !== roleSebelum
+
+      const nextUserAccounts = upsertUserAccount(state.userAccounts, staffBaru, {
+        action: 'update',
+        role: staffBaru.role,
+        password: perubahan.password,
+        mustChangePassword: perubahan.mustChangePassword,
+      })
+
+      let nextState = {
         ...state,
         staff: nextStaff,
         adminUsers: adminUsersUpdated,
         employeeCards: syncEmployeeCardsFromStaff(state.employeeCards, staffBaru, 'update'),
         // Status/unit/NIY akun ikut mengikuti data pegawai yang baru.
-        userAccounts: upsertUserAccount(state.userAccounts, staffBaru, {
-          action: 'update',
-          role: staffBaru.role,
-          password: perubahan.password,
-          mustChangePassword: perubahan.mustChangePassword,
-        }),
+        userAccounts: nextUserAccounts,
       }
+
+      if (roleBerubah) {
+        writePersistedItem(PERSISTED_USER_ACCOUNTS_KEY, nextUserAccounts)
+        nextState = {
+          ...nextState,
+          logs: [
+            {
+              id: Date.now(),
+              time: new Date().toLocaleString('id-ID', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+              }),
+              actor: state.currentUser?.name || 'Sistem',
+              role: state.currentUser?.role || ROLE_GURU,
+              action: 'Ubah Role',
+              target: `Pegawai • ${staffBaru.name}`,
+              desc: `Ubah role ${staffBaru.name} dari ${roleSebelum} menjadi ${roleBaru}`,
+              unitId: staffBaru.unitId,
+            },
+            ...state.logs,
+          ],
+        }
+      }
+
+      return nextState
     }
     case 'UPDATE_STAFF_PROFILE': {
       /*
@@ -1133,7 +1174,7 @@ logs: [
     case 'ADD_ADMIN_USER': {
       // Role dinormalkan di lapis reducer: "Staff", "Pegawai", atau
       // "Guru/Pegawai" semuanya berarti GURU_PEGAWAI, sehingga akun yang baru
-      // dibuat dari Manajemen Admin & User langsung punya relasi pegawai + akun
+      // dibuat dari Manajemen Admin langsung punya relasi pegawai + akun
       // mobile yang benar.
       const payload = { ...action.payload, role: normalisasiRole(action.payload.role) }
       const nextStaff = syncStaffFromAdminUser(state.staff, payload, 'add')
@@ -2132,7 +2173,7 @@ export const ROLE_OPTIONS = [
 export const MENU_OPTIONS = [
   { key: 'dashboard', label: 'Dashboard' },
   { key: 'manajemenUnit', label: 'Manajemen Unit' },
-  { key: 'manajemenAdminUser', label: 'Manajemen Admin & User' },
+  { key: 'manajemenAdminUser', label: 'Manajemen Admin' },
   { key: 'dataGuruPegawai', label: 'Data Guru/Pegawai' },
   { key: 'cetakKartuId', label: 'Cetak Kartu ID' },
   { key: 'presensi', label: 'Presensi' },
@@ -3401,7 +3442,7 @@ export function selectScopedLogs(state) {
 
 export function selectScopedAdminUsers(state) {
   // Guru/Pegawai tidak mengelola akun sama sekali, jadi daftar akun dikosongkan
-  // walau role-nya punya izin "view" pada modul Manajemen Admin & User.
+  // walau role-nya punya izin "view" pada modul Manajemen Admin.
   if (selectIsSelfScope(state)) return []
   if (selectIsAllUnits(state)) return state.adminUsers
   const activeId = selectActiveUnitId(state)

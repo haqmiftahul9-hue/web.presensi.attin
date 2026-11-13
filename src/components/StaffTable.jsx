@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react'
 import {
   useSimPres, selectUnitName, addActivityLog, selectFilteredStaff, initialsOf,
-  selectCurrentUserRole, ROLE_SUPERADMIN,
+  selectCurrentUserRole, ROLE_SUPERADMIN, normalisasiRole,
 } from '../store/simPresStore.jsx'
 import DetailEmployeeModal from './DetailEmployeeModal.jsx'
 import EditEmployeeModal from './EditEmployeeModal.jsx'
@@ -36,6 +36,24 @@ const ROW_OPTIONS = [
   { value: '50', label: '50' },
   { value: 'all', label: 'Semua' },
 ]
+
+// Opsi role yang bisa dipilih langsung dari tabel Data Guru/Pegawai.
+const ROLE_TABLE_OPTIONS = [
+  { value: 'Guru', label: 'Guru / Pegawai' },
+  { value: 'Admin Unit', label: 'Admin' },
+  { value: 'Kepala Sekolah', label: 'Kepala Sekolah' },
+  { value: 'Lainnya', label: 'Lainnya' },
+]
+
+// Nilai jabatan lama (mis. 'Guru PAI', 'Staf Administrasi') dipetakan ke salah
+// satu empat opsi role di atas supaya select selalu punya nilai yang cocok.
+function tableRoleValue(role) {
+  const r = normalisasiRole(role || '')
+  if (r === 'Admin Unit') return 'Admin Unit'
+  if (r === 'Kepala Sekolah') return 'Kepala Sekolah'
+  if (r === 'Lainnya') return 'Lainnya'
+  return 'Guru'
+}
 
 function StaffTable({ unitFilter, searchTerm, statusFilter, currentPage, setCurrentPage, focusStaffId }) {
   const { state, dispatch } = useSimPres()
@@ -103,6 +121,19 @@ function StaffTable({ unitFilter, searchTerm, statusFilter, currentPage, setCurr
   const openModal = (kind, staff) => {
     setModalStaff(staff)
     setModal(kind)
+  }
+
+  const handleChangeRole = (staff, nextRole) => {
+    const previousRole = normalisasiRole(staff.role)
+    const nextRoleCanon = normalisasiRole(nextRole)
+    if (previousRole === nextRoleCanon) return
+    dispatch({ type: 'UPDATE_STAFF', payload: { id: staff.id, role: nextRoleCanon } })
+    addActivityLog(
+      dispatch, state, 'Ubah Role', `Pegawai • ${staff.name}`,
+      `Ubah role ${staff.name} dari ${previousRole} menjadi ${nextRoleCanon}`,
+      null, null, staff.unitId,
+    )
+    setToast(`Role ${staff.name} diubah menjadi ${nextRoleCanon}.`)
   }
 
   const handleSaveEdit = (updatedStaff) => {
@@ -195,7 +226,7 @@ function StaffTable({ unitFilter, searchTerm, statusFilter, currentPage, setCurr
               <th className="h-10 px-3.5 align-middle whitespace-nowrap" scope="col">NIY</th>
               <th className="h-10 px-3.5 align-middle whitespace-nowrap" scope="col">Nama Lengkap &amp; Gelar</th>
               <th className="h-10 px-3.5 align-middle whitespace-nowrap" scope="col">Unit Sekolah</th>
-              <th className="h-10 px-3.5 align-middle whitespace-nowrap" scope="col">Jabatan / Penugasan</th>
+              <th className="h-10 px-3.5 align-middle whitespace-nowrap" scope="col">Role</th>
               <th className="h-10 px-3.5 text-center align-middle whitespace-nowrap" scope="col">Status</th>
               <th className="h-10 px-3.5 text-right align-middle whitespace-nowrap" scope="col">Aksi Manajemen</th>
             </tr>
@@ -241,9 +272,15 @@ function StaffTable({ unitFilter, searchTerm, statusFilter, currentPage, setCurr
                   </div>
                 </td>
                 <td className="h-14 px-3.5 align-middle">
-                  <span className="block text-xs text-muted-foreground leading-snug line-clamp-2 break-words" title={row.assignment}>
-                    {row.assignment}
-                  </span>
+                  <select
+                    value={tableRoleValue(row.staff.role)}
+                    onChange={(e) => handleChangeRole(row.staff, e.target.value)}
+                    className="text-xs text-foreground bg-transparent border-none focus:ring-0 outline-none cursor-pointer appearance-none"
+                  >
+                    {ROLE_TABLE_OPTIONS.map((o) => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
                 </td>
                 <td className="h-14 px-3.5 text-center align-middle">
                   {row.statusActive ? (
