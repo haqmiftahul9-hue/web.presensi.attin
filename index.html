@@ -9,7 +9,7 @@
   <!-- PWA: manifest + warna tema biru SimPres superadmin (#323d8f) -->
   <link rel="manifest" href="/manifest.webmanifest" />
   <meta name="theme-color" content="#323d8f" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-ancestors 'none'; base-uri 'self';" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-ancestors 'none'; base-uri 'self';" />
 
   <!-- Mode standalone untuk iOS -->
   <meta name="mobile-web-app-capable" content="yes" />
@@ -25,12 +25,7 @@
        /fonts: tidak ada permintaan ke CDN font eksternal, sehingga ikon dan
        teks tetap tampil pada perangkat yang sedang offline. -->
   <title>SIMPEG - Sistem Informasi Kepegawaian</title>
-  <script>
-    // Mencegah zoom cubit (pinch) dan gesture zoom di iOS Safari agar tampilannya menetap seperti aplikasi mobile native
-    document.addEventListener('gesturestart', function (e) { e.preventDefault(); }, { passive: false });
-    document.addEventListener('gesturechange', function (e) { e.preventDefault(); }, { passive: false });
-    document.addEventListener('gestureend', function (e) { e.preventDefault(); }, { passive: false });
-  </script>
+
 </head>
 <body>
   <div id="root"></div>

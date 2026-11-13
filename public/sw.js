@@ -53,15 +53,10 @@ self.addEventListener('fetch', (event) => {
         if (isNavigation) {
           return caches.match(OFFLINE_URL)
         }
-        return new Response('', { status: 204, statusText: 'No Content' })
+        throw new Error('fetch failed')
       })
     })
   )
-})
-      })
-    })
-  )
-})
 
 // Push event: handle incoming push notifications
 self.addEventListener('push', (event) => {
