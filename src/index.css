@@ -1413,3 +1413,86 @@ main > :last-child {
   /* @page size disuntikkan runtime oleh halaman (lihat CetakKartuIdPage)
      supaya mengikuti layout CR80 atau A4 yang dipilih pengguna. */
 }
+
+/* ============================================================================
+   LOGIN PAGE — Animasi Floating & Dekoratif
+   Digunakan oleh LoginPage.jsx untuk elemen mengambang di panel kiri.
+   ============================================================================ */
+
+@keyframes sp-login-float-1 {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  33%       { transform: translateY(-16px) rotate(2deg); }
+  66%       { transform: translateY(-8px) rotate(-1deg); }
+}
+
+@keyframes sp-login-float-2 {
+  0%, 100% { transform: translateY(0px) rotate(0deg) scale(1); }
+  50%       { transform: translateY(-20px) rotate(-3deg) scale(1.04); }
+}
+
+@keyframes sp-login-float-3 {
+  0%, 100% { transform: translateY(0px) translateX(0px); }
+  40%       { transform: translateY(-12px) translateX(6px); }
+  70%       { transform: translateY(-6px) translateX(-4px); }
+}
+
+@keyframes sp-login-float-4 {
+  0%, 100% { transform: translateY(0px) scale(1); }
+  50%       { transform: translateY(-24px) scale(1.06); }
+}
+
+@keyframes sp-login-pulse-soft {
+  0%, 100% { opacity: 0.25; transform: scale(1); }
+  50%       { opacity: 0.55; transform: scale(1.1); }
+}
+
+@keyframes sp-login-pulse-ring {
+  0%, 100% { opacity: 0.15; transform: scale(1); }
+  50%       { opacity: 0.35; transform: scale(1.08); }
+}
+
+@keyframes sp-login-spin-slow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes sp-login-dash {
+  0%   { stroke-dashoffset: 300; }
+  50%  { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: -300; }
+}
+
+@keyframes sp-login-bob {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-10px); }
+}
+
+@keyframes sp-login-appear {
+  from { opacity: 0; transform: translateY(24px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.animate-sp-login-float-1  { animation: sp-login-float-1  7s ease-in-out infinite; }
+.animate-sp-login-float-2  { animation: sp-login-float-2  9s ease-in-out infinite 1.2s; }
+.animate-sp-login-float-3  { animation: sp-login-float-3  6s ease-in-out infinite 0.4s; }
+.animate-sp-login-float-4  { animation: sp-login-float-4  8s ease-in-out infinite 2s; }
+.animate-sp-login-pulse    { animation: sp-login-pulse-soft 4s ease-in-out infinite; }
+.animate-sp-login-ring     { animation: sp-login-pulse-ring 5s ease-in-out infinite 0.8s; }
+.animate-sp-login-spin     { animation: sp-login-spin-slow 20s linear infinite; }
+.animate-sp-login-bob      { animation: sp-login-bob 3.5s ease-in-out infinite; }
+.animate-sp-login-appear   { animation: sp-login-appear 0.6s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+/* Perlambat semua animasi login jika pengguna meminta */
+@media (prefers-reduced-motion: reduce) {
+  .animate-sp-login-float-1,
+  .animate-sp-login-float-2,
+  .animate-sp-login-float-3,
+  .animate-sp-login-float-4,
+  .animate-sp-login-pulse,
+  .animate-sp-login-ring,
+  .animate-sp-login-spin,
+  .animate-sp-login-bob,
+  .animate-sp-login-appear {
+    animation: none;
+  }
+}

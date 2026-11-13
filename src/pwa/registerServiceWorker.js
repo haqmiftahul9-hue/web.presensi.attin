@@ -10,9 +10,18 @@
  */
 export function registerServiceWorker() {
   if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return
-  // Konteks non-aman (mis. http tanpa TLS di IP lokal) tidak mendukung service
-  // worker, jadi dilewati diam-diam.
   if (!window.isSecureContext) return
+
+  // Di mode pengembangan (dev), unregister service worker agar tidak mengintersepsi
+  // modul HMR Vite dan tidak menimbulkan status 503 (Offline) saat server dimulai ulang.
+  if (import.meta.env.DEV) {
+    navigator.serviceWorker.getRegistrations().then((registrations) => {
+      for (const registration of registrations) {
+        registration.unregister()
+      }
+    })
+    return
+  }
 
   window.addEventListener('load', () => {
     navigator.serviceWorker

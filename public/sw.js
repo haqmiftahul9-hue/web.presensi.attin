@@ -2,7 +2,7 @@
 // Service Worker - SIMPEG Attin Push Notification & Background Sync
 // ============================================================================
 
-const CACHE_NAME = 'simpres-attin-v1'
+const CACHE_NAME = 'simpres-attin-v2'
 const OFFLINE_URL = '/offline.html'
 
 // Install event: cache static assets
@@ -11,6 +11,7 @@ self.addEventListener('install', (event) => {
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll([
         '/',
+        '/manifest.webmanifest',
         '/offline.html',
       ])
     })
@@ -31,16 +32,32 @@ self.addEventListener('activate', (event) => {
   self.clients.claim()
 })
 
-// Fetch event: serve from cache, fallback to network
+// Fetch event: cache-first, network fallback; offline navigasi ke halaman offline
 self.addEventListener('fetch', (event) => {
+  // Abaikan request non-GET
+  if (event.request.method !== 'GET') return
+
+  const url = new URL(event.request.url)
+  // Abaikan request Vite / HMR / localhost agar tidak menimbulkan status 503 saat dev
+  if (url.hostname === 'localhost' || url.hostname === '127.0.0.1' || url.pathname.startsWith('/@') || url.pathname.includes('hot-update')) {
+    return
+  }
+
+  const { request } = event
+  const isNavigation = request.mode === 'navigate'
+
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
+    caches.match(request).then((cachedResponse) => {
       if (cachedResponse) return cachedResponse
-      return fetch(event.request).catch(() => {
-        if (event.request.mode === 'navigate') {
+      return fetch(request).catch(() => {
+        if (isNavigation) {
           return caches.match(OFFLINE_URL)
         }
-        return new Response('Offline', { status: 503, statusText: 'Offline' })
+        return new Response('', { status: 204, statusText: 'No Content' })
+      })
+    })
+  )
+})
       })
     })
   )
