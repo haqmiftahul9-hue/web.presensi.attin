@@ -1,5 +1,6 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { BrowserRouter, Navigate, Routes, Route, useNavigate } from 'react-router-dom'
+import AppSplash from './components/AppSplash.jsx'
 import {
   useSimPres, selectAppHomePath, selectIsAuthenticated, performLogout,
 } from './store/simPresStore.jsx'
@@ -42,8 +43,11 @@ import { Toaster } from 'react-hot-toast'
  * lama tetap hidup, dan tidak ada dua nama untuk satu halaman.
  */
 function App() {
+  const [showSplash, setShowSplash] = useState(true)
+
   return (
     <BrowserRouter>
+      <AppSplash show={showSplash} onDone={() => setShowSplash(false)} />
       <Toaster
         position="top-center"
         reverseOrder={true}
