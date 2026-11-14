@@ -1466,7 +1466,7 @@ logs: [
       }
     }
     case 'UPDATE_PERMISSIONS':
-      return { ...state, permissionMatrix: action.payload }
+      return { ...state, permissionMatrix: action.payload || PERMISSION_MATRIX }
     case 'SET_CURRENT_USER': {
       // Ganti akun = unit ikut akun baru, bukan sisa pilihan sebelumnya.
       return {
@@ -1830,7 +1830,8 @@ function buildStaffAccount(state, staff) {
 export function roleCanViewMenu(state, role, menuKey) {
   const permissions = state.permissionMatrix?.[role]
   if (!permissions) return false
-  return permissions[menuKey]?.includes('view') ?? false
+  const perms = permissions[menuKey]
+  return Array.isArray(perms) ? perms.includes('view') : false
 }
 
 /**
@@ -2376,7 +2377,8 @@ export function getRolePermissions(state, role) {
 export function hasPermission(state, role, menuKey, action) {
   const permissions = state.permissionMatrix?.[role]
   if (!permissions) return false
-  return permissions[menuKey]?.includes(action) ?? false
+  const perms = permissions[menuKey]
+  return Array.isArray(perms) ? perms.includes(action) : false
 }
 
 export function selectAdminById(state, id) {
@@ -3706,7 +3708,8 @@ export function hasMenuPermission(state, menuKey) {
   const role = selectCurrentUserRole(state)
   const permissions = state.permissionMatrix?.[role]
   if (!permissions) return false
-  return permissions[menuKey]?.includes('view') ?? false
+  const perms = permissions[menuKey]
+  return Array.isArray(perms) ? perms.includes('view') : false
 }
 
 export function getVisibleMenuKeys(state) {

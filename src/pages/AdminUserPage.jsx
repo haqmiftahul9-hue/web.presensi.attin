@@ -4,11 +4,35 @@ import {
   addActivityLog, selectScopedStaff, selectActiveUnitId, selectCanSwitchUnit,
   ALL_UNITS, selectSearchTerm, selectCurrentUser, selectCurrentUserRole,
   ROLE_ADMIN_UNIT, ROLE_KEPALA_SEKOLAH, ROLE_PETUGAS_PRESENSI, ROLE_GURU_PEGAWAI,
-  ROLE_SUPERADMIN, MENU_OPTIONS, PERMISSION_ACTIONS,
+  ROLE_SUPERADMIN, MENU_OPTIONS, PERMISSION_ACTIONS, PERMISSION_MATRIX,
 } from '../store/simPresStore.jsx'
 import ConfirmDialog from '../components/ConfirmDialog.jsx'
 import DetailEmployeeModal from '../components/DetailEmployeeModal.jsx'
 import Icon from '../components/Icon.jsx'
+import ErrorBoundary from '../components/ErrorBoundary.jsx'
+
+// Style kelas form modal reset kata sandi
+const LABEL_CLASS = 'text-[11px] font-semibold text-foreground'
+const ERROR_CLASS = 'text-[11px] font-medium text-destructive mt-1'
+
+// Helper untuk memastikan objek matriks izin selalu lengkap dan valid
+function getSafeMatrix(matrix) {
+  const source = matrix && typeof matrix === 'object' ? matrix : PERMISSION_MATRIX
+  const baseRoles = ['Superadmin', 'Admin Unit', 'Guru', 'Kepala Sekolah', 'Petugas Presensi']
+  const result = {}
+  for (const role of baseRoles) {
+    result[role] = {}
+    const defaultRolePerms = PERMISSION_MATRIX[role] || {}
+    const roleSource = (source && typeof source[role] === 'object' && source[role] !== null)
+      ? source[role]
+      : defaultRolePerms
+    for (const menu of MENU_OPTIONS) {
+      const perms = roleSource[menu.key] ?? defaultRolePerms[menu.key] ?? []
+      result[role][menu.key] = Array.isArray(perms) ? [...perms] : []
+    }
+  }
+  return result
+}
 
 // Role yang tampil di halaman Manajemen Admin (hak akses desktop/admin).
 const ADMIN_ROLES = [ROLE_ADMIN_UNIT, ROLE_KEPALA_SEKOLAH, ROLE_PETUGAS_PRESENSI]
@@ -50,6 +74,8 @@ function AdminUserPage() {
   const [resetTarget, setResetTarget] = useState(null)
   const [resetNewPassword, setResetNewPassword] = useState('')
   const [resetConfirmPassword, setResetConfirmPassword] = useState('')
+  const [showResetNewPassword, setShowResetNewPassword] = useState(false)
+  const [showResetConfirmPassword, setShowResetConfirmPassword] = useState(false)
   const [resetError, setResetError] = useState(null)
   const [resetNotice, setResetNotice] = useState(null)
   const [resetFieldErrors, setResetFieldErrors] = useState({})
@@ -166,6 +192,8 @@ function AdminUserPage() {
     setResetTarget(staff)
     setResetNewPassword('')
     setResetConfirmPassword('')
+    setShowResetNewPassword(false)
+    setShowResetConfirmPassword(false)
     setResetError(null)
     setResetNotice(null)
     setResetFieldErrors({})
@@ -174,6 +202,8 @@ function AdminUserPage() {
     setResetTarget(null)
     setResetNewPassword('')
     setResetConfirmPassword('')
+    setShowResetNewPassword(false)
+    setShowResetConfirmPassword(false)
     setResetError(null)
     setResetNotice(null)
     setResetFieldErrors({})
@@ -227,7 +257,7 @@ function AdminUserPage() {
   }
 
   const openMatrix = () => {
-    setMatrixPerms(JSON.parse(JSON.stringify(state.permissionMatrix)))
+    setMatrixPerms(getSafeMatrix(state.permissionMatrix))
     setShowMatrix(true)
   }
   const closeMatrix = () => {
@@ -235,19 +265,29 @@ function AdminUserPage() {
     setMatrixPerms(null)
   }
   const resetMatrix = () => {
-    setMatrixPerms(JSON.parse(JSON.stringify(state.permissionMatrix)))
+    setMatrixPerms(getSafeMatrix(PERMISSION_MATRIX))
   }
   const saveMatrix = () => {
-    dispatch({ type: 'UPDATE_PERMISSIONS', payload: matrixPerms })
-    addActivityLog(dispatch, state, 'Ubah', 'Matriks Role & Izin', 'Memperbarui hak akses peran sistem', null, null, currentUser?.unitId)
+    const payload = getSafeMatrix(matrixPerms)
+    dispatch({ type: 'UPDATE_PERMISSIONS', payload })
+    addActivityLog(
+      dispatch,
+      state,
+      'Ubah',
+      'Matriks Role & Izin',
+      'Memperbarui hak akses peran sistem',
+      currentUser?.name,
+      currentUser?.role,
+      currentUser?.unitId,
+    )
     setSuccessMessage('Perubahan izin berhasil disimpan')
     setTimeout(() => setSuccessMessage(''), 3000)
     closeMatrix()
   }
   const togglePerm = (role, menuKey, action) => {
     setMatrixPerms((prev) => {
-      const next = JSON.parse(JSON.stringify(prev))
-      const perms = next[role]?.[menuKey] || []
+      const next = getSafeMatrix(prev)
+      const perms = Array.isArray(next[role]?.[menuKey]) ? next[role][menuKey] : []
       const idx = perms.indexOf(action)
       if (idx >= 0) {
         next[role][menuKey] = perms.filter((a) => a !== action)
@@ -453,11 +493,11 @@ function AdminUserPage() {
                         {user.status}
                       </span>
                     </td>
-                    <td className="py-3 px-3.5 text-right whitespace-nowrap">
-                      <div className="flex items-center justify-end gap-1">
+                    <td className="py-3 px-3.5 text-right">
+                      <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => openDetail(user)}
-                          className="w-7 h-7 rounded-md bg-card hover:bg-muted border border-border text-foreground flex items-center justify-center transition-colors cursor-pointer"
+                          className="w-8 h-8 rounded-md bg-card hover:bg-muted border border-border text-foreground flex items-center justify-center transition-colors cursor-pointer"
                           title="Detail Pengguna"
                           type="button"
                         >
@@ -465,7 +505,7 @@ function AdminUserPage() {
                         </button>
                         <button
                           onClick={() => handleBatalkanAdmin(user)}
-                          className="w-7 h-7 rounded-md bg-destructive/10 hover:bg-destructive/20 text-destructive border border-destructive/20 flex items-center justify-center transition-colors cursor-pointer"
+                          className="w-8 h-8 rounded-md bg-destructive/10 hover:bg-destructive/20 text-destructive border border-destructive/20 flex items-center justify-center transition-colors cursor-pointer"
                           title="Batalkan Admin"
                           type="button"
                         >
@@ -475,7 +515,7 @@ function AdminUserPage() {
                         {user.status === 'Aktif' ? (
                           <button
                             onClick={() => handleToggleStatus(user)}
-                            className="w-7 h-7 rounded-md bg-destructive/10 hover:bg-destructive/20 text-destructive border border-destructive/20 flex items-center justify-center transition-colors cursor-pointer"
+                            className="w-8 h-8 rounded-md bg-destructive/10 hover:bg-destructive/20 text-destructive border border-destructive/20 flex items-center justify-center transition-colors cursor-pointer"
                             title="Nonaktifkan Akun"
                             type="button"
                           >
@@ -484,7 +524,7 @@ function AdminUserPage() {
                         ) : (
                           <button
                             onClick={() => handleToggleStatus(user)}
-                            className="w-7 h-7 rounded-md bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center justify-center transition-colors cursor-pointer"
+                            className="w-8 h-8 rounded-md bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center justify-center transition-colors cursor-pointer"
                             title="Aktifkan Kembali"
                             type="button"
                           >
@@ -494,8 +534,8 @@ function AdminUserPage() {
                         {currentRole === ROLE_SUPERADMIN && (
                           <button
                             onClick={() => openResetPassword(user)}
-                            className="w-7 h-7 rounded-md bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center justify-center transition-colors cursor-pointer"
-                            title="Reset Password"
+                          className="w-8 h-8 rounded-md bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center justify-center transition-colors cursor-pointer"
+                          title="Reset Password"
                             type="button"
                           >
                             <span className="material-symbols-outlined text-[16px]">lock_reset</span>
@@ -662,7 +702,7 @@ function AdminUserPage() {
       )}
 
       {showMatrix && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs" onClick={() => setShowMatrix(false)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs" onClick={closeMatrix}>
           <div className="relative w-full max-w-4xl bg-card text-foreground rounded-2xl shadow-xl border border-border overflow-hidden flex flex-col max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
             <div className="px-6 py-4 border-b border-border flex items-center justify-between bg-muted/30">
               <div className="flex items-center gap-3">
@@ -675,49 +715,82 @@ function AdminUserPage() {
                 </div>
               </div>
               <button
-                onClick={() => setShowMatrix(false)}
+                onClick={closeMatrix}
                 className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
                 type="button"
+                title="Tutup Modal"
               >
                 <span className="material-symbols-outlined text-[18px]">close</span>
               </button>
             </div>
             <div className="p-6 overflow-y-auto space-y-4">
+              <div className="flex flex-wrap items-center justify-between gap-2 p-3 bg-muted/30 rounded-xl border border-border text-xs text-muted-foreground">
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold text-foreground">Keterangan Izin:</span>
+                  <span className="inline-flex items-center gap-1 font-mono text-[11px] bg-card px-2 py-0.5 rounded border border-border"><strong>V</strong> = View (Lihat)</span>
+                  <span className="inline-flex items-center gap-1 font-mono text-[11px] bg-card px-2 py-0.5 rounded border border-border"><strong>A</strong> = Add (Tambah)</span>
+                  <span className="inline-flex items-center gap-1 font-mono text-[11px] bg-card px-2 py-0.5 rounded border border-border"><strong>E</strong> = Edit (Ubah)</span>
+                  <span className="inline-flex items-center gap-1 font-mono text-[11px] bg-card px-2 py-0.5 rounded border border-border"><strong>D</strong> = Delete (Hapus)</span>
+                </div>
+              </div>
+
               <div className="border border-border rounded-xl overflow-hidden shadow-2xs">
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-muted border-b border-border text-muted-foreground text-[11px] font-bold uppercase tracking-wider">
                       <th className="py-2.5 px-4 font-bold sticky left-0 z-10 bg-muted">Menu / Fitur</th>
                       {['Superadmin', 'Admin Unit', 'Guru', 'Kepala Sekolah', 'Petugas Presensi'].map((role) => (
-                        <th key={role} className="py-2.5 px-4 text-center font-bold">{role}</th>
+                        <th key={role} className="py-2.5 px-3 text-center font-bold">
+                          <div>{role}</div>
+                          <div className="flex items-center justify-center gap-1.5 text-[9px] font-mono text-muted-foreground font-normal mt-0.5">
+                            <span className="w-3 text-center">V</span>
+                            <span className="w-3 text-center">A</span>
+                            <span className="w-3 text-center">E</span>
+                            <span className="w-3 text-center">D</span>
+                          </div>
+                        </th>
                       ))}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/60 text-xs">
                     {MENU_OPTIONS.map((menu, idx) => {
-                      const rowPerms = {}
-                      ['Superadmin', 'Admin Unit', 'Guru', 'Kepala Sekolah', 'Petugas Presensi'].forEach((role) => {
-                        rowPerms[role] = matrixPerms?.[role]?.[menu.key] || []
-                      })
+                      const rolesList = ['Superadmin', 'Admin Unit', 'Guru', 'Kepala Sekolah', 'Petugas Presensi']
+                      const activeData = matrixPerms || getSafeMatrix(state.permissionMatrix)
+                      const actionLabels = {
+                        view: 'V (Lihat)',
+                        add: 'A (Tambah)',
+                        edit: 'E (Ubah)',
+                        delete: 'D (Hapus)',
+                      }
                       return (
                         <tr key={menu.key} className={idx % 2 === 0 ? 'bg-muted/20' : 'bg-card'}>
                           <td className="py-2.5 px-4 font-semibold text-foreground">{menu.label}</td>
-                          {['Superadmin', 'Admin Unit', 'Guru', 'Kepala Sekolah', 'Petugas Presensi'].map((role) => (
-                            <td key={role} className="py-2.5 px-4 text-center">
-                              <div className="flex items-center justify-center gap-1.5">
-                                {PERMISSION_ACTIONS.map((perm) => (
-                                  <label key={perm} className="flex items-center justify-center cursor-pointer p-0.5">
-                                    <input
-                                      type="checkbox"
-                                      className="w-4 h-4 text-primary rounded border-input focus:ring-ring accent-primary"
-                                      checked={rowPerms[role].includes(perm)}
-                                      onChange={() => togglePerm(role, menu.key, perm)}
-                                    />
-                                  </label>
-                                ))}
-                              </div>
-                            </td>
-                          ))}
+                          {rolesList.map((role) => {
+                            const perms = Array.isArray(activeData[role]?.[menu.key]) ? activeData[role][menu.key] : []
+                            return (
+                              <td key={role} className="py-2.5 px-3 text-center">
+                                <div className="flex items-center justify-center gap-1.5">
+                                  {PERMISSION_ACTIONS.map((perm) => {
+                                    const isChecked = perms.includes(perm)
+                                    return (
+                                      <label
+                                        key={perm}
+                                        className="flex items-center justify-center cursor-pointer p-0.5 rounded hover:bg-muted/60 transition-colors"
+                                        title={`${role} • ${menu.label} • ${actionLabels[perm] || perm}`}
+                                      >
+                                        <input
+                                          type="checkbox"
+                                          className="w-4 h-4 text-primary rounded border-input focus:ring-ring accent-primary cursor-pointer"
+                                          checked={isChecked}
+                                          onChange={() => togglePerm(role, menu.key, perm)}
+                                        />
+                                      </label>
+                                    )
+                                  })}
+                                </div>
+                              </td>
+                            )
+                          })}
                         </tr>
                       )
                     })}
@@ -728,7 +801,7 @@ function AdminUserPage() {
                 <strong className="text-primary font-semibold">Catatan:</strong> Superadmin memiliki akses penuh ke seluruh modul sistem. Admin Unit dibatasi pada unit sekolah penugasan. Guru/Staf dan Kepala Sekolah dibatasi pada aplikasi mobile.
               </div>
             </div>
-            <div className="px-6 py-3.5 bg-muted/30 border-t border-border flex items-center justify-end gap-2.5">
+            <div className="px-6 py-3.5 bg-muted/30 border-t border-border flex items-center justify-between gap-2.5">
               <button
                 onClick={resetMatrix}
                 className="h-9 px-4 rounded-lg border border-border bg-card hover:bg-muted text-foreground font-semibold text-xs transition-colors cursor-pointer"
@@ -736,18 +809,28 @@ function AdminUserPage() {
               >
                 Reset Default
               </button>
-              <button
-                onClick={saveMatrix}
-                className="h-9 px-4 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
-                type="button"
-              >
-                <span className="material-symbols-outlined text-[16px]">check</span>
-                <span>Simpan Perubahan</span>
-              </button>
-            </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={closeMatrix}
+                  className="h-9 px-4 rounded-lg border border-border bg-card hover:bg-muted text-foreground font-semibold text-xs transition-colors cursor-pointer"
+                  type="button"
+                >
+                  Batal
+                </button>
+                <button
+                  onClick={saveMatrix}
+                  className="h-9 px-4 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+                  type="button"
+                >
+                  <span className="material-symbols-outlined text-[16px]">check</span>
+                  <span>Simpan Perubahan</span>
+                </button>
+              </div>
             </div>
           </div>
-        )}
+        </div>
+      )}
+
       {resetTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs" onClick={closeResetPassword}>
           <div className="relative w-full max-w-md bg-card text-foreground rounded-2xl shadow-xl border border-border overflow-hidden flex flex-col max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
@@ -765,6 +848,7 @@ function AdminUserPage() {
                 onClick={closeResetPassword}
                 className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
                 type="button"
+                title="Tutup Modal"
               >
                 <span className="material-symbols-outlined text-[18px]">close</span>
               </button>
@@ -806,7 +890,7 @@ function AdminUserPage() {
                   <div className="relative mt-1.5">
                     <input
                       id="resetNewPassword"
-                      type="password"
+                      type={showResetNewPassword ? 'text' : 'password'}
                       autoComplete="new-password"
                       placeholder="Minimal 8 karakter"
                       value={resetNewPassword}
@@ -820,10 +904,13 @@ function AdminUserPage() {
                     />
                     <button
                       type="button"
-                      onClick={() => {}}
+                      onClick={() => setShowResetNewPassword((v) => !v)}
                       className="absolute right-2.5 top-1/2 -translate-y-1/2 h-6 w-6 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-accent rounded-md transition-colors cursor-pointer"
+                      title={showResetNewPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
                     >
-                      <span className="material-symbols-outlined text-[15px]">lock</span>
+                      <span className="material-symbols-outlined text-[15px]">
+                        {showResetNewPassword ? 'visibility_off' : 'visibility'}
+                      </span>
                     </button>
                   </div>
                   <div>
@@ -833,7 +920,7 @@ function AdminUserPage() {
                   <div className="relative mt-1.5">
                     <input
                       id="resetConfirmPassword"
-                      type="password"
+                      type={showResetConfirmPassword ? 'text' : 'password'}
                       autoComplete="new-password"
                       placeholder="Ulangi kata sandi baru"
                       value={resetConfirmPassword}
@@ -847,10 +934,13 @@ function AdminUserPage() {
                     />
                     <button
                       type="button"
-                      onClick={() => {}}
+                      onClick={() => setShowResetConfirmPassword((v) => !v)}
                       className="absolute right-2.5 top-1/2 -translate-y-1/2 h-6 w-6 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-accent rounded-md transition-colors cursor-pointer"
+                      title={showResetConfirmPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
                     >
-                      <span className="material-symbols-outlined text-[15px]">lock</span>
+                      <span className="material-symbols-outlined text-[15px]">
+                        {showResetConfirmPassword ? 'visibility_off' : 'visibility'}
+                      </span>
                     </button>
                   </div>
                   <p className="text-[11px] text-muted-foreground">Kata sandi baru akan wajib diganti pengguna saat login berikutnya.</p>
@@ -890,4 +980,10 @@ function AdminUserPage() {
   )
 }
 
-export default AdminUserPage
+export default function AdminUserPageWrapper(props) {
+  return (
+    <ErrorBoundary name="Manajemen Admin">
+      <AdminUserPage {...props} />
+    </ErrorBoundary>
+  )
+}
