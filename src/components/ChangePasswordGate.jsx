@@ -13,28 +13,54 @@ import {
 import { useNavigate } from 'react-router-dom'
 import Icon from './Icon.jsx'
 
-const INPUT_CLASS =
-  'w-full bg-transparent px-3.5 py-2.5 text-xs text-foreground placeholder:text-muted-foreground outline-none'
+const LABEL_CLASS = 'text-[11px] font-semibold text-foreground'
+const ERROR_CLASS = 'animate-sp-rise text-[11px] font-medium text-destructive'
 const FIELD_WRAP =
   'group relative rounded-lg border border-input bg-card transition-all duration-200 ' +
   'hover:border-border focus-within:border-ring focus-within:ring-1 focus-within:ring-ring'
 const FIELD_WRAP_ERROR = 'border-destructive focus-within:border-destructive focus-within:ring-destructive/30'
-const LABEL_CLASS = 'text-[11px] font-semibold text-foreground'
-const ERROR_CLASS = 'animate-sp-rise text-[11px] font-medium text-destructive'
+const INPUT_CLASS =
+  'w-full px-3.5 py-2.5 text-xs text-foreground placeholder:text-muted-foreground outline-none'
+const TOGGLE_CLASS =
+  'absolute right-2.5 top-1/2 -translate-y-1/2 h-6 w-6 flex items-center justify-center rounded-md ' +
+  'text-muted-foreground hover:text-foreground hover:bg-accent transition-colors cursor-pointer'
+
+// Kekuatan kata sandi (0-4): panjang, huruf besar, huruf kecil, angka, simbol.
+function passwordStrength(password) {
+  let score = 0
+  if (password.length >= 8) score++
+  if (/[A-Z]/.test(password)) score++
+  if (/[a-z]/.test(password)) score++
+  if (/[0-9]/.test(password)) score++
+  if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) score++
+  return score
+}
+
+function strengthLabel(score) {
+  return ['Sangat lemah', 'Lemah', 'Cukup', 'Kuat', 'Sangat kuat'][score] || 'Sangat lemah'
+}
+
+function strengthColor(score) {
+  return [
+    'bg-destructive text-destructive',
+    'bg-amber-500 text-amber-600 dark:text-amber-400',
+    'bg-blue-500 text-blue-600 dark:text-blue-400',
+    'bg-emerald-500 text-emerald-600 dark:text-emerald-400',
+    'bg-emerald-600 text-emerald-700 dark:text-emerald-300',
+  ][score] || 'bg-destructive text-destructive'
+}
 
 /**
  * Modal ganti kata sandi.
  *
- * Dipakai dua mode dalam satu komponen:
- *  - DIPAKSA   : akun portal hasil reset admin. Tidak bisa ditutup — memang
- *                harus ganti sandi sebelum memakai sistem.
- *  - SUKRELA   : pengguna yang memakai tombol "Ganti Password"/"Ubah password".
- *                Ber behaving seperti modal biasa: klik di luar kartu, tekan X,
- *                tekan Batal, atau tekan Escape akan menutupnya.
+ * Dua mode dalam satu komponen:
+ *  - DIPAKSA   : akun portal hasil reset admin. Tidak bisa ditutup sebelum
+ *                kata sandi baru disimpan.
+ *  - SUKRELA   : pengguna membuka lewat menu "Ubah password". Bisa ditutup
+ *                dengan klik di luar kartu, tombol X, Batal, atau Escape.
  *
- * Menutup selalu mengembalikan state ke awal: seluruh field dikosongkan dan
- * permintaan ganti sandi dibatalkan di store, sehingga tidak ada modal yang
- * "nyangkut" dan halaman di belakangnya bisa disentuh lagi.
+ * Setiap penutupan mengembalikan form ke state awal agar tidak ada sisa
+ * input yang "nyangkut" di layar belakangnya.
  */
 function ChangePasswordGate() {
   const { state, dispatch } = useSimPres()
@@ -47,22 +73,28 @@ function ChangePasswordGate() {
   const dipaksa = Boolean(currentUser?.mustChangePassword)
   const dimintaSendiri = Boolean(state.passwordChangeRequested)
   const terbuka = selectCanChangeOwnPassword(state) && selectMustChangePassword(state)
-  // Bisa ditutup bila ada notifikasi sukses (kata sandi baru sudah tersimpan),
-  // atau bila pengguna membuka sendiri form ini dan tidak dipaksa.
-  const bisaTutup = Boolean(notice) || (dimintaSendiri && !dipaksa)
 
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [showCurrent, setShowCurrent] = useState(false)
+  const [showNew, setShowNew] = useState(false)
+  const [showConfirm, setShowConfirm] = useState(false)
   const [error, setError] = useState(null)
   const [notice, setNotice] = useState(null)
   const [fieldErrors, setFieldErrors] = useState({})
   const inputRef = useRef(null)
 
+  // `notice` harus dideklarasikan sebelum `bisaTutup` (referensi di bawah).
+  const bisaTutup = Boolean(notice) || (dimintaSendiri && !dipaksa)
+
   const reset = () => {
     setCurrentPassword('')
     setNewPassword('')
     setConfirmPassword('')
+    setShowCurrent(false)
+    setShowNew(false)
+    setShowConfirm(false)
     setError(null)
     setNotice(null)
     setFieldErrors({})
@@ -101,14 +133,16 @@ function ChangePasswordGate() {
 
     setError(null)
     dispatch({ type: 'CHANGE_PASSWORD', payload: { account: currentUser, password: newPassword } })
-    setNotice('Kata sandi berhasil diperbarui. Selamat datang kembali di SimPres.')
+    setNotice('Kata sandi berhasil diperbarui. Gunakan kata sandi baru untuk login berikutnya.')
     setCurrentPassword('')
     setNewPassword('')
     setConfirmPassword('')
+    setShowCurrent(false)
+    setShowNew(false)
+    setShowConfirm(false)
   }
 
-  // Fokus otomatis ke field pertama saat modal dibuka, supaya pengguna mobile
-  // bisa langsung mengetik tanpa menyentuh layar dulu.
+  // Fokus otomatis ke field pertama saat modal dibuka.
   useEffect(() => {
     if (terbuka) inputRef.current?.focus()
   }, [terbuka])
@@ -121,11 +155,9 @@ function ChangePasswordGate() {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  })
+  }, [terbuka, bisaTutup])
 
-  // Latar tidak boleh bergulir selama modal terbuka; nilainya dikembalikan
-  // persis seperti semula saat modal ditutup atau halaman dilepas, supaya
-  // halaman di belakang tidak terkunci selamanya.
+  // Kunci scroll body selama modal terbuka; kembalikan seperti semula saat ditutup.
   useEffect(() => {
     if (typeof document === 'undefined') return undefined
     if (!terbuka && !notice) return undefined
@@ -136,10 +168,15 @@ function ChangePasswordGate() {
     }
   }, [terbuka, notice])
 
-  // Pengaman lapis komponen: meski pun gerbang diminta tanpa hak (mis. aksi
-  // REQUEST_PASSWORD_CHANGE yang lolos ke store), role tanpa izin tidak pernah
-  // melihat modal ini.
+  // Gerbang tidak berhak (mis. Superadmin) tidak pernah menampilkan modal ini.
   if (!terbuka && !notice) return null
+
+  const togglePassword = (field) => {
+    setError(null)
+    if (field === 'current') setShowCurrent((v) => !v)
+    if (field === 'new') setShowNew((v) => !v)
+    if (field === 'confirm') setShowConfirm((v) => !v)
+  }
 
   return (
     <div
@@ -154,27 +191,27 @@ function ChangePasswordGate() {
         aria-labelledby="ubah-sandi-judul"
         // Klik di dalam kartu tidak boleh menutup modal.
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-[430px] max-h-[90dvh] overflow-y-auto overscroll-contain animate-sp-rise rounded-xl bg-card border border-border p-4 pb-6 shadow-xl"
+        className="w-full max-w-[430px] max-h-[90dvh] overflow-y-auto overscroll-contain animate-sp-rise rounded-2xl bg-card border border-border p-5 pb-7 shadow-2xl"
       >
         <div className="flex items-start gap-3">
-          <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-amber-500/10 border border-amber-500/20">
-            <Icon name="lock_reset" className="text-[22px] text-amber-600 dark:text-amber-400" />
+          <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-amber-500/10 border border-amber-500/20">
+            <Icon name="lock_reset" className="text-[24px] text-amber-600 dark:text-amber-400" />
           </div>
           <div className="min-w-0 flex-1">
-            <h2 id="ubah-sandi-judul" className="text-base font-bold text-foreground">
-              {dipaksa ? 'Ganti Kata Sandi Anda' : 'Ganti Kata Sandi'}
+            <h2 id="ubah-sandi-judul" className="text-base font-bold text-foreground tracking-tight">
+              {dipaksa ? 'Ganti Kata Sandi Anda' : 'Ubah Kata Sandi'}
             </h2>
             <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
               {dipaksa
-                ? 'Demi keamanan, kata sandi bawaan hanya berlaku sekali. Buat kata sandi baru untuk melanjutkan.'
-                : 'Masukkan kata sandi lama lalu pilih kata sandi baru untuk akun ini.'}
+                ? 'Kata sandi bawaan hanya berlaku sekali. Buat kata sandi baru sebelum melanjutkan ke sistem.'
+                : 'Masukkan kata sandi sekarang, lalu buat kata sandi baru untuk akun ini.'}
             </p>
           </div>
           {bisaTutup && (
             <button
               type="button"
               onClick={tutup}
-              aria-label="Tutup modal ganti kata sandi"
+              aria-label="Tutup modal ubah kata sandi"
               className="sp-press -mt-1 -mr-1 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer"
             >
               <Icon name="close" className="text-[18px]" />
@@ -182,15 +219,15 @@ function ChangePasswordGate() {
           )}
         </div>
 
-        <div className="mt-4 rounded-xl bg-muted/40 border border-border px-3.5 py-3">
+        <div className="mt-5 rounded-xl bg-muted/40 border border-border px-4 py-3.5">
           <div className="flex items-center justify-between gap-3">
-            <span className="text-[10.5px] uppercase font-bold text-muted-foreground tracking-wider">Akun</span>
+            <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Akun</span>
             <span className="text-xs font-semibold text-foreground truncate">
-              {currentUser?.username || currentUser?.niy || currentUser?.email || '-'}
+              {currentUser?.name || currentUser?.username || currentUser?.niy || currentUser?.email || '-'}
             </span>
           </div>
           <div className="mt-1.5 flex items-center justify-between gap-3">
-            <span className="text-[10.5px] uppercase font-bold text-muted-foreground tracking-wider">Role &amp; Unit</span>
+            <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Role &amp; Unit</span>
             <span className="text-xs font-semibold text-foreground truncate">{currentRole} &middot; {unitLabel}</span>
           </div>
         </div>
@@ -198,7 +235,7 @@ function ChangePasswordGate() {
         {error ? (
           <div
             role="alert"
-            className="mt-4 flex animate-sp-rise items-start gap-2.5 rounded-xl border border-destructive/20 bg-destructive/10 px-3.5 py-2.5 text-xs leading-relaxed text-destructive"
+            className="mt-4 flex items-start gap-2.5 rounded-xl border border-destructive/20 bg-destructive/10 px-3.5 py-2.5 text-xs leading-relaxed text-destructive"
           >
             <Icon name="error" className="mt-px text-[18px]" />
             <span>{error}</span>
@@ -208,28 +245,27 @@ function ChangePasswordGate() {
         {notice ? (
           <div
             role="status"
-            className="mt-4 flex animate-sp-rise items-start gap-2.5 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3.5 py-2.5 text-xs leading-relaxed text-emerald-600 dark:text-emerald-400"
+            className="mt-4 flex items-start gap-2.5 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3.5 py-2.5 text-xs leading-relaxed text-emerald-600 dark:text-emerald-400"
           >
             <Icon name="check_circle" className="mt-px text-[18px]" />
             <span>{notice}</span>
           </div>
         ) : null}
 
-        {/* Setelah berhasil: cukup satu tombol untuk menutup, supaya modal
-            tidak menggantung di layar. */}
+        {/* Setelah berhasil: satu tombol untuk menutup dan kembali ke sistem. */}
         {notice ? (
           <button
             type="button"
             onClick={tutup}
-            className="mt-5 w-full h-10 rounded-lg bg-primary hover:bg-primary/90 px-4 text-xs font-semibold text-primary-foreground shadow-xs transition-colors cursor-pointer"
+            className="mt-5 w-full h-10 rounded-lg bg-primary hover:bg-primary/90 px-4 text-xs font-semibold text-primary-foreground shadow-sm transition-colors cursor-pointer"
           >
             Selesai
           </button>
         ) : (
-          <form className="mt-5 space-y-3.5" onSubmit={handleSubmit} noValidate>
+          <form className="mt-5 space-y-4" onSubmit={handleSubmit} noValidate>
             <div>
               <div className="flex items-center justify-between gap-3">
-                <label htmlFor="currentPassword" className={LABEL_CLASS}>Kata Sandi Lama</label>
+                <label htmlFor="currentPassword" className={LABEL_CLASS}>Kata Sandi Sekarang</label>
                 {fieldErrors.currentPassword && <span className={ERROR_CLASS}>{fieldErrors.currentPassword}</span>}
               </div>
               <div className={`${FIELD_WRAP} mt-1.5 ${fieldErrors.currentPassword ? FIELD_WRAP_ERROR : ''}`}>
@@ -237,9 +273,9 @@ function ChangePasswordGate() {
                   ref={inputRef}
                   id="currentPassword"
                   name="currentPassword"
-                  type="password"
+                  type={showCurrent ? 'text' : 'password'}
                   autoComplete="current-password"
-                  placeholder="Kata sandi bawaan / lama"
+                  placeholder="Kata sandi yang saat ini digunakan"
                   value={currentPassword}
                   onChange={(e) => {
                     setCurrentPassword(e.target.value)
@@ -250,6 +286,14 @@ function ChangePasswordGate() {
                   className={INPUT_CLASS}
                   required
                 />
+                <button
+                  type="button"
+                  onClick={() => togglePassword('current')}
+                  aria-label={showCurrent ? 'Sembunyikan kata sandi sekarang' : 'Tampilkan kata sandi sekarang'}
+                  className={TOGGLE_CLASS}
+                >
+                  <Icon name={showCurrent ? 'visibility_off' : 'visibility'} className="text-[15px]" />
+                </button>
               </div>
             </div>
 
@@ -262,7 +306,7 @@ function ChangePasswordGate() {
                 <input
                   id="newPassword"
                   name="newPassword"
-                  type="password"
+                  type={showNew ? 'text' : 'password'}
                   autoComplete="new-password"
                   placeholder={`Minimal ${minLength} karakter`}
                   value={newPassword}
@@ -275,7 +319,35 @@ function ChangePasswordGate() {
                   className={INPUT_CLASS}
                   required
                 />
+                <button
+                  type="button"
+                  onClick={() => togglePassword('new')}
+                  aria-label={showNew ? 'Sembunyikan kata sandi baru' : 'Tampilkan kata sandi baru'}
+                  className={TOGGLE_CLASS}
+                >
+                  <Icon name={showNew ? 'visibility_off' : 'visibility'} className="text-[15px]" />
+                </button>
               </div>
+              {newPassword.length > 0 && (
+                <div className="mt-1 flex w-full">
+                  <div className="flex-1 h-1.5 rounded-full border border-border/60 overflow-hidden">
+                    {[
+                      { ratio: 25 },
+                      { ratio: 50 },
+                      { ratio: 75 },
+                      { ratio: 100 },
+                    ].map((seg, i) => (
+                      <div
+                        key={i}
+                        className={`h-full w-1/4 ${i < passwordStrength(newPassword) ? strengthColor(passwordStrength(newPassword)) : 'bg-transparent'}`}
+                      />
+                    ))}
+                  </div>
+                  <span className="ml-2.5 text-[10px] font-semibold {strengthColor(passwordStrength(newPassword)).split(' ')[1]}">
+                    {strengthLabel(passwordStrength(newPassword))}
+                  </span>
+                </div>
+              )}
             </div>
 
             <div>
@@ -287,7 +359,7 @@ function ChangePasswordGate() {
                 <input
                   id="confirmPassword"
                   name="confirmPassword"
-                  type="password"
+                  type={showConfirm ? 'text' : 'password'}
                   autoComplete="new-password"
                   placeholder="Ulangi kata sandi baru"
                   value={confirmPassword}
@@ -300,17 +372,25 @@ function ChangePasswordGate() {
                   className={INPUT_CLASS}
                   required
                 />
+                <button
+                  type="button"
+                  onClick={() => togglePassword('confirm')}
+                  aria-label={showConfirm ? 'Sembunyikan konfirmasi' : 'Tampilkan konfirmasi'}
+                  className={TOGGLE_CLASS}
+                >
+                  <Icon name={showConfirm ? 'visibility_off' : 'visibility'} className="text-[15px]" />
+                </button>
               </div>
             </div>
 
             <p className="text-[11px] text-muted-foreground">
-              Syarat: minimal {minLength} karakter dan berbeda dari kata sandi lama.
+              Syarat: minimal {minLength} karakter, harus berbeda dari kata sandi saat ini, dan konfirmasi cocok.
             </p>
 
             <div className="flex items-center gap-2.5 pt-1">
               <button
                 type="submit"
-                className="flex-1 h-10 rounded-lg bg-primary hover:bg-primary/90 px-4 text-xs font-semibold text-primary-foreground shadow-xs transition-colors cursor-pointer"
+                className="flex-1 h-10 rounded-lg bg-primary hover:bg-primary/90 px-4 text-xs font-semibold text-primary-foreground shadow-sm transition-colors cursor-pointer"
               >
                 Simpan Kata Sandi
               </button>
@@ -318,7 +398,7 @@ function ChangePasswordGate() {
                 <button
                   type="button"
                   onClick={handleLogout}
-                  className="h-10 rounded-lg border border-border bg-card hover:bg-muted px-4 text-xs font-semibold text-foreground transition-colors cursor-pointer shadow-xs"
+                  className="h-10 rounded-lg border border-border bg-card hover:bg-muted px-4 text-xs font-semibold text-foreground transition-colors cursor-pointer shadow-sm"
                 >
                   Keluar
                 </button>
@@ -326,7 +406,7 @@ function ChangePasswordGate() {
                 <button
                   type="button"
                   onClick={tutup}
-                  className="h-10 rounded-lg border border-border bg-card hover:bg-muted px-4 text-xs font-semibold text-foreground transition-colors cursor-pointer shadow-xs"
+                  className="h-10 rounded-lg border border-border bg-card hover:bg-muted px-4 text-xs font-semibold text-foreground transition-colors cursor-pointer shadow-sm"
                 >
                   Batal
                 </button>

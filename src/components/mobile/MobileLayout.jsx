@@ -1,9 +1,10 @@
 import { useEffect } from 'react'
 import { NavLink, Outlet, Navigate, useLocation } from 'react-router-dom'
 import Icon from '../Icon.jsx'
+import ChangePasswordGate from '../ChangePasswordGate.jsx'
 import {
   useSimPres, selectSelfStaff, selectAppMode, selectAppHomePath, MODE_MOBILE,
-  selectCurrentUserRole, ROLE_KEPALA_SEKOLAH,
+  selectCurrentUserRole, ROLE_KEPALA_SEKOLAH, selectMustChangePassword,
 } from '../../store/simPresStore.jsx'
 import MobileErrorBoundary from './MobileErrorBoundary.jsx'
 import InstallPrompt from './InstallPrompt.jsx'
@@ -104,6 +105,7 @@ function MobileLayout() {
           <MobileErrorBoundary resetKey={location.pathname}>
             <Outlet />
           </MobileErrorBoundary>
+          {selectMustChangePassword(state) && <ChangePasswordGate />}
           <div className="sp-nav-space" aria-hidden="true" />
         </main>
 

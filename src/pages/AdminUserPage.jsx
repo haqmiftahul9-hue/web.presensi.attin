@@ -4,10 +4,11 @@ import {
   addActivityLog, selectScopedStaff, selectActiveUnitId, selectCanSwitchUnit,
   ALL_UNITS, selectSearchTerm, selectCurrentUser,
   ROLE_ADMIN_UNIT, ROLE_KEPALA_SEKOLAH, ROLE_PETUGAS_PRESENSI, ROLE_GURU_PEGAWAI,
-  MENU_OPTIONS, PERMISSION_ACTIONS,
+  ROLE_SUPERADMIN, MENU_OPTIONS, PERMISSION_ACTIONS,
 } from '../store/simPresStore.jsx'
 import ConfirmDialog from '../components/ConfirmDialog.jsx'
 import DetailEmployeeModal from '../components/DetailEmployeeModal.jsx'
+import Icon from '../components/Icon.jsx'
 
 // Role yang tampil di halaman Manajemen Admin (hak akses desktop/admin).
 const ADMIN_ROLES = [ROLE_ADMIN_UNIT, ROLE_KEPALA_SEKOLAH, ROLE_PETUGAS_PRESENSI]
@@ -43,6 +44,14 @@ function AdminUserPage() {
   const [matrixPerms, setMatrixPerms] = useState(null)
 
   const pageSize = 10
+
+  // Modal reset kata sandi (hanya Superadmin).
+  const [resetTarget, setResetTarget] = useState(null)
+  const [resetNewPassword, setResetNewPassword] = useState('')
+  const [resetConfirmPassword, setResetConfirmPassword] = useState('')
+  const [resetError, setResetError] = useState(null)
+  const [resetNotice, setResetNotice] = useState(null)
+  const [resetFieldErrors, setResetFieldErrors] = useState({})
 
   // Semua pegawai dengan role admin-level (di seluruh unit, untuk KPI).
   const adminStaffAll = useMemo(() => {
@@ -150,6 +159,61 @@ function AdminUserPage() {
         closeConfirm()
       },
     )
+  }
+
+  const openResetPassword = (staff) => {
+    setResetTarget(staff)
+    setResetNewPassword('')
+    setResetConfirmPassword('')
+    setResetError(null)
+    setResetNotice(null)
+    setResetFieldErrors({})
+  }
+  const closeResetPassword = () => {
+    setResetTarget(null)
+    setResetNewPassword('')
+    setResetConfirmPassword('')
+    setResetError(null)
+    setResetNotice(null)
+    setResetFieldErrors({})
+  }
+
+  const handleResetPassword = () => {
+    if (!resetTarget) return
+    const minLength = 8
+    const localErrors = {}
+    if (!resetNewPassword) localErrors.newPassword = 'Kata sandi baru wajib diisi.'
+    else if (resetNewPassword.length < minLength) localErrors.newPassword = `Minimal ${minLength} karakter.`
+    if (!resetConfirmPassword) localErrors.confirmPassword = 'Konfirmasi kata sandi wajib diisi.'
+    else if (resetConfirmPassword !== resetNewPassword) localErrors.confirmPassword = 'Konfirmasi tidak cocok.'
+    setResetFieldErrors(localErrors)
+    if (Object.keys(localErrors).length > 0) return
+
+    const adminUser = state.adminUsers.find((u) => u.niy === resetTarget.niy)
+    if (!adminUser) {
+      setResetError('Akun portal untuk pengguna ini tidak ditemukan.')
+      return
+    }
+
+    dispatch({
+      type: 'RESET_PASSWORD',
+      payload: { account: adminUser, password: resetNewPassword },
+    })
+    addActivityLog(
+      dispatch,
+      state,
+      'Reset Password',
+      `Akun • ${resetTarget.name}`,
+      `Reset kata sandi ${resetTarget.name} (NIY ${resetTarget.niy}) oleh Superadmin`,
+      currentUser?.name,
+      currentUser?.role,
+      resetTarget.unitId,
+    )
+    setResetNotice(`Kata sandi ${resetTarget.name} berhasil direset. Pengguna wajib ganti kata sandi saat login berikutnya.`)
+    setResetNewPassword('')
+    setResetConfirmPassword('')
+    setResetFieldErrors({})
+    setTimeout(() => closeResetPassword(), 1500)
   }
 
   const openDetail = (staff) => {
@@ -426,6 +490,16 @@ function AdminUserPage() {
                             <span className="material-symbols-outlined text-[16px]">check_circle</span>
                           </button>
                         )}
+                        {currentRole === ROLE_SUPERADMIN && (
+                          <button
+                            onClick={() => openResetPassword(user)}
+                            className="w-7 h-7 rounded-md bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center justify-center transition-colors cursor-pointer"
+                            title="Reset Password"
+                            type="button"
+                          >
+                            <span className="material-symbols-outlined text-[16px]">lock_reset</span>
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -670,6 +744,144 @@ function AdminUserPage() {
                 <span>Simpan Perubahan</span>
               </button>
             </div>
+            </div>
+          </div>
+        )}
+      {resetTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs" onClick={closeResetPassword}>
+          <div className="relative w-full max-w-md bg-card text-foreground rounded-2xl shadow-xl border border-border overflow-hidden flex flex-col max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
+            <div className="px-6 py-4 border-b border-border flex items-center justify-between bg-muted/30">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                  <span className="material-symbols-outlined text-[20px]">lock_reset</span>
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-foreground tracking-tight">Reset Kata Sandi</h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">Masukkan kata sandi baru untuk {resetTarget.name}.</p>
+                </div>
+              </div>
+              <button
+                onClick={closeResetPassword}
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
+                type="button"
+              >
+                <span className="material-symbols-outlined text-[18px]">close</span>
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto space-y-4">
+              <div className="flex flex-col items-center text-center p-4 bg-muted/30 rounded-xl border border-border">
+                <div className={`w-12 h-12 rounded-2xl text-xl font-bold flex items-center justify-center shadow-xs ${roleStyles[resetTarget.role]?.roleBg || roleStyles.Guru.roleBg} ${roleStyles[resetTarget.role]?.roleText || roleStyles.Guru.roleText} border border-border/60`}>
+                  {resetTarget.initials}
+                </div>
+                <div className="mt-3">
+                  <h4 className="text-sm font-bold text-foreground">{resetTarget.name}</h4>
+                  <span className="text-[11px] text-muted-foreground font-mono">NIY {resetTarget.niy}</span>
+                </div>
+              </div>
+              {resetError ? (
+                <div
+                  role="alert"
+                  className="flex items-start gap-2.5 rounded-xl border border-destructive/20 bg-destructive/10 px-3.5 py-2.5 text-xs leading-relaxed text-destructive"
+                >
+                  <Icon name="error" className="mt-px text-[18px]" />
+                  <span>{resetError}</span>
+                </div>
+              ) : null}
+              {resetNotice ? (
+                <div
+                  role="status"
+                  className="flex items-start gap-2.5 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3.5 py-2.5 text-xs leading-relaxed text-emerald-600 dark:text-emerald-400"
+                >
+                  <Icon name="check_circle" className="mt-px text-[18px]" />
+                  <span>{resetNotice}</span>
+                </div>
+              ) : null}
+              {!resetNotice && (
+                <form className="mt-4 space-y-3.5" onSubmit={(e) => { e.preventDefault(); handleResetPassword() }} noValidate>
+                  <div>
+                    <label htmlFor="resetNewPassword" className={LABEL_CLASS}>Kata Sandi Baru</label>
+                    {resetFieldErrors.newPassword && <span className={ERROR_CLASS}>{resetFieldErrors.newPassword}</span>}
+                  </div>
+                  <div className="relative mt-1.5">
+                    <input
+                      id="resetNewPassword"
+                      type="password"
+                      autoComplete="new-password"
+                      placeholder="Minimal 8 karakter"
+                      value={resetNewPassword}
+                      onChange={(e) => {
+                        setResetNewPassword(e.target.value)
+                        setResetError(null)
+                        if (resetFieldErrors.newPassword) setResetFieldErrors((p) => ({ ...p, newPassword: '' }))
+                      }}
+                      className="w-full pl-3.5 pr-9 py-2.5 text-xs text-foreground placeholder:text-muted-foreground outline-none rounded-lg border border-input bg-card focus:outline-none focus:ring-1 focus:ring-ring transition-colors"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {}}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 h-6 w-6 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-accent rounded-md transition-colors cursor-pointer"
+                    >
+                      <span className="material-symbols-outlined text-[15px]">lock</span>
+                    </button>
+                  </div>
+                  <div>
+                    <label htmlFor="resetConfirmPassword" className={LABEL_CLASS}>Konfirmasi Kata Sandi Baru</label>
+                    {resetFieldErrors.confirmPassword && <span className={ERROR_CLASS}>{resetFieldErrors.confirmPassword}</span>}
+                  </div>
+                  <div className="relative mt-1.5">
+                    <input
+                      id="resetConfirmPassword"
+                      type="password"
+                      autoComplete="new-password"
+                      placeholder="Ulangi kata sandi baru"
+                      value={resetConfirmPassword}
+                      onChange={(e) => {
+                        setResetConfirmPassword(e.target.value)
+                        setResetError(null)
+                        if (resetFieldErrors.confirmPassword) setResetFieldErrors((p) => ({ ...p, confirmPassword: '' }))
+                      }}
+                      className="w-full pl-3.5 pr-9 py-2.5 text-xs text-foreground placeholder:text-muted-foreground outline-none rounded-lg border border-input bg-card focus:outline-none focus:ring-1 focus:ring-ring transition-colors"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {}}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 h-6 w-6 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-accent rounded-md transition-colors cursor-pointer"
+                    >
+                      <span className="material-symbols-outlined text-[15px]">lock</span>
+                    </button>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">Kata sandi baru akan wajib diganti pengguna saat login berikutnya.</p>
+                  <div className="flex items-center gap-2.5 pt-1">
+                    <button
+                      type="submit"
+                      className="flex-1 h-10 rounded-lg bg-primary hover:bg-primary/90 px-4 text-xs font-semibold text-primary-foreground shadow-sm transition-colors cursor-pointer"
+                    >
+                      Simpan Kata Sandi
+                    </button>
+                    <button
+                      type="button"
+                      onClick={closeResetPassword}
+                      className="h-10 rounded-lg border border-border bg-card hover:bg-muted px-4 text-xs font-semibold text-foreground transition-colors cursor-pointer shadow-sm"
+                    >
+                      Batal
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+            {resetNotice && (
+              <div className="px-6 py-3 bg-muted/30 border-t border-border flex items-center justify-end">
+                <button
+                  onClick={closeResetPassword}
+                  className="h-9 px-4 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs shadow-sm transition-colors cursor-pointer"
+                  type="button"
+                >
+                  Selesai
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}

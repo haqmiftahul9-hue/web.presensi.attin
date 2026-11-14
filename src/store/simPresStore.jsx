@@ -1477,34 +1477,79 @@ logs: [
       // Lapis reducer kedua: percobaan mengganti kata sandi oleh role yang
       // dilarang (Superadmin) diabaikan, bukan sekadar ditolak formnya.
       if (!selectCanChangeOwnPassword(state)) return state
-      // Akun portal (baris di adminUsers) menyimpan kata sandi barunya sendiri;
-      // akun pegawai menyimpan ke userAccounts (relasi pegawai_id).
       const { account, password } = action.payload
       if (!account || !password) return state
+      let nextAdminUsers = state.adminUsers
+      let nextUserAccounts = state.userAccounts
+      // Akun portal (baris di adminUsers) menyimpan kata sandi barunya sendiri;
+      // akun pegawai menyimpan ke userAccounts (relasi pegawai_id).
       if (account.isStaffAccount) {
         const pegawaiId = account.pegawaiId ?? account.staffId
-        return {
-          ...state,
-          userAccounts: (state.userAccounts || []).map((a) =>
-            a.pegawaiId === pegawaiId || a.niy === account.niy
-              ? { ...a, password, mustChangePassword: false }
-              : a,
-          ),
-          currentUser: pegawaiId === state.currentUser?.pegawaiId
+        nextUserAccounts = (state.userAccounts || []).map((a) =>
+          a.pegawaiId === pegawaiId || a.niy === account.niy
+            ? { ...a, password, mustChangePassword: false }
+            : a,
+        )
+      } else {
+        nextAdminUsers = state.adminUsers.map((u) =>
+          u.id === account.id ? { ...u, password, mustChangePassword: false } : u,
+        )
+      }
+      writePersistedItem(PERSISTED_ADMIN_USERS_KEY, nextAdminUsers)
+      writePersistedItem(PERSISTED_USER_ACCOUNTS_KEY, nextUserAccounts)
+      return {
+        ...state,
+        adminUsers: nextAdminUsers,
+        userAccounts: nextUserAccounts,
+        currentUser: account.isStaffAccount
+          ? account.pegawaiId === state.currentUser?.pegawaiId
+            ? { ...state.currentUser, password, mustChangePassword: false }
+            : state.currentUser
+          : account.id === state.currentUser?.id
             ? { ...state.currentUser, password, mustChangePassword: false }
             : state.currentUser,
-          passwordChangeRequested: false,
+        passwordChangeRequested: false,
+      }
+    }
+
+    case 'RESET_PASSWORD': {
+      // Hanya Superadmin yang boleh mereset kata sandi pengguna lain. Diabaikan
+      // (bukan ditolak) bila dipanggil oleh role lain, sama seperti pola lapis
+      // reducer di atas.
+      if (selectCurrentUserRole(state) !== ROLE_SUPERADMIN) return state
+      const { account, password } = action.payload
+      if (!account || !password) return state
+      if (password.length < selectMinPasswordLength(state)) return state
+      let nextAdminUsers = state.adminUsers
+      let nextUserAccounts = state.userAccounts
+      if (account.isStaffAccount) {
+        const pegawaiId = account.pegawaiId ?? account.staffId
+        nextUserAccounts = (state.userAccounts || []).map((a) =>
+          a.pegawaiId === pegawaiId || a.niy === account.niy
+            ? { ...a, password, mustChangePassword: true }
+            : a,
+        )
+      } else {
+        nextAdminUsers = state.adminUsers.map((u) =>
+          u.id === account.id ? { ...u, password, mustChangePassword: true } : u,
+        )
+      }
+      writePersistedItem(PERSISTED_ADMIN_USERS_KEY, nextAdminUsers)
+      writePersistedItem(PERSISTED_USER_ACCOUNTS_KEY, nextUserAccounts)
+      let nextCurrentUser = state.currentUser
+      if (account.isStaffAccount) {
+        const pegawaiId = account.pegawaiId ?? account.staffId
+        if (pegawaiId === state.currentUser?.pegawaiId) {
+          nextCurrentUser = { ...state.currentUser, password, mustChangePassword: true }
         }
+      } else if (account.id === state.currentUser?.id) {
+        nextCurrentUser = { ...state.currentUser, password, mustChangePassword: true }
       }
       return {
         ...state,
-        adminUsers: state.adminUsers.map((u) =>
-          u.id === account.id ? { ...u, password, mustChangePassword: false } : u,
-        ),
-        currentUser: account.id === state.currentUser?.id
-          ? { ...state.currentUser, password, mustChangePassword: false }
-          : state.currentUser,
-        passwordChangeRequested: false,
+        adminUsers: nextAdminUsers,
+        userAccounts: nextUserAccounts,
+        currentUser: nextCurrentUser,
       }
     }
     case 'SET_SELECTED_UNIT': {
