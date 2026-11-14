@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from 'react'
 import {
   useSimPres, selectUnitName, initialsOf, normalisasiRole,
   addActivityLog, selectScopedStaff, selectActiveUnitId, selectCanSwitchUnit,
-  ALL_UNITS, selectSearchTerm, selectCurrentUser,
+  ALL_UNITS, selectSearchTerm, selectCurrentUser, selectCurrentUserRole,
   ROLE_ADMIN_UNIT, ROLE_KEPALA_SEKOLAH, ROLE_PETUGAS_PRESENSI, ROLE_GURU_PEGAWAI,
   ROLE_SUPERADMIN, MENU_OPTIONS, PERMISSION_ACTIONS,
 } from '../store/simPresStore.jsx'
@@ -29,6 +29,7 @@ const roleStyles = {
 function AdminUserPage() {
   const { state, dispatch } = useSimPres()
   const currentUser = selectCurrentUser(state)
+  const currentRole = selectCurrentUserRole(state)
   const searchTerm = selectSearchTerm(state)
   const canSwitchUnit = selectCanSwitchUnit(state)
   const [unitFilter, setUnitFilter] = useState(() => (canSwitchUnit ? ALL_UNITS : selectActiveUnitId(state)))
