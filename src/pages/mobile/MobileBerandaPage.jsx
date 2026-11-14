@@ -3,6 +3,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   useSimPresOptional, selectSelfStaff, selectSelfPresensi, selectUnitById, selectSelfLeaves,
+  selectCurrentUserRole, hasPermission, normalisasiRole, selectLeavesEnriched,
+  ROLE_SUPERADMIN, ROLE_ADMIN_UNIT, ROLE_KEPALA_SEKOLAH, ROLE_PETUGAS_PRESENSI,
 } from '../../store/simPresStore.jsx'
 import {
   tanggalPanjang, jamDetik, jamPendek,
@@ -128,6 +130,88 @@ function MobileBerandaPage() {
   // Nama singkat lokasi untuk kartu utama: unit + titik geofence.
   const titikLokasi = unit?.nama ? unit.nama.replace(/\s+/g, ' ').split(' ').slice(0, 2).join(' ') : 'Unit'
 
+  // Peran akun & evaluasi hak administratif/pimpinan
+  const currentRole = state ? normalisasiRole(selectCurrentUserRole(state)) : ''
+  const isSuperadmin = currentRole === ROLE_SUPERADMIN
+  const isAdminUnit = currentRole === ROLE_ADMIN_UNIT
+  const isKepsek = currentRole === ROLE_KEPALA_SEKOLAH
+  const isPetugas = currentRole === ROLE_PETUGAS_PRESENSI
+  const isLeaderOrAdmin = isSuperadmin || isAdminUnit || isKepsek || isPetugas
+
+  const canApproveLeaves = state
+    ? hasPermission(state, currentRole, 'pengajuanIzinCuti', 'edit')
+    : false
+
+  // Pengajuan izin staf yang menunggu persetujuan
+  const pendingLeavesUnit = useMemo(() => {
+    if (!state || !canApproveLeaves) return []
+    let list = selectLeavesEnriched(state).filter((l) => l.status === 'Menunggu')
+    if (!isSuperadmin && staff?.unitId) {
+      list = list.filter((l) => l.unitId === staff.unitId)
+    }
+    return list
+  }, [state, canApproveLeaves, isSuperadmin, staff?.unitId])
+
+  const pendingLeavesCount = pendingLeavesUnit.length
+
+  const roleBadgeStyle = useMemo(() => {
+    if (isSuperadmin) return { label: 'Superadmin', ikon: 'shield_person', kelas: 'bg-indigo-100 text-indigo-800 border-indigo-200' }
+    if (isKepsek) return { label: 'Kepala Sekolah', ikon: 'workspace_premium', kelas: 'bg-purple-100 text-purple-800 border-purple-200' }
+    if (isAdminUnit) return { label: 'Admin Unit', ikon: 'admin_panel_settings', kelas: 'bg-blue-100 text-blue-800 border-blue-200' }
+    if (isPetugas) return { label: 'Petugas Presensi', ikon: 'qr_code_scanner', kelas: 'bg-teal-100 text-teal-800 border-teal-200' }
+    return { label: staff?.role || 'Guru / Pegawai', ikon: 'school', kelas: 'bg-slate-100 text-slate-700 border-slate-200' }
+  }, [isSuperadmin, isKepsek, isAdminUnit, isPetugas, staff?.role])
+
+  const adminQuickMenuItems = useMemo(() => {
+    if (!isLeaderOrAdmin) return []
+    const items = []
+
+    if (canApproveLeaves) {
+      items.push({
+        to: '/mobile/persetujuan-izin',
+        judul: 'Persetujuan Izin',
+        sub: pendingLeavesCount > 0 ? `${pendingLeavesCount} pengajuan baru` : 'Verifikasi izin staf',
+        ikon: 'task_alt',
+        warna: pendingLeavesCount > 0 ? 'bg-amber-100 text-amber-700 ring-1 ring-amber-300' : 'bg-emerald-100 text-emerald-700',
+      })
+    }
+
+    items.push({
+      to: '/mobile/admin-monitoring',
+      judul: 'Monitoring Presensi',
+      sub: 'Kehadiran staf hari ini',
+      ikon: 'query_stats',
+      warna: 'bg-indigo-100 text-indigo-700',
+    })
+
+    if (isAdminUnit || isSuperadmin || isPetugas) {
+      items.push({
+        to: '/mobile/admin-scan',
+        judul: 'Scan QR Pegawai',
+        sub: 'Kamera pemindai ID Card',
+        ikon: 'qr_code_scanner',
+        warna: 'bg-purple-100 text-purple-700',
+      })
+      items.push({
+        to: '/mobile/admin-presensi-manual',
+        judul: 'Presensi Manual',
+        sub: 'Input kehadiran staf',
+        ikon: 'edit_calendar',
+        warna: 'bg-teal-100 text-teal-700',
+      })
+    }
+
+    items.push({
+      to: '/dashboard',
+      judul: 'Portal Web Desktop',
+      sub: 'Buka dashboard lengkap',
+      ikon: 'desktop_windows',
+      warna: 'bg-slate-100 text-slate-700',
+    })
+
+    return items
+  }, [isLeaderOrAdmin, canApproveLeaves, pendingLeavesCount, isAdminUnit, isSuperadmin, isPetugas])
+
   // Satu sumber kebenaran untuk badge waktu: dipakai kartu hari ini maupun
   // ringkasan, supaya kedua kartu tidak pernah menampilkan status berbeda.
   const badgeMasuk = !presensi.sudahMasuk
@@ -173,6 +257,13 @@ function MobileBerandaPage() {
               <span className="font-headline-sm text-headline-sm text-[#20243a] font-bold tracking-tight leading-tight truncate">
                 {staff.name}
               </span>
+              {/* Badge Peran / Penugasan Khusus */}
+              <div className="flex items-center gap-1.5 mt-1">
+                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold border ${roleBadgeStyle.kelas}`}>
+                  <Icon name={roleBadgeStyle.ikon} className="text-[12px]" />
+                  <span>{roleBadgeStyle.label}</span>
+                </span>
+              </div>
             </div>
           </div>
 
@@ -341,12 +432,58 @@ function MobileBerandaPage() {
           </section>
         )}
 
-        {/* 5. MENU CEPAT — grid 2x2 dengan ikon lingkaran, bukan list. */}
+        {/* 4c. ALERT PENGAJUAN BUTUH TINDAKAN (Kepsek & Admin) */}
+        {pendingLeavesCount > 0 && (
+          <section className="sp-rise sp-rise-2">
+            <div className="rounded-2xl bg-amber-500/10 border border-amber-500/30 p-3.5 flex items-center justify-between gap-3 shadow-2xs">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <span className="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-2xs">
+                  <Icon name="pending_actions" className="text-[18px]" />
+                </span>
+                <div className="flex flex-col min-w-0">
+                  <span className="font-label-md text-xs font-bold text-amber-950">
+                    {pendingLeavesCount} Izin/Cuti Menunggu
+                  </span>
+                  <span className="text-[11px] text-amber-800 truncate">
+                    Perlu persetujuan Anda segera
+                  </span>
+                </div>
+              </div>
+              <Link
+                to="/mobile/persetujuan-izin"
+                className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-label-sm text-xs font-bold shrink-0 shadow-2xs active:scale-95 transition-all"
+              >
+                Tinjau
+              </Link>
+            </div>
+          </section>
+        )}
+
+        {/* 5. FITUR KHUSUS PIMPINAN & ADMIN (Muncul jika akun memiliki role Admin/Kepala Sekolah/Superadmin) */}
+        {isLeaderOrAdmin && adminQuickMenuItems.length > 0 && (
+          <section className="flex flex-col gap-2.5 sp-rise sp-rise-2">
+            <SectionTitle
+              ikon="admin_panel_settings"
+              judul="Fitur Khusus Pimpinan & Admin"
+              aksi={
+                <span className={`font-label-sm text-[11px] px-2 py-0.5 rounded-full font-bold border ${roleBadgeStyle.kelas}`}>
+                  {roleBadgeStyle.label}
+                </span>
+              }
+            />
+            <ShortcutGrid
+              items={adminQuickMenuItems}
+              columns={2}
+            />
+          </section>
+        )}
+
+        {/* 6. MENU CEPAT PEGAWAI (Mandiri) — grid 2x2 dengan ikon lingkaran */}
         <section className="flex flex-col gap-2.5 sp-rise sp-rise-3">
           <SectionTitle
             ikon="apps"
-            judul="Menu Cepat"
-            aksi={<span className="font-label-sm text-label-sm text-slate-400 font-medium shrink-0">SIMPEG Portal</span>}
+            judul="Menu Cepat Pegawai"
+            aksi={<span className="font-label-sm text-label-sm text-slate-400 font-medium shrink-0">Layanan Mandiri</span>}
           />
           <ShortcutGrid
             items={QUICK_MENU.map((item) => ({

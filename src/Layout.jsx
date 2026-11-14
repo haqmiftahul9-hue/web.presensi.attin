@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
-import { useSimPres, selectAppMode, selectAppHomePath, MODE_MOBILE } from './store/simPresStore.jsx'
+import { useSimPres, selectAppMode, selectAppHomePath, selectCurrentUserRole, hasPermission, MODE_MOBILE } from './store/simPresStore.jsx'
 import SidebarNav from './components/Sidebar.jsx'
 import Header from './components/Header.jsx'
 import { fetchAttendanceFromSupabase, subscribeAttendance } from './services/attendanceRealtimeService.js'
@@ -52,7 +52,7 @@ function Layout() {
     }
   }, [drawerOpen])
 
-  if (selectAppMode(state) === MODE_MOBILE) {
+  if (selectAppMode(state) === MODE_MOBILE && !hasPermission(state, selectCurrentUserRole(state), 'dashboard', 'view')) {
     return <Navigate to={selectAppHomePath(state)} replace />
   }
 

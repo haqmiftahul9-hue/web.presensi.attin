@@ -30,6 +30,9 @@ import MobileProfilPage from './pages/mobile/MobileProfilPage.jsx'
 import MobileSlipPage from './pages/mobile/MobileSlipPage.jsx'
 import MobileIzinCutiPage from './pages/mobile/MobileIzinCutiPage.jsx'
 import MobilePersetujuanIzinPage from './pages/mobile/MobilePersetujuanIzinPage.jsx'
+import MobileAdminMonitoringPage from './pages/mobile/MobileAdminMonitoringPage.jsx'
+import MobileAdminScanPage from './pages/mobile/MobileAdminScanPage.jsx'
+import MobileAdminPresensiManualPage from './pages/mobile/MobileAdminPresensiManualPage.jsx'
 import MobileKartuIdPage from './pages/mobile/MobileKartuIdPage.jsx'
 import MobileQrPage from './pages/mobile/MobileQrPage.jsx'
 import MobileLayout from './components/mobile/MobileLayout.jsx'
@@ -68,7 +71,10 @@ function App() {
           <Route path="/mobile/slip" element={<MobileSlipPage />} />
           <Route path="/mobile/izin-cuti" element={<MobileIzinCutiPage />} />
           <Route path="/mobile/persetujuan-izin" element={<MobilePersetujuanIzinPage />} />
-      {/* Kartu ID dan QR Presensi sengaja dua halaman terpisah, meski memakai
+          <Route path="/mobile/admin-monitoring" element={<MobileAdminMonitoringPage />} />
+          <Route path="/mobile/admin-scan" element={<MobileAdminScanPage />} />
+          <Route path="/mobile/admin-presensi-manual" element={<MobileAdminPresensiManualPage />} />
+          {/* Kartu ID dan QR Presensi sengaja dua halaman terpisah, meski memakai
           satu payload QR yang sama (data/employeeCard.js). */}
       <Route path="/mobile/kartu-id" element={<MobileKartuIdPage />} />
       <Route path="/mobile/qr" element={<MobileQrPage />} />

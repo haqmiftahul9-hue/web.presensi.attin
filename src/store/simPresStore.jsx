@@ -56,6 +56,14 @@ export const PERMISSION_MATRIX = {
     presensiManual: ['view', 'add'],
     attendanceApprovals: ['view', 'add', 'edit', 'delete'],
     editPresensi: ['view', 'edit', 'delete'],
+    berandaMobile: ['view'],
+    presensiMobile: ['view', 'add'],
+    riwayatMobile: ['view'],
+    slipMobile: ['view'],
+    izinCutiMobile: ['view', 'add'],
+    kartuIdMobile: ['view', 'add'],
+    qrPresensiMobile: ['view'],
+    profilMobile: ['view', 'edit'],
   },
   'Admin Unit': {
     aksesDeny: ['view'],
@@ -75,6 +83,14 @@ export const PERMISSION_MATRIX = {
     pengajuanIzinCuti: ['view', 'add', 'edit'],
     logAktivitas: ['view'],
     pengaturanGlobal: [],
+    berandaMobile: ['view'],
+    presensiMobile: ['view', 'add'],
+    riwayatMobile: ['view'],
+    slipMobile: ['view'],
+    izinCutiMobile: ['view', 'add'],
+    kartuIdMobile: ['view', 'add'],
+    qrPresensiMobile: ['view'],
+    profilMobile: ['view', 'edit'],
   },
   Guru: {
     aksesDeny: ['view'],
@@ -176,10 +192,19 @@ const ROLE_ALIASES = {
   superadmin: ROLE_SUPERADMIN,
   'super admin': ROLE_SUPERADMIN,
   administrator: ROLE_SUPERADMIN,
+  admin: ROLE_ADMIN_UNIT,
   'admin unit': ROLE_ADMIN_UNIT,
   adminunit: ROLE_ADMIN_UNIT,
   'admin_unit': ROLE_ADMIN_UNIT,
   'unit admin': ROLE_ADMIN_UNIT,
+  'admin sekolah': ROLE_ADMIN_UNIT,
+  'admin sd': ROLE_ADMIN_UNIT,
+  'admin smp': ROLE_ADMIN_UNIT,
+  'admin sma': ROLE_ADMIN_UNIT,
+  'admin tk': ROLE_ADMIN_UNIT,
+  'administrator unit': ROLE_ADMIN_UNIT,
+  'staf admin': ROLE_ADMIN_UNIT,
+  'staff admin': ROLE_ADMIN_UNIT,
   guru: ROLE_GURU_PEGAWAI,
   guru_pegawai: ROLE_GURU_PEGAWAI,
   'guru/pegawai': ROLE_GURU_PEGAWAI,
@@ -196,6 +221,7 @@ const ROLE_ALIASES = {
   'kepala_sekolah': ROLE_KEPALA_SEKOLAH,
   kepala_sekolah: ROLE_KEPALA_SEKOLAH,
   kepalasekolah: ROLE_KEPALA_SEKOLAH,
+  kepsek: ROLE_KEPALA_SEKOLAH,
   'kepala unit': ROLE_KEPALA_SEKOLAH,
   'kepala_unit': ROLE_KEPALA_SEKOLAH,
   kepalaunit: ROLE_KEPALA_SEKOLAH,
@@ -212,9 +238,19 @@ export function normalisasiRole(value) {
   const lower = mentah.toLowerCase().replace(/\s+/g, ' ')
   if (ROLE_ALIASES[lower]) return ROLE_ALIASES[lower]
   if (lower.includes('superadmin') || lower.includes('super admin')) return ROLE_SUPERADMIN
-  if (lower.includes('admin unit') || lower.includes('unit admin')) return ROLE_ADMIN_UNIT
+  if (lower.includes('kepala') || lower.includes('kepsek')) return ROLE_KEPALA_SEKOLAH
+  if (
+    lower === 'admin' ||
+    lower.includes('admin unit') ||
+    lower.includes('unit admin') ||
+    lower.includes('admin sekolah') ||
+    lower.startsWith('admin ') ||
+    lower.endsWith(' admin') ||
+    lower.includes('administrator')
+  ) {
+    return ROLE_ADMIN_UNIT
+  }
   if (lower.includes('petugas')) return ROLE_PETUGAS_PRESENSI
-  if (lower.includes('kepala')) return ROLE_KEPALA_SEKOLAH
   if (
     lower.startsWith('guru') ||
     lower.includes('guru') ||
@@ -360,6 +396,10 @@ export const ROUTE_MENU_KEYS = {
   '/mobile/kartu-id': 'kartuIdMobile',
   '/mobile/qr': 'qrPresensiMobile',
   '/mobile/profil': 'profilMobile',
+  // Modul mobile tambahan untuk Pimpinan & Admin
+  '/mobile/admin-monitoring': 'presensi',
+  '/mobile/admin-scan': 'presensi',
+  '/mobile/admin-presensi-manual': 'presensiManual',
   // Halaman terminal "akses tidak tersedia". Setiap role punya izin 'view',
   // supaya tujuan redirect selalu punya tempat mendarat yang tidak ditolak.
   '/403': 'aksesDeny',
@@ -402,15 +442,34 @@ export const ROUTE_ROLES = {
   '/cetak-kartu-id': [ROLE_SUPERADMIN, ROLE_ADMIN_UNIT],
   '/presensi-manual': [ROLE_SUPERADMIN, ROLE_ADMIN_UNIT],
   '/edit-presensi': [ROLE_SUPERADMIN, ROLE_ADMIN_UNIT],
-  // Seluruh prefix /mobile untuk Guru/Pegawai dan Kepala Sekolah.
-  '/mobile': [ROLE_GURU, ROLE_KEPALA_SEKOLAH],
+  // Seluruh prefix /mobile dapat diakses oleh semua role terdaftar
+  '/mobile': [ROLE_GURU, ROLE_KEPALA_SEKOLAH, ROLE_ADMIN_UNIT, ROLE_SUPERADMIN, ROLE_PETUGAS_PRESENSI],
+  '/mobile/persetujuan-izin': [ROLE_KEPALA_SEKOLAH, ROLE_ADMIN_UNIT, ROLE_SUPERADMIN],
+  '/mobile/admin-monitoring': [ROLE_KEPALA_SEKOLAH, ROLE_ADMIN_UNIT, ROLE_SUPERADMIN, ROLE_PETUGAS_PRESENSI],
+  '/mobile/admin-scan': [ROLE_ADMIN_UNIT, ROLE_SUPERADMIN, ROLE_PETUGAS_PRESENSI],
+  '/mobile/admin-presensi-manual': [ROLE_ADMIN_UNIT, ROLE_SUPERADMIN],
 }
 
 /** Role yang boleh membuka sebuah path, atau null bila path tidak membatasi role. */
 export function roleBolehPath(path, role) {
-  if (String(path || '').startsWith('/mobile')) return role === ROLE_GURU || role === ROLE_KEPALA_SEKOLAH
+  const normRole = normalisasiRole(role)
+  if (path === '/mobile/persetujuan-izin') {
+    return [ROLE_KEPALA_SEKOLAH, ROLE_ADMIN_UNIT, ROLE_SUPERADMIN].includes(normRole)
+  }
+  if (path === '/mobile/admin-monitoring') {
+    return [ROLE_KEPALA_SEKOLAH, ROLE_ADMIN_UNIT, ROLE_SUPERADMIN, ROLE_PETUGAS_PRESENSI].includes(normRole)
+  }
+  if (path === '/mobile/admin-scan') {
+    return [ROLE_ADMIN_UNIT, ROLE_SUPERADMIN, ROLE_PETUGAS_PRESENSI].includes(normRole)
+  }
+  if (path === '/mobile/admin-presensi-manual') {
+    return [ROLE_ADMIN_UNIT, ROLE_SUPERADMIN].includes(normRole)
+  }
+  if (String(path || '').startsWith('/mobile')) {
+    return [ROLE_GURU, ROLE_KEPALA_SEKOLAH, ROLE_ADMIN_UNIT, ROLE_SUPERADMIN, ROLE_PETUGAS_PRESENSI].includes(normRole)
+  }
   const daftar = ROUTE_ROLES[path]
-  return daftar ? daftar.includes(role) : true
+  return daftar ? daftar.includes(normRole) : true
 }
 
 /** Mode aplikasi untuk role tertentu. */
@@ -425,19 +484,19 @@ export function appModeOfRole(role) {
 export const ROLE_HOME_CANDIDATES = {
   // Superadmin tetap memakai dashboard desktop; '/superadmin' dipertahankan
   // sebagai halaman khusus Superadmin (bookmark lama) dan kandidat cadangan.
-  [ROLE_SUPERADMIN]: ['/dashboard', '/superadmin', '/manajemen-admin-user', '/unit-sd-islam-rj', '/data-guru-dan-pegawai', '/cetak-kartu-id', '/presensi', '/presensi-manual', '/attendance-approvals', '/edit-presensi', '/rekap-dan-laporan', '/pengaturan-global', '/log-aktivitas'],
-  [ROLE_ADMIN_UNIT]: ['/dashboard', '/data-guru-dan-pegawai', '/cetak-kartu-id', '/presensi', '/presensi-manual', '/edit-presensi', '/pengajuan-izin-dan-cuti', '/rekap-dan-laporan', '/ranking-kehadiran', '/log-aktivitas'],
+  [ROLE_SUPERADMIN]: ['/dashboard', '/superadmin', '/manajemen-admin-user', '/unit-sd-islam-rj', '/data-guru-dan-pegawai', '/cetak-kartu-id', '/presensi', '/presensi-manual', '/attendance-approvals', '/edit-presensi', '/rekap-dan-laporan', '/pengaturan-global', '/log-aktivitas', '/mobile/home'],
+  [ROLE_ADMIN_UNIT]: ['/dashboard', '/mobile/home', '/data-guru-dan-pegawai', '/cetak-kartu-id', '/presensi', '/presensi-manual', '/edit-presensi', '/pengajuan-izin-dan-cuti', '/rekap-dan-laporan', '/ranking-kehadiran', '/log-aktivitas'],
   // Guru/Pegawai hanya membuka aplikasi mobile; kandidat portal yang tersisa
   // dipakai hanya bila someday modul mobile ditutup untuk sebagian akun.
   [ROLE_GURU]: ['/mobile/home', '/mobile/presensi', '/mobile/riwayat', '/mobile/profil', '/mobile/slip', '/mobile/izin-cuti', '/mobile/kartu-id', '/mobile/qr'],
   [ROLE_KEPALA_SEKOLAH]: ['/mobile/home', '/mobile/persetujuan-izin', '/mobile/presensi', '/mobile/riwayat', '/mobile/profil', '/mobile/slip', '/mobile/izin-cuti', '/mobile/kartu-id', '/mobile/qr'],
-  [ROLE_PETUGAS_PRESENSI]: ['/dashboard', '/presensi', '/data-guru-dan-pegawai', '/rekap-dan-laporan', '/ranking-kehadiran', '/pengajuan-izin-dan-cuti', '/log-aktivitas'],
+  [ROLE_PETUGAS_PRESENSI]: ['/dashboard', '/mobile/home', '/presensi', '/data-guru-dan-pegawai', '/rekap-dan-laporan', '/ranking-kehadiran', '/pengajuan-izin-dan-cuti', '/log-aktivitas'],
 }
 
 // Dibprocalkan agar ROLE_HOME_CANDIDATES tidak perlu diubah dua kali.
 export const MODE_APP_ROLES = {
   [MODE_DESKTOP]: ROLE_BEARING_ROLES,
-  [MODE_MOBILE]: [ROLE_GURU, ROLE_KEPALA_SEKOLAH],
+  [MODE_MOBILE]: [ROLE_GURU, ROLE_KEPALA_SEKOLAH, ROLE_ADMIN_UNIT, ROLE_SUPERADMIN, ROLE_PETUGAS_PRESENSI],
 }
 
 // Kata sandi awal seluruh akun seed yang tidak punya kata sandi sendiri
@@ -758,9 +817,7 @@ export function simPresReducer(state, action) {
       const staffBaru = sebelum ? { ...sebelum, ...perubahan } : null
       if (!staffBaru) return state
 
-      const adminUsersUpdated = state.adminUsers
-
-      const nextStaff = state.staff.map((s) => (s.id === id ? staffBaru : s))
+      const nextStaff = (state.staff || []).map((s) => (s.id === id ? staffBaru : s))
       writePersistedItem(PERSISTED_STAFF_KEY, nextStaff)
 
       const roleSebelum = normalisasiRole(sebelum.role)
@@ -777,6 +834,50 @@ export function simPresReducer(state, action) {
         mustChangePassword: perubahan.mustChangePassword,
       })
 
+      // Sinkronkan ke adminUsers bila role pegawai adalah level admin atau pimpinan
+      let adminUsersUpdated = state.adminUsers || []
+      const isTargetAdminRole = [ROLE_ADMIN_UNIT, ROLE_KEPALA_SEKOLAH, ROLE_PETUGAS_PRESENSI, ROLE_SUPERADMIN].includes(roleBaru)
+      const existingAdminIdx = adminUsersUpdated.findIndex((u) => u.staffId === id || (u.niy && u.niy === staffBaru.niy))
+      if (existingAdminIdx >= 0) {
+        adminUsersUpdated = adminUsersUpdated.map((u, idx) =>
+          idx === existingAdminIdx ? { ...u, role: roleBaru, unitId: staffBaru.unitId, name: staffBaru.name } : u
+        )
+      } else if (isTargetAdminRole) {
+        adminUsersUpdated = [
+          ...adminUsersUpdated,
+          {
+            id: `ADM-${staffBaru.id}`,
+            username: staffBaru.niy,
+            name: staffBaru.name,
+            niy: staffBaru.niy,
+            email: staffBaru.email || '',
+            role: roleBaru,
+            unitId: staffBaru.unitId,
+            staffId: staffBaru.id,
+            status: staffBaru.status || 'Aktif',
+          },
+        ]
+      }
+      writePersistedItem(PERSISTED_ADMIN_USERS_KEY, adminUsersUpdated)
+
+      // Reaktivitas sesi: bila user yang sedang login adalah pegawai ini, update currentUser.role seketika
+      let nextCurrentUser = state.currentUser
+      if (
+        state.currentUser &&
+        (state.currentUser.staffId === id ||
+          state.currentUser.pegawaiId === id ||
+          state.currentUser.niy === staffBaru.niy ||
+          state.currentUser.username === staffBaru.niy)
+      ) {
+        nextCurrentUser = {
+          ...state.currentUser,
+          role: roleBaru,
+          unitId: staffBaru.unitId,
+          name: staffBaru.name,
+        }
+        writeStoredSession({ user: nextCurrentUser }, true)
+      }
+
       let nextState = {
         ...state,
         staff: nextStaff,
@@ -784,6 +885,7 @@ export function simPresReducer(state, action) {
         employeeCards: syncEmployeeCardsFromStaff(state.employeeCards, staffBaru, 'update'),
         // Status/unit/NIY akun ikut mengikuti data pegawai yang baru.
         userAccounts: nextUserAccounts,
+        currentUser: nextCurrentUser,
       }
 
       if (roleBerubah) {
@@ -1599,7 +1701,8 @@ logs: [
 // Sekolah) tetap login sampai logout eksplisit; role portal (Superadmin,
 // Admin Unit, Petugas) hanya bertahan selama sesi browser (non-persisten).
 function isMobileSessionRole(role) {
-  return appModeOfRole(normalisasiRole(role)) === MODE_MOBILE
+  const r = normalisasiRole(role)
+  return r === ROLE_GURU || r === ROLE_KEPALA_SEKOLAH || r === ROLE_ADMIN_UNIT || r === ROLE_SUPERADMIN
 }
 
 function readStoredSession() {
@@ -1746,7 +1849,7 @@ export function canAccessPath(state, role, path) {
   // jadi dikecualikan dari aturan mode — itulah yang membuatnya bisa menjadi
   // tempat mendarat untuk role dari kedua mode.
   const terminal = path === ACCESS_DENIED_PATH
-  if (!terminal && appModeOfRole(role) === MODE_MOBILE && !String(path || '').startsWith('/mobile')) return false
+  if (!terminal && normalisasiRole(role) === ROLE_GURU && !String(path || '').startsWith('/mobile')) return false
   const menuKey = ROUTE_MENU_KEYS[path]
   if (!menuKey) return false
   return roleCanViewMenu(state, role, menuKey)
@@ -1774,6 +1877,13 @@ export function resolvePostLoginPath(state, user, requestedPath) {
   const role = user?.role
   const allowed = (path) => canAccessPath(state, role, path)
   if (requestedPath && allowed(requestedPath)) return requestedPath
+
+  // Jika diakses dari perangkat mobile atau URL modul mobile
+  const isMobileClient = typeof window !== 'undefined' && (window.innerWidth <= 768 || window.location.pathname.startsWith('/mobile'))
+  if (isMobileClient && allowed('/mobile/home')) {
+    return '/mobile/home'
+  }
+
   const candidates = ROLE_HOME_CANDIDATES[role] || []
   const lolos = candidates.find(allowed)
   // Beranda role tetap dipakai kalau kebetulan boleh dibuka; kalau tidak, jatuh

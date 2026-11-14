@@ -3,7 +3,8 @@ import Icon from '../../components/Icon.jsx'
 import { useNavigate } from 'react-router-dom'
 import {
   useSimPresOptional, selectSelfStaff, selectSelfPresensi, selectUnitById, selectEmployeeCard,
-  selectCanChangeOwnPassword, performLogout,
+  selectCanChangeOwnPassword, performLogout, selectCurrentUserRole, normalisasiRole,
+  ROLE_SUPERADMIN, ROLE_ADMIN_UNIT, ROLE_KEPALA_SEKOLAH, ROLE_PETUGAS_PRESENSI,
 } from '../../store/simPresStore.jsx'
 import { formatDateID, statusKepegawaianGroup } from '../../data/employeeCard.js'
 import { daftarJamKerja } from '../../data/jamKerja.js'
@@ -195,6 +196,21 @@ function MobileProfilPage() {
     navigate('/login', { replace: true })
   }
 
+  const currentRole = state ? normalisasiRole(selectCurrentUserRole(state)) : ''
+  const isSuperadmin = currentRole === ROLE_SUPERADMIN
+  const isAdminUnit = currentRole === ROLE_ADMIN_UNIT
+  const isKepsek = currentRole === ROLE_KEPALA_SEKOLAH
+  const isPetugas = currentRole === ROLE_PETUGAS_PRESENSI
+  const isLeaderOrAdmin = isSuperadmin || isAdminUnit || isKepsek || isPetugas
+
+  const roleBadgeStyle = (() => {
+    if (isSuperadmin) return { label: 'Superadmin', ikon: 'shield_person', kelas: 'bg-indigo-100 text-indigo-800 border-indigo-200' }
+    if (isKepsek) return { label: 'Kepala Sekolah', ikon: 'workspace_premium', kelas: 'bg-purple-100 text-purple-800 border-purple-200' }
+    if (isAdminUnit) return { label: 'Admin Unit', ikon: 'admin_panel_settings', kelas: 'bg-blue-100 text-blue-800 border-blue-200' }
+    if (isPetugas) return { label: 'Petugas Presensi', ikon: 'qr_code_scanner', kelas: 'bg-teal-100 text-teal-800 border-teal-200' }
+    return { label: staff?.role || 'Guru / Pegawai', ikon: 'school', kelas: 'bg-slate-100 text-slate-700 border-slate-200' }
+  })()
+
   return (
     <div className="sp-page">
       {/* 1. HERO TOP BAR — branding dan judul halaman */}
@@ -261,7 +277,13 @@ function MobileProfilPage() {
             <span className="font-headline-sm text-headline-sm text-[#20243A] font-bold tracking-tight truncate max-w-full">
               {getEmployeeGreeting(staff, { unit })}
             </span>
-            <span className="font-label-sm text-label-sm text-[#77819A] font-medium truncate max-w-full flex items-center justify-center gap-1">
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border ${roleBadgeStyle.kelas}`}>
+                <Icon name={roleBadgeStyle.ikon} className="text-[13px]" />
+                <span>{roleBadgeStyle.label}</span>
+              </span>
+            </div>
+            <span className="font-label-sm text-label-sm text-[#77819A] font-medium truncate max-w-full flex items-center justify-center gap-1 mt-0.5">
               <Icon name="domain" className="text-[14px] text-[#77819A] shrink-0" />
               <span className="truncate">{staff.role} • {unit?.nama || '-'}</span>
             </span>
@@ -514,6 +536,15 @@ function MobileProfilPage() {
                 judul="Ubah password"
                 sub="Ganti kata sandi akun ini"
                 onClick={() => dispatch({ type: 'REQUEST_PASSWORD_CHANGE' })}
+              />
+            )}
+
+            {isLeaderOrAdmin && (
+              <BarisMenu
+                ikon="desktop_windows"
+                judul="Buka Portal Desktop Penuh"
+                sub="Beralih ke tampilan dashboard web admin"
+                onClick={() => navigate('/dashboard')}
               />
             )}
 

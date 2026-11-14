@@ -12,22 +12,16 @@ import InstallPrompt from './InstallPrompt.jsx'
 import { GlassTopBar, MobileAppShell } from './AppShell.jsx'
 import { prewarmGeolocation } from '../../hooks/useGeofence.js'
 
-// Navigasi bottom modul mobile. Base-nya adalah lima menu Guru/Pegawai
-// (Beranda, Riwayat, Presensi, Izin/Cuti, Profil). Item tambahan — saat ini
-// hanya Persetujuan — ditampilkan bila role punya permission yang sesuai,
-// bukan berdasarkan nama role secara kasar, jadi menu selalu sinkron dengan
-// role aktif tanpa harus relogin.
-// - 'view'  : item ditampilkan.
-// - 'edit'  : hanya Persetujuan (Kepala Sekolah boleh menyetujui; Guru hanya
-//             boleh melihat/mengajukan, aksi setujui/tolak dibatalkan di halaman
-//             itu sendiri).
+// Navigasi bottom modul mobile tetap mengunci 5 menu utama yang ergonomis
+// (Beranda, Riwayat, Presensi [Center FAB], Izin/Cuti, Profil).
+// Fitur administratif (Persetujuan, Monitoring Unit, Scan QR, dll)
+// ditempatkan di Menu Cepat pada Beranda agar tidak memadati navigasi bawah.
 const MOBILE_ROUTES = [
   { to: '/mobile/home', label: 'Beranda', icon: 'home', end: true },
   { to: '/mobile/riwayat', label: 'Riwayat', icon: 'calendar_month' },
   { to: '/mobile/presensi', label: 'Presensi', icon: 'face_retouch_natural', isCenter: true },
   { to: '/mobile/izin-cuti', label: 'Izin/Cuti', icon: 'event_available' },
   { to: '/mobile/profil', label: 'Profil', icon: 'person' },
-  { to: '/mobile/persetujuan-izin', label: 'Persetujuan', icon: 'task_alt', action: 'edit' },
 ]
 
 function buildNavItems(state, role) {
@@ -90,7 +84,7 @@ function MobileLayout() {
     window.scrollTo({ top: 0, behavior: 'instant' })
   }, [location.pathname])
 
-  if (selectAppMode(state) !== MODE_MOBILE) {
+  if (selectAppMode(state) !== MODE_MOBILE && !hasPermission(state, selectCurrentUserRole(state), 'berandaMobile', 'view')) {
     return <Navigate to={selectAppHomePath(state)} replace />
   }
 
