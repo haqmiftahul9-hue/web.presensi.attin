@@ -1879,9 +1879,12 @@ export function resolvePostLoginPath(state, user, requestedPath) {
   const allowed = (path) => canAccessPath(state, role, path)
   if (requestedPath && allowed(requestedPath)) return requestedPath
 
-  // Jika diakses dari perangkat mobile atau URL modul mobile
+  // Jika diakses dari perangkat mobile atau URL modul mobile.
+  // Hanya role dengan mode aplikasi mobile (Guru/Kepala Sekolah) yang diarahkan
+  // ke /mobile/home. Role portal desktop (Superadmin/Admin Unit/Petugas) tetap
+  // ke beranda desktop-nya agar tidak terjebak di portal mobile kosong.
   const isMobileClient = typeof window !== 'undefined' && (window.innerWidth <= 768 || window.location.pathname.startsWith('/mobile'))
-  if (isMobileClient && allowed('/mobile/home')) {
+  if (isMobileClient && appModeOfRole(role) === MODE_MOBILE && allowed('/mobile/home')) {
     return '/mobile/home'
   }
 
