@@ -272,15 +272,22 @@ function StaffTable({ unitFilter, searchTerm, statusFilter, currentPage, setCurr
                   </div>
                 </td>
                 <td className="h-14 px-3.5 align-middle">
-                  <select
-                    value={tableRoleValue(row.staff.role)}
-                    onChange={(e) => handleChangeRole(row.staff, e.target.value)}
-                    className="text-xs text-foreground bg-transparent border-none focus:ring-0 outline-none cursor-pointer appearance-none"
-                  >
-                    {ROLE_TABLE_OPTIONS.map((o) => (
-                      <option key={o.value} value={o.value}>{o.label}</option>
-                    ))}
-                  </select>
+                  <div className="flex items-center justify-center">
+                    <div className="relative inline-flex w-full max-w-[150px]">
+                      <select
+                        value={tableRoleValue(row.staff.role)}
+                        onChange={(e) => handleChangeRole(row.staff, e.target.value)}
+                        className="w-full h-8 px-2.5 pr-8 text-xs text-foreground bg-card border border-input rounded-lg focus:ring-1 focus:ring-ring outline-none cursor-pointer appearance-none transition-colors"
+                      >
+                        {ROLE_TABLE_OPTIONS.map((o) => (
+                          <option key={o.value} value={o.value}>{o.label}</option>
+                        ))}
+                      </select>
+                      <span className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground text-[14px] pointer-events-none">
+                        ▼
+                      </span>
+                    </div>
+                  </div>
                 </td>
                 <td className="h-14 px-3.5 text-center align-middle">
                   {row.statusActive ? (

@@ -8,7 +8,6 @@ import {
 } from '../store/simPresStore.jsx'
 import ConfirmDialog from '../components/ConfirmDialog.jsx'
 import DetailEmployeeModal from '../components/DetailEmployeeModal.jsx'
-import { downloadBlob } from '../utils/download.js'
 
 // Role yang tampil di halaman Manajemen Admin (hak akses desktop/admin).
 const ADMIN_ROLES = [ROLE_ADMIN_UNIT, ROLE_KEPALA_SEKOLAH, ROLE_PETUGAS_PRESENSI]
@@ -107,33 +106,6 @@ function AdminUserPage() {
 
   const startIdx = filtered.length === 0 ? 0 : (page - 1) * pageSize + 1
   const endIdx = filtered.length === 0 ? 0 : Math.min(page * pageSize, filtered.length)
-
-  const resetFilters = () => {
-    dispatch({ type: 'SET_SEARCH_TERM', payload: '' })
-    setRoleFilter('all')
-    setUnitFilter(canSwitchUnit ? ALL_UNITS : selectActiveUnitId(state))
-    setStatusFilter('all')
-    setPage(1)
-  }
-
-  const handleExport = () => {
-    const headers = ['Nama', 'NIY', 'Email', 'Role', 'Unit', 'Status']
-    const csvRows = filtered.map((s) => [
-      s.name,
-      s.niy,
-      s.email || '-',
-      normalisasiRole(s.role),
-      selectUnitName(state, s.unitId),
-      s.status,
-    ])
-    const csvContent = [
-      headers.join(','),
-      ...csvRows.map((r) => r.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(',')),
-    ].join('\n')
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-    downloadBlob(blob, `manajemen-admin-${new Date().toISOString().slice(0, 10)}.csv`)
-    addActivityLog(dispatch, state, 'Ekspor', 'Manajemen Admin', 'Ekspor data admin ke CSV', null, null, currentUser?.unitId)
-  }
 
   const confirmAction = (variant, title, message, onConfirm) => {
     setConfirm({ variant, title, message, onConfirm })
@@ -354,22 +326,6 @@ function AdminUserPage() {
               </select>
               <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground text-[16px] pointer-events-none">expand_more</span>
             </div>
-            <button
-              onClick={resetFilters}
-              className="h-9 px-3 rounded-lg border border-border hover:bg-muted text-foreground transition-colors text-xs font-medium cursor-pointer inline-flex items-center gap-1.5"
-              type="button"
-            >
-              <span className="material-symbols-outlined text-[16px]">restart_alt</span>
-              <span>Reset</span>
-            </button>
-            <button
-              onClick={handleExport}
-              className="h-9 px-3.5 rounded-lg bg-card hover:bg-muted border border-border text-foreground font-medium text-xs transition-colors cursor-pointer inline-flex items-center gap-1.5 sm:ml-auto"
-              type="button"
-            >
-              <span className="material-symbols-outlined text-[16px] text-muted-foreground">file_download</span>
-              <span>Ekspor Data</span>
-            </button>
           </div>
         </div>
 
