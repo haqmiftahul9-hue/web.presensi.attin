@@ -1304,6 +1304,30 @@ logs: [
       return { ...state, leaves: action.payload }
     case 'SYNC_STORAGE_SETTINGS':
       return { ...state, settings: action.payload }
+    case 'SYNC_STORAGE_USER_ACCOUNTS': {
+      const nextAccounts = Array.isArray(action.payload) ? action.payload : state.userAccounts
+      if (nextAccounts.length === 0) return state
+      const nextState = { ...state, userAccounts: nextAccounts }
+      // Role/unit/status yang berubah lewat tab lain harus segera diterapkan
+      // pada sesi yang sudah buka di tab ini, tanpa memaksa relogin.
+      const current = selectCurrentUser(nextState)
+      if (current) {
+        const fresh = findAccountByIdentifier(nextState, accountLoginKey(current))
+        if (
+          fresh &&
+          (fresh.role !== current.role ||
+            fresh.unitId !== current.unitId ||
+            fresh.status !== current.status)
+        ) {
+          return {
+            ...nextState,
+            currentUser: fresh,
+            selectedUnitId: initialUnitScope(fresh),
+          }
+        }
+      }
+      return nextState
+    }
     // Kata kunci pencarian global dari Header — diperbarui saat pengguna
     // mengetik di kotak pencarian paling atas.
     case 'SET_SEARCH_TERM':
@@ -1981,6 +2005,9 @@ export function SimPresProvider({ children }) {
         } else if (e.key === PERSISTED_SETTINGS_KEY) {
           const parsed = JSON.parse(e.newValue)
           if (parsed && typeof parsed === 'object') dispatch({ type: 'SYNC_STORAGE_SETTINGS', payload: parsed })
+        } else if (e.key === PERSISTED_USER_ACCOUNTS_KEY) {
+          const parsed = JSON.parse(e.newValue)
+          if (Array.isArray(parsed)) dispatch({ type: 'SYNC_STORAGE_USER_ACCOUNTS', payload: parsed })
         }
       } catch {
         /* Abaikan data rusak */

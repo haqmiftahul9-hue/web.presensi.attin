@@ -4,29 +4,41 @@ import Icon from '../Icon.jsx'
 import ChangePasswordGate from '../ChangePasswordGate.jsx'
 import {
   useSimPres, selectSelfStaff, selectAppMode, selectAppHomePath, MODE_MOBILE,
-  selectCurrentUserRole, ROLE_KEPALA_SEKOLAH, selectMustChangePassword,
+  selectCurrentUserRole, selectMustChangePassword, hasPermission,
+  ROUTE_MENU_KEYS,
 } from '../../store/simPresStore.jsx'
 import MobileErrorBoundary from './MobileErrorBoundary.jsx'
 import InstallPrompt from './InstallPrompt.jsx'
 import { GlassTopBar, MobileAppShell } from './AppShell.jsx'
 import { prewarmGeolocation } from '../../hooks/useGeofence.js'
 
-// Bottom navigation modul mobile. Lima menu ini adalah seluruh navigasi
-// role Guru/Pegawai: Beranda, Riwayat, Presensi (tengah, menonjol), Izin/Cuti, Profil.
-const BASE_NAV_ITEMS = [
+// Navigasi bottom modul mobile. Base-nya adalah lima menu Guru/Pegawai
+// (Beranda, Riwayat, Presensi, Izin/Cuti, Profil). Item tambahan — saat ini
+// hanya Persetujuan — ditampilkan bila role punya permission yang sesuai,
+// bukan berdasarkan nama role secara kasar, jadi menu selalu sinkron dengan
+// role aktif tanpa harus relogin.
+// - 'view'  : item ditampilkan.
+// - 'edit'  : hanya Persetujuan (Kepala Sekolah boleh menyetujui; Guru hanya
+//             boleh melihat/mengajukan, aksi setujui/tolak dibatalkan di halaman
+//             itu sendiri).
+const MOBILE_ROUTES = [
   { to: '/mobile/home', label: 'Beranda', icon: 'home', end: true },
   { to: '/mobile/riwayat', label: 'Riwayat', icon: 'calendar_month' },
   { to: '/mobile/presensi', label: 'Presensi', icon: 'face_retouch_natural', isCenter: true },
   { to: '/mobile/izin-cuti', label: 'Izin/Cuti', icon: 'event_available' },
   { to: '/mobile/profil', label: 'Profil', icon: 'person' },
+  { to: '/mobile/persetujuan-izin', label: 'Persetujuan', icon: 'task_alt', action: 'edit' },
 ]
 
-function buildNavItems(role) {
-  const items = [...BASE_NAV_ITEMS]
-  if (role === ROLE_KEPALA_SEKOLAH) {
-    items.push({ to: '/mobile/persetujuan-izin', label: 'Persetujuan', icon: 'task_alt' })
+function buildNavItems(state, role) {
+  const menuFor = (to) => ROUTE_MENU_KEYS[to]
+  const may = (item) => {
+    const key = menuFor(item.to)
+    if (!key) return false
+    const action = item.action === 'edit' ? 'edit' : 'view'
+    return hasPermission(state, role, key, action)
   }
-  return items
+  return MOBILE_ROUTES.filter(may)
 }
 
 /**
@@ -46,7 +58,7 @@ function buildNavItems(role) {
 function MobileLayout() {
   const { state } = useSimPres()
   const location = useLocation()
-  const navItems = buildNavItems(selectCurrentUserRole(state))
+  const navItems = buildNavItems(state, selectCurrentUserRole(state))
 
   // Mengunci scroll dokumen luar agar pengguliran terpusat 100% pada kontainer mobile
   // tanpa konflik scroll atau jitter address bar di smartphone.
