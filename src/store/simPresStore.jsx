@@ -376,7 +376,7 @@ export const ROLE_APP_MODE = {
 // Admin Unit, dan Petugas semuanya masuk ke dashboard desktop; Guru/Pegawai
 // masuk ke aplikasi mobile.
 export const ROLE_HOME_PATH = {
-  [ROLE_SUPERADMIN]: '/dashboard',
+  [ROLE_SUPERADMIN]: '/superadmin',
   [ROLE_ADMIN_UNIT]: '/dashboard',
   [ROLE_PETUGAS_PRESENSI]: '/dashboard',
   [ROLE_GURU_PEGAWAI]: '/mobile/home',
@@ -484,7 +484,7 @@ export function appModeOfRole(role) {
 export const ROLE_HOME_CANDIDATES = {
   // Superadmin tetap memakai dashboard desktop; '/superadmin' dipertahankan
   // sebagai halaman khusus Superadmin (bookmark lama) dan kandidat cadangan.
-  [ROLE_SUPERADMIN]: ['/dashboard', '/superadmin', '/manajemen-admin-user', '/unit-sd-islam-rj', '/data-guru-dan-pegawai', '/cetak-kartu-id', '/presensi', '/presensi-manual', '/attendance-approvals', '/edit-presensi', '/rekap-dan-laporan', '/pengaturan-global', '/log-aktivitas', '/mobile/home'],
+  [ROLE_SUPERADMIN]: ['/superadmin', '/dashboard', '/manajemen-admin-user', '/unit-sd-islam-rj', '/data-guru-dan-pegawai', '/cetak-kartu-id', '/presensi', '/presensi-manual', '/attendance-approvals', '/edit-presensi', '/rekap-dan-laporan', '/pengaturan-global', '/log-aktivitas', '/mobile/home'],
   [ROLE_ADMIN_UNIT]: ['/dashboard', '/mobile/home', '/data-guru-dan-pegawai', '/cetak-kartu-id', '/presensi', '/presensi-manual', '/edit-presensi', '/pengajuan-izin-dan-cuti', '/rekap-dan-laporan', '/ranking-kehadiran', '/log-aktivitas'],
   // Guru/Pegawai hanya membuka aplikasi mobile; kandidat portal yang tersisa
   // dipakai hanya bila someday modul mobile ditutup untuk sebagian akun.
@@ -827,21 +827,28 @@ export function simPresReducer(state, action) {
           : roleSebelum
       const roleBerubah = roleBaru !== roleSebelum
 
-      const nextUserAccounts = upsertUserAccount(state.userAccounts, staffBaru, {
-        action: 'update',
-        role: staffBaru.role,
-        password: perubahan.password,
-        mustChangePassword: perubahan.mustChangePassword,
-      })
-
-      // Sinkronkan ke adminUsers bila role pegawai adalah level admin atau pimpinan
-      let adminUsersUpdated = state.adminUsers || []
       const isTargetAdminRole = [ROLE_ADMIN_UNIT, ROLE_KEPALA_SEKOLAH, ROLE_PETUGAS_PRESENSI, ROLE_SUPERADMIN].includes(roleBaru)
+
+      const nextUserAccounts = isTargetAdminRole
+        ? upsertUserAccount(state.userAccounts, staffBaru, { action: 'delete' })
+        : upsertUserAccount(state.userAccounts, staffBaru, {
+            action: 'update',
+            role: staffBaru.role,
+            password: perubahan.password,
+            mustChangePassword: perubahan.mustChangePassword,
+          })
+
+      let adminUsersUpdated = state.adminUsers || []
+
       const existingAdminIdx = adminUsersUpdated.findIndex((u) => u.staffId === id || (u.niy && u.niy === staffBaru.niy))
       if (existingAdminIdx >= 0) {
-        adminUsersUpdated = adminUsersUpdated.map((u, idx) =>
-          idx === existingAdminIdx ? { ...u, role: roleBaru, unitId: staffBaru.unitId, name: staffBaru.name } : u
-        )
+        if (isTargetAdminRole) {
+          adminUsersUpdated = adminUsersUpdated.map((u, idx) =>
+            idx === existingAdminIdx ? { ...u, role: roleBaru, unitId: staffBaru.unitId, name: staffBaru.name } : u
+          )
+        } else {
+          adminUsersUpdated = adminUsersUpdated.filter((u, idx) => idx !== existingAdminIdx)
+        }
       } else if (isTargetAdminRole) {
         adminUsersUpdated = [
           ...adminUsersUpdated,
