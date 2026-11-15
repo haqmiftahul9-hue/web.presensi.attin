@@ -18,9 +18,13 @@ import { prewarmGeolocation } from '../../hooks/useGeofence.js'
 // ditempatkan di Menu Cepat pada Beranda agar tidak memadati navigasi bawah.
 const MOBILE_ROUTES = [
   { to: '/mobile/home', label: 'Beranda', icon: 'home', end: true },
-  { to: '/mobile/riwayat', label: 'Riwayat', icon: 'calendar_month' },
   { to: '/mobile/presensi', label: 'Presensi', icon: 'face_retouch_natural', isCenter: true },
+  { to: '/mobile/riwayat', label: 'Riwayat', icon: 'calendar_month' },
+  { to: '/mobile/slip', label: 'Slip', icon: 'receipt_long' },
   { to: '/mobile/izin-cuti', label: 'Izin/Cuti', icon: 'event_available' },
+  { to: '/mobile/persetujuan-izin', label: 'Persetujuan', icon: 'task_alt', action: 'edit' },
+  { to: '/mobile/kartu-id', label: 'Kartu ID', icon: 'contact_page' },
+  { to: '/mobile/qr', label: 'QR Presensi', icon: 'qr_code_scanner' },
   { to: '/mobile/profil', label: 'Profil', icon: 'person' },
 ]
 

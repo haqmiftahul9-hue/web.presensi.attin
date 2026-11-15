@@ -1,7 +1,8 @@
 import { useState, useMemo, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   useSimPres, selectUnitName, addActivityLog, selectFilteredStaff, initialsOf,
-  selectCurrentUserRole, ROLE_SUPERADMIN, normalisasiRole,
+  selectCurrentUserRole, ROLE_SUPERADMIN, normalisasiRole, ROLE_HOME_PATH,
 } from '../store/simPresStore.jsx'
 import DetailEmployeeModal from './DetailEmployeeModal.jsx'
 import EditEmployeeModal from './EditEmployeeModal.jsx'
@@ -57,6 +58,7 @@ function tableRoleValue(role) {
 
 function StaffTable({ unitFilter, searchTerm, statusFilter, currentPage, setCurrentPage, focusStaffId }) {
   const { state, dispatch } = useSimPres()
+  const navigate = useNavigate()
   const currentUserRole = selectCurrentUserRole(state)
   const [rowsPerPage, setRowsPerPage] = useState('20')
   const [modal, setModal] = useState(null)
@@ -127,12 +129,24 @@ function StaffTable({ unitFilter, searchTerm, statusFilter, currentPage, setCurr
     const previousRole = normalisasiRole(staff.role)
     const nextRoleCanon = normalisasiRole(nextRole)
     if (previousRole === nextRoleCanon) return
+    const isSelfStaff = state.currentUser && (
+      state.currentUser.pegawaiId === staff.id ||
+      state.currentUser.staffId === staff.id ||
+      state.currentUser.niy === staff.niy
+    )
     dispatch({ type: 'UPDATE_STAFF', payload: { id: staff.id, role: nextRoleCanon } })
     addActivityLog(
       dispatch, state, 'Ubah Role', `Pegawai • ${staff.name}`,
       `Ubah role ${staff.name} dari ${previousRole} menjadi ${nextRoleCanon}`,
       null, null, staff.unitId,
     )
+    // Bila role yang diubah milik akun yang sedang login, arahkan ke beranda
+    // sesuai role baru segera agar menu (sidebar/bottom nav) berubah tanpa
+    // memaksa relogin manual.
+    if (isSelfStaff) {
+      const target = ROLE_HOME_PATH[nextRoleCanon] || '/dashboard'
+      navigate(target, { replace: true })
+    }
     setToast(`Role ${staff.name} diubah menjadi ${nextRoleCanon}.`)
   }
 

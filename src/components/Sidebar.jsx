@@ -286,6 +286,7 @@ function SidebarNav({ open = false, onTutup } = {}) {
   const roleMap = {
     Superadmin: { roleBg: 'bg-purple-950/80 border border-purple-800/60', roleText: 'text-purple-300', roleDot: 'bg-purple-400' },
     'Admin Unit': { roleBg: 'bg-blue-950/80 border border-blue-800/60', roleText: 'text-blue-300', roleDot: 'bg-blue-400' },
+    'Kepala Sekolah': { roleBg: 'bg-violet-950/80 border border-violet-800/60', roleText: 'text-violet-300', roleDot: 'bg-violet-400' },
     Guru: { roleBg: 'bg-sidebar-accent border border-sidebar-border', roleText: 'text-sidebar-accent-foreground', roleDot: 'bg-sidebar-ring' },
     'Petugas Presensi': { roleBg: 'bg-teal-950/80 border border-teal-800/60', roleText: 'text-teal-300', roleDot: 'bg-teal-400' },
   }

@@ -365,7 +365,7 @@ export const MODE_MOBILE = 'mobile'
 
 export const ROLE_APP_MODE = {
   [ROLE_SUPERADMIN]: MODE_DESKTOP,
-  [ROLE_ADMIN_UNIT]: MODE_DESKTOP,
+  [ROLE_ADMIN_UNIT]: MODE_MOBILE,
   [ROLE_PETUGAS_PRESENSI]: MODE_DESKTOP,
   [ROLE_GURU]: MODE_MOBILE,
   [ROLE_KEPALA_SEKOLAH]: MODE_MOBILE,
@@ -377,7 +377,7 @@ export const ROLE_APP_MODE = {
 // masuk ke aplikasi mobile.
 export const ROLE_HOME_PATH = {
   [ROLE_SUPERADMIN]: '/superadmin',
-  [ROLE_ADMIN_UNIT]: '/dashboard',
+  [ROLE_ADMIN_UNIT]: '/mobile/home',
   [ROLE_PETUGAS_PRESENSI]: '/dashboard',
   [ROLE_GURU_PEGAWAI]: '/mobile/home',
   [ROLE_KEPALA_SEKOLAH]: '/mobile/home',
@@ -485,7 +485,7 @@ export const ROLE_HOME_CANDIDATES = {
   // Superadmin tetap memakai dashboard desktop; '/superadmin' dipertahankan
   // sebagai halaman khusus Superadmin (bookmark lama) dan kandidat cadangan.
   [ROLE_SUPERADMIN]: ['/superadmin', '/dashboard', '/manajemen-admin-user', '/unit-sd-islam-rj', '/data-guru-dan-pegawai', '/cetak-kartu-id', '/presensi', '/presensi-manual', '/attendance-approvals', '/edit-presensi', '/rekap-dan-laporan', '/pengaturan-global', '/log-aktivitas', '/mobile/home'],
-  [ROLE_ADMIN_UNIT]: ['/dashboard', '/mobile/home', '/data-guru-dan-pegawai', '/cetak-kartu-id', '/presensi', '/presensi-manual', '/edit-presensi', '/pengajuan-izin-dan-cuti', '/rekap-dan-laporan', '/ranking-kehadiran', '/log-aktivitas'],
+  [ROLE_ADMIN_UNIT]: ['/mobile/home', '/dashboard', '/data-guru-dan-pegawai', '/cetak-kartu-id', '/presensi', '/presensi-manual', '/edit-presensi', '/pengajuan-izin-dan-cuti', '/rekap-dan-laporan', '/ranking-kehadiran', '/log-aktivitas'],
   // Guru/Pegawai hanya membuka aplikasi mobile; kandidat portal yang tersisa
   // dipakai hanya bila someday modul mobile ditutup untuk sebagian akun.
   [ROLE_GURU]: ['/mobile/home', '/mobile/presensi', '/mobile/riwayat', '/mobile/profil', '/mobile/slip', '/mobile/izin-cuti', '/mobile/kartu-id', '/mobile/qr'],
@@ -1708,8 +1708,7 @@ logs: [
 // Sekolah) tetap login sampai logout eksplisit; role portal (Superadmin,
 // Admin Unit, Petugas) hanya bertahan selama sesi browser (non-persisten).
 function isMobileSessionRole(role) {
-  const r = normalisasiRole(role)
-  return r === ROLE_GURU || r === ROLE_KEPALA_SEKOLAH || r === ROLE_ADMIN_UNIT || r === ROLE_SUPERADMIN
+  return appModeOfRole(normalisasiRole(role)) === MODE_MOBILE
 }
 
 function readStoredSession() {
@@ -1785,16 +1784,23 @@ export function findAccountByIdentifier(state, identifier) {
 
   const adminUser = state.adminUsers.find((u) => identifierMatches(u, key))
   if (adminUser) {
-    const isGuru = normalisasiRole(adminUser.role) === ROLE_GURU_PEGAWAI || normalisasiRole(adminUser.role) === ROLE_KEPALA_SEKOLAH
-    const staffMatch = isGuru && adminUser.niy
+    const roleNorm = normalisasiRole(adminUser.role)
+    const isStaffMobileRole = roleNorm === ROLE_GURU_PEGAWAI || roleNorm === ROLE_KEPALA_SEKOLAH
+    const isMobileAppRole = appModeOfRole(roleNorm) === MODE_MOBILE
+    // Coba tautkan ke data pegawai (staff) berdasarkan NIY agar fitur
+    // presensi/profil mobile tetap berfungsi untuk Admin/Kepala Sekolah/Petugas
+    // yang juga merupakan pegawai (tidak blank di /mobile).
+    const staffMatch = (isStaffMobileRole || isMobileAppRole) && adminUser.niy
       ? state.staff.find((s) => normalizeIdentifier(s.niy) === normalizeIdentifier(adminUser.niy))
       : null
     return {
       ...adminUser,
-      role: normalisasiRole(adminUser.role),
-      staffId: staffMatch ? staffMatch.id : adminUser.staffId,
-      pegawaiId: staffMatch ? staffMatch.id : adminUser.staffId,
-      isStaffAccount: isGuru,
+      role: roleNorm,
+      staffId: staffMatch ? staffMatch.id : (adminUser.staffId ?? adminUser.pegawaiId ?? null),
+      pegawaiId: staffMatch ? staffMatch.id : (adminUser.pegawaiId ?? adminUser.staffId ?? null),
+      // isStaffAccount menentukan sumber penyimpanan password (userAccounts vs adminUsers).
+      // Hanya role mobile-staff murni (Guru/Kepala Sekolah) yang disimpan di userAccounts.
+      isStaffAccount: isStaffMobileRole,
     }
   }
 
