@@ -71,8 +71,9 @@ function evaluateHomeCards(role) {
   if (isAdminUnit || isSuperadmin || isPetugas) {
     items.push('Scan QR Pegawai')
     items.push('Presensi Manual')
+    items.push('Rekap Presensi')
   }
-  items.push('Portal Web Desktop')
+  items.push('Portal Desktop')
 
   return {
     hasSpecialCard: true,
@@ -90,24 +91,21 @@ const guruEval = evaluateHomeCards(ROLE_GURU)
 assert.equal(guruEval.hasSpecialCard, false, 'Guru biasa TIDAK melihat Card Khusus')
 console.log('✅ LULUS: User Guru biasa tidak melihat Card Khusus pimpinan/admin di Beranda')
 
-// Uji User Kepala Sekolah
+// Uji User Kepala Sekolah: Tepat 3 buah sejajar
 const kepsekEval = evaluateHomeCards(ROLE_KEPALA_SEKOLAH)
 assert.equal(kepsekEval.hasSpecialCard, true, 'Kepala Sekolah melihat Card Khusus')
 assert.equal(kepsekEval.cardTitle, 'Menu Manajemen Kepala Sekolah')
-assert.ok(kepsekEval.menuItems.includes('Persetujuan Izin'))
-assert.ok(kepsekEval.menuItems.includes('Monitoring Presensi'))
-assert.equal(kepsekEval.menuItems.includes('Scan QR Pegawai'), false, 'Kepsek tidak membutuhkan Scan QR loket')
-console.log('✅ LULUS: Kepala Sekolah melihat Card "Menu Manajemen Kepala Sekolah" di atas Menu Cepat')
+assert.equal(kepsekEval.menuItems.length, 3, 'Kepala Sekolah memiliki tepat 3 menu agar tampil 3 buah sejajar')
+assert.deepEqual(kepsekEval.menuItems, ['Persetujuan Izin', 'Monitoring Presensi', 'Portal Desktop'])
+console.log('✅ LULUS: Kepala Sekolah memiliki 3 card sejajar (Persetujuan Izin, Monitoring Presensi, Portal Desktop)')
 
-// Uji User Admin Unit
+// Uji User Admin Unit: 6 buah (2 baris x 3 sejajar)
 const adminEval = evaluateHomeCards(ROLE_ADMIN_UNIT)
 assert.equal(adminEval.hasSpecialCard, true, 'Admin Unit melihat Card Khusus')
 assert.equal(adminEval.cardTitle, 'Menu Operasional Admin Unit')
-assert.ok(adminEval.menuItems.includes('Persetujuan Izin'))
-assert.ok(adminEval.menuItems.includes('Monitoring Presensi'))
-assert.ok(adminEval.menuItems.includes('Scan QR Pegawai'))
-assert.ok(adminEval.menuItems.includes('Presensi Manual'))
-console.log('✅ LULUS: Admin Unit melihat Card "Menu Operasional Admin Unit" di atas Menu Cepat')
+assert.equal(adminEval.menuItems.length, 6, 'Admin Unit memiliki 6 menu (2 baris x 3 buah sejajar)')
+assert.deepEqual(adminEval.menuItems, ['Persetujuan Izin', 'Monitoring Presensi', 'Scan QR Pegawai', 'Presensi Manual', 'Rekap Presensi', 'Portal Desktop'])
+console.log('✅ LULUS: Admin Unit memiliki card 3 sejajar per baris (Persetujuan, Monitoring, Scan QR, Presensi Manual, Rekap, Portal Desktop)')
 
 // 3. Simulasi Superadmin Memberikan Hak Role di Halaman Data Guru/Pegawai
 console.log('\n--- TEST 3: Simulasi Superadmin Mengubah Role Pegawai di Data Guru/Pegawai ---')

@@ -942,6 +942,45 @@ main > :last-child {
   justify-content: center;
 }
 
+/* Shortcut Grid 3 Kolom Kompak (untuk Card Manajemen Kepsek & Admin Unit) */
+.sp-shortcut-compact {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 5px;
+  min-height: 84px;
+  border-radius: 16px;
+  background: #ffffff;
+  border: 1px solid #e0e6f2;
+  box-shadow: 0 2px 8px -3px rgba(50, 61, 143, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.02);
+  transition: transform 0.14s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.14s ease-out, border-color 0.14s ease-out;
+}
+
+.sp-shortcut-compact:hover {
+  border-color: rgba(50, 61, 143, 0.35);
+  box-shadow: 0 4px 14px -3px rgba(50, 61, 143, 0.12);
+}
+
+.sp-shortcut-compact:active {
+  transform: scale(0.95);
+  box-shadow: 0 1px 4px -2px rgba(50, 61, 143, 0.12);
+}
+
+.sp-shortcut-compact-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  flex-shrink: 0;
+}
+
 /* --- 6. BOTTOM NAVIGATION (mengambang, horizontal) --------------------- */
 /*
  * PENTING: navigasi ini `position: absolute`, bukan `fixed`.

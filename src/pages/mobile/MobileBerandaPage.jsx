@@ -176,16 +176,17 @@ function MobileBerandaPage() {
       items.push({
         to: '/mobile/persetujuan-izin',
         judul: 'Persetujuan Izin',
-        sub: pendingLeavesCount > 0 ? `${pendingLeavesCount} pengajuan baru` : 'Verifikasi izin staf',
+        sub: pendingLeavesCount > 0 ? `${pendingLeavesCount} pending` : 'Verifikasi',
         ikon: 'task_alt',
         warna: pendingLeavesCount > 0 ? 'bg-amber-100 text-amber-700 ring-1 ring-amber-300' : 'bg-emerald-100 text-emerald-700',
+        badge: pendingLeavesCount,
       })
     }
 
     items.push({
       to: '/mobile/admin-monitoring',
       judul: 'Monitoring Presensi',
-      sub: 'Kehadiran staf hari ini',
+      sub: 'Live kehadiran',
       ikon: 'query_stats',
       warna: 'bg-indigo-100 text-indigo-700',
     })
@@ -194,23 +195,30 @@ function MobileBerandaPage() {
       items.push({
         to: '/mobile/admin-scan',
         judul: 'Scan QR Pegawai',
-        sub: 'Kamera pemindai ID Card',
+        sub: 'Scanner pos',
         ikon: 'qr_code_scanner',
         warna: 'bg-purple-100 text-purple-700',
       })
       items.push({
         to: '/mobile/admin-presensi-manual',
         judul: 'Presensi Manual',
-        sub: 'Input kehadiran staf',
+        sub: 'Input manual',
         ikon: 'edit_calendar',
         warna: 'bg-teal-100 text-teal-700',
+      })
+      items.push({
+        to: '/mobile/riwayat',
+        judul: 'Rekap Presensi',
+        sub: 'Rekap staf',
+        ikon: 'summarize',
+        warna: 'bg-blue-100 text-blue-700',
       })
     }
 
     items.push({
       to: '/dashboard',
-      judul: 'Portal Web Desktop',
-      sub: 'Buka dashboard lengkap',
+      judul: 'Portal Desktop',
+      sub: 'Dashboard web',
       ikon: 'desktop_windows',
       warna: 'bg-slate-100 text-slate-700',
     })
@@ -482,7 +490,8 @@ function MobileBerandaPage() {
 
             <ShortcutGrid
               items={adminQuickMenuItems}
-              columns={2}
+              columns={3}
+              compact={true}
             />
           </section>
         )}

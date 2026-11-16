@@ -88,27 +88,41 @@ export function GlassTopBar({ staff }) {
 }
 
 /**
- * Grid shortcut 2x2. Tidak memakai list: tiap menu adalah kotak dengan ikon
+ * Grid shortcut 2x2 atau 3-kolom kompak. Tidak memakai list: tiap menu adalah kotak dengan ikon
  * lingkaran dan judul kecil, seperti aplikasi presensi pada umumnya.
  */
-export function ShortcutGrid({ items, columns = 2 }) {
+export function ShortcutGrid({ items, columns = 2, compact = false }) {
+  const isCompact = compact || columns >= 3
   return (
     <div
-      className="grid gap-2.5"
+      className={`grid ${isCompact ? 'gap-2' : 'gap-2.5'}`}
       style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
     >
       {items.map((item, i) => (
         <NavLink
-          key={item.to}
+          key={item.to + i}
           to={item.to}
-          className={`sp-shortcut sp-rise sp-rise-${Math.min(i + 1, 4)} hover:border-[#323d8f]/30 transition-all`}
+          className={`${isCompact ? 'sp-shortcut-compact' : 'sp-shortcut'} sp-rise sp-rise-${Math.min(i + 1, 4)} hover:border-[#323d8f]/30 transition-all`}
         >
-          <span className={`sp-shortcut-icon ${item.warna || 'bg-[#eef0fc] text-[#323d8f]'}`}>
-            <Icon name={item.ikon} className="text-[22px]" />
-          </span>
+          <div className="relative">
+            <span className={`${isCompact ? 'sp-shortcut-compact-icon' : 'sp-shortcut-icon'} ${item.warna || 'bg-[#eef0fc] text-[#323d8f]'}`}>
+              <Icon name={item.ikon} className={isCompact ? 'text-[20px]' : 'text-[22px]'} />
+            </span>
+            {Boolean(item.badge && item.badge > 0) && (
+              <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[9px] font-bold min-w-[15px] h-[15px] px-1 rounded-full flex items-center justify-center shadow-xs">
+                {item.badge > 99 ? '99+' : item.badge}
+              </span>
+            )}
+          </div>
           <span className="text-center leading-tight">
-            <span className="block font-label-md text-label-md text-[#20243a] font-semibold">{item.judul}</span>
-            {item.sub && <span className="block font-label-sm text-label-sm text-[#77819a] mt-0.5">{item.sub}</span>}
+            <span className={`block font-semibold text-[#20243a] ${isCompact ? 'text-[11px] line-clamp-2' : 'font-label-md text-label-md'}`}>
+              {item.judul}
+            </span>
+            {item.sub && (
+              <span className={`block text-[#77819a] ${isCompact ? 'text-[9.5px] mt-0.5 line-clamp-1' : 'font-label-sm text-label-sm mt-0.5'}`}>
+                {item.sub}
+              </span>
+            )}
           </span>
         </NavLink>
       ))}
