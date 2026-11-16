@@ -135,8 +135,8 @@ test("Changing role to Admin Unit updates staff, userAccounts, adminUsers, and c
     payload: { id: 101, role: 'Admin Unit' },
   })
   assert.equal(stateAfterAdmin.staff.find((s) => s.id === 101)?.role, ROLE_ADMIN_UNIT)
-  // Per bf6c02f: admin roles are migrated to adminUsers, removed from userAccounts
-  assert.equal(stateAfterAdmin.userAccounts.some((a) => a.pegawaiId === 101), false)
+  // Akun mobile pegawai tetap terjaga di userAccounts dengan role Admin Unit, dan disinkronkan ke adminUsers
+  assert.equal(stateAfterAdmin.userAccounts.some((a) => a.pegawaiId === 101 && a.role === ROLE_ADMIN_UNIT), true)
   assert.equal(stateAfterAdmin.adminUsers.some((u) => u.staffId === 101 && u.role === ROLE_ADMIN_UNIT), true)
   assert.equal(stateAfterAdmin.currentUser?.role, ROLE_ADMIN_UNIT)
 })
@@ -147,8 +147,8 @@ test("Changing role to Kepala Sekolah updates staff, userAccounts, adminUsers, a
     payload: { id: 101, role: 'Kepala Sekolah' },
   })
   assert.equal(stateAfterKepsek.staff.find((s) => s.id === 101)?.role, ROLE_KEPALA_SEKOLAH)
-  // Per bf6c02f: kepsek roles are migrated to adminUsers, removed from userAccounts
-  assert.equal(stateAfterKepsek.userAccounts.some((a) => a.pegawaiId === 101), false)
+  // Akun mobile pegawai tetap terjaga di userAccounts dengan role Kepala Sekolah, dan disinkronkan ke adminUsers
+  assert.equal(stateAfterKepsek.userAccounts.some((a) => a.pegawaiId === 101 && a.role === ROLE_KEPALA_SEKOLAH), true)
   assert.equal(stateAfterKepsek.adminUsers.some((u) => u.staffId === 101 && u.role === ROLE_KEPALA_SEKOLAH), true)
   assert.equal(stateAfterKepsek.currentUser?.role, ROLE_KEPALA_SEKOLAH)
 })

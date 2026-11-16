@@ -13,42 +13,23 @@ import InstallPrompt from './InstallPrompt.jsx'
 import { GlassTopBar, MobileAppShell } from './AppShell.jsx'
 import { prewarmGeolocation } from '../../hooks/useGeofence.js'
 
-// Navigasi bottom modul mobile mengunci 5 menu utama yang ergonomis dan
-// disesuaikan secara dinamis per role pengguna:
-// - Guru/Pegawai : Beranda, Riwayat, Presensi (FAB tengah), Izin/Cuti, Profil
-// - Kepala Sekolah: Beranda, Monitoring, Presensi (FAB tengah), Persetujuan (Badge), Profil
-// - Admin Unit   : Beranda, Monitoring, Scan QR (FAB tengah), Persetujuan (Badge), Profil
-function buildNavItems(role, pendingCount = 0) {
-  const normRole = normalisasiRole(role)
+// Navigasi bottom modul mobile mengunci 5 menu utama yang ergonomis dan konsisten
+// untuk seluruh pengguna mobile (baik Guru/Pegawai maupun yang diberi tugas tambahan
+// sebagai Kepala Sekolah atau Admin Unit):
+// Beranda, Riwayat, Presensi (FAB tengah), Izin/Cuti, Profil.
+//
+// Tambahan fitur khusus pimpinan / operasional admin (Kepala Sekolah & Admin Unit)
+// disajikan secara elegan berupa Card khusus di halaman Beranda tepat di atas Menu Cepat.
+const MOBILE_NAV_ITEMS = [
+  { to: '/mobile/home', label: 'Beranda', icon: 'home', end: true },
+  { to: '/mobile/riwayat', label: 'Riwayat', icon: 'calendar_month' },
+  { to: '/mobile/presensi', label: 'Presensi', icon: 'face_retouch_natural', isCenter: true },
+  { to: '/mobile/izin-cuti', label: 'Izin/Cuti', icon: 'event_available' },
+  { to: '/mobile/profil', label: 'Profil', icon: 'person' },
+]
 
-  if (normRole === ROLE_KEPALA_SEKOLAH) {
-    return [
-      { to: '/mobile/home', label: 'Beranda', icon: 'home', end: true },
-      { to: '/mobile/admin-monitoring', label: 'Monitoring', icon: 'query_stats' },
-      { to: '/mobile/presensi', label: 'Presensi', icon: 'face_retouch_natural', isCenter: true },
-      { to: '/mobile/persetujuan-izin', label: 'Persetujuan', icon: 'task_alt', badge: pendingCount },
-      { to: '/mobile/profil', label: 'Profil', icon: 'person' },
-    ]
-  }
-
-  if (normRole === ROLE_ADMIN_UNIT || normRole === ROLE_SUPERADMIN || normRole === ROLE_PETUGAS_PRESENSI) {
-    return [
-      { to: '/mobile/home', label: 'Beranda', icon: 'home', end: true },
-      { to: '/mobile/admin-monitoring', label: 'Monitoring', icon: 'query_stats' },
-      { to: '/mobile/admin-scan', label: 'Scan QR', icon: 'qr_code_scanner', isCenter: true },
-      { to: '/mobile/persetujuan-izin', label: 'Persetujuan', icon: 'task_alt', badge: pendingCount },
-      { to: '/mobile/profil', label: 'Profil', icon: 'person' },
-    ]
-  }
-
-  // Default Guru / Pegawai
-  return [
-    { to: '/mobile/home', label: 'Beranda', icon: 'home', end: true },
-    { to: '/mobile/riwayat', label: 'Riwayat', icon: 'calendar_month' },
-    { to: '/mobile/presensi', label: 'Presensi', icon: 'face_retouch_natural', isCenter: true },
-    { to: '/mobile/izin-cuti', label: 'Izin/Cuti', icon: 'event_available' },
-    { to: '/mobile/profil', label: 'Profil', icon: 'person' },
-  ]
+function buildNavItems() {
+  return MOBILE_NAV_ITEMS
 }
 
 /**
@@ -71,21 +52,7 @@ function MobileLayout() {
   const userRole = selectCurrentUserRole(state)
   const normRole = normalisasiRole(userRole)
 
-  const pendingLeavesCount = useMemo(() => {
-    if (!state) return 0
-    const isSuper = normRole === ROLE_SUPERADMIN
-    const unitId = state.currentUser?.unitId
-    let list = (state.leaves || []).filter((l) => l.status === 'Menunggu')
-    if (!isSuper && unitId) {
-      list = list.filter((l) => l.unitId === unitId)
-    }
-    return list.length
-  }, [state, normRole])
-
-  const navItems = useMemo(
-    () => buildNavItems(userRole, pendingLeavesCount),
-    [userRole, pendingLeavesCount]
-  )
+  const navItems = MOBILE_NAV_ITEMS
 
   // Mengunci scroll dokumen luar agar pengguliran terpusat 100% pada kontainer mobile
   // tanpa konflik scroll atau jitter address bar di smartphone.

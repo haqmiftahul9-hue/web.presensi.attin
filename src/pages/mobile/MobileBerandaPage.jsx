@@ -130,8 +130,14 @@ function MobileBerandaPage() {
   // Nama singkat lokasi untuk kartu utama: unit + titik geofence.
   const titikLokasi = unit?.nama ? unit.nama.replace(/\s+/g, ' ').split(' ').slice(0, 2).join(' ') : 'Unit'
 
-  // Peran akun & evaluasi hak administratif/pimpinan
-  const currentRole = state ? normalisasiRole(selectCurrentUserRole(state)) : ''
+  // Peran akun & evaluasi hak administratif/pimpinan:
+  // Mengambil role mutakhir dari profil staf atau currentUser agar jika Superadmin
+  // mengubah role pegawai di Data Guru/Pegawai, hak akses langsung aktif.
+  const userRole = selectCurrentUserRole(state)
+  const staffRole = staff?.role ? normalisasiRole(staff.role) : null
+  const currentRole = staffRole && [ROLE_KEPALA_SEKOLAH, ROLE_ADMIN_UNIT, ROLE_SUPERADMIN, ROLE_PETUGAS_PRESENSI].includes(staffRole)
+    ? staffRole
+    : (state ? normalisasiRole(userRole) : '')
   const isSuperadmin = currentRole === ROLE_SUPERADMIN
   const isAdminUnit = currentRole === ROLE_ADMIN_UNIT
   const isKepsek = currentRole === ROLE_KEPALA_SEKOLAH
@@ -418,52 +424,6 @@ function MobileBerandaPage() {
           </div>
         </section>
 
-        {/* 4c. ALERT PENGAJUAN BUTUH TINDAKAN (Kepsek & Admin) */}
-        {pendingLeavesCount > 0 && (
-          <section className="sp-rise sp-rise-2">
-            <div className="rounded-2xl bg-amber-500/10 border border-amber-500/30 p-3.5 flex items-center justify-between gap-3 shadow-2xs">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <span className="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-2xs">
-                  <Icon name="pending_actions" className="text-[18px]" />
-                </span>
-                <div className="flex flex-col min-w-0">
-                  <span className="font-label-md text-xs font-bold text-amber-950">
-                    {pendingLeavesCount} Izin/Cuti Menunggu
-                  </span>
-                  <span className="text-[11px] text-amber-800 truncate">
-                    Perlu persetujuan Anda segera
-                  </span>
-                </div>
-              </div>
-              <Link
-                to="/mobile/persetujuan-izin"
-                className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-label-sm text-xs font-bold shrink-0 shadow-2xs active:scale-95 transition-all"
-              >
-                Tinjau
-              </Link>
-            </div>
-          </section>
-        )}
-
-        {/* 5. FITUR KHUSUS PIMPINAN & ADMIN (Muncul jika akun memiliki role Admin/Kepala Sekolah/Superadmin) */}
-        {isLeaderOrAdmin && adminQuickMenuItems.length > 0 && (
-          <section className="flex flex-col gap-2.5 sp-rise sp-rise-2">
-            <SectionTitle
-              ikon={isKepsek ? 'workspace_premium' : 'admin_panel_settings'}
-              judul={isKepsek ? 'Menu Manajemen Kepala Sekolah' : isAdminUnit ? 'Menu Operasional Admin Unit' : 'Fitur Khusus Pimpinan & Admin'}
-              aksi={
-                <span className={`font-label-sm text-[11px] px-2 py-0.5 rounded-full font-bold border ${roleBadgeStyle.kelas}`}>
-                  {roleBadgeStyle.label}
-                </span>
-              }
-            />
-            <ShortcutGrid
-              items={adminQuickMenuItems}
-              columns={2}
-            />
-          </section>
-        )}
-
         {/* 4b. PENGUMUMAN dari superadmin */}
         {announcements.length > 0 && (
           <section className="flex flex-col gap-2.5 sp-rise sp-rise-2">
@@ -475,6 +435,55 @@ function MobileBerandaPage() {
                 <p className="text-[10px] text-on-surface-variant mt-1.5">{new Date(a.createdAt).toLocaleDateString('id-ID')} • {a.author}</p>
               </div>
             ))}
+          </section>
+        )}
+
+        {/* 5. CARD MENU KHUSUS KEPALA SEKOLAH / ADMIN UNIT (BERADA TEPAT DI ATAS MENU CEPAT) */}
+        {isLeaderOrAdmin && adminQuickMenuItems.length > 0 && (
+          <section className="sp-card p-4 flex flex-col gap-3.5 sp-rise sp-rise-2 border border-[#dce3f5] bg-gradient-to-br from-white to-[#f4f7fd] shadow-xs">
+            <div className="flex items-center justify-between pb-2 border-b border-[#e2e8f5]">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <span className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-xs ${
+                  isKepsek ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
+                }`}>
+                  <Icon name={isKepsek ? 'workspace_premium' : 'admin_panel_settings'} className="text-[20px]" />
+                </span>
+                <div className="flex flex-col min-w-0">
+                  <span className="font-headline-sm text-sm font-bold text-[#1f253d] truncate">
+                    {isKepsek ? 'Menu Manajemen Kepala Sekolah' : isAdminUnit ? 'Menu Operasional Admin Unit' : 'Fitur Khusus Pimpinan & Admin'}
+                  </span>
+                  <span className="text-[11px] text-[#5e6987] truncate">
+                    Khusus Penugasan Unit {unit?.nama || 'Sekolah'}
+                  </span>
+                </div>
+              </div>
+              <span className={`font-label-sm text-[10px] px-2 py-0.5 rounded-md font-bold border shrink-0 ${roleBadgeStyle.kelas}`}>
+                {roleBadgeStyle.label}
+              </span>
+            </div>
+
+            {/* Alert bila ada izin/cuti staf unit yang perlu persetujuan */}
+            {pendingLeavesCount > 0 && (
+              <div className="rounded-xl bg-amber-500/10 border border-amber-500/30 p-2.5 flex items-center justify-between gap-2 shadow-2xs">
+                <div className="flex items-center gap-2 min-w-0">
+                  <Icon name="pending_actions" className="text-[17px] text-amber-600 shrink-0" />
+                  <span className="text-[11.5px] font-bold text-amber-900 truncate">
+                    {pendingLeavesCount} permohonan izin/cuti menunggu persetujuan
+                  </span>
+                </div>
+                <Link
+                  to="/mobile/persetujuan-izin"
+                  className="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-label-sm text-[11px] font-bold shrink-0 shadow-2xs transition-all active:scale-95"
+                >
+                  Tinjau
+                </Link>
+              </div>
+            )}
+
+            <ShortcutGrid
+              items={adminQuickMenuItems}
+              columns={2}
+            />
           </section>
         )}
 

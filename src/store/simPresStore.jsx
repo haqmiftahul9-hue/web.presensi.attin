@@ -829,14 +829,15 @@ export function simPresReducer(state, action) {
 
       const isTargetAdminRole = [ROLE_ADMIN_UNIT, ROLE_KEPALA_SEKOLAH, ROLE_PETUGAS_PRESENSI, ROLE_SUPERADMIN].includes(roleBaru)
 
-      const nextUserAccounts = isTargetAdminRole
-        ? upsertUserAccount(state.userAccounts, staffBaru, { action: 'delete' })
-        : upsertUserAccount(state.userAccounts, staffBaru, {
-            action: 'update',
-            role: staffBaru.role,
-            password: perubahan.password,
-            mustChangePassword: perubahan.mustChangePassword,
-          })
+      // Akun mobile pegawai selalu dipertahankan dan disinkronkan dengan role terbaru
+      // agar bila pegawai diberi hak tambahan Kepala Sekolah atau Admin Unit, ia tetap
+      // dapat login ke aplikasi mobile dengan akun pegawainya dan mendapatkan menu khusus tersebut.
+      const nextUserAccounts = upsertUserAccount(state.userAccounts, staffBaru, {
+        action: 'update',
+        role: roleBaru,
+        password: perubahan.password,
+        mustChangePassword: perubahan.mustChangePassword,
+      })
 
       let adminUsersUpdated = state.adminUsers || []
 
@@ -1756,10 +1757,17 @@ export function findAccountByIdentifier(state, identifier) {
 
   const userAccount = (state.userAccounts || []).find((a) => identifierMatches(a, key))
   if (userAccount) {
+    const staffMatch = userAccount.pegawaiId
+      ? state.staff?.find((s) => s.id === userAccount.pegawaiId)
+      : (userAccount.niy ? state.staff?.find((s) => normalizeIdentifier(s.niy) === normalizeIdentifier(userAccount.niy)) : null)
+    const effectiveRole = staffMatch?.role ? normalisasiRole(staffMatch.role) : normalisasiRole(userAccount.role || ROLE_GURU_PEGAWAI)
+    const effectiveUnitId = staffMatch?.unitId || userAccount.unitId
     return {
       ...userAccount,
-      role: normalisasiRole(userAccount.role || ROLE_GURU_PEGAWAI),
-      staffId: userAccount.pegawaiId,
+      role: effectiveRole,
+      unitId: effectiveUnitId,
+      staffId: userAccount.pegawaiId || staffMatch?.id || null,
+      pegawaiId: userAccount.pegawaiId || staffMatch?.id || null,
       isStaffAccount: true,
     }
   }

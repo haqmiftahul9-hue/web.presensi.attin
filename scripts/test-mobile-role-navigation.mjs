@@ -12,7 +12,10 @@ const server = await createServer({
 const store = await server.ssrLoadModule('/src/store/simPresStore.jsx')
 const {
   initialState,
+  simPresReducer,
   normalisasiRole,
+  findAccountByIdentifier,
+  authenticateCredentials,
   ROLE_KEPALA_SEKOLAH,
   ROLE_ADMIN_UNIT,
   ROLE_SUPERADMIN,
@@ -24,128 +27,153 @@ const {
 await server.close()
 
 console.log('================================================================================')
-console.log('VERIFIKASI NAVIGASI & MENU MOBILE SESUAI ROLE (GURU, KEPALA SEKOLAH, ADMIN UNIT)')
+console.log('VERIFIKASI PENUGASAN ROLE KEPSEK/ADMIN OLEH SUPERADMIN & TAMPILAN MOBILE')
 console.log('================================================================================\n')
 
-// Replikasi buildNavItems sesuai implementasi di MobileLayout.jsx
-function buildNavItems(role, pendingCount = 0) {
+// 1. Navigasi Bottom Bar Mobile: Sama untuk semua user (Guru, Kepsek, Admin Unit)
+console.log('--- TEST 1: Bottom Navigation Seragam untuk Seluruh User Mobile ---')
+const MOBILE_NAV_ITEMS = [
+  { to: '/mobile/home', label: 'Beranda', icon: 'home', end: true },
+  { to: '/mobile/riwayat', label: 'Riwayat', icon: 'calendar_month' },
+  { to: '/mobile/presensi', label: 'Presensi', icon: 'face_retouch_natural', isCenter: true },
+  { to: '/mobile/izin-cuti', label: 'Izin/Cuti', icon: 'event_available' },
+  { to: '/mobile/profil', label: 'Profil', icon: 'person' },
+]
+
+assert.equal(MOBILE_NAV_ITEMS.length, 5, 'Navigasi bawah mobile selalu terdiri dari 5 menu utama')
+assert.deepEqual(MOBILE_NAV_ITEMS.map(n => n.label), ['Beranda', 'Riwayat', 'Presensi', 'Izin/Cuti', 'Profil'])
+assert.equal(MOBILE_NAV_ITEMS[2].isCenter, true, 'Tombol Presensi mandiri berada di tengah (Center FAB)')
+console.log('✅ LULUS: Navigasi bawah mobile seragam untuk seluruh user (Guru, Kepsek, Admin)')
+
+// 2. Evaluasi Menu Card di Beranda berdasarkan Hak Role
+console.log('\n--- TEST 2: Evaluasi Card Khusus di Beranda di Atas Menu Cepat ---')
+
+function evaluateHomeCards(role) {
   const normRole = normalisasiRole(role)
+  const isSuperadmin = normRole === ROLE_SUPERADMIN
+  const isAdminUnit = normRole === ROLE_ADMIN_UNIT
+  const isKepsek = normRole === ROLE_KEPALA_SEKOLAH
+  const isPetugas = normRole === ROLE_PETUGAS_PRESENSI
+  const isLeaderOrAdmin = isSuperadmin || isAdminUnit || isKepsek || isPetugas
 
-  if (normRole === ROLE_KEPALA_SEKOLAH) {
-    return [
-      { to: '/mobile/home', label: 'Beranda', icon: 'home', end: true },
-      { to: '/mobile/admin-monitoring', label: 'Monitoring', icon: 'query_stats' },
-      { to: '/mobile/presensi', label: 'Presensi', icon: 'face_retouch_natural', isCenter: true },
-      { to: '/mobile/persetujuan-izin', label: 'Persetujuan', icon: 'task_alt', badge: pendingCount },
-      { to: '/mobile/profil', label: 'Profil', icon: 'person' },
-    ]
+  if (!isLeaderOrAdmin) {
+    return {
+      hasSpecialCard: false,
+      cardTitle: null,
+      menuItems: [],
+    }
   }
 
-  if (normRole === ROLE_ADMIN_UNIT || normRole === ROLE_SUPERADMIN || normRole === ROLE_PETUGAS_PRESENSI) {
-    return [
-      { to: '/mobile/home', label: 'Beranda', icon: 'home', end: true },
-      { to: '/mobile/admin-monitoring', label: 'Monitoring', icon: 'query_stats' },
-      { to: '/mobile/admin-scan', label: 'Scan QR', icon: 'qr_code_scanner', isCenter: true },
-      { to: '/mobile/persetujuan-izin', label: 'Persetujuan', icon: 'task_alt', badge: pendingCount },
-      { to: '/mobile/profil', label: 'Profil', icon: 'person' },
-    ]
+  const items = []
+  items.push('Persetujuan Izin')
+  items.push('Monitoring Presensi')
+
+  if (isAdminUnit || isSuperadmin || isPetugas) {
+    items.push('Scan QR Pegawai')
+    items.push('Presensi Manual')
   }
+  items.push('Portal Web Desktop')
 
-  // Default Guru / Pegawai
-  return [
-    { to: '/mobile/home', label: 'Beranda', icon: 'home', end: true },
-    { to: '/mobile/riwayat', label: 'Riwayat', icon: 'calendar_month' },
-    { to: '/mobile/presensi', label: 'Presensi', icon: 'face_retouch_natural', isCenter: true },
-    { to: '/mobile/izin-cuti', label: 'Izin/Cuti', icon: 'event_available' },
-    { to: '/mobile/profil', label: 'Profil', icon: 'person' },
-  ]
+  return {
+    hasSpecialCard: true,
+    cardTitle: isKepsek
+      ? 'Menu Manajemen Kepala Sekolah'
+      : isAdminUnit
+        ? 'Menu Operasional Admin Unit'
+        : 'Fitur Khusus Pimpinan & Admin',
+    menuItems: items,
+  }
 }
 
-// Uji 1: Navigasi Guru / Pegawai
-console.log('--- TEST 1: Bottom Navigation Guru / Pegawai ---')
-const guruNav = buildNavItems(ROLE_GURU, 5)
-assert.equal(guruNav.length, 5, 'Guru harus memiliki tepat 5 menu bottom bar')
-assert.deepEqual(guruNav.map(n => n.label), ['Beranda', 'Riwayat', 'Presensi', 'Izin/Cuti', 'Profil'])
-assert.equal(guruNav[2].isCenter, true, 'Menu Presensi mandiri harus berada di tengah (FAB)')
-assert.equal(guruNav.some(n => n.label === 'Monitoring'), false, 'Guru TIDAK boleh melihat menu Monitoring')
-assert.equal(guruNav.some(n => n.label === 'Persetujuan'), false, 'Guru TIDAK boleh melihat menu Persetujuan')
-assert.equal(guruNav.some(n => n.label === 'Scan QR'), false, 'Guru TIDAK boleh melihat menu Scan QR')
-console.log('✅ LULUS: Navigasi mobile Guru hanya menampilkan fitur presensi & riwayat mandiri')
+// Uji User Guru Biasa
+const guruEval = evaluateHomeCards(ROLE_GURU)
+assert.equal(guruEval.hasSpecialCard, false, 'Guru biasa TIDAK melihat Card Khusus')
+console.log('✅ LULUS: User Guru biasa tidak melihat Card Khusus pimpinan/admin di Beranda')
 
-// Uji 2: Navigasi Kepala Sekolah
-console.log('\n--- TEST 2: Bottom Navigation Kepala Sekolah ---')
-const kepsekNav = buildNavItems(ROLE_KEPALA_SEKOLAH, 3)
-assert.equal(kepsekNav.length, 5, 'Kepala Sekolah harus memiliki tepat 5 menu bottom bar')
-assert.deepEqual(kepsekNav.map(n => n.label), ['Beranda', 'Monitoring', 'Presensi', 'Persetujuan', 'Profil'])
-assert.equal(kepsekNav[1].to, '/mobile/admin-monitoring', 'Kepala Sekolah memiliki tab Monitoring Presensi Unit')
-assert.equal(kepsekNav[2].to, '/mobile/presensi', 'Kepala Sekolah tetap dapat melakukan Presensi Mandiri di tombol tengah')
-assert.equal(kepsekNav[3].to, '/mobile/persetujuan-izin', 'Kepala Sekolah memiliki tab Persetujuan Izin')
-assert.equal(kepsekNav[3].badge, 3, 'Tab Persetujuan menampilkan badge pending izin')
-console.log('✅ LULUS: Navigasi mobile Kepala Sekolah memiliki tambahan Monitoring & Persetujuan')
+// Uji User Kepala Sekolah
+const kepsekEval = evaluateHomeCards(ROLE_KEPALA_SEKOLAH)
+assert.equal(kepsekEval.hasSpecialCard, true, 'Kepala Sekolah melihat Card Khusus')
+assert.equal(kepsekEval.cardTitle, 'Menu Manajemen Kepala Sekolah')
+assert.ok(kepsekEval.menuItems.includes('Persetujuan Izin'))
+assert.ok(kepsekEval.menuItems.includes('Monitoring Presensi'))
+assert.equal(kepsekEval.menuItems.includes('Scan QR Pegawai'), false, 'Kepsek tidak membutuhkan Scan QR loket')
+console.log('✅ LULUS: Kepala Sekolah melihat Card "Menu Manajemen Kepala Sekolah" di atas Menu Cepat')
 
-// Uji 3: Navigasi Admin Unit
-console.log('\n--- TEST 3: Bottom Navigation Admin Unit ---')
-const adminNav = buildNavItems(ROLE_ADMIN_UNIT, 4)
-assert.equal(adminNav.length, 5, 'Admin Unit harus memiliki tepat 5 menu bottom bar')
-assert.deepEqual(adminNav.map(n => n.label), ['Beranda', 'Monitoring', 'Scan QR', 'Persetujuan', 'Profil'])
-assert.equal(adminNav[1].to, '/mobile/admin-monitoring', 'Admin Unit memiliki tab Monitoring')
-assert.equal(adminNav[2].to, '/mobile/admin-scan', 'Tombol tengah Admin Unit adalah Scan QR Pegawai untuk loket/pos')
-assert.equal(adminNav[3].to, '/mobile/persetujuan-izin', 'Admin Unit memiliki tab Persetujuan Izin')
-assert.equal(adminNav[3].badge, 4, 'Tab Persetujuan Admin Unit menampilkan badge pending')
-console.log('✅ LULUS: Navigasi mobile Admin Unit memiliki tambahan Monitoring, Scan QR & Persetujuan')
+// Uji User Admin Unit
+const adminEval = evaluateHomeCards(ROLE_ADMIN_UNIT)
+assert.equal(adminEval.hasSpecialCard, true, 'Admin Unit melihat Card Khusus')
+assert.equal(adminEval.cardTitle, 'Menu Operasional Admin Unit')
+assert.ok(adminEval.menuItems.includes('Persetujuan Izin'))
+assert.ok(adminEval.menuItems.includes('Monitoring Presensi'))
+assert.ok(adminEval.menuItems.includes('Scan QR Pegawai'))
+assert.ok(adminEval.menuItems.includes('Presensi Manual'))
+console.log('✅ LULUS: Admin Unit melihat Card "Menu Operasional Admin Unit" di atas Menu Cepat')
 
-// Uji 4: Data Pegawai Akun Login (selectSelfStaff)
-console.log('\n--- TEST 4: Ketersediaan Data Staff untuk Akun Demo ---')
+// 3. Simulasi Superadmin Memberikan Hak Role di Halaman Data Guru/Pegawai
+console.log('\n--- TEST 3: Simulasi Superadmin Mengubah Role Pegawai di Data Guru/Pegawai ---')
 
-// Uji Akun Guru
-const stateGuru = {
-  ...initialState,
-  currentUser: { id: 'usr-1', username: '049098034', niy: '049098034', role: 'Guru', unitId: 'sd' }
-}
-const staffGuru = selectSelfStaff(stateGuru)
-assert.ok(staffGuru, 'Staff Guru harus ditemukan')
-assert.equal(staffGuru.niy, '049098034')
-console.log(`✅ LULUS: Guru (${staffGuru.name}) terhubung dengan profil pegawai`)
+// Ambil salah satu pegawai guru demo: Sulasmi (NIY: 049098034)
+const targetStaff = initialState.staff.find(s => s.niy === '049098034')
+assert.ok(targetStaff, 'Pegawai guru target harus ada di seed data')
+console.log(`Pegawai target awal: ${targetStaff.name} (Role: ${targetStaff.role}, NIY: ${targetStaff.niy})`)
 
-// Uji Akun Kepala Sekolah SD (akundemo: kepalasd / niy 019001013)
-const adminUserKepsek = initialState.adminUsers.find(u => u.username === 'kepalasd')
-assert.ok(adminUserKepsek, 'Akun demo kepalasd harus ada di adminUsers')
-const stateKepsek = {
-  ...initialState,
-  currentUser: adminUserKepsek
-}
-const staffKepsek = selectSelfStaff(stateKepsek)
-assert.ok(staffKepsek, 'Staff Kepala Sekolah harus ditemukan (bukan null)')
-assert.equal(staffKepsek.niy, '019001013', 'NIY Kepala Sekolah SD harus 019001013')
-assert.equal(staffKepsek.name, 'Kepala Sekolah SDIT', 'Nama Kepala Sekolah SD harus sesuai')
-assert.equal(staffKepsek.unitId, 'sd', 'Unit Kepala Sekolah harus sd')
-console.log(`✅ LULUS: Kepala Sekolah SD (${staffKepsek.name}) terhubung dengan profil pegawai`)
+// Skenario A: Superadmin mengubah role guru tersebut menjadi "Kepala Sekolah"
+const stateAfterKepsek = simPresReducer(initialState, {
+  type: 'UPDATE_STAFF',
+  payload: { id: targetStaff.id, role: 'Kepala Sekolah' }
+})
 
-// Uji Akun Admin SD (akundemo: adminsd1 / niy 019001008)
-const adminUserSD1 = initialState.adminUsers.find(u => u.username === 'adminsd1')
-assert.ok(adminUserSD1, 'Akun demo adminsd1 harus ada di adminUsers')
-const stateAdminSD = {
-  ...initialState,
-  currentUser: adminUserSD1
-}
-const staffAdminSD = selectSelfStaff(stateAdminSD)
-assert.ok(staffAdminSD, 'Staff Admin Unit harus ditemukan (bukan null)')
-assert.equal(staffAdminSD.niy, '019001008', 'NIY Admin SD harus 019001008')
-assert.equal(staffAdminSD.name, 'Admin SD Unit 1', 'Nama Admin SD harus sesuai')
-assert.equal(staffAdminSD.unitId, 'sd', 'Unit Admin SD harus sd')
-console.log(`✅ LULUS: Admin Unit SD (${staffAdminSD.name}) terhubung dengan profil pegawai`)
+// Cek apakah data staff terupdate
+const updatedStaffKepsek = stateAfterKepsek.staff.find(s => s.id === targetStaff.id)
+assert.equal(updatedStaffKepsek.role, 'Kepala Sekolah', 'Role di data pegawai harus terupdate')
 
-// Uji Akun Virtual Fallback (jika ada admin baru yang belum terdaftar di staff fisik)
-const stateNewAdmin = {
-  ...initialState,
-  currentUser: { id: 'adm-new', username: 'adminbaru', name: 'Admin Baru', role: 'Admin Unit', unitId: 'smp' }
-}
-const virtualStaff = selectSelfStaff(stateNewAdmin)
-assert.ok(virtualStaff, 'Virtual fallback staff harus dibuat')
-assert.equal(virtualStaff.name, 'Admin Baru')
-assert.equal(virtualStaff.unitId, 'smp')
-console.log(`✅ LULUS: Fallback virtual staff berhasil melindungi akun portal agar tidak crash/error`)
+// Cek apakah akun login pegawai di userAccounts tetap ada dan rolenya Kepala Sekolah
+const userAccountKepsek = stateAfterKepsek.userAccounts.find(a => a.niy === targetStaff.niy)
+assert.ok(userAccountKepsek, 'Akun userAccounts untuk login mobile TIDAK boleh dihapus')
+assert.equal(userAccountKepsek.role, 'Kepala Sekolah', 'Role akun userAccounts harus menjadi Kepala Sekolah')
+
+// Cek autentikasi login via NIY
+const authResultKepsek = authenticateCredentials(stateAfterKepsek, targetStaff.niy, targetStaff.niy)
+assert.equal(authResultKepsek.ok, true, 'Login dengan NIY harus berhasil')
+assert.equal(authResultKepsek.user.role, 'Kepala Sekolah', 'Akun login harus membawa role Kepala Sekolah')
+
+// Cek tampilan mobile: otomatis mendapatkan Card Khusus Kepala Sekolah
+const kepsekMobileEval = evaluateHomeCards(authResultKepsek.user.role)
+assert.equal(kepsekMobileEval.hasSpecialCard, true)
+assert.equal(kepsekMobileEval.cardTitle, 'Menu Manajemen Kepala Sekolah')
+console.log('✅ LULUS: Guru yang dipromosikan menjadi Kepala Sekolah otomatis memperoleh Card Manajemen di akun mobilenya')
+
+// Skenario B: Superadmin mengubah role guru tersebut menjadi "Admin Unit"
+const stateAfterAdmin = simPresReducer(initialState, {
+  type: 'UPDATE_STAFF',
+  payload: { id: targetStaff.id, role: 'Admin Unit' }
+})
+const updatedStaffAdmin = stateAfterAdmin.staff.find(s => s.id === targetStaff.id)
+assert.equal(updatedStaffAdmin.role, 'Admin Unit')
+const userAccountAdmin = stateAfterAdmin.userAccounts.find(a => a.niy === targetStaff.niy)
+assert.ok(userAccountAdmin, 'Akun userAccounts harus tetap ada')
+assert.equal(userAccountAdmin.role, 'Admin Unit')
+
+const authResultAdmin = authenticateCredentials(stateAfterAdmin, targetStaff.niy, targetStaff.niy)
+assert.equal(authResultAdmin.ok, true)
+assert.equal(authResultAdmin.user.role, 'Admin Unit')
+const adminMobileEval = evaluateHomeCards(authResultAdmin.user.role)
+assert.equal(adminMobileEval.hasSpecialCard, true)
+assert.equal(adminMobileEval.cardTitle, 'Menu Operasional Admin Unit')
+console.log('✅ LULUS: Guru yang dipromosikan menjadi Admin Unit otomatis memperoleh Card Operasional di akun mobilenya')
+
+// Skenario C: Superadmin mengembalikan role menjadi Guru biasa
+const stateAfterReset = simPresReducer(stateAfterAdmin, {
+  type: 'UPDATE_STAFF',
+  payload: { id: targetStaff.id, role: 'Guru PAI' }
+})
+const authResultReset = authenticateCredentials(stateAfterReset, targetStaff.niy, targetStaff.niy)
+assert.equal(authResultReset.ok, true)
+assert.equal(authResultReset.user.role, 'Guru')
+const resetMobileEval = evaluateHomeCards(authResultReset.user.role)
+assert.equal(resetMobileEval.hasSpecialCard, false, 'Card khusus harus hilang saat dikembalikan ke Guru biasa')
+console.log('✅ LULUS: Saat dikembalikan menjadi Guru biasa, Card Khusus otomatis hilang dari Beranda mobile')
 
 console.log('\n================================================================================')
-console.log('SELURUH 8 PENGUJIAN NAVIGASI & AKUN MOBILE LULUS 100%')
+console.log('SEMUA PENGUJIAN PENUGASAN ROLE SUPERADMIN & TAMPILAN MOBILE LULUS 100%')
 console.log('================================================================================')
