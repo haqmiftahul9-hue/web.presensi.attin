@@ -3448,8 +3448,32 @@ export function selectIsSelfScope(state) {
 // "Presensi Saya" menampilkannya sebagai empty state, bukan halaman kosong.
 export function selectSelfStaff(state) {
   const staffId = selectSelfStaffId(state)
-  if (staffId == null) return null
-  return state.staff.find((s) => s.id === staffId) || null
+  if (staffId != null) {
+    const found = state.staff?.find((s) => s.id === staffId)
+    if (found) return found
+  }
+  const user = state.currentUser
+  if (user) {
+    const niyMatch = user.niy ? state.staff?.find((s) => normalizeIdentifier(s.niy) === normalizeIdentifier(user.niy)) : null
+    if (niyMatch) return niyMatch
+
+    // Fallback virtual staff untuk akun role pimpinan/admin agar modul mobile tetap tampil normal
+    return {
+      id: user.staffId ?? user.pegawaiId ?? user.id,
+      niy: user.niy || user.username || '00000000',
+      name: user.name || 'Pengguna',
+      role: user.role || 'Staf',
+      unitId: user.unitId || 'sd',
+      status: user.status || 'Aktif',
+      foto: user.foto || null,
+      masuk: null,
+      pulang: null,
+      method: null,
+      lateMinutes: 0,
+      email: user.email || '',
+    }
+  }
+  return null
 }
 
 // "07:15" -> 435 dan sebaliknya sudah didefinisikan di data/jamKerja.js

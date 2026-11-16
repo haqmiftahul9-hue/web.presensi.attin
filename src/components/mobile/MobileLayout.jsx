@@ -1,42 +1,54 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { NavLink, Outlet, Navigate, useLocation } from 'react-router-dom'
 import Icon from '../Icon.jsx'
 import ChangePasswordGate from '../ChangePasswordGate.jsx'
 import {
   useSimPres, selectSelfStaff, selectAppMode, selectAppHomePath, MODE_MOBILE,
   selectCurrentUserRole, selectMustChangePassword, hasPermission,
-  ROUTE_MENU_KEYS,
+  ROUTE_MENU_KEYS, normalisasiRole,
+  ROLE_KEPALA_SEKOLAH, ROLE_ADMIN_UNIT, ROLE_SUPERADMIN, ROLE_PETUGAS_PRESENSI, ROLE_GURU,
 } from '../../store/simPresStore.jsx'
 import MobileErrorBoundary from './MobileErrorBoundary.jsx'
 import InstallPrompt from './InstallPrompt.jsx'
 import { GlassTopBar, MobileAppShell } from './AppShell.jsx'
 import { prewarmGeolocation } from '../../hooks/useGeofence.js'
 
-// Navigasi bottom modul mobile tetap mengunci 5 menu utama yang ergonomis
-// (Beranda, Riwayat, Presensi [Center FAB], Izin/Cuti, Profil).
-// Fitur administratif (Persetujuan, Monitoring Unit, Scan QR, dll)
-// ditempatkan di Menu Cepat pada Beranda agar tidak memadati navigasi bawah.
-const MOBILE_ROUTES = [
-  { to: '/mobile/home', label: 'Beranda', icon: 'home', end: true },
-  { to: '/mobile/presensi', label: 'Presensi', icon: 'face_retouch_natural', isCenter: true },
-  { to: '/mobile/riwayat', label: 'Riwayat', icon: 'calendar_month' },
-  { to: '/mobile/slip', label: 'Slip', icon: 'receipt_long' },
-  { to: '/mobile/izin-cuti', label: 'Izin/Cuti', icon: 'event_available' },
-  { to: '/mobile/persetujuan-izin', label: 'Persetujuan', icon: 'task_alt', action: 'edit' },
-  { to: '/mobile/kartu-id', label: 'Kartu ID', icon: 'contact_page' },
-  { to: '/mobile/qr', label: 'QR Presensi', icon: 'qr_code_scanner' },
-  { to: '/mobile/profil', label: 'Profil', icon: 'person' },
-]
+// Navigasi bottom modul mobile mengunci 5 menu utama yang ergonomis dan
+// disesuaikan secara dinamis per role pengguna:
+// - Guru/Pegawai : Beranda, Riwayat, Presensi (FAB tengah), Izin/Cuti, Profil
+// - Kepala Sekolah: Beranda, Monitoring, Presensi (FAB tengah), Persetujuan (Badge), Profil
+// - Admin Unit   : Beranda, Monitoring, Scan QR (FAB tengah), Persetujuan (Badge), Profil
+function buildNavItems(role, pendingCount = 0) {
+  const normRole = normalisasiRole(role)
 
-function buildNavItems(state, role) {
-  const menuFor = (to) => ROUTE_MENU_KEYS[to]
-  const may = (item) => {
-    const key = menuFor(item.to)
-    if (!key) return false
-    const action = item.action === 'edit' ? 'edit' : 'view'
-    return hasPermission(state, role, key, action)
+  if (normRole === ROLE_KEPALA_SEKOLAH) {
+    return [
+      { to: '/mobile/home', label: 'Beranda', icon: 'home', end: true },
+      { to: '/mobile/admin-monitoring', label: 'Monitoring', icon: 'query_stats' },
+      { to: '/mobile/presensi', label: 'Presensi', icon: 'face_retouch_natural', isCenter: true },
+      { to: '/mobile/persetujuan-izin', label: 'Persetujuan', icon: 'task_alt', badge: pendingCount },
+      { to: '/mobile/profil', label: 'Profil', icon: 'person' },
+    ]
   }
-  return MOBILE_ROUTES.filter(may)
+
+  if (normRole === ROLE_ADMIN_UNIT || normRole === ROLE_SUPERADMIN || normRole === ROLE_PETUGAS_PRESENSI) {
+    return [
+      { to: '/mobile/home', label: 'Beranda', icon: 'home', end: true },
+      { to: '/mobile/admin-monitoring', label: 'Monitoring', icon: 'query_stats' },
+      { to: '/mobile/admin-scan', label: 'Scan QR', icon: 'qr_code_scanner', isCenter: true },
+      { to: '/mobile/persetujuan-izin', label: 'Persetujuan', icon: 'task_alt', badge: pendingCount },
+      { to: '/mobile/profil', label: 'Profil', icon: 'person' },
+    ]
+  }
+
+  // Default Guru / Pegawai
+  return [
+    { to: '/mobile/home', label: 'Beranda', icon: 'home', end: true },
+    { to: '/mobile/riwayat', label: 'Riwayat', icon: 'calendar_month' },
+    { to: '/mobile/presensi', label: 'Presensi', icon: 'face_retouch_natural', isCenter: true },
+    { to: '/mobile/izin-cuti', label: 'Izin/Cuti', icon: 'event_available' },
+    { to: '/mobile/profil', label: 'Profil', icon: 'person' },
+  ]
 }
 
 /**
@@ -56,7 +68,24 @@ function buildNavItems(state, role) {
 function MobileLayout() {
   const { state } = useSimPres()
   const location = useLocation()
-  const navItems = buildNavItems(state, selectCurrentUserRole(state))
+  const userRole = selectCurrentUserRole(state)
+  const normRole = normalisasiRole(userRole)
+
+  const pendingLeavesCount = useMemo(() => {
+    if (!state) return 0
+    const isSuper = normRole === ROLE_SUPERADMIN
+    const unitId = state.currentUser?.unitId
+    let list = (state.leaves || []).filter((l) => l.status === 'Menunggu')
+    if (!isSuper && unitId) {
+      list = list.filter((l) => l.unitId === unitId)
+    }
+    return list.length
+  }, [state, normRole])
+
+  const navItems = useMemo(
+    () => buildNavItems(userRole, pendingLeavesCount),
+    [userRole, pendingLeavesCount]
+  )
 
   // Mengunci scroll dokumen luar agar pengguliran terpusat 100% pada kontainer mobile
   // tanpa konflik scroll atau jitter address bar di smartphone.
@@ -153,10 +182,17 @@ function MobileLayout() {
                     </>
                   ) : (
                     <>
-                      <Icon
-                        name={item.icon}
-                        className={`text-[21px] ${isActive ? 'text-white' : 'text-[#77819a]'}`}
-                      />
+                      <div className="relative flex items-center justify-center">
+                        <Icon
+                          name={item.icon}
+                          className={`text-[21px] ${isActive ? 'text-white' : 'text-[#77819a]'}`}
+                        />
+                        {Boolean(item.badge && item.badge > 0) && (
+                          <span className="absolute -top-1.5 -right-2 bg-rose-500 text-white text-[9px] font-bold min-w-[15px] h-[15px] px-1 rounded-full flex items-center justify-center shadow-xs">
+                            {item.badge > 99 ? '99+' : item.badge}
+                          </span>
+                        )}
+                      </div>
                       <span
                         className={`font-label-sm text-[10.5px] sm:text-[11.5px] leading-tight truncate max-w-full px-0.5 ${
                           isActive ? 'text-white font-semibold' : 'text-[#77819a]'

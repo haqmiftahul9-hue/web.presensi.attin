@@ -418,20 +418,6 @@ function MobileBerandaPage() {
           </div>
         </section>
 
-        {/* 4b. PENGUMUMAN dari superadmin */}
-        {announcements.length > 0 && (
-          <section className="flex flex-col gap-2.5 sp-rise sp-rise-2">
-            <SectionTitle ikon="campaign" judul="Pengumuman" />
-            {announcements.slice(0, 3).map((a) => (
-              <div key={a.id} className="sp-card p-3.5">
-                <p className="font-label-md text-label-md text-foreground">{a.title}</p>
-                <p className="text-xs text-on-surface-variant mt-1 whitespace-pre-wrap">{a.body}</p>
-                <p className="text-[10px] text-on-surface-variant mt-1.5">{new Date(a.createdAt).toLocaleDateString('id-ID')} • {a.author}</p>
-              </div>
-            ))}
-          </section>
-        )}
-
         {/* 4c. ALERT PENGAJUAN BUTUH TINDAKAN (Kepsek & Admin) */}
         {pendingLeavesCount > 0 && (
           <section className="sp-rise sp-rise-2">
@@ -463,8 +449,8 @@ function MobileBerandaPage() {
         {isLeaderOrAdmin && adminQuickMenuItems.length > 0 && (
           <section className="flex flex-col gap-2.5 sp-rise sp-rise-2">
             <SectionTitle
-              ikon="admin_panel_settings"
-              judul="Fitur Khusus Pimpinan & Admin"
+              ikon={isKepsek ? 'workspace_premium' : 'admin_panel_settings'}
+              judul={isKepsek ? 'Menu Manajemen Kepala Sekolah' : isAdminUnit ? 'Menu Operasional Admin Unit' : 'Fitur Khusus Pimpinan & Admin'}
               aksi={
                 <span className={`font-label-sm text-[11px] px-2 py-0.5 rounded-full font-bold border ${roleBadgeStyle.kelas}`}>
                   {roleBadgeStyle.label}
@@ -475,6 +461,20 @@ function MobileBerandaPage() {
               items={adminQuickMenuItems}
               columns={2}
             />
+          </section>
+        )}
+
+        {/* 4b. PENGUMUMAN dari superadmin */}
+        {announcements.length > 0 && (
+          <section className="flex flex-col gap-2.5 sp-rise sp-rise-2">
+            <SectionTitle ikon="campaign" judul="Pengumuman" />
+            {announcements.slice(0, 3).map((a) => (
+              <div key={a.id} className="sp-card p-3.5">
+                <p className="font-label-md text-label-md text-foreground">{a.title}</p>
+                <p className="text-xs text-on-surface-variant mt-1 whitespace-pre-wrap">{a.body}</p>
+                <p className="text-[10px] text-on-surface-variant mt-1.5">{new Date(a.createdAt).toLocaleDateString('id-ID')} • {a.author}</p>
+              </div>
+            ))}
           </section>
         )}
 
