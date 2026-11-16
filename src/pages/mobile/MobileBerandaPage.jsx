@@ -10,7 +10,11 @@ import {
   tanggalPanjang, jamDetik, jamPendek,
   jamMenitDariDate, cekJendelaPresensi,
 } from '../../data/presensiMobile.js'
-import { getEmployeeSalutation } from '../../data/sapaanPegawai.js'
+import {
+  getEmployeeSalutation,
+  getUnitShortName,
+  getLeaderDisplayName,
+} from '../../data/sapaanPegawai.js'
 import { loadAnnouncements, subscribeAnnouncements } from '../../services/announcementService.js'
 import StaffAvatar from '../../components/mobile/StaffAvatar.jsx'
 import { SectionTitle, ShortcutGrid } from '../../components/mobile/AppShell.jsx'
@@ -162,11 +166,23 @@ function MobileBerandaPage() {
 
   const roleBadgeStyle = useMemo(() => {
     if (isSuperadmin) return { label: 'Superadmin', ikon: 'shield_person', kelas: 'bg-indigo-100 text-indigo-800 border-indigo-200' }
-    if (isKepsek) return { label: 'Kepala Sekolah', ikon: 'workspace_premium', kelas: 'bg-purple-100 text-purple-800 border-purple-200' }
+    if (isKepsek) return { label: 'Kepala Sekolah', ikon: 'person', kelas: 'bg-purple-100 text-purple-800 border-purple-200' }
     if (isAdminUnit) return { label: 'Admin Unit', ikon: 'admin_panel_settings', kelas: 'bg-blue-100 text-blue-800 border-blue-200' }
     if (isPetugas) return { label: 'Petugas Presensi', ikon: 'qr_code_scanner', kelas: 'bg-teal-100 text-teal-800 border-teal-200' }
     return { label: staff?.role || 'Guru / Pegawai', ikon: 'school', kelas: 'bg-slate-100 text-slate-700 border-slate-200' }
   }, [isSuperadmin, isKepsek, isAdminUnit, isPetugas, staff?.role])
+
+  // Sapaan peran / jabatan khusus (Kepala Sekolah atau Admin Unit per unit sekolah)
+  const roleSalutation = useMemo(() => {
+    if (isKepsek) return getUnitShortName(unit) || ''
+    if (isAdminUnit) return `Admin ${getUnitShortName(unit)}`
+    return null
+  }, [isKepsek, isAdminUnit, unit])
+
+  // Nama kepala sekolah atau admin tersebut beserta gelarnya
+  const leaderDisplayName = useMemo(() => {
+    return getLeaderDisplayName(staff, state, unit, currentRole)
+  }, [staff, state, unit, currentRole])
 
   const adminQuickMenuItems = useMemo(() => {
     if (!isLeaderOrAdmin) return []
@@ -264,13 +280,38 @@ function MobileBerandaPage() {
             </div>
 
             <div className="flex flex-col min-w-0 flex-1">
-              {/* Sapaan diambil dari gender + unit lewat fungsi terpusat. */}
-              <span className="font-label-sm text-label-sm text-[#77819a] font-medium">Halo, {getEmployeeSalutation(staff, { unit })}</span>
-              {/* Nama lengkap — sudah memuat gelar, jadi gelar tidak ditulis
-                  lagi sebagai baris sendiri (menghindari duplikasi). */}
-              <span className="font-headline-sm text-headline-sm text-[#20243a] font-bold tracking-tight leading-tight truncate">
-                {staff.name}
-              </span>
+              {roleSalutation ? (
+                <>
+                  {/* Sapaan Kepala Sekolah atau Admin di masing-masing unit */}
+                  <span className="font-label-sm text-label-sm text-[#77819a] font-medium leading-none">
+                    Halo,
+                  </span>
+                  <span className="font-label-sm text-label-sm text-[#323d8f] font-bold leading-tight mt-0.5 truncate">
+                    {roleSalutation}
+                  </span>
+                  {/* Di bawah sapaan: Nama kepala sekolah atau admin tersebut beserta gelarnya */}
+                  <span
+                    className="font-headline-sm text-headline-sm text-[#20243a] font-bold tracking-tight leading-tight truncate mt-0.5"
+                    title={leaderDisplayName}
+                  >
+                    {leaderDisplayName}
+                  </span>
+                </>
+              ) : (
+                <>
+                  {/* Sapaan dinamis pegawai/guru */}
+                  <span className="font-label-sm text-label-sm text-[#77819a] font-medium">
+                    Halo, {getEmployeeSalutation(staff, { unit })}
+                  </span>
+                  {/* Nama lengkap — sudah memuat gelar, jadi gelar tidak ditulis lagi */}
+                  <span
+                    className="font-headline-sm text-headline-sm text-[#20243a] font-bold tracking-tight leading-tight truncate"
+                    title={staff.name}
+                  >
+                    {staff.name}
+                  </span>
+                </>
+              )}
               {/* Badge Peran / Penugasan Khusus */}
               <div className="flex items-center gap-1.5 mt-1">
                 <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold border ${roleBadgeStyle.kelas}`}>

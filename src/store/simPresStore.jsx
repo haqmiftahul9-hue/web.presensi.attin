@@ -619,9 +619,15 @@ export function getInitialStaff() {
     const saved = savedStaff.find((p) => p.id === s.id || (p.niy && p.niy === s.niy))
     if (!saved) return s
     const isToday = saved.attendanceDate === todayStr
+    const hasPlaceholderName = !saved.name ||
+      /^kepala\s+sekolah/i.test(saved.name) ||
+      /^admin\s+(sd|tk|smp|sma|unit)/i.test(saved.name)
     return {
       ...s,
       ...saved,
+      name: hasPlaceholderName ? s.name : saved.name,
+      gelar: hasPlaceholderName ? s.gelar : (saved.gelar || s.gelar),
+      jenisKelamin: hasPlaceholderName ? s.jenisKelamin : (saved.jenisKelamin || s.jenisKelamin),
       masuk: isToday ? (saved.masuk || null) : null,
       pulang: isToday ? (saved.pulang || null) : null,
       method: isToday ? (saved.method || null) : null,
@@ -635,7 +641,18 @@ export function getInitialStaff() {
 /** Inisialisasi daftar admin user: prioritas data yang tersimpan, fallback ke seed. */
 function getInitialAdminUsers() {
   const saved = readPersistedItem(PERSISTED_ADMIN_USERS_KEY, null)
-  if (Array.isArray(saved) && saved.length > 0) return saved
+  if (Array.isArray(saved) && saved.length > 0) {
+    return saved.map((u) => {
+      const match = ADMIN_USERS.find((seed) => seed.id === u.id || seed.niy === u.niy || seed.username === u.username)
+      const hasPlaceholder = !u.name ||
+        /^kepala\s+sekolah/i.test(u.name) ||
+        /^admin\s+(sd|tk|smp|sma|unit)/i.test(u.name)
+      if (match && hasPlaceholder) {
+        return { ...u, name: match.name, gelar: match.gelar }
+      }
+      return u
+    })
+  }
   return ADMIN_USERS
 }
 
@@ -3456,20 +3473,38 @@ export function selectIsSelfScope(state) {
 // "Presensi Saya" menampilkannya sebagai empty state, bukan halaman kosong.
 export function selectSelfStaff(state) {
   const staffId = selectSelfStaffId(state)
+  let found = null
   if (staffId != null) {
-    const found = state.staff?.find((s) => s.id === staffId)
-    if (found) return found
+    found = state.staff?.find((s) => s.id === staffId)
   }
   const user = state.currentUser
-  if (user) {
+  if (!found && user) {
     const niyMatch = user.niy ? state.staff?.find((s) => normalizeIdentifier(s.niy) === normalizeIdentifier(user.niy)) : null
-    if (niyMatch) return niyMatch
+    if (niyMatch) found = niyMatch
+  }
+
+  if (found) {
+    const hasPlaceholder = !found.name ||
+      /^kepala\s+sekolah/i.test(found.name) ||
+      /^admin\s+(sd|tk|smp|sma|unit)/i.test(found.name)
+    if (hasPlaceholder) {
+      const configuredName = state?.settings?.penandatangan?.kepalaSekolah?.[found.unitId]?.nama
+      if (configuredName && configuredName.trim()) {
+        return { ...found, name: configuredName.trim() }
+      }
+    }
+    return found
+  }
+
+  if (user) {
+    const configuredName = state?.settings?.penandatangan?.kepalaSekolah?.[user.unitId]?.nama
+    const finalName = (configuredName && configuredName.trim()) ? configuredName.trim() : (user.name || 'Pengguna')
 
     // Fallback virtual staff untuk akun role pimpinan/admin agar modul mobile tetap tampil normal
     return {
       id: user.staffId ?? user.pegawaiId ?? user.id,
       niy: user.niy || user.username || '00000000',
-      name: user.name || 'Pengguna',
+      name: finalName,
       role: user.role || 'Staf',
       unitId: user.unitId || 'sd',
       status: user.status || 'Aktif',

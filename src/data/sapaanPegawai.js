@@ -104,3 +104,93 @@ export function getEmployeeFormalName(staff) {
 export function employeeGreetingInSentence(staff, options) {
   return getEmployeeGreeting(staff, options)
 }
+
+/**
+ * Singkatan kode/nama unit untuk penulisan jabatan: SDIT, SMPIT, SMAIT, TKIT.
+ */
+export function getUnitShortName(unit) {
+  if (!unit) return ''
+  const id = String(unit.id ?? '').trim().toLowerCase()
+  if (id === 'sd' || id.startsWith('sd')) return 'SDIT'
+  if (id === 'smp' || id.startsWith('smp')) return 'SMPIT'
+  if (id === 'sma' || id.startsWith('sma')) return 'SMAIT'
+  if (id === 'tk' || id.startsWith('tk')) return 'TKIT'
+  const kode = String(unit.kode || '').trim().toUpperCase()
+  if (kode.includes('SD')) return 'SDIT'
+  if (kode.includes('SMP')) return 'SMPIT'
+  if (kode.includes('SMA')) return 'SMAIT'
+  if (kode.includes('TK')) return 'TKIT'
+  const nama = String(unit.nama || '').trim()
+  const match = nama.match(/\b(SDIT|SMPIT|SMAIT|TKIT|SD|SMP|SMA|TK)\b/i)
+  if (match) return match[1].toUpperCase()
+  return nama
+}
+
+/**
+ * Format nama lengkap beserta gelar, menghindari duplikasi gelar bila sudah termuat di nama.
+ */
+export function formatNamaGelar(staff) {
+  if (!staff) return ''
+  const name = String(staff.name || '').trim()
+  const gelar = String(staff.gelar || '').trim()
+  if (!gelar) return name
+  if (name.toLowerCase().includes(gelar.toLowerCase())) return name
+  return `${name}, ${gelar}`
+}
+
+/**
+ * Sapaan jabatan untuk peran Kepala Sekolah atau Admin Unit per unit sekolah.
+ * Contoh: "Kepala Sekolah SDIT", "Admin SDIT", "Kepala Sekolah SMPIT".
+ */
+export function getLeaderRoleGreeting(role, unit) {
+  const norm = String(role || '').toLowerCase()
+  const unitShort = getUnitShortName(unit)
+  if (norm.includes('kepala') || norm.includes('kepsek')) {
+    return unitShort ? `Kepala Sekolah ${unitShort}` : 'Kepala Sekolah'
+  }
+  if (norm.includes('admin unit') || norm.includes('admin sekolah') || norm === 'admin' || norm === 'admin unit') {
+    return unitShort ? `Admin ${unitShort}` : 'Admin Unit'
+  }
+  return ''
+}
+
+/**
+ * Nama pejabat Kepala Sekolah / Admin Unit beserta gelar:
+ * Mengambil nama akun/staf, atau fallback ke penandatangan per unit bila akun masih membawa placeholder nama.
+ */
+export function getLeaderDisplayName(staff, state, unit, role) {
+  if (!staff) return ''
+  const rawName = String(staff.name || '').trim()
+  const unitId = String(staff.unitId ?? unit?.id ?? '').toLowerCase()
+  const isPlaceholder = !rawName ||
+    /^kepala\s+sekolah/i.test(rawName) ||
+    /^admin\s+/i.test(rawName)
+
+  if (isPlaceholder) {
+    const configuredKepsek = state?.settings?.penandatangan?.kepalaSekolah?.[unitId]?.nama
+    if (configuredKepsek && configuredKepsek.trim()) {
+      return configuredKepsek.trim()
+    }
+    const norm = String(role || staff.role || '').toLowerCase()
+    if (norm.includes('kepala') || norm.includes('kepsek')) {
+      const defaultKepsek = {
+        sd: 'Drs. H. Ahmad Fauzi, M.Pd',
+        smp: 'Dra. Hj. Nurhasanah, M.Pd',
+        sma: 'Dr. Hendri Saputra, M.Pd',
+        tk: 'Hj. Irmawati Rahayu, S.Pd',
+      }
+      return defaultKepsek[unitId] || 'Drs. H. Ahmad Fauzi, M.Pd'
+    }
+    if (norm.includes('admin')) {
+      const defaultAdmin = {
+        sd: 'Fajar Pratama, S.Kom',
+        smp: 'Reki Gusman, S.E.',
+        sma: 'Ilham Hidayat, S.Kom',
+        tk: 'Aisyah Putri, S.Pd',
+      }
+      return defaultAdmin[unitId] || 'Fajar Pratama, S.Kom'
+    }
+  }
+
+  return formatNamaGelar(staff)
+}

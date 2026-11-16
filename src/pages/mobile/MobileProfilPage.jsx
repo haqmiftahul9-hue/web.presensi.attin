@@ -8,7 +8,7 @@ import {
 } from '../../store/simPresStore.jsx'
 import { formatDateID, statusKepegawaianGroup } from '../../data/employeeCard.js'
 import { daftarJamKerja } from '../../data/jamKerja.js'
-import { getEmployeeGreeting, getEmployeeFormalName } from '../../data/sapaanPegawai.js'
+import { getEmployeeGreeting, getEmployeeFormalName, getUnitShortName, getLeaderDisplayName } from '../../data/sapaanPegawai.js'
 import StaffAvatar from '../../components/mobile/StaffAvatar.jsx'
 import { FormEditProfil } from '../../components/mobile/FormEditProfil.jsx'
 import { ErrorState, LoadingState } from '../../components/mobile/Feedback.jsx'
@@ -205,11 +205,19 @@ function MobileProfilPage() {
 
   const roleBadgeStyle = (() => {
     if (isSuperadmin) return { label: 'Superadmin', ikon: 'shield_person', kelas: 'bg-indigo-100 text-indigo-800 border-indigo-200' }
-    if (isKepsek) return { label: 'Kepala Sekolah', ikon: 'workspace_premium', kelas: 'bg-purple-100 text-purple-800 border-purple-200' }
+    if (isKepsek) return { label: 'Kepala Sekolah', ikon: 'person', kelas: 'bg-purple-100 text-purple-800 border-purple-200' }
     if (isAdminUnit) return { label: 'Admin Unit', ikon: 'admin_panel_settings', kelas: 'bg-blue-100 text-blue-800 border-blue-200' }
     if (isPetugas) return { label: 'Petugas Presensi', ikon: 'qr_code_scanner', kelas: 'bg-teal-100 text-teal-800 border-teal-200' }
     return { label: staff?.role || 'Guru / Pegawai', ikon: 'school', kelas: 'bg-slate-100 text-slate-700 border-slate-200' }
   })()
+
+  const roleSalutation = (() => {
+    if (isKepsek) return getUnitShortName(unit) || ''
+    if (isAdminUnit) return `Admin ${getUnitShortName(unit)}`
+    return null
+  })()
+
+  const leaderDisplayName = getLeaderDisplayName(staff, state, unit, currentRole)
 
   return (
     <div className="sp-page">
@@ -275,8 +283,13 @@ function MobileProfilPage() {
 
           <div className="flex flex-col items-center min-w-0 max-w-full gap-1">
             <span className="font-headline-sm text-headline-sm text-[#20243A] font-bold tracking-tight truncate max-w-full">
-              {getEmployeeGreeting(staff, { unit })}
+              {isKepsek || isAdminUnit ? leaderDisplayName : getEmployeeGreeting(staff, { unit })}
             </span>
+            {roleSalutation && (
+              <span className="font-label-sm text-label-sm text-[#323D8F] font-bold">
+                {roleSalutation}
+              </span>
+            )}
             <div className="flex items-center gap-1.5 mt-0.5">
               <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border ${roleBadgeStyle.kelas}`}>
                 <Icon name={roleBadgeStyle.ikon} className="text-[13px]" />
@@ -388,8 +401,8 @@ function MobileProfilPage() {
             {/* Sapaan otomatis (Umi / Ustadz / Ustadzah) dihitung dari gender +
                 unit pegawai. Nama resmi tetap ditampilkan di bawahnya karena
                 begitulah nama tercatat pada dokumen kepegawaian. */}
-            <Baris label="Sapaan" nilai={getEmployeeGreeting(staff, { unit })} />
-            <Baris label="Nama lengkap" nilai={getEmployeeFormalName(staff)} />
+            <Baris label="Sapaan" nilai={roleSalutation || getEmployeeGreeting(staff, { unit })} />
+            <Baris label="Nama lengkap" nilai={(isKepsek || isAdminUnit) ? leaderDisplayName : getEmployeeFormalName(staff)} />
             <Baris label="NIY" nilai={staff.niy} />
             <Baris label="Jabatan" nilai={staff.role} />
             <Baris label="Unit sekolah" nilai={unit?.nama} />

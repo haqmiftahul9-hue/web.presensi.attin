@@ -11,10 +11,10 @@ import {
 } from './jamKerja.js'
 
 export const UNITS = [
-  { id: 'tk', kode: 'UNT-TK-01', nama: 'TKIT Attin Sumbar', alamat: 'Jl. Cendekia No. 41', radius: 50, total: 1, hadir: 1, icon: 'child_care', latitude: -6.28945, longitude: 106.79234, geofenceActive: true },
-  { id: 'sd', kode: 'UNT-SD-02', nama: 'SDIT Attin Sumbar', alamat: 'Jl. Cendekia No. 43, Cilandak', radius: 75, total: 6, hadir: 6, icon: 'school', latitude: -6.28955, longitude: 106.79244, geofenceActive: true },
-  { id: 'smp', kode: 'UNT-SMP-03', nama: 'SMPIT Attin Sumbar', alamat: 'Jl. Cendekia No. 45', radius: 50, total: 1, hadir: 1, icon: 'school', latitude: -6.28965, longitude: 106.79254, geofenceActive: true },
-  { id: 'sma', kode: 'UNT-SMA-04', nama: 'SMAIT Attin Sumbar', alamat: 'Jl. Cendekia No. 47', radius: 80, total: 2, hadir: 1, icon: 'school', latitude: -6.28975, longitude: 106.79264, geofenceActive: true },
+  { id: 'tk', kode: 'UNT-TK-01', nama: 'TKIT Attin Sumbar', alamat: 'Jl. Cendekia No. 41', radius: 50, total: 2, hadir: 2, icon: 'child_care', latitude: -6.28945, longitude: 106.79234, geofenceActive: true },
+  { id: 'sd', kode: 'UNT-SD-02', nama: 'SDIT Attin Sumbar', alamat: 'Jl. Cendekia No. 43, Cilandak', radius: 75, total: 8, hadir: 8, icon: 'school', latitude: -6.28955, longitude: 106.79244, geofenceActive: true },
+  { id: 'smp', kode: 'UNT-SMP-03', nama: 'SMPIT Attin Sumbar', alamat: 'Jl. Cendekia No. 45', radius: 50, total: 2, hadir: 2, icon: 'school', latitude: -6.28965, longitude: 106.79254, geofenceActive: true },
+  { id: 'sma', kode: 'UNT-SMA-04', nama: 'SMAIT Attin Sumbar', alamat: 'Jl. Cendekia No. 47', radius: 80, total: 3, hadir: 2, icon: 'school', latitude: -6.28975, longitude: 106.79264, geofenceActive: true },
 ]
 
 // Field `foto` dibaca lewat cardPhotoOf() (dipakai Cetak Kartu ID dan modul
@@ -31,11 +31,11 @@ export const STAFF = [
   { id: 8, niy: '049023183', name: 'Silvana Monica, S.Ak', role: 'Staf Administrasi', unitId: 'sma', status: 'Aktif', masuk: null, method: null, lateMinutes: 0, outsideRadius: false, pendidikanAsal: 'Universitas Negeri Padang', nomorIdentitas: '3174012345678908', kontak: '081234567897', email: 'silvana@simpres.sch.id', gelar: 'S.Ak', tempatLahir: 'Jakarta', tanggalLahir: '1989-08-30', jenisKelamin: 'Perempuan', agama: 'Islam', alamat: 'Jl. Cendekia No. 47', statusPegawai: 'Pegawai Tetap Yayasan', tanggalMasuk: '2014-08-01', pendTerakhir: 'S1 Akuntansi', jurusan: 'Akuntansi', npwp: '12.345.678.9-012.007', bpjsKesehatan: '1234567897', bpjsKetenagakerjaan: '0987654328', rekeningBank: 'Mandiri - 1234567897', namaRekening: 'Silvana Monica, S.Ak' },
   { id: 9, niy: '029045122', name: 'Rizal Ramli, S.Pd.I', role: 'Guru PAI', unitId: 'sd', status: 'Aktif', masuk: null, method: null, lateMinutes: 0, pendidikanAsal: 'UIN Imam Bonjol', nomorIdentitas: '3174012345678909', kontak: '081234567898', email: 'rizal.r@sd.rj.sch.id', gelar: 'S.Pd.I', tempatLahir: 'Jakarta', tanggalLahir: '1986-09-12', jenisKelamin: 'Laki-laki', agama: 'Islam', alamat: 'Jl. Cendekia No. 43, Cilandak', statusPegawai: 'Guru Tetap Yayasan', tanggalMasuk: '2016-01-01', pendTerakhir: 'S1 Pendidikan Agama Islam', jurusan: 'Pendidikan Agama Islam', npwp: '12.345.678.9-012.008', bpjsKesehatan: '1234567898', bpjsKetenagakerjaan: '0987654329', rekeningBank: 'BCA - 1234567898', namaRekening: 'Rizal Ramli, S.Pd.I' },
   { id: 10, niy: '029056134', name: 'Dewi Sartika, S.Pd', role: 'Guru Kelas 2', unitId: 'sd', status: 'Aktif', masuk: null, method: null, lateMinutes: 0, pendidikanAsal: 'Universitas Negeri Padang', nomorIdentitas: '3174012345678910', kontak: '081234567899', email: 'dewi.s@sd.rj.sch.id', gelar: 'S.Pd', tempatLahir: 'Jakarta', tanggalLahir: '1991-11-08', jenisKelamin: 'Perempuan', agama: 'Islam', alamat: 'Jl. Cendekia No. 43, Cilandak', statusPegawai: 'Guru Kontrak', tanggalMasuk: '2017-03-01', pendTerakhir: 'S1 Pendidikan Dasar', jurusan: 'Pendidikan Guru Sekolah Dasar', npwp: '12.345.678.9-012.009', bpjsKesehatan: '1234567899', bpjsKetenagakerjaan: '0987654330', rekeningBank: 'BNI - 1234567899', namaRekening: 'Dewi Sartika, S.Pd' },
-  { id: 11, niy: '019001008', name: 'Admin SD Unit 1', role: 'Admin Unit', unitId: 'sd', status: 'Aktif', masuk: null, method: null, lateMinutes: 0, kontak: '081234567808', email: 'adminsd1@simpres.sch.id', gelar: 'S.Kom', statusPegawai: 'Pegawai Tetap Yayasan' },
-  { id: 12, niy: '019001013', name: 'Kepala Sekolah SDIT', role: 'Kepala Sekolah', unitId: 'sd', status: 'Aktif', masuk: null, method: null, lateMinutes: 0, kontak: '081234567813', email: 'kepala.sd@simpres.sch.id', gelar: 'M.Pd', statusPegawai: 'Pegawai Tetap Yayasan' },
-  { id: 13, niy: '019001014', name: 'Kepala Sekolah SMPIT', role: 'Kepala Sekolah', unitId: 'smp', status: 'Aktif', masuk: null, method: null, lateMinutes: 0, kontak: '081234567814', email: 'kepala.smp@simpres.sch.id', gelar: 'M.Pd', statusPegawai: 'Pegawai Tetap Yayasan' },
-  { id: 14, niy: '019001015', name: 'Kepala Sekolah SMAIT', role: 'Kepala Sekolah', unitId: 'sma', status: 'Aktif', masuk: null, method: null, lateMinutes: 0, kontak: '081234567815', email: 'kepala.sma@simpres.sch.id', gelar: 'M.Pd', statusPegawai: 'Pegawai Tetap Yayasan' },
-  { id: 15, niy: '019001016', name: 'Kepala Sekolah TKIT', role: 'Kepala Sekolah', unitId: 'tk', status: 'Aktif', masuk: null, method: null, lateMinutes: 0, kontak: '081234567816', email: 'kepala.tk@simpres.sch.id', gelar: 'S.Pd', statusPegawai: 'Pegawai Tetap Yayasan' },
+  { id: 11, niy: '019001008', name: 'Fajar Pratama, S.Kom', role: 'Admin Unit', unitId: 'sd', status: 'Aktif', masuk: null, method: null, lateMinutes: 0, kontak: '081234567808', email: 'adminsd1@simpres.sch.id', gelar: 'S.Kom', jenisKelamin: 'Laki-laki', statusPegawai: 'Pegawai Tetap Yayasan' },
+  { id: 12, niy: '019001013', name: 'Drs. H. Ahmad Fauzi, M.Pd', role: 'Kepala Sekolah', unitId: 'sd', status: 'Aktif', masuk: null, method: null, lateMinutes: 0, kontak: '081234567813', email: 'kepala.sd@simpres.sch.id', gelar: 'M.Pd', jenisKelamin: 'Laki-laki', statusPegawai: 'Pegawai Tetap Yayasan' },
+  { id: 13, niy: '019001014', name: 'Dra. Hj. Nurhasanah, M.Pd', role: 'Kepala Sekolah', unitId: 'smp', status: 'Aktif', masuk: null, method: null, lateMinutes: 0, kontak: '081234567814', email: 'kepala.smp@simpres.sch.id', gelar: 'M.Pd', jenisKelamin: 'Perempuan', statusPegawai: 'Pegawai Tetap Yayasan' },
+  { id: 14, niy: '019001015', name: 'Dr. Hendri Saputra, M.Pd', role: 'Kepala Sekolah', unitId: 'sma', status: 'Aktif', masuk: null, method: null, lateMinutes: 0, kontak: '081234567815', email: 'kepala.sma@simpres.sch.id', gelar: 'M.Pd', jenisKelamin: 'Laki-laki', statusPegawai: 'Pegawai Tetap Yayasan' },
+  { id: 15, niy: '019001016', name: 'Hj. Irmawati Rahayu, S.Pd', role: 'Kepala Sekolah', unitId: 'tk', status: 'Aktif', masuk: null, method: null, lateMinutes: 0, kontak: '081234567816', email: 'kepala.tk@simpres.sch.id', gelar: 'S.Pd', jenisKelamin: 'Perempuan', statusPegawai: 'Pegawai Tetap Yayasan' },
 ]
 
 export const LEAVES = []
@@ -69,17 +69,17 @@ export const ADMIN_USERS = [
   { id: 7, name: 'Superadmin Pusat', niy: '019001007', username: 'superadmin', email: 'superadmin@simpres.sch.id', role: 'Superadmin', unitId: null, status: 'Aktif', password: 'superadmin1234!', mustChangePassword: false, demo: true },
 
   // Admin Unit: terkunci ke unit akunnya, tidak bisa melihat unit lain.
-  { id: 8, name: 'Admin SD Unit 1', niy: '019001008', username: 'adminsd1', email: 'adminsd1@simpres.sch.id', role: 'Admin Unit', unitId: 'sd', status: 'Aktif', password: 'SDit@2026', mustChangePassword: false, demo: true },
-  { id: 9, name: 'Admin SD Unit 2', niy: '019001009', username: 'adminsd2', email: 'adminsd2@simpres.sch.id', role: 'Admin Unit', unitId: 'sd', status: 'Aktif', password: 'SDdua@2026', mustChangePassword: false, demo: true },
-  { id: 10, name: 'Admin TKIT Attin Sumbar', niy: '019001010', username: 'admintk', email: 'admintk@simpres.sch.id', role: 'Admin Unit', unitId: 'tk', status: 'Aktif', password: 'TKattin@2026', mustChangePassword: false, demo: true },
-  { id: 11, name: 'Admin SMPIT Attin Sumbar', niy: '019001011', username: 'adminsmp', email: 'adminsmp@simpres.sch.id', role: 'Admin Unit', unitId: 'smp', status: 'Aktif', password: 'SMPattin@2026', mustChangePassword: false, demo: true },
-  { id: 12, name: 'Admin SMAIT Attin Sumbar', niy: '019001012', username: 'adminsma', email: 'adminsma@simpres.sch.id', role: 'Admin Unit', unitId: 'sma', status: 'Aktif', password: 'SMAattin@2026', mustChangePassword: false, demo: true },
+  { id: 8, name: 'Fajar Pratama, S.Kom', niy: '019001008', username: 'adminsd1', email: 'adminsd1@simpres.sch.id', role: 'Admin Unit', unitId: 'sd', status: 'Aktif', password: 'SDit@2026', mustChangePassword: false, demo: true, gelar: 'S.Kom' },
+  { id: 9, name: 'Rizky Ramadhan, S.Kom', niy: '019001009', username: 'adminsd2', email: 'adminsd2@simpres.sch.id', role: 'Admin Unit', unitId: 'sd', status: 'Aktif', password: 'SDdua@2026', mustChangePassword: false, demo: true, gelar: 'S.Kom' },
+  { id: 10, name: 'Aisyah Putri, S.Pd', niy: '019001010', username: 'admintk', email: 'admintk@simpres.sch.id', role: 'Admin Unit', unitId: 'tk', status: 'Aktif', password: 'TKattin@2026', mustChangePassword: false, demo: true, gelar: 'S.Pd' },
+  { id: 11, name: 'Reki Gusman, S.E.', niy: '019001011', username: 'adminsmp', email: 'adminsmp@simpres.sch.id', role: 'Admin Unit', unitId: 'smp', status: 'Aktif', password: 'SMPattin@2026', mustChangePassword: false, demo: true, gelar: 'S.E.' },
+  { id: 12, name: 'Ilham Hidayat, S.Kom', niy: '019001012', username: 'adminsma', email: 'adminsma@simpres.sch.id', role: 'Admin Unit', unitId: 'sma', status: 'Aktif', password: 'SMAattin@2026', mustChangePassword: false, demo: true, gelar: 'S.Kom' },
 
   // Kepala Sekolah: mode mobile, persetujuan izin/cuti
-  { id: 13, name: 'Kepala Sekolah SDIT', niy: '019001013', username: 'kepalasd', email: 'kepala.sd@simpres.sch.id', role: 'Kepala Sekolah', unitId: 'sd', status: 'Aktif', password: 'KepalaSekolah@2026', mustChangePassword: false, demo: true },
-  { id: 14, name: 'Kepala Sekolah SMPIT', niy: '019001014', username: 'kepalasmp', email: 'kepala.smp@simpres.sch.id', role: 'Kepala Sekolah', unitId: 'smp', status: 'Aktif', password: 'KepalaSekolah@2026', mustChangePassword: false, demo: true },
-  { id: 15, name: 'Kepala Sekolah SMAIT', niy: '019001015', username: 'kepalasma', email: 'kepala.sma@simpres.sch.id', role: 'Kepala Sekolah', unitId: 'sma', status: 'Aktif', password: 'KepalaSekolah@2026', mustChangePassword: false, demo: true },
-  { id: 16, name: 'Kepala Sekolah TKIT', niy: '019001016', username: 'kepalatk', email: 'kepala.tk@simpres.sch.id', role: 'Kepala Sekolah', unitId: 'tk', status: 'Aktif', password: 'KepalaSekolah@2026', mustChangePassword: false, demo: true },
+  { id: 13, name: 'Drs. H. Ahmad Fauzi, M.Pd', niy: '019001013', username: 'kepalasd', email: 'kepala.sd@simpres.sch.id', role: 'Kepala Sekolah', unitId: 'sd', status: 'Aktif', password: 'KepalaSekolah@2026', mustChangePassword: false, demo: true, gelar: 'M.Pd' },
+  { id: 14, name: 'Dra. Hj. Nurhasanah, M.Pd', niy: '019001014', username: 'kepalasmp', email: 'kepala.smp@simpres.sch.id', role: 'Kepala Sekolah', unitId: 'smp', status: 'Aktif', password: 'KepalaSekolah@2026', mustChangePassword: false, demo: true, gelar: 'M.Pd' },
+  { id: 15, name: 'Dr. Hendri Saputra, M.Pd', niy: '019001015', username: 'kepalasma', email: 'kepala.sma@simpres.sch.id', role: 'Kepala Sekolah', unitId: 'sma', status: 'Aktif', password: 'KepalaSekolah@2026', mustChangePassword: false, demo: true, gelar: 'M.Pd' },
+  { id: 16, name: 'Hj. Irmawati Rahayu, S.Pd', niy: '019001016', username: 'kepalatk', email: 'kepala.tk@simpres.sch.id', role: 'Kepala Sekolah', unitId: 'tk', status: 'Aktif', password: 'KepalaSekolah@2026', mustChangePassword: false, demo: true, gelar: 'S.Pd' },
 ]
 
 export const INITIAL_LOGS = [
@@ -158,10 +158,10 @@ export const INITIAL_SETTINGS = {
       jabatan: 'Ketua Yayasan',
     },
     kepalaSekolah: {
-      tk: { nama: '', jabatan: 'Kepala TKIT Attin Sumbar' },
-      sd: { nama: '', jabatan: 'Kepala SDIT Attin Sumbar' },
-      smp: { nama: '', jabatan: 'Kepala SMPIT Attin Sumbar' },
-      sma: { nama: '', jabatan: 'Kepala SMAIT Attin Sumbar' },
+      tk: { nama: 'Hj. Irmawati Rahayu, S.Pd', jabatan: 'Kepala TKIT Attin Sumbar' },
+      sd: { nama: 'Drs. H. Ahmad Fauzi, M.Pd', jabatan: 'Kepala SDIT Attin Sumbar' },
+      smp: { nama: 'Dra. Hj. Nurhasanah, M.Pd', jabatan: 'Kepala SMPIT Attin Sumbar' },
+      sma: { nama: 'Dr. Hendri Saputra, M.Pd', jabatan: 'Kepala SMAIT Attin Sumbar' },
     },
     petugasPresensi: {
       yayasan: { nama: '', jabatan: 'Petugas Presensi Yayasan' },
