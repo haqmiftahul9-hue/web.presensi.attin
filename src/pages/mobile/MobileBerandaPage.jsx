@@ -454,7 +454,7 @@ function MobileBerandaPage() {
                 <span className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-xs ${
                   isKepsek ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
                 }`}>
-                  <Icon name={isKepsek ? 'workspace_premium' : 'admin_panel_settings'} className="text-[20px]" />
+                  <Icon name={isKepsek ? 'school' : 'admin_panel_settings'} className="text-[20px]" />
                 </span>
                 <div className="flex flex-col min-w-0">
                   <span className="font-headline-sm text-sm font-bold text-[#1f253d] truncate">
