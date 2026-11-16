@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
+import { ThemeToggle } from '../components/ui/ThemeToggle.jsx'
 import {
   useSimPres,
   performLogin,
@@ -568,7 +569,7 @@ function MobileLoginForm({
         <div>
           <label
             htmlFor="mobile-identifier"
-            className="block text-xs font-bold text-[#20243A] mb-1.5"
+            className="block text-xs font-bold text-[#20243A] dark:text-slate-200 mb-1.5"
           >
             Username atau NIY
           </label>
@@ -587,11 +588,11 @@ function MobileLoginForm({
               disabled={isAuthenticating}
               aria-invalid={Boolean(fieldErrors.identifier)}
               className={[
-                'w-full h-12 px-4 rounded-xl text-base text-[#20243A] placeholder-[#77819A]',
-                'bg-[#F3F5FC] border transition-all duration-200 outline-none',
+                'w-full h-12 px-4 rounded-xl text-base text-[#20243A] dark:text-slate-100 placeholder-[#77819A] dark:placeholder-slate-400',
+                'bg-[#F3F5FC] dark:bg-slate-800 border transition-all duration-200 outline-none',
                 fieldErrors.identifier
-                  ? 'border-red-400 focus:border-red-400 focus:ring-2 focus:ring-red-100'
-                  : 'border-[#E0E6F2] focus:border-[#323D8F] focus:bg-white focus:ring-2 focus:ring-[#323D8F]/15',
+                  ? 'border-red-400 focus:border-red-400 focus:ring-2 focus:ring-red-100 dark:focus:ring-red-950'
+                  : 'border-[#E0E6F2] dark:border-slate-700 focus:border-[#323D8F] dark:focus:border-indigo-400 focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-[#323D8F]/15',
               ].join(' ')}
             />
           </div>
@@ -607,7 +608,7 @@ function MobileLoginForm({
           <div className="flex items-center justify-between mb-1.5">
             <label
               htmlFor="mobile-password"
-              className="block text-xs font-bold text-[#20243A]"
+              className="block text-xs font-bold text-[#20243A] dark:text-slate-200"
             >
               Kata Sandi
             </label>
@@ -627,11 +628,11 @@ function MobileLoginForm({
               disabled={isAuthenticating}
               aria-invalid={Boolean(fieldErrors.password)}
               className={[
-                'w-full h-12 pl-4 pr-11 rounded-xl text-base text-[#20243A] placeholder-[#77819A]',
-                'bg-[#F3F5FC] border transition-all duration-200 outline-none',
+                'w-full h-12 pl-4 pr-11 rounded-xl text-base text-[#20243A] dark:text-slate-100 placeholder-[#77819A] dark:placeholder-slate-400',
+                'bg-[#F3F5FC] dark:bg-slate-800 border transition-all duration-200 outline-none',
                 fieldErrors.password
-                  ? 'border-red-400 focus:border-red-400 focus:ring-2 focus:ring-red-100'
-                  : 'border-[#E0E6F2] focus:border-[#323D8F] focus:bg-white focus:ring-2 focus:ring-[#323D8F]/15',
+                  ? 'border-red-400 focus:border-red-400 focus:ring-2 focus:ring-red-100 dark:focus:ring-red-950'
+                  : 'border-[#E0E6F2] dark:border-slate-700 focus:border-[#323D8F] dark:focus:border-indigo-400 focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-[#323D8F]/15',
               ].join(' ')}
             />
             <button
@@ -736,10 +737,10 @@ function MobileLoginForm({
       </form>
 
       {/* Footer Bawah: Atribusi Developer */}
-      <div className="mt-6 pt-4 border-t border-slate-100 text-center">
-        <p className="text-xs text-[#77819A] font-medium tracking-wide">
+      <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 text-center transition-colors">
+        <p className="text-xs text-[#77819A] dark:text-slate-400 font-medium tracking-wide">
           Developer:{' '}
-          <span className="font-bold text-[#20243A]">Miftahul haq, S.Pd</span>
+          <span className="font-bold text-[#20243A] dark:text-slate-200">Miftahul haq, S.Pd</span>
         </p>
       </div>
     </div>
@@ -754,12 +755,18 @@ function LoginPage() {
 
   return (
     <div
-      className="relative min-h-screen h-[100dvh] w-full overflow-y-auto overflow-x-hidden flex items-center justify-center p-4 sm:p-6 lg:p-8 selection:bg-[#323D8F] selection:text-white sp-login-root"
+      className="relative min-h-screen h-[100dvh] w-full overflow-y-auto overflow-x-hidden flex items-center justify-center p-4 sm:p-6 lg:p-8 selection:bg-[#323D8F] selection:text-white sp-login-root transition-colors duration-300"
       style={{
         background: 'radial-gradient(ellipse at center, #323D8F 0%, #252D6A 60%, #161B3D 100%)',
       }}
     >
       <LoginStyles />
+
+      {/* Floating Theme Toggle (Pojok kanan atas: elegan, proporsional, ramah jempol & kursor) */}
+      <div className="fixed top-4 right-4 sm:top-6 sm:right-6 z-50">
+        <ThemeToggle size="sm" className="sm:hidden" />
+        <ThemeToggle size="md" className="hidden sm:inline-flex" />
+      </div>
 
       {/* ==================================================================== */}
       {/* 1. TAMPILAN DESKTOP (lg:flex): KARTU DUA PANEL (ANTI-TABRAKAN)        */}
@@ -789,7 +796,8 @@ function LoginPage() {
                  C 470,370 440,430 415,490
                  C 390,550 365,600 365,600
                  L 0,600 Z"
-              fill="#ffffff"
+              fill="currentColor"
+              className="text-white dark:text-slate-900 transition-colors"
             />
           </svg>
         </div>
@@ -810,9 +818,9 @@ function LoginPage() {
       {/* ==================================================================== */}
       <div className="flex lg:hidden flex-col items-center justify-center w-full max-w-[380px] sm:max-w-[400px] mx-auto anim-simpeg-appear my-auto">
         {/* Card Container Sesuai Referensi 2 */}
-        <div className="w-full rounded-[36px] overflow-hidden shadow-2xl bg-white border border-slate-100 flex flex-col">
+        <div className="w-full rounded-[36px] overflow-hidden shadow-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 flex flex-col transition-colors">
           {/* Header Banner Atas dengan Lengkungan Organik & Warna SIMPEG (#323D8F) */}
-          <div className="relative bg-[#323D8F] pt-7 pb-9 px-6 text-center overflow-hidden">
+          <div className="relative bg-[#323D8F] dark:bg-[#1f2654] pt-7 pb-9 px-6 text-center overflow-hidden transition-colors">
             {/* Latar Belakang Lengkungan Organik Abstrak Sesuai Referensi 2 */}
             <div className="absolute -top-10 -left-10 w-36 h-36 rounded-full bg-white/10 blur-xl pointer-events-none" />
             <div className="absolute -bottom-8 -right-8 w-32 h-32 rounded-full bg-[#323D8F]/60 blur-lg pointer-events-none" />
@@ -821,7 +829,7 @@ function LoginPage() {
 
             {/* Logo Resmi SIMPEG & Judul Utama */}
             <div className="relative z-10 flex flex-col items-center">
-              <div className="w-16 h-16 rounded-2xl bg-white p-2 shadow-lg mb-2.5 flex items-center justify-center">
+              <div className="w-16 h-16 rounded-2xl bg-white dark:bg-slate-800 p-2 shadow-lg mb-2.5 flex items-center justify-center transition-colors">
                 <img
                   src="/icons/logo-simpeg.png"
                   alt="Logo SIMPEG"
@@ -838,7 +846,7 @@ function LoginPage() {
           </div>
 
           {/* Lembar Kartu Putih yang Bertumpuk Sesuai Referensi 2 (-mt-4) */}
-          <div className="relative z-20 bg-white rounded-t-[32px] -mt-4 px-6 pt-6 pb-6 shadow-[0_-8px_20px_rgba(0,0,0,0.06)]">
+          <div className="relative z-20 bg-white dark:bg-slate-900 rounded-t-[32px] -mt-4 px-6 pt-6 pb-6 shadow-[0_-8px_20px_rgba(0,0,0,0.06)] dark:shadow-[0_-8px_20px_rgba(0,0,0,0.4)] transition-colors">
             <MobileLoginForm {...controller} />
           </div>
         </div>

@@ -65,10 +65,9 @@ function MobileLayout() {
     }
   }, [])
 
-  // Terapkan preferensi tampilan (dark mode & ukuran font) yang tersimpan.
+  // Terapkan preferensi tampilan (ukuran font) yang tersimpan (dark mode dikelola oleh ThemeProvider).
   useEffect(() => {
     try {
-      if (localStorage.getItem('simpres.darkMode') === '1') document.documentElement.classList.add('dark')
       const scale = localStorage.getItem('simpres.fontScale')
       if (scale) document.documentElement.style.fontSize = `${Number(scale) * 100}%`
     } catch {
@@ -149,7 +148,7 @@ function MobileLayout() {
                     </>
                   ) : (
                     <>
-                      <div className="relative flex items-center justify-center">
+                      <span className="relative flex items-center justify-center">
                         <Icon
                           name={item.icon}
                           className={`text-[21px] ${isActive ? 'text-white' : 'text-[#77819a]'}`}
@@ -159,7 +158,7 @@ function MobileLayout() {
                             {item.badge > 99 ? '99+' : item.badge}
                           </span>
                         )}
-                      </div>
+                      </span>
                       <span
                         className={`font-label-sm text-[10.5px] sm:text-[11.5px] leading-tight truncate max-w-full px-0.5 ${
                           isActive ? 'text-white font-semibold' : 'text-[#77819a]'

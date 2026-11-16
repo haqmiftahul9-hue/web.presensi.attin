@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react'
 import Icon from '../../components/Icon.jsx'
 import { useNavigate } from 'react-router-dom'
+import { ThemeToggle } from '../../components/ui/ThemeToggle.jsx'
 import {
   useSimPresOptional, selectSelfStaff, selectSelfPresensi, selectUnitById, selectEmployeeCard,
   selectCanChangeOwnPassword, performLogout, selectCurrentUserRole, normalisasiRole,
@@ -522,8 +523,18 @@ function MobileProfilPage() {
               )
             })()}
 
-            <div className="mt-3 pt-3 border-t border-slate-100">
+            <div className="mt-3 pt-3 border-t border-slate-100 dark:border-border transition-colors">
               <p className="font-label-sm text-label-sm text-on-surface-variant mb-2">Tampilan</p>
+
+              {/* Mode Tema Gelap / Terang */}
+              <div className="flex items-center justify-between gap-3 py-1.5 mb-2">
+                <div className="flex flex-col">
+                  <span className="text-xs font-semibold text-foreground">Tema Aplikasi</span>
+                  <span className="text-[11px] text-muted-foreground">Pilih mode terang atau gelap</span>
+                </div>
+                <ThemeToggle size="sm" />
+              </div>
+
               <div className="flex items-center justify-between gap-3 mt-2">
                 <span className="text-xs text-foreground">Ukuran font</span>
                 <select
@@ -533,7 +544,7 @@ function MobileProfilPage() {
                     try { localStorage.setItem('simpres.fontScale', v) } catch { /* ignore */ }
                     document.documentElement.style.fontSize = `${Number(v) * 100}%`
                   }}
-                  className="h-8 text-xs bg-slate-50 border border-slate-200 rounded-lg px-2"
+                  className="h-8 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-foreground rounded-lg px-2 transition-colors"
                 >
                   <option value="0.9">Kecil</option>
                   <option value="1">Normal</option>

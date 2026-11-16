@@ -232,7 +232,7 @@ export default function MobileAdminScanPage() {
           />
           <button
             type="submit"
-            className="h-10 px-4 rounded-xl bg-[#323d8f] text-white font-label-md text-xs font-semibold shadow-2xs active:scale-95 transition-all"
+            className="h-10 px-4 py-2 rounded-xl bg-[#323d8f] text-white font-label-md text-xs font-semibold shadow-2xs active:scale-95 transition-all"
           >
             Cari
           </button>

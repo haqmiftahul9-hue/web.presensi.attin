@@ -3,14 +3,17 @@ import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
 import './index.css'
 import { SimPresProvider } from './store/simPresStore.jsx'
+import { ThemeProvider } from './context/ThemeContext.jsx'
 import { registerServiceWorker } from './pwa/registerServiceWorker.js'
 import { watchSymbolFont } from './pwa/watchSymbolFont.js'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <SimPresProvider>
-      <App />
-    </SimPresProvider>
+    <ThemeProvider>
+      <SimPresProvider>
+        <App />
+      </SimPresProvider>
+    </ThemeProvider>
   </React.StrictMode>,
 )
 

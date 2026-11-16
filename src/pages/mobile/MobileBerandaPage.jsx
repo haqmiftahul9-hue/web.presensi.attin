@@ -169,8 +169,8 @@ function MobileBerandaPage() {
     if (isKepsek) return { label: 'Kepala Sekolah', ikon: 'person', kelas: 'bg-purple-100 text-purple-800 border-purple-200' }
     if (isAdminUnit) return { label: 'Admin Unit', ikon: 'admin_panel_settings', kelas: 'bg-blue-100 text-blue-800 border-blue-200' }
     if (isPetugas) return { label: 'Petugas Presensi', ikon: 'qr_code_scanner', kelas: 'bg-teal-100 text-teal-800 border-teal-200' }
-    return { label: staff?.role || 'Guru / Pegawai', ikon: 'school', kelas: 'bg-slate-100 text-slate-700 border-slate-200' }
-  }, [isSuperadmin, isKepsek, isAdminUnit, isPetugas, staff?.role])
+    return null
+  }, [isSuperadmin, isKepsek, isAdminUnit, isPetugas])
 
   // Sapaan peran / jabatan khusus (Kepala Sekolah atau Admin Unit per unit sekolah)
   const roleSalutation = useMemo(() => {
@@ -313,12 +313,14 @@ function MobileBerandaPage() {
                 </>
               )}
               {/* Badge Peran / Penugasan Khusus */}
-              <div className="flex items-center gap-1.5 mt-1">
-                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold border ${roleBadgeStyle.kelas}`}>
-                  <Icon name={roleBadgeStyle.ikon} className="text-[12px]" />
-                  <span>{roleBadgeStyle.label}</span>
-                </span>
-              </div>
+              {roleBadgeStyle && (
+                <div className="flex items-center gap-1.5 mt-1">
+                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold border ${roleBadgeStyle.kelas}`}>
+                    <Icon name={roleBadgeStyle.ikon} className="text-[12px]" />
+                    <span>{roleBadgeStyle.label}</span>
+                  </span>
+                </div>
+              )}
             </div>
           </div>
 

@@ -1,6 +1,7 @@
 import Icon from '../Icon.jsx'
 import { NavLink } from 'react-router-dom'
 import StaffAvatar from './StaffAvatar.jsx'
+import { ThemeToggle } from '../ui/ThemeToggle.jsx'
 
 /**
  * Elemen visual bersama untuk aplikasi mobile Guru/Pegawai.
@@ -65,7 +66,8 @@ export function GlassTopBar({ staff }) {
         </span>
       </NavLink>
 
-      <div className="flex items-center gap-2 shrink-0">
+      <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+        <ThemeToggle size="sm" />
         <button
           type="button"
           aria-label="Notifikasi"

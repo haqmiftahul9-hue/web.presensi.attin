@@ -1535,3 +1535,52 @@ main > :last-child {
     animation: none;
   }
 }
+
+/* ============================================================================
+   DARK MODE OVERRIDES UNTUK MODUL MOBILE & KOMPONEN SP
+   ============================================================================ */
+.dark .sp-app-bg {
+  background:
+    radial-gradient(460px 240px at 50% 0%, rgba(30, 41, 59, 0.7) 0%, transparent 80%),
+    oklch(0.2000 0.0250 262.0);
+}
+
+.dark .sp-glass-bar {
+  background: rgba(26, 33, 47, 0.94);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3);
+}
+
+.dark .sp-hero {
+  background: linear-gradient(180deg, oklch(0.26 0.03 268) 0%, oklch(0.22 0.025 268) 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.dark .sp-card {
+  background: oklch(0.2800 0.0280 268.0);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 20px -8px rgba(0, 0, 0, 0.4), 0 1px 3px 0 rgba(0, 0, 0, 0.2);
+}
+
+.dark .sp-shortcut,
+.dark .sp-shortcut-compact {
+  background: oklch(0.2800 0.0280 268.0);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 2px 10px -4px rgba(0, 0, 0, 0.3);
+}
+
+.dark .sp-shortcut:hover,
+.dark .sp-shortcut-compact:hover {
+  border-color: rgba(140, 160, 220, 0.3);
+  box-shadow: 0 6px 20px -4px rgba(0, 0, 0, 0.5);
+}
+
+.dark .sp-nav-float {
+  background: rgba(26, 33, 47, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 10px 28px -6px rgba(0, 0, 0, 0.6), 0 2px 6px -1px rgba(0, 0, 0, 0.4);
+}
+
+.dark .sp-data-row {
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}

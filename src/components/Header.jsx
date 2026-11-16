@@ -1,4 +1,5 @@
 import { useSimPres, selectCurrentUser, selectActiveUnitLabel, selectIsAllUnits, selectSearchTerm } from '../store/simPresStore.jsx'
+import { ThemeToggle } from './ui/ThemeToggle.jsx'
 
 /**
  * Header portal.
@@ -44,7 +45,9 @@ function Header({ onBukaMenu } = {}) {
         </div>
       </div>
 
-      <div className="flex items-center gap-2 shrink-0">
+      <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+        <ThemeToggle size="sm" />
+
         <button
           type="button"
           aria-label="Pesan"
