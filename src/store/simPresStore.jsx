@@ -1563,24 +1563,6 @@ logs: [
       )
       return { ...state, attendanceApprovals: next }
     }
-    case 'UPDATE_STAFF': {
-      // Digunakan EditPresensiPage untuk sinkronisasi masuk/pulang/method/lateMinutes
-      // pada baris pegawai agar monitoring dan dashboard hari ini langsung reflect.
-      return {
-        ...state,
-        staff: state.staff.map((s) =>
-          s.id === action.payload.id
-            ? {
-                ...s,
-                ...(action.payload.masuk !== null ? { masuk: action.payload.masuk } : {}),
-                ...(action.payload.pulang !== null ? { pulang: action.payload.pulang } : {}),
-                ...(action.payload.method !== undefined ? { method: action.payload.method } : {}),
-                ...(action.payload.lateMinutes != null ? { lateMinutes: action.payload.lateMinutes } : {}),
-              }
-            : s
-        ),
-      }
-    }
     case 'LOGOUT':
       // Reset sesi/auth saja: data domain tetap utuh di memori (aman karena
       // identitas sudah dibersihkan). Konsisten dipakai performLogout & guard.
