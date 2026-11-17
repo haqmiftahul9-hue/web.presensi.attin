@@ -1,10 +1,10 @@
-﻿const CACHE_NAME = "simpres-attin-v4";
+const CACHE_NAME = "simpres-attin-v5";
 const OFFLINE_URL = "/offline.html";
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) =>
-      cache.addAll(["/", "/manifest.webmanifest", "/offline.html"])
+      cache.addAll(["/manifest.webmanifest", "/offline.html"])
     )
   );
   self.skipWaiting();
@@ -39,13 +39,44 @@ self.addEventListener("fetch", (event) => {
   const { request } = event;
   const isNavigation = request.mode === "navigate";
 
+  // Strategi Network-First untuk navigasi halaman (HTML).
+  // Menjamin pengguna selalu mendapatkan index.html terbaru beserta referensi hash aset Vite terbaru setelah deploy.
+  // Jika offline atau jaringan terputus, baru fallback ke cache / offline.html.
+  if (isNavigation) {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          if (response && response.status === 200) {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+          }
+          return response;
+        })
+        .catch(() => {
+          return caches.match(request).then((cached) => cached || caches.match(OFFLINE_URL));
+        })
+    );
+    return;
+  }
+
+  // Untuk aset statis (CSS, JS, Fonts, Icons, Images): Cache-First dengan Network Fallback
   event.respondWith(
     caches.match(request).then((cachedResponse) => {
       if (cachedResponse) return cachedResponse;
-      return fetch(request).catch(() => {
-        if (isNavigation) {
-          return caches.match(OFFLINE_URL);
+      return fetch(request).then((response) => {
+        if (
+          response &&
+          response.status === 200 &&
+          (url.pathname.startsWith("/assets/") ||
+            url.pathname.startsWith("/fonts/") ||
+            url.pathname.startsWith("/icons/") ||
+            url.pathname.startsWith("/models/"))
+        ) {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
         }
+        return response;
+      }).catch(() => {
         throw new Error("fetch failed");
       });
     })
