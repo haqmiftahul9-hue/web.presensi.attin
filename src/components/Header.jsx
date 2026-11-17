@@ -78,8 +78,8 @@ function Header({ onBukaMenu } = {}) {
               className="w-7 h-7 rounded-md object-cover border border-border shadow-2xs"
             />
           ) : (
-            <div className="w-7 h-7 flex items-center justify-center">
-              <img src="/icons/logo-simpeg.png" alt="SIMPEG" className="w-7 h-7 object-contain" />
+            <div className="w-7 h-7 rounded-lg bg-white p-1 shadow-2xs flex items-center justify-center border border-border/40 shrink-0">
+              <img src="/icons/logo-simpeg.png" alt="SIMPEG" className="w-full h-full object-contain" />
             </div>
           )}
           <div className="hidden lg:flex flex-col text-left">

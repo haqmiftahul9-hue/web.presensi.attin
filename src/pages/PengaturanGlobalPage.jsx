@@ -416,13 +416,13 @@ function PengaturanGlobalPage() {
                 <div>
                   <label className="block text-xs font-semibold text-foreground mb-1.5">Logo Resmi Aplikasi & Yayasan</label>
                   <div className="flex flex-col sm:flex-row items-center gap-4">
-                    <div className="w-20 h-20 rounded-xl bg-muted/80 border border-border flex flex-col items-center justify-center text-foreground shrink-0 shadow-inner">
+                    <div className="w-20 h-20 rounded-xl bg-white border border-border/80 flex flex-col items-center justify-center text-slate-800 shrink-0 shadow-xs p-2 overflow-hidden">
                       {logoPreview ? (
-                        <img src={logoPreview} className="w-20 h-20 rounded-xl object-cover" alt="Logo Preview" />
+                        <img src={logoPreview} className="w-full h-full object-contain" alt="Logo Preview" />
                       ) : (
                         <>
-                          <span className="text-lg font-bold tracking-tight text-foreground">RJ</span>
-                          <span className="text-[9px] uppercase font-bold tracking-widest text-muted-foreground">YAYASAN</span>
+                          <span className="text-lg font-bold tracking-tight text-slate-800">RJ</span>
+                          <span className="text-[9px] uppercase font-bold tracking-widest text-slate-500">YAYASAN</span>
                         </>
                       )}
                     </div>
@@ -508,7 +508,7 @@ function PengaturanGlobalPage() {
                             </div>
 
                             <div className="flex items-center gap-3 mb-3">
-                              <div className="w-14 h-14 rounded-lg bg-muted/80 border border-border flex flex-col items-center justify-center shrink-0 overflow-hidden p-1 shadow-inner">
+                              <div className="w-14 h-14 rounded-lg bg-white border border-border/80 flex flex-col items-center justify-center shrink-0 overflow-hidden p-1.5 shadow-2xs">
                                 {displayLogo ? (
                                   <img
                                     src={displayLogo}
@@ -517,8 +517,8 @@ function PengaturanGlobalPage() {
                                   />
                                 ) : (
                                   <div className="flex flex-col items-center justify-center text-center">
-                                    <span className="text-xs font-bold text-primary">{unit.kodeSingkat}</span>
-                                    <span className="text-[7px] text-muted-foreground uppercase font-bold">ATTIN</span>
+                                    <span className="text-xs font-bold text-slate-800">{unit.kodeSingkat}</span>
+                                    <span className="text-[7px] text-slate-500 uppercase font-bold">ATTIN</span>
                                   </div>
                                 )}
                               </div>

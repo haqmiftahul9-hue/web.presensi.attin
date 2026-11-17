@@ -8,7 +8,20 @@
 
   <!-- PWA: manifest + warna tema biru SimPres superadmin (#323d8f) -->
   <link rel="manifest" href="/manifest.webmanifest" />
+  <meta name="color-scheme" content="light dark" />
   <meta name="theme-color" content="#323d8f" />
+  <script>
+    try {
+      var t = localStorage.getItem("simpres.theme") || (localStorage.getItem("simpres.darkMode") === "1" ? "dark" : (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
+      if (t === "dark") {
+        document.documentElement.classList.add("dark");
+        document.documentElement.style.colorScheme = "dark";
+      } else {
+        document.documentElement.classList.remove("dark");
+        document.documentElement.style.colorScheme = "light";
+      }
+    } catch (e) {}
+  </script>
   <meta name="background-color" content="#f3f5fc" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; base-uri 'self';" />
 

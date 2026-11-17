@@ -59,38 +59,38 @@
   }
 
   .dark {
-    --background: oklch(0.2598 0.0306 262.6666);
-    --foreground: oklch(0.9219 0 0);
-    --card: oklch(0.3106 0.0301 268.6365);
-    --card-foreground: oklch(0.9219 0 0);
-    --popover: oklch(0.2900 0.0249 268.3986);
-    --popover-foreground: oklch(0.9219 0 0);
-    --primary: oklch(0.5510 0.1450 272.9497);
+    --background: oklch(0.2100 0.0250 264.0);
+    --foreground: oklch(0.9700 0.0050 264.0);
+    --card: oklch(0.2850 0.0300 264.0);
+    --card-foreground: oklch(0.9700 0.0050 264.0);
+    --popover: oklch(0.2850 0.0300 264.0);
+    --popover-foreground: oklch(0.9700 0.0050 264.0);
+    --primary: oklch(0.6600 0.1700 270.0);
     --primary-foreground: oklch(1.0000 0 0);
-    --secondary: oklch(0.3095 0.0266 266.7132);
-    --secondary-foreground: oklch(0.9219 0 0);
-    --muted: oklch(0.3095 0.0266 266.7132);
-    --muted-foreground: oklch(0.7155 0 0);
-    --accent: oklch(0.3380 0.0589 267.5867);
-    --accent-foreground: oklch(0.8823 0.0571 254.1284);
-    --destructive: oklch(0.6368 0.2078 25.3313);
+    --secondary: oklch(0.3400 0.0300 264.0);
+    --secondary-foreground: oklch(0.9700 0.0050 264.0);
+    --muted: oklch(0.3000 0.0250 264.0);
+    --muted-foreground: oklch(0.7200 0.0250 264.0);
+    --accent: oklch(0.3400 0.0350 268.0);
+    --accent-foreground: oklch(0.9700 0.0050 264.0);
+    --destructive: oklch(0.6500 0.2200 27.0);
     --destructive-foreground: oklch(1.0000 0 0);
-    --border: oklch(0.4400 0.0300 268.0);
-    --input: oklch(0.4600 0.0300 268.0);
-    --ring: oklch(0.5510 0.1450 272.9497);
+    --border: oklch(0.3600 0.0250 264.0);
+    --input: oklch(0.3600 0.0250 264.0);
+    --ring: oklch(0.6600 0.1700 270.0);
     --chart-1: oklch(0.7156 0.0605 248.6845);
     --chart-2: oklch(0.7693 0.0876 34.1875);
     --chart-3: oklch(0.5778 0.0759 254.1573);
     --chart-4: oklch(0.5016 0.0849 259.4902);
     --chart-5: oklch(0.4241 0.0952 264.0306);
-    --sidebar: oklch(0.3100 0.0283 267.7408);
-    --sidebar-foreground: oklch(0.9219 0 0);
-    --sidebar-primary: oklch(0.5510 0.1450 272.9497);
+    --sidebar: oklch(0.2450 0.0260 264.0);
+    --sidebar-foreground: oklch(0.9700 0.0050 264.0);
+    --sidebar-primary: oklch(0.6600 0.1700 270.0);
     --sidebar-primary-foreground: oklch(1.0000 0 0);
-    --sidebar-accent: oklch(0.3380 0.0589 267.5867);
-    --sidebar-accent-foreground: oklch(0.8823 0.0571 254.1284);
-    --sidebar-border: oklch(0.4400 0.0300 268.0);
-    --sidebar-ring: oklch(0.5510 0.1450 272.9497);
+    --sidebar-accent: oklch(0.3000 0.0350 268.0);
+    --sidebar-accent-foreground: oklch(0.9700 0.0050 264.0);
+    --sidebar-border: oklch(0.3200 0.0250 264.0);
+    --sidebar-ring: oklch(0.6600 0.1700 270.0);
     --font-sans: Inter, sans-serif;
     --font-serif: Source Serif 4, serif;
     --font-mono: JetBrains Mono, monospace;
@@ -101,14 +101,27 @@
     --shadow-spread: 0px;
     --shadow-opacity: 0.1;
     --shadow-color: hsl(0 0% 0%);
-    --shadow-2xs: 0px 1px 3px 0px hsl(0 0% 0% / 0.05);
-    --shadow-xs: 0px 1px 3px 0px hsl(0 0% 0% / 0.05);
-    --shadow-sm: 0px 1px 3px 0px hsl(0 0% 0% / 0.10), 0px 1px 2px -1px hsl(0 0% 0% / 0.10);
-    --shadow: 0px 1px 3px 0px hsl(0 0% 0% / 0.10), 0px 1px 2px -1px hsl(0 0% 0% / 0.10);
-    --shadow-md: 0px 1px 3px 0px hsl(0 0% 0% / 0.10), 0px 2px 4px -1px hsl(0 0% 0% / 0.10);
-    --shadow-lg: 0px 1px 3px 0px hsl(0 0% 0% / 0.10), 0px 4px 6px -1px hsl(0 0% 0% / 0.10);
-    --shadow-xl: 0px 1px 3px 0px hsl(0 0% 0% / 0.10), 0px 8px 10px -1px hsl(0 0% 0% / 0.10);
-    --shadow-2xl: 0px 1px 3px 0px hsl(0 0% 0% / 0.25);
+    --shadow-2xs: 0px 1px 3px 0px hsl(0 0% 0% / 0.15);
+    --shadow-xs: 0px 1px 3px 0px hsl(0 0% 0% / 0.15);
+    --shadow-sm: 0px 1px 3px 0px hsl(0 0% 0% / 0.20), 0px 1px 2px -1px hsl(0 0% 0% / 0.20);
+    --shadow: 0px 1px 3px 0px hsl(0 0% 0% / 0.25), 0px 1px 2px -1px hsl(0 0% 0% / 0.25);
+    --shadow-md: 0px 2px 4px 0px hsl(0 0% 0% / 0.25), 0px 4px 8px -2px hsl(0 0% 0% / 0.25);
+    --shadow-lg: 0px 4px 6px 0px hsl(0 0% 0% / 0.25), 0px 8px 16px -4px hsl(0 0% 0% / 0.25);
+    --shadow-xl: 0px 8px 12px 0px hsl(0 0% 0% / 0.25), 0px 16px 24px -6px hsl(0 0% 0% / 0.25);
+    --shadow-2xl: 0px 12px 24px 0px hsl(0 0% 0% / 0.35);
+
+    /* Token warna mobile saat dark mode aktif */
+    --sp-navy: #818cf8;
+    --sp-navy-2: #6366f1;
+    --sp-navy-3: #4f46e5;
+    --sp-navy-light: #a5b4fc;
+    --sp-accent: #6366f1;
+    --sp-primary-soft: rgba(99, 102, 241, 0.16);
+    --sp-bg-main: #121824;
+    --sp-ink: #f3f5f9;
+    --sp-muted: #9da5b5;
+    --sp-line: #363d4b;
+    --mobile-line: #363d4b;
   }
 
   * {
@@ -1541,46 +1554,106 @@ main > :last-child {
    ============================================================================ */
 .dark .sp-app-bg {
   background:
-    radial-gradient(460px 240px at 50% 0%, rgba(30, 41, 59, 0.7) 0%, transparent 80%),
-    oklch(0.2000 0.0250 262.0);
+    radial-gradient(460px 240px at 50% 0%, rgba(99, 102, 241, 0.14) 0%, transparent 80%),
+    #121824;
 }
 
 .dark .sp-glass-bar {
-  background: rgba(26, 33, 47, 0.94);
+  background: rgba(18, 24, 36, 0.88);
+  backdrop-filter: blur(14px) saturate(150%);
+  -webkit-backdrop-filter: blur(14px) saturate(150%);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.25);
 }
 
 .dark .sp-hero {
-  background: linear-gradient(180deg, oklch(0.26 0.03 268) 0%, oklch(0.22 0.025 268) 100%);
+  background: linear-gradient(180deg, #232a39 0%, #121824 100%);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .dark .sp-card {
-  background: oklch(0.2800 0.0280 268.0);
-  border-color: rgba(255, 255, 255, 0.1);
+  background: #232a39;
+  border-color: rgba(255, 255, 255, 0.09);
   box-shadow: 0 4px 20px -8px rgba(0, 0, 0, 0.4), 0 1px 3px 0 rgba(0, 0, 0, 0.2);
+}
+
+.dark .sp-float-card {
+  background: #232a39;
+  border-color: rgba(255, 255, 255, 0.09);
+  box-shadow: 0 12px 32px -16px rgba(0, 0, 0, 0.45);
+}
+
+.dark .sp-list-card {
+  background: #232a39;
+  border-color: rgba(255, 255, 255, 0.09);
 }
 
 .dark .sp-shortcut,
 .dark .sp-shortcut-compact {
-  background: oklch(0.2800 0.0280 268.0);
-  border-color: rgba(255, 255, 255, 0.1);
-  box-shadow: 0 2px 10px -4px rgba(0, 0, 0, 0.3);
+  background: #232a39;
+  border-color: rgba(255, 255, 255, 0.09);
+  box-shadow: 0 2px 10px -4px rgba(0, 0, 0, 0.25);
 }
 
 .dark .sp-shortcut:hover,
 .dark .sp-shortcut-compact:hover {
-  border-color: rgba(140, 160, 220, 0.3);
-  box-shadow: 0 6px 20px -4px rgba(0, 0, 0, 0.5);
+  border-color: rgba(107, 137, 249, 0.4);
+  box-shadow: 0 6px 20px -4px rgba(0, 0, 0, 0.45);
 }
 
 .dark .sp-nav-float {
-  background: rgba(26, 33, 47, 0.96);
+  background: rgba(30, 38, 52, 0.94);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 10px 28px -6px rgba(0, 0, 0, 0.6), 0 2px 6px -1px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 10px 28px -6px rgba(0, 0, 0, 0.5), 0 2px 6px -1px rgba(0, 0, 0, 0.3);
 }
 
 .dark .sp-data-row {
   border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Universal text & background bridge for elements with static color classes in dark mode */
+.dark .text-\[\#20243a\],
+.dark .text-\[\#20243A\],
+.dark .text-\[\#1f253d\],
+.dark .text-\[\#181d48\] {
+  color: #f3f5f9 !important;
+}
+
+.dark .text-\[\#77819a\],
+.dark .text-\[\#77819A\],
+.dark .text-\[\#5e6987\] {
+  color: #9da5b5 !important;
+}
+
+.dark .text-\[\#323d8f\],
+.dark .text-\[\#323D8F\],
+.dark .text-\[\#283273\] {
+  color: #8da4fb !important;
+}
+
+.dark .bg-\[\#f3f5fc\],
+.dark .bg-\[\#F3F5FC\] {
+  background-color: rgba(35, 42, 57, 0.8) !important;
+}
+
+.dark .bg-\[\#eef0fc\],
+.dark .bg-\[\#EEF0FC\] {
+  background-color: rgba(48, 56, 72, 0.6) !important;
+}
+
+.dark .border-\[\#e0e6f2\],
+.dark .border-\[\#E0E6F2\],
+.dark .border-\[\#d9dff5\],
+.dark .border-\[\#dce3f5\],
+.dark .border-\[\#e2e8f5\],
+.dark .border-\[\#DCE3F5\],
+.dark .border-\[\#D5DCF7\] {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Clean rendering for transparent SIMPEG logo */
+.dark img[src*="logo-simpeg.png"] {
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
 }

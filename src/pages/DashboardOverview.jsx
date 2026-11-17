@@ -5,6 +5,7 @@ import StatCards from '../components-dashboard/StatCards.jsx'
 import WeeklyTrend from '../components-dashboard/WeeklyTrend.jsx'
 import UnitSummary from '../components-dashboard/UnitSummary.jsx'
 import LiveAttendanceTable from '../components-dashboard/LiveAttendanceTable.jsx'
+import { ThemeToggle } from '../components/ui/ThemeToggle.jsx'
 
 const HARI = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']
 const BULAN = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
@@ -56,6 +57,7 @@ function TopBar({ onBukaMenu }) {
       </div>
 
       <div className="flex items-center gap-2 shrink-0">
+        <ThemeToggle size="sm" />
         <button
           type="button"
           aria-label="Notifikasi"
@@ -72,8 +74,8 @@ function TopBar({ onBukaMenu }) {
           {settings.logo ? (
             <img src={settings.logo} alt={settings.namaAplikasi || 'SimPres'} className="w-7 h-7 rounded-md object-cover border border-border shadow-2xs" />
           ) : (
-            <div className="w-7 h-7 flex items-center justify-center">
-              <img src="/icons/logo-simpeg.png" alt="SIMPEG" className="w-7 h-7 object-contain" />
+            <div className="w-7 h-7 rounded-lg bg-white p-1 shadow-2xs flex items-center justify-center border border-border/40 shrink-0">
+              <img src="/icons/logo-simpeg.png" alt="SIMPEG" className="w-full h-full object-contain" />
             </div>
           )}
           <div className="hidden lg:flex flex-col text-left">
@@ -122,11 +124,11 @@ function DashboardOverview() {
             {/* Judul halaman */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-1 border-b border-border">
               <div className="flex items-center gap-3">
-<div className="w-11 h-11 flex items-center justify-center">
+<div className="w-11 h-11 rounded-xl bg-white p-1.5 border border-border shadow-2xs flex items-center justify-center shrink-0">
   {settings.logo ? (
-    <img src={settings.logo} alt={settings.namaAplikasi} className="w-11 h-11 object-contain" />
+    <img src={settings.logo} alt={settings.namaAplikasi || 'SIMPEG'} className="w-full h-full rounded-lg object-cover" />
   ) : (
-    <img src="/icons/logo-simpeg.png" alt="SIMPEG" className="w-11 h-11 object-contain" />
+    <img src="/icons/logo-simpeg.png" alt="SIMPEG" className="w-full h-full object-contain" />
   )}
 </div>
                 <div className="flex flex-col">

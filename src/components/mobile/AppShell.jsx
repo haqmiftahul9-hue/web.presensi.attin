@@ -55,14 +55,14 @@ export function GlassTopBar({ staff }) {
         className="sp-press flex items-center gap-2.5 min-w-0 h-11 px-1 rounded-xl"
         aria-label="SIMPEG Kepegawaian"
       >
-        <span className="w-9 h-9 flex items-center justify-center shrink-0">
-          <img src="/icons/logo-simpeg.png" alt="SIMPEG" className="w-9 h-9 object-contain" />
+        <span className="w-9 h-9 rounded-xl bg-white p-1.5 shadow-2xs border border-border/40 flex items-center justify-center shrink-0">
+          <img src="/icons/logo-simpeg.png" alt="SIMPEG" className="w-full h-full object-contain" />
         </span>
         <span className="flex flex-col min-w-0">
-          <span className="font-headline-sm text-headline-sm text-[#20243a] font-bold tracking-tight leading-tight truncate">
+          <span className="font-headline-sm text-headline-sm text-[#20243a] dark:text-white font-bold tracking-tight leading-tight truncate">
             SIMPEG
           </span>
-          <span className="font-label-sm text-label-sm text-[#77819a] font-medium truncate">Kepegawaian</span>
+          <span className="font-label-sm text-label-sm text-[#77819a] dark:text-slate-400 font-medium truncate">Kepegawaian</span>
         </span>
       </NavLink>
 
@@ -71,9 +71,9 @@ export function GlassTopBar({ staff }) {
         <button
           type="button"
           aria-label="Notifikasi"
-          className="sp-press w-9 h-9 rounded-full flex items-center justify-center bg-[#f3f5fc] hover:bg-[#eef0fc] border border-[#e0e6f2] text-[#20243a] relative transition-colors"
+          className="sp-press w-9 h-9 rounded-full flex items-center justify-center bg-[#f3f5fc] dark:bg-slate-800 hover:bg-[#eef0fc] dark:hover:bg-slate-700 border border-[#e0e6f2] dark:border-slate-700 text-[#20243a] dark:text-white relative transition-colors"
         >
-          <Icon name="notifications" className="text-[#323d8f] text-[19px]" />
+          <Icon name="notifications" className="text-[#323d8f] dark:text-indigo-300 text-[19px]" />
           <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-white" />
         </button>
         <NavLink to="/mobile/profil" aria-label="Profil saya" className="sp-press w-9 h-9 rounded-full flex items-center justify-center">
@@ -81,7 +81,7 @@ export function GlassTopBar({ staff }) {
             staff={staff}
             size="w-9 h-9"
             textClass="font-label-sm text-label-sm font-semibold"
-            ring="ring-2 ring-[#e0e6f2]"
+            ring="ring-2 ring-[#e0e6f2] dark:ring-slate-700"
           />
         </NavLink>
       </div>
@@ -117,11 +117,11 @@ export function ShortcutGrid({ items, columns = 2, compact = false }) {
             )}
           </div>
           <span className="text-center leading-tight">
-            <span className={`block font-semibold text-[#20243a] ${isCompact ? 'text-[11px] line-clamp-2' : 'font-label-md text-label-md'}`}>
+            <span className={`block font-semibold text-[#20243a] dark:text-slate-100 ${isCompact ? 'text-[11px] line-clamp-2' : 'font-label-md text-label-md'}`}>
               {item.judul}
             </span>
             {item.sub && (
-              <span className={`block text-[#77819a] ${isCompact ? 'text-[9.5px] mt-0.5 line-clamp-1' : 'font-label-sm text-label-sm mt-0.5'}`}>
+              <span className={`block text-[#77819a] dark:text-slate-400 ${isCompact ? 'text-[9.5px] mt-0.5 line-clamp-1' : 'font-label-sm text-label-sm mt-0.5'}`}>
                 {item.sub}
               </span>
             )}
@@ -138,11 +138,11 @@ export function SectionTitle({ ikon, judul, aksi }) {
     <div className="flex items-center justify-between gap-2">
       <span className="flex items-center gap-2 min-w-0">
         {ikon && (
-          <span className="w-8 h-8 rounded-xl bg-[#eef0fc] border border-[#323d8f]/15 flex items-center justify-center shrink-0 shadow-2xs">
-            <Icon name={ikon} className="text-[17px] text-[#323d8f]" />
+          <span className="w-8 h-8 rounded-xl bg-[#eef0fc] dark:bg-slate-800 border border-[#323d8f]/15 dark:border-slate-700 flex items-center justify-center shrink-0 shadow-2xs">
+            <Icon name={ikon} className="text-[17px] text-[#323d8f] dark:text-indigo-400" />
           </span>
         )}
-        <span className="font-headline-sm text-headline-sm text-[#20243a] font-bold tracking-tight truncate">{judul}</span>
+        <span className="font-headline-sm text-headline-sm text-[#20243a] dark:text-white font-bold tracking-tight truncate">{judul}</span>
       </span>
       {aksi}
     </div>
@@ -159,14 +159,14 @@ export function Sensor({ ikon, label, nilai, tone = 'netral' }) {
   const nilaiWarna = {
     baik: 'text-emerald-600',
     lambat: 'text-amber-600',
-    netral: 'text-[#20243a]',
+    netral: 'text-[#20243a] dark:text-slate-100',
   }[tone] || 'text-[#20243a]'
   return (
-    <div className="rounded-2xl bg-[#eef0fc] border border-[#323d8f]/15 p-3 flex flex-col items-center gap-1.5 min-w-0 shadow-2xs">
+    <div className="rounded-2xl bg-[#eef0fc] dark:bg-slate-800/80 border border-[#323d8f]/15 dark:border-slate-700 p-3 flex flex-col items-center gap-1.5 min-w-0 shadow-2xs">
       <span className="w-9 h-9 rounded-full bg-[#323d8f]/15 flex items-center justify-center shrink-0">
-        <Icon name={ikon} className="text-[18px] text-[#323d8f]" />
+        <Icon name={ikon} className="text-[18px] text-[#323d8f] dark:text-indigo-300" />
       </span>
-      <span className="font-label-sm text-label-sm text-[#77819a] font-medium">{label}</span>
+      <span className="font-label-sm text-label-sm text-[#77819a] dark:text-slate-400 font-medium">{label}</span>
       <span className={`font-label-md text-label-md font-semibold text-center leading-snug break-words ${nilaiWarna}`}>
         {nilai}
       </span>
