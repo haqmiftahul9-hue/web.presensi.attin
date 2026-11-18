@@ -1460,6 +1460,8 @@ function NotifToast({ notification }) {
 function RekapLaporanPage() {
   const { state, dispatch } = useSimPres()
   const [activePeriod, setActivePeriod] = useState('Bulanan')
+  const [mainCustomStart, setMainCustomStart] = useState('')
+  const [mainCustomEnd, setMainCustomEnd] = useState('')
   // Unit berasal dari unit terpilih di store (role-aware), bukan state lokal.
   const selectedUnit = selectActiveUnitId(state)
   const canSwitchUnit = selectCanSwitchUnit(state)
@@ -1511,30 +1513,10 @@ function RekapLaporanPage() {
   const summary = useMemo(() => selectRekapSummary(state, selectedUnit, activePeriod), [state, selectedUnit, activePeriod])
   const chartData = useMemo(() => selectRekapChartData(state, selectedUnit, activePeriod), [state, selectedUnit, activePeriod])
   const kepatuhanChart = useMemo(() => selectRekapKepatuhanChart(state, selectedUnit, activePeriod), [state, selectedUnit, activePeriod])
-  const reportData = useMemo(() => selectRekapReportData(state, selectedUnit, activePeriod), [state, selectedUnit, activePeriod])
-
-  const filteredData = useMemo(() => {
-    let data = reportData.filter((row) =>
-      row.name.toLowerCase().includes(search.toLowerCase()) ||
-      row.niy.includes(search) ||
-      row.unit.toLowerCase().includes(search.toLowerCase())
-    )
-    
-    data.sort((a, b) => {
-      if (a[sortConfig.key] < b[sortConfig.key]) return sortConfig.direction === 'asc' ? -1 : 1
-      if (a[sortConfig.key] > b[sortConfig.key]) return sortConfig.direction === 'asc' ? 1 : -1
-      return 0
-    })
-    
-    return data
-  }, [reportData, search, sortConfig])
-
-  const totalPages = Math.ceil(filteredData.length / pageSize)
-  const paginatedData = filteredData.slice((currentPage - 1) * pageSize, currentPage * pageSize)
 
   useEffect(() => {
     setCurrentPage(1)
-  }, [search, selectedUnit, activePeriod])
+  }, [search, selectedUnit, activePeriod, mainCustomStart, mainCustomEnd])
 
   // Data & Filter untuk Tabel Laporan Rekap Izin/Cuti Guru dan Pegawai
   const allLeaves = useMemo(() => selectLeavesEnriched(state), [state])
@@ -1570,6 +1552,10 @@ function RekapLaporanPage() {
           return false
         }
       }
+      if (activePeriod === 'custom' && mainCustomStart && mainCustomEnd) {
+        const itemDate = (item.periode || '').split('–')[0]?.trim() || item.periode
+        if (!filterByDateRange(itemDate, mainCustomStart, mainCustomEnd)) return false
+      }
       return true
     })
 
@@ -1586,7 +1572,7 @@ function RekapLaporanPage() {
     })
 
     return data
-  }, [allLeaves, cutiSearch, cutiStatusFilter, cutiJenisFilter, cutiSortConfig])
+  }, [allLeaves, cutiSearch, cutiStatusFilter, cutiJenisFilter, cutiSortConfig, activePeriod, mainCustomStart, mainCustomEnd])
 
   const totalCutiPages = Math.ceil(filteredCutiData.length / cutiPageSize) || 1
   const paginatedCutiData = useMemo(() => {
@@ -1730,6 +1716,15 @@ function RekapLaporanPage() {
   const unitLabel = selectedUnit === ALL_UNITS ? `Semua Unit (${state.units.length} Unit)` : selectedUnitObj?.nama || 'Semua Unit'
 
   const getPeriodLabel = (period) => {
+    if (period === 'custom') {
+      if (mainCustomStart && mainCustomEnd) {
+        const s = new Date(mainCustomStart)
+        const e = new Date(mainCustomEnd)
+        const mn = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des']
+        return `${s.getDate()} ${mn[s.getMonth()]} - ${e.getDate()} ${mn[e.getMonth()]}`
+      }
+      return 'Custom Tanggal'
+    }
     switch (period) {
       case 'Harian': return 'Hari Ini'
       case 'Mingguan': return 'Minggu Ini'
@@ -2112,6 +2107,29 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
   }
 }
 
+  const reportData = activePeriod === 'custom' && mainCustomStart && mainCustomEnd
+    ? getReportData('presensi', 'custom', selectedUnit === ALL_UNITS ? 'all' : selectedUnit, mainCustomStart, mainCustomEnd)
+    : (activePeriod === 'custom' ? [] : selectRekapReportData(state, selectedUnit, activePeriod))
+
+  const filteredData = useMemo(() => {
+    let data = (reportData || []).filter((row) =>
+      row.name.toLowerCase().includes(search.toLowerCase()) ||
+      row.niy.includes(search) ||
+      row.unit.toLowerCase().includes(search.toLowerCase())
+    )
+
+    data.sort((a, b) => {
+      if (a[sortConfig.key] < b[sortConfig.key]) return sortConfig.direction === 'asc' ? -1 : 1
+      if (a[sortConfig.key] > b[sortConfig.key]) return sortConfig.direction === 'asc' ? 1 : -1
+      return 0
+    })
+
+    return data
+  }, [reportData, search, sortConfig])
+
+  const totalPages = Math.ceil(filteredData.length / pageSize) || 1
+  const paginatedData = filteredData.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+
   const handleReportAction = (action) => {
     setIsExporting(true)
     try {
@@ -2377,9 +2395,9 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
       const period = activePeriod
       const unit = selectedUnit
       
-      // Get custom dates from reportSettings if period is custom
-      const customStartDate = (period === 'custom' && reportSettings.customStartDate) ? reportSettings.customStartDate : null
-      const customEndDate = (period === 'custom' && reportSettings.customEndDate) ? reportSettings.customEndDate : null
+      // Get custom dates from reportSettings if period is custom, fallback to main filter custom dates
+      const customStartDate = (period === 'custom' && (reportSettings.customStartDate || mainCustomStart)) ? (reportSettings.customStartDate || mainCustomStart) : null
+      const customEndDate = (period === 'custom' && (reportSettings.customEndDate || mainCustomEnd)) ? (reportSettings.customEndDate || mainCustomEnd) : null
       
       const data = getReportData(reportType, period, unit, customStartDate, customEndDate)
       
@@ -2759,26 +2777,39 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
           </div>
         </div>
 
-        <div className="bg-card rounded-xl border border-border p-3.5 shadow-xs flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-2.5">
-            <div className="inline-flex p-1 bg-muted rounded-lg gap-1 border border-border/60">
-              {periods.map((period) => (
-                <button
-                  key={period}
-                  onClick={() => setActivePeriod(period)}
-                  className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${
-                    activePeriod === period ? 'bg-card text-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                  type="button"
-                >
-                  {period}
-                </button>
-              ))}
-            </div>
-            <div className="relative flex items-center bg-card border border-border rounded-lg px-3 py-1.5 text-xs font-medium text-foreground shadow-2xs">
-              <span className="material-symbols-outlined text-[16px] text-muted-foreground mr-1.5">calendar_today</span>
-              <span>{getPeriodLabel(activePeriod)}</span>
-            </div>
+         <div className="bg-card rounded-xl border border-border p-3.5 shadow-xs flex flex-col gap-3">
+           <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3">
+             <div className="flex flex-wrap items-center gap-2.5">
+               <div className="overflow-x-auto pb-1 flex-shrink-0 max-w-full">
+                 <div className="inline-flex p-1 bg-muted rounded-lg gap-1 border border-border/60 whitespace-nowrap">
+               {periods.map((period) => (
+                 <button
+                   key={period}
+                   onClick={() => setActivePeriod(period)}
+                   className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                     activePeriod === period ? 'bg-card text-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground'
+                   }`}
+                   type="button"
+                 >
+                   {period}
+                 </button>
+               ))}
+               <button
+                 key="custom"
+                 onClick={() => setActivePeriod('custom')}
+                 className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                   activePeriod === 'custom' ? 'bg-card text-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground'
+                 }`}
+                 type="button"
+               >
+                 Custom Tanggal
+               </button>
+             </div>
+               </div>
+             <div className="relative flex items-center bg-card border border-border rounded-lg px-3 py-1.5 text-xs font-medium text-foreground shadow-2xs">
+               <span className="material-symbols-outlined text-[16px] text-muted-foreground mr-1.5">calendar_today</span>
+               <span>{getPeriodLabel(activePeriod)}</span>
+             </div>
             {canSwitchUnit ? (
               <div className="relative" onMouseLeave={() => setShowUnitDropdown(false)}>
                 <button
@@ -2829,8 +2860,8 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
                   period: activePeriod,
                   unit: selectedUnit === ALL_UNITS ? 'all' : selectedUnit,
                   format: 'excel',
-                  customStartDate: '',
-                  customEndDate: ''
+                  customStartDate: mainCustomStart,
+                  customEndDate: mainCustomEnd
                 })
                 setShowReportSettings(true)
               }}
@@ -2848,8 +2879,8 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
                   period: activePeriod,
                   unit: selectedUnit === ALL_UNITS ? 'all' : selectedUnit,
                   format: 'excel',
-                  customStartDate: '',
-                  customEndDate: ''
+                  customStartDate: mainCustomStart,
+                  customEndDate: mainCustomEnd
                 })
                 setShowReportSettings(true)
               }}
@@ -2866,7 +2897,9 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
                   ...prev,
                   period: activePeriod,
                   unit: selectedUnit === ALL_UNITS ? 'all' : selectedUnit,
-                  format: 'print'
+                  format: 'print',
+                  customStartDate: mainCustomStart,
+                  customEndDate: mainCustomEnd
                 }))
                 setShowReportSettings(true)
               }}
@@ -2876,11 +2909,18 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
               <span className="material-symbols-outlined text-[16px]">print</span>
               <span>Cetak</span>
             </button>
-          </div>
-        </div>
-
-        <div className="bg-card rounded-xl border border-border p-5 shadow-xs flex flex-col gap-6">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            </div>
+           </div>
+           {activePeriod === 'custom' && (
+             <div className="flex items-center gap-2 flex-wrap">
+               <input type="date" value={mainCustomStart} onChange={(e) => setMainCustomStart(e.target.value)} className="h-8 px-2 bg-card border border-border rounded-lg text-xs" />
+               <span className="text-xs text-muted-foreground">s.d.</span>
+               <input type="date" value={mainCustomEnd} onChange={(e) => setMainCustomEnd(e.target.value)} className="h-8 px-2 bg-card border border-border rounded-lg text-xs" />
+             </div>
+            )}
+           </div>
+           <div className="bg-card rounded-xl border border-border p-5 shadow-xs flex flex-col gap-6">
+           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div className="flex flex-col gap-0.5">
               <div className="flex items-center gap-2">
                 <h2 className="text-base font-bold text-foreground">Tren Kehadiran & Kepatuhan Jam Kerja</h2>
