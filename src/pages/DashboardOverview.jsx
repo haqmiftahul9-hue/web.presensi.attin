@@ -6,6 +6,7 @@ import WeeklyTrend from '../components-dashboard/WeeklyTrend.jsx'
 import UnitSummary from '../components-dashboard/UnitSummary.jsx'
 import LiveAttendanceTable from '../components-dashboard/LiveAttendanceTable.jsx'
 import { ThemeToggle } from '../components/ui/ThemeToggle.jsx'
+import { AppearanceSettings } from '../components/ui/AppearanceSettings.jsx'
 
 const HARI = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']
 const BULAN = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
@@ -56,8 +57,9 @@ function TopBar({ onBukaMenu }) {
         </div>
       </div>
 
-      <div className="flex items-center gap-2 shrink-0">
-        <ThemeToggle size="sm" />
+       <div className="flex items-center gap-2 shrink-0">
+         <ThemeToggle size="sm" />
+         <AppearanceSettings size="sm" />
         <button
           type="button"
           aria-label="Notifikasi"

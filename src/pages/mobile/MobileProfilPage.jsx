@@ -2,6 +2,7 @@ import { useState, useRef } from 'react'
 import Icon from '../../components/Icon.jsx'
 import { useNavigate } from 'react-router-dom'
 import { ThemeToggle } from '../../components/ui/ThemeToggle.jsx'
+import { AppearanceSettings } from '../../components/ui/AppearanceSettings.jsx'
 import {
   useSimPresOptional, selectSelfStaff, selectSelfPresensi, selectUnitById, selectEmployeeCard,
   selectCanChangeOwnPassword, performLogout, selectCurrentUserRole, normalisasiRole,
@@ -532,7 +533,10 @@ function MobileProfilPage() {
                   <span className="text-xs font-semibold text-foreground">Tema Aplikasi</span>
                   <span className="text-[11px] text-muted-foreground">Pilih mode terang atau gelap</span>
                 </div>
-                <ThemeToggle size="sm" />
+                <div className="flex items-center gap-2">
+                 <ThemeToggle size="sm" />
+                 <AppearanceSettings size="sm" />
+               </div>
               </div>
 
               <div className="flex items-center justify-between gap-3 mt-2">

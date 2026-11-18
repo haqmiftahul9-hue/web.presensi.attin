@@ -2,6 +2,7 @@ import Icon from '../Icon.jsx'
 import { NavLink } from 'react-router-dom'
 import StaffAvatar from './StaffAvatar.jsx'
 import { ThemeToggle } from '../ui/ThemeToggle.jsx'
+import { AppearanceSettings } from '../ui/AppearanceSettings.jsx'
 import { useSimPres } from '../../store/simPresStore.jsx'
 
 /**
@@ -70,8 +71,9 @@ export function GlassTopBar({ staff }) {
         </span>
       </NavLink>
 
-      <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+       <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
         <ThemeToggle size="sm" />
+        <AppearanceSettings size="sm" />
         <button
           type="button"
           aria-label="Notifikasi"

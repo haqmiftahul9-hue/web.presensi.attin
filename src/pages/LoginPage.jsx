@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { ThemeToggle } from '../components/ui/ThemeToggle.jsx'
+import { AppearanceSettings } from '../components/ui/AppearanceSettings.jsx'
 import {
   useSimPres,
   performLogin,
@@ -754,11 +755,13 @@ function LoginPage() {
     >
       <LoginStyles />
 
-      {/* Floating Theme Toggle (Pojok kanan atas: elegan, proporsional, ramah jempol & kursor) */}
-      <div className="fixed top-4 right-4 sm:top-6 sm:right-6 z-50">
-        <ThemeToggle size="sm" className="sm:hidden" />
-        <ThemeToggle size="md" className="hidden sm:inline-flex" />
-      </div>
+       {/* Floating Theme Toggle (Pojok kanan atas: elegan, proporsional, ramah jempol & kursor) */}
+       <div className="fixed top-4 right-4 sm:top-6 sm:right-6 z-50 flex items-center gap-2">
+         <AppearanceSettings size="sm" className="sm:hidden" />
+         <AppearanceSettings size="md" className="hidden sm:inline-flex" />
+         <ThemeToggle size="sm" className="sm:hidden" />
+         <ThemeToggle size="md" className="hidden sm:inline-flex" />
+       </div>
 
       {/* ==================================================================== */}
       {/* 1. TAMPILAN DESKTOP (lg:flex): KARTU DUA PANEL (ANTI-TABRAKAN)        */}
