@@ -154,8 +154,8 @@ function StaffTable({ unitFilter, searchTerm, statusFilter, currentPage, setCurr
 
   return (
     <div className="bg-surface-container-lowest rounded-xl shadow-sm flex flex-col overflow-hidden">
-      <div className="w-full overflow-x-auto lg:overflow-x-hidden">
-        <table className="w-full table-fixed border-collapse text-left text-sm">
+      <div className="w-full overflow-x-auto">
+        <table className="w-full border-collapse text-left text-sm">
           <colgroup>
             <col className="w-[4%] xl:w-[4%]" />
             <col className="w-[11%] xl:w-[10%]" />

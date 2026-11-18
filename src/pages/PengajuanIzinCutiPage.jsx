@@ -421,12 +421,12 @@ function PengajuanIzinCutiPage() {
           {/* Filter Bar */}
           <div className="bg-card rounded-xl border border-border shadow-xs p-3.5 space-y-3 flex flex-col">
             <div className="flex items-center justify-between flex-wrap gap-2">
-              <div className="flex items-center gap-1 bg-muted p-1 rounded-lg">
+              <div className="flex items-center gap-1 bg-muted p-1 rounded-lg overflow-x-auto flex-nowrap">
                 {updatedTabs.map((tab) => (
                   <button
                     key={tab.id}
                     onClick={() => { setActiveStatusTab(tab.id); setCurrentPage(1) }}
-                    className={`px-3 py-1 rounded-md flex items-center gap-1.5 text-xs font-semibold transition-all cursor-pointer ${
+                    className={`px-3 py-1 rounded-md flex items-center gap-1.5 text-xs font-semibold transition-all cursor-pointer shrink-0 whitespace-nowrap ${
                       activeStatusTab === tab.id
                         ? 'bg-card text-foreground shadow-xs'
                         : 'text-muted-foreground hover:text-foreground'
