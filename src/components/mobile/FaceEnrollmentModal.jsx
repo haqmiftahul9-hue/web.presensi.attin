@@ -55,8 +55,8 @@ function checkFrontal(landmarks) {
   const distRightJaw = Math.abs(jawRight.x - noseTip.x)
   const jawRatio = distLeftJaw / Math.max(1, distRightJaw)
 
-  // Wajah tegak menghadap ke depan: deviasi hidung < 0.16 dan jaw seimbang
-  return noseOffset < 0.16 && jawRatio >= 0.65 && jawRatio <= 1.55
+  // Wajah tegak menghadap ke depan: deviasi hidung < 0.15 dan jaw seimbang
+  return noseOffset < 0.15 && jawRatio >= 0.50 && jawRatio <= 2.00
 }
 
 /**
@@ -84,8 +84,8 @@ function checkSideTurn(landmarks) {
   const jawRatio = distLeftJaw / Math.max(1, distRightJaw)
 
   // Menoleh samping kiri atau samping kanan
-  const turnedLeft = noseOffset < -0.15 || jawRatio < 0.55
-  const turnedRight = noseOffset > 0.15 || jawRatio > 1.80
+  const turnedLeft = noseOffset < -0.15 || jawRatio < 0.45
+  const turnedRight = noseOffset > 0.15 || jawRatio > 2.10
 
   return turnedLeft || turnedRight
 }
@@ -132,9 +132,9 @@ export function FaceEnrollmentModal({
   const blinkPhaseRef = useRef('open') // 'open' -> 'closed' -> 'opened'
   const lastFrontalSnapshotRef = useRef(null)
 
-  // Ambang batas EAR kedipan mata
-  const EAR_OPEN_THRESHOLD = 0.26
-  const EAR_CLOSED_THRESHOLD = 0.21
+   // Ambang batas EAR kedipan mata
+  const EAR_OPEN_THRESHOLD = 0.24
+  const EAR_CLOSED_THRESHOLD = 0.20
 
   // Hubungkan stream kamera ke elemen video
   const attachStreamToVideo = useCallback((videoEl, streamToAttach) => {
@@ -300,7 +300,7 @@ export function FaceEnrollmentModal({
       if (video && video.readyState >= 2 && !processing && !isDetecting && cameraStage === 'ready') {
         isDetecting = true
         try {
-          const result = await detectSingleFaceAndDescriptor(video, { inputSize: 224, scoreThreshold: 0.45 })
+          const result = await detectSingleFaceAndDescriptor(video, { inputSize: 320, scoreThreshold: 0.4 })
           if (!isCancelled) {
             if (result.detected) {
               setFaceDetected(true)
@@ -309,9 +309,9 @@ export function FaceEnrollmentModal({
               const landmarks = result.landmarks
               if (landmarks && landmarks.length >= 68) {
                 // ---- TAHAP 1: Wajah Menghadap Depan ----
-                if (livenessStep === 1) {
-                  const isFrontal = checkFrontal(landmarks)
-                  if (isFrontal) {
+                 if (livenessStep === 1) {
+                   const isFrontal = checkFrontal(landmarks)
+                   if (isFrontal) {
                     frontalCountRef.current += 1
                     // Simpan descriptor dan snapshot terbaik saat posisi depan
                     if (result.descriptor) {
@@ -417,7 +417,7 @@ export function FaceEnrollmentModal({
 
       // Jika belum ada descriptor tersimpan dari tahap 1, ekstrak dari video saat ini
       if (!descriptor) {
-        const detection = await detectSingleFaceAndDescriptor(video, { inputSize: 224, scoreThreshold: 0.45 })
+        const detection = await detectSingleFaceAndDescriptor(video, { inputSize: 320, scoreThreshold: 0.4 })
         if (detection?.detected && detection?.descriptor) {
           descriptor = detection.descriptor
         }

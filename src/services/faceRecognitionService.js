@@ -145,7 +145,7 @@ export async function detectSingleFaceAndDescriptor(inputElement, options = {}) 
       width: box.width,
       height: box.height,
     },
-    landmarks: detection.landmarks,
+    landmarks: detection.landmarks?.positions || detection.landmarks,
     // Konversi Float32Array ke standard Array agar bisa diserialisasi ke JSON/LocalStorage
     descriptor: Array.from(detection.descriptor),
     rawDescriptor: detection.descriptor,

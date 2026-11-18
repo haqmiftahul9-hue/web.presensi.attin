@@ -303,7 +303,7 @@ function MobilePresensiPage() {
         if (video && video.readyState >= 2 && !isDetecting) {
           isDetecting = true
           try {
-            const res = await detectSingleFaceAndDescriptor(video, { inputSize: 224, scoreThreshold: 0.45 })
+            const res = await detectSingleFaceAndDescriptor(video, { inputSize: 320, scoreThreshold: 0.4 })
             if (!cancelled) {
               if (res?.detected) {
                 missCount = 0
@@ -495,7 +495,7 @@ function MobilePresensiPage() {
         setStatusPenutup('jalan')
         setPesanPenutup('Mencocokkan wajah dengan AI Face-api.js...')
         try {
-          const det = await detectSingleFaceAndDescriptor(kamera.videoRef.current, { inputSize: 224, scoreThreshold: 0.5 })
+          const det = await detectSingleFaceAndDescriptor(kamera.videoRef.current, { inputSize: 320, scoreThreshold: 0.4 })
           if (det.detected && det.descriptor) {
             const comp = await compareFaceDescriptors(det.descriptor, curRegistered.descriptor)
             // Retry 1x dengan threshold sedikit lebih longgar jika gagal (pencahayaan buruk)
