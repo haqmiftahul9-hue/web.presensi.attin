@@ -26,7 +26,7 @@ const QUICK_MENU = [
     judul: 'Presensi Sekarang',
     sub: 'Wajah / barcode',
     ikon: 'scan_face',
-    kartu: 'bg-[#eef0fc] dark:bg-slate-800 text-[#323d8f] dark:text-indigo-300',
+    kartu: 'bg-[#eef0fc] dark:bg-slate-800 text-primary dark:text-indigo-300',
     utama: true,
   },
   {
@@ -34,35 +34,35 @@ const QUICK_MENU = [
     judul: 'Riwayat Presensi',
     sub: 'Rekap harian & bulanan',
     ikon: 'calendar_month',
-    kartu: 'bg-[#eef0fc] dark:bg-slate-800 text-[#323d8f] dark:text-indigo-300',
+    kartu: 'bg-[#eef0fc] dark:bg-slate-800 text-primary dark:text-indigo-300',
   },
   {
     to: '/mobile/izin-cuti',
     judul: 'Pengajuan Izin/Cuti',
     sub: 'Ajukan & pantau status',
     ikon: 'event_available',
-    kartu: 'bg-[#eef0fc] dark:bg-slate-800 text-[#323d8f] dark:text-indigo-300',
+    kartu: 'bg-[#eef0fc] dark:bg-slate-800 text-primary dark:text-indigo-300',
   },
   {
     to: '/mobile/slip',
     judul: 'Slip Kehadiran',
     sub: 'Cetak bukti hadir',
     ikon: 'receipt_long',
-    kartu: 'bg-[#eef0fc] dark:bg-slate-800 text-[#323d8f] dark:text-indigo-300',
+    kartu: 'bg-[#eef0fc] dark:bg-slate-800 text-primary dark:text-indigo-300',
   },
   {
     to: '/mobile/kartu-id',
     judul: 'Kartu ID',
     sub: 'Pratinjau & unduh kartu PVC',
     ikon: 'contact_page',
-    kartu: 'bg-[#eef0fc] dark:bg-slate-800 text-[#323d8f] dark:text-indigo-300',
+    kartu: 'bg-[#eef0fc] dark:bg-slate-800 text-primary dark:text-indigo-300',
   },
   {
     to: '/mobile/qr',
     judul: 'QR Presensi',
     sub: 'Kode untuk scan & identifikasi',
     ikon: 'qr_code_scanner',
-    kartu: 'bg-[#eef0fc] dark:bg-slate-800 text-[#323d8f] dark:text-indigo-300',
+    kartu: 'bg-[#eef0fc] dark:bg-slate-800 text-primary dark:text-indigo-300',
   },
 ]
 
@@ -286,7 +286,7 @@ function MobileBerandaPage() {
                   <span className="font-label-sm text-label-sm text-[#77819a] dark:text-slate-400 font-medium leading-none">
                     Halo,
                   </span>
-                  <span className="font-label-sm text-label-sm text-[#323d8f] dark:text-indigo-300 font-bold leading-tight mt-0.5 truncate">
+                  <span className="font-label-sm text-label-sm text-primary dark:text-indigo-300 font-bold leading-tight mt-0.5 truncate">
                     {roleSalutation}
                   </span>
                   {/* Di bawah sapaan: Nama kepala sekolah atau admin tersebut beserta gelarnya */}
@@ -326,11 +326,11 @@ function MobileBerandaPage() {
 
           <div className="grid grid-cols-2 gap-2 pt-1 border-t border-[#e0e6f2]/80">
             <div className="flex items-center gap-2 rounded-xl bg-[#ffffff] dark:bg-slate-800 border border-[#d9dff5] dark:border-slate-700 px-2.5 py-2 min-w-0">
-              <Icon name="badge" className="text-[15px] text-[#323d8f] dark:text-indigo-400 shrink-0" />
+              <Icon name="badge" className="text-[15px] text-primary dark:text-indigo-400 shrink-0" />
               <span className="font-label-sm text-label-sm text-[#20243a] dark:text-slate-200 font-medium truncate">NIY {staff.niy}</span>
             </div>
             <div className="flex items-center gap-2 rounded-xl bg-[#ffffff] dark:bg-slate-800 border border-[#d9dff5] dark:border-slate-700 px-2.5 py-2 min-w-0">
-              <Icon name="domain" className="text-[15px] text-[#323d8f] dark:text-indigo-400 shrink-0" />
+              <Icon name="domain" className="text-[15px] text-primary dark:text-indigo-400 shrink-0" />
               <span className="font-label-sm text-label-sm text-[#20243a] dark:text-slate-200 font-medium truncate">{unit?.nama || '-'}</span>
             </div>
           </div>
@@ -338,7 +338,7 @@ function MobileBerandaPage() {
       </section>
 
       <div className="px-4 relative z-[2] flex flex-col gap-4">
-        {/* 2. KARTU UTAMA PRESENSI — focal card dengan background solid #323D8F. */}
+        {/* 2. KARTU UTAMA PRESENSI — focal card dengan background solid var(--primary). */}
         <section className="sp-hero-card sp-rise">
           <div className="relative z-[1] flex flex-col gap-3.5">
             <div className="flex items-start justify-between gap-2">
@@ -397,12 +397,12 @@ function MobileBerandaPage() {
               </div>
             </div>
 
-            {/* Tombol aksi utama berwarna putih dengan teks #323D8F */}
+            {/* Tombol aksi utama berwarna putih dengan teks var(--primary) */}
             <Link
               to="/mobile/presensi"
-              className="sp-btn w-full mt-1 py-3 bg-white hover:bg-blue-50 text-[#323d8f] font-headline-sm text-sm font-bold flex items-center justify-center gap-2 rounded-xl shadow-md shadow-black/10 transition-all active:scale-[0.98]"
+              className="sp-btn w-full mt-1 py-3 bg-white hover:bg-blue-50 text-primary font-headline-sm text-sm font-bold flex items-center justify-center gap-2 rounded-xl shadow-md shadow-black/10 transition-all active:scale-[0.98]"
             >
-              <Icon name="face_retouch_natural" className="text-[18px] text-[#323d8f]" />
+              <Icon name="face_retouch_natural" className="text-[18px] text-primary" />
               <span>{presensi.sudahMasuk ? (presensi.sudahPulang ? 'Lihat Presensi Hari Ini' : 'Ambil Presensi Pulang') : 'Ambil Presensi Sekarang'}</span>
             </Link>
           </div>
@@ -412,12 +412,12 @@ function MobileBerandaPage() {
         <section className="sp-card p-4 flex flex-col gap-3.5 sp-rise sp-rise-2 border border-[#e0e6f2] dark:border-slate-700">
           <div className="sp-card-head">
             <div className="flex items-center gap-2 min-w-0">
-              <span className="w-8 h-8 rounded-xl bg-[#eef0fc] dark:bg-slate-800 border border-[#323d8f]/15 dark:border-slate-700 flex items-center justify-center shrink-0 shadow-2xs">
-                <Icon name="summarize" className="text-[18px] text-[#323d8f] dark:text-indigo-400" />
+              <span className="w-8 h-8 rounded-xl bg-[#eef0fc] dark:bg-slate-800 border border-primary/15 dark:border-slate-700 flex items-center justify-center shrink-0 shadow-2xs">
+                <Icon name="summarize" className="text-[18px] text-primary dark:text-indigo-400" />
               </span>
               <span className="font-headline-sm text-headline-sm text-[#20243a] dark:text-white font-bold tracking-tight truncate">Ringkasan Presensi</span>
             </div>
-            <Link to="/mobile/riwayat" className="font-label-sm text-label-sm text-[#323d8f] dark:text-indigo-400 hover:text-[#283273] dark:hover:text-indigo-300 font-semibold flex items-center gap-0.5 shrink-0 py-1">
+            <Link to="/mobile/riwayat" className="font-label-sm text-label-sm text-primary dark:text-indigo-400 hover:text-[#283273] dark:hover:text-indigo-300 font-semibold flex items-center gap-0.5 shrink-0 py-1">
               Riwayat
               <Icon name="chevron_right" className="text-[14px]" />
             </Link>
@@ -440,7 +440,7 @@ function MobileBerandaPage() {
             </div>
             <div className="rounded-2xl bg-[#f3f5fc] dark:bg-slate-800/80 border border-[#e0e6f2] dark:border-slate-700 p-3.5 flex flex-col gap-1.5 min-w-0">
               <span className="font-label-sm text-label-sm text-[#77819a] dark:text-slate-400 font-medium flex items-center gap-1.5">
-                <span className="w-5 h-5 rounded-md bg-[#eef0fc] text-[#323d8f] flex items-center justify-center">
+                <span className="w-5 h-5 rounded-md bg-[#eef0fc] text-primary flex items-center justify-center">
                   <Icon name="logout" className="text-[13px] shrink-0" />
                 </span>
                 Jam Pulang

@@ -69,8 +69,8 @@ function PresensiHariIniCard({ presensi, zonaWaktu, tanggal }) {
     <section className="sp-card p-4 flex flex-col gap-3.5 border border-[#e0e6f2] shadow-xs">
       <div className="sp-card-head">
         <div className="flex items-center gap-2 min-w-0">
-          <span className="w-8 h-8 rounded-xl bg-[#eef0fc] border border-[#323d8f]/15 flex items-center justify-center shrink-0 shadow-2xs">
-            <Icon name="history_toggle_off" className="text-[#323d8f] text-[18px]" />
+          <span className="w-8 h-8 rounded-xl bg-[#eef0fc] border border-primary/15 flex items-center justify-center shrink-0 shadow-2xs">
+            <Icon name="history_toggle_off" className="text-primary text-[18px]" />
           </span>
           <span className="font-headline-sm text-headline-sm text-[#20243a] font-bold tracking-tight truncate">Presensi Hari Ini</span>
         </div>
@@ -104,7 +104,7 @@ function PresensiHariIniCard({ presensi, zonaWaktu, tanggal }) {
         </div>
         <div className="p-3 rounded-xl bg-[#f3f5fc] border border-[#e0e6f2] flex flex-col gap-1 min-w-0">
           <span className="font-label-sm text-label-sm text-[#77819a] font-medium">Jam kerja</span>
-          <span className="font-body-md-medium text-body-md-medium text-[#323d8f] font-semibold tabular-nums truncate">
+          <span className="font-body-md-medium text-body-md-medium text-primary font-semibold tabular-nums truncate">
             {rules.jamKerja}
           </span>
         </div>
@@ -855,7 +855,7 @@ function MobilePresensiPage() {
 
       {/* 2. JAM DIGITAL + STATUS PRESENSI (navy, fokus utama). */}
       <section className="sp-page-container pb-1">
-        <div className="sp-card p-3.5 flex flex-col gap-3 border border-[#283273] rounded-2xl" style={{ backgroundColor: '#323d8f' }}>
+        <div className="sp-card p-3.5 flex flex-col gap-3 border border-[#283273] rounded-2xl" style={{ backgroundColor: 'var(--primary)' }}>
           <div className="flex items-end justify-between gap-3">
             <div className="flex flex-col">
               <span className="font-display-lg text-[36px] sm:text-[40px] leading-none text-white font-extrabold tracking-tight tabular-nums drop-shadow-sm">
@@ -975,7 +975,7 @@ function MobilePresensiPage() {
               type="button"
               onClick={() => setMode('face')}
               className={`flex-1 py-2 px-3 rounded-lg text-xs font-semibold transition-all ${
-                mode === 'face' ? 'bg-white text-[#323d8f] shadow-sm' : 'text-slate-600 hover:text-slate-800'
+                mode === 'face' ? 'bg-white text-primary shadow-sm' : 'text-slate-600 hover:text-slate-800'
               }`}
             >
               Wajah
@@ -984,7 +984,7 @@ function MobilePresensiPage() {
               type="button"
               onClick={() => setMode('barcode')}
               className={`flex-1 py-2 px-3 rounded-lg text-xs font-semibold transition-all ${
-                mode === 'barcode' ? 'bg-white text-[#323d8f] shadow-sm' : 'text-slate-600 hover:text-slate-800'
+                mode === 'barcode' ? 'bg-white text-primary shadow-sm' : 'text-slate-600 hover:text-slate-800'
               }`}
             >
               QR / Barcode
@@ -1037,7 +1037,7 @@ function MobilePresensiPage() {
               disabled={!isModelLoaded}
               className={`sp-btn w-full py-2.5 px-4 font-label-md text-xs rounded-xl flex items-center justify-center gap-2 shadow-sm transition-all active:scale-[0.98] ${
                 isModelLoaded
-                  ? 'bg-[#323d8f] hover:bg-[#252e6d] text-white cursor-pointer'
+                  ? 'bg-primary hover:bg-[#252e6d] text-white cursor-pointer'
                   : 'bg-slate-200 text-slate-500 cursor-not-allowed opacity-80'
               }`}
             >
@@ -1103,11 +1103,11 @@ function MobilePresensiPage() {
                 placeholder="NIY"
                 inputMode="numeric"
                 aria-label="Kode kartu ID"
-                className="sp-field flex-1 py-2.5 bg-slate-50 border border-slate-200/80 rounded-xl font-body-md text-body-md text-on-surface outline-none focus:border-[#323d8f] focus:ring-1 focus:ring-[#323d8f]"
+                className="sp-field flex-1 py-2.5 bg-slate-50 border border-slate-200/80 rounded-xl font-body-md text-body-md text-on-surface outline-none focus:border-primary focus:ring-1 focus:ring-primary"
               />
               <button
                 type="submit"
-                className="sp-btn shrink-0 px-4 py-2.5 bg-[#323d8f] text-white font-label-md text-label-md shadow-sm active:scale-[0.98] transition-transform hover:bg-[#252e6d]"
+                className="sp-btn shrink-0 px-4 py-2.5 bg-primary text-white font-label-md text-label-md shadow-sm active:scale-[0.98] transition-transform hover:bg-[#252e6d]"
               >
                 Verifikasi
               </button>
@@ -1141,7 +1141,7 @@ function MobilePresensiPage() {
               disabled={tombolAksiDisabled}
               className={`sp-btn w-full py-4 font-headline-sm text-headline-sm flex items-center justify-center gap-2 shadow-md transition-all active:scale-[0.99] disabled:opacity-60 disabled:active:scale-100 ${
                 belumMasuk
-                  ? 'bg-[#323d8f] hover:bg-[#283273] text-white'
+                  ? 'bg-primary hover:bg-[#283273] text-white'
                   : belumPulang
                     ? 'bg-[#283273] hover:bg-[#181d48] text-white'
                     : 'bg-emerald-600 hover:bg-emerald-700 text-white'

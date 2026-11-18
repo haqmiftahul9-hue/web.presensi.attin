@@ -16,7 +16,7 @@ import { SectionTitle } from '../../components/mobile/AppShell.jsx'
 import { EmptyState, ErrorState, LoadingState, Spinner } from '../../components/mobile/Feedback.jsx'
 
 const FIELD =
-  'sp-field px-3.5 py-3 bg-slate-50 border border-slate-200/80 rounded-xl text-body-md text-slate-900 outline-none focus:border-[#323d8f] focus:ring-2 focus:ring-[#323d8f]/20 transition-all'
+  'sp-field px-3.5 py-3 bg-slate-50 border border-slate-200/80 rounded-xl text-body-md text-slate-900 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all'
 const LABEL = 'font-label-sm text-label-sm text-on-surface-variant mb-2 block'
 
 /** Grouping pilihan jenis: Cuti dulu, lalu Izin. */
@@ -88,7 +88,7 @@ export function FormPengajuan({
                       aria-pressed={aktif}
                       className={`px-3.5 py-2.5 rounded-xl border text-left transition-all active:scale-[0.98] ${
                         aktif
-                          ? 'border-[#323d8f] bg-[#323d8f]/10 text-[#323d8f] font-semibold shadow-xs'
+                          ? 'border-primary bg-primary/10 text-primary font-semibold shadow-xs'
                           : 'border-slate-200/80 bg-slate-50 text-slate-700 hover:bg-slate-100'
                       }`}
                     >
@@ -182,7 +182,7 @@ export function FormPengajuan({
       <button
         type="submit"
         disabled={mengirim}
-        className="sp-btn w-full py-3.5 bg-[#323d8f] hover:bg-[#252e6d] text-white font-headline-sm text-headline-sm flex items-center justify-center gap-2 rounded-xl shadow-md active:scale-[0.98] transition-all disabled:opacity-60"
+        className="sp-btn w-full py-3.5 bg-primary hover:bg-[#252e6d] text-white font-headline-sm text-headline-sm flex items-center justify-center gap-2 rounded-xl shadow-md active:scale-[0.98] transition-all disabled:opacity-60"
       >
         {mengirim && <Spinner />}
         {mengirim ? 'Mengirim...' : 'Kirim Pengajuan'}
@@ -310,7 +310,7 @@ function MobileIzinCutiPage() {
       <section className="sp-hero sp-page-container pt-3.5 pb-3">
         {/* Ringkasan statistik pengajuan: permukaan soft blue agar terpisah
             dari area riwayat (putih) dan tombol aksi (navy) di bawahnya. */}
-        <div className="sp-card p-4 flex flex-col gap-3.5 border border-[#323d8f]/20 rounded-2xl" style={{ backgroundColor: '#eef0fc' }}>
+        <div className="sp-card p-4 flex flex-col gap-3.5 border border-primary/20 rounded-2xl" style={{ backgroundColor: '#eef0fc' }}>
           <div className="flex items-center gap-3">
             <StaffAvatar staff={staff} size="w-12 h-12" textClass="font-headline-sm text-headline-sm font-bold text-white" ring="ring-2 ring-white/60" className="shadow-xs" />
             <div className="flex flex-col min-w-0">
@@ -349,7 +349,7 @@ function MobileIzinCutiPage() {
               setPesan('')
               setGalat('')
             }}
-            className="sp-btn w-full min-h-[60px] py-3.5 bg-[#323d8f] hover:bg-[#283273] text-white border-[3px] border-[#323d8f] shadow-lg shadow-[#323d8f]/20 font-headline-sm text-headline-sm flex items-center justify-center gap-2 rounded-2xl active:scale-[0.98] transition-all"
+            className="sp-btn w-full min-h-[60px] py-3.5 bg-primary hover:bg-[#283273] text-white border-[3px] border-primary shadow-lg shadow-[var(--primary)]/20 font-headline-sm text-headline-sm flex items-center justify-center gap-2 rounded-2xl active:scale-[0.98] transition-all"
           >
             <Icon name="add" className="text-[22px] shrink-0 text-white" />
             <span className="text-white font-semibold tracking-wide">Buat Pengajuan</span>
@@ -400,7 +400,7 @@ function MobileIzinCutiPage() {
             {['Cuti Tahunan', 'Cuti Menikah', 'Cuti Melahirkan'].map((j) => (
               <div key={j} className="flex flex-col items-center p-2 rounded-xl bg-slate-50">
                 <span className="font-label-sm text-label-sm text-on-surface-variant">{j.replace('Cuti ', '')}</span>
-                <span className="font-headline-md text-headline-md text-[#323d8f]">{hitungSisaKuota(staff?.id, j, daftar)}</span>
+                <span className="font-headline-md text-headline-md text-primary">{hitungSisaKuota(staff?.id, j, daftar)}</span>
                 <span className="font-label-sm text-label-sm text-on-surface-variant">dari {kuotaJenis(j)} hari</span>
               </div>
             ))}

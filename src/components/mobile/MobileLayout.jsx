@@ -140,7 +140,7 @@ function MobileLayout() {
                       </span>
                       <span
                         className={`font-label-sm text-[10px] sm:text-[11px] font-bold ${
-                          isActive ? 'text-[#323d8f] dark:text-indigo-400' : 'text-[#77819a] dark:text-slate-400'
+                          isActive ? 'text-primary dark:text-indigo-400' : 'text-[#77819a] dark:text-slate-400'
                         }`}
                       >
                         {item.label}

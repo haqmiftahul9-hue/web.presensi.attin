@@ -232,7 +232,7 @@ function AdminPresensiScanPage() {
             type="button"
             onClick={() => setVerifikasiMode('qr')}
             className={`flex-1 py-2 px-3 rounded-lg text-xs font-semibold transition-all ${
-              verifikasiMode === 'qr' ? 'bg-white text-[#323d8f] shadow-sm' : 'text-slate-600 hover:text-slate-800'
+              verifikasiMode === 'qr' ? 'bg-white text-primary shadow-sm' : 'text-slate-600 hover:text-slate-800'
             }`}
           >
             QR / Barcode
@@ -241,7 +241,7 @@ function AdminPresensiScanPage() {
             type="button"
             onClick={() => setVerifikasiMode('face')}
             className={`flex-1 py-2 px-3 rounded-lg text-xs font-semibold transition-all ${
-              verifikasiMode === 'face' ? 'bg-white text-[#323d8f] shadow-sm' : 'text-slate-600 hover:text-slate-800'
+              verifikasiMode === 'face' ? 'bg-white text-primary shadow-sm' : 'text-slate-600 hover:text-slate-800'
             }`}
           >
             Wajah
@@ -328,7 +328,7 @@ function AdminPresensiScanPage() {
 
           {unit && (
             <div className="p-2.5 bg-[#eef0fc] rounded-lg border border-[#d9dff5] text-xs">
-              <span className="block text-[11px] text-[#323d8f] font-medium">Unit: {unit.nama}</span>
+              <span className="block text-[11px] text-primary font-medium">Unit: {unit.nama}</span>
               <span className="block text-[10px] text-[#77819a]">Radius: {unit.radius_meter}m</span>
             </div>
           )}

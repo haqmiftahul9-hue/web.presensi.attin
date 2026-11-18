@@ -788,10 +788,10 @@ main > :last-child {
 
 :root {
   --sp-navy: #181d48;
-  --sp-navy-2: #323d8f;
+  --sp-navy-2: var(--primary);
   --sp-navy-3: #283273;
   --sp-navy-light: #4352b8;
-  --sp-accent: #323d8f;
+  --sp-accent: var(--primary);
   --sp-primary-soft: #eef0fc;
   --sp-bg-main: #f3f5fc;
   --sp-ink: #20243a;
@@ -891,7 +891,7 @@ main > :last-child {
   padding-inline: var(--mobile-card-pad-inline);
 }
 
-/* --- 4. KARTU UTAMA PRESENSI (Solid Royal Blue Focal Card #323D8F) ------------- */
+/* --- 4. KARTU UTAMA PRESENSI (Solid Royal Blue Focal Card var(--primary)) ------------- */
 .sp-hero-card {
   position: relative;
   overflow: hidden;
@@ -900,7 +900,7 @@ main > :last-child {
   box-sizing: border-box;
   border-radius: 22px;
   color: #ffffff;
-  background: #323d8f;
+  background: var(--primary);
   border: 1px solid #283273;
   box-shadow: 0 12px 30px -6px rgba(50, 61, 143, 0.35), 0 4px 10px -2px rgba(0, 0, 0, 0.08);
   padding: clamp(16px, 4.5vw, 20px);
@@ -1063,7 +1063,7 @@ main > :last-child {
 }
 
 .sp-nav-float-item:not(.sp-nav-center)[aria-current='page'] {
-  background: #323d8f;
+  background: var(--primary);
   box-shadow: 0 4px 14px -2px rgba(50, 61, 143, 0.45);
 }
 
@@ -1086,7 +1086,7 @@ main > :last-child {
   border-radius: 9999px;
   margin-top: -24px;
   margin-bottom: 2px;
-  background: linear-gradient(135deg, #323d8f 0%, #283273 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, #283273 100%);
   border: 4px solid #ffffff;
   box-shadow: 0 8px 20px -4px rgba(50, 61, 143, 0.5), 0 2px 6px 0 rgba(0, 0, 0, 0.06);
   display: flex;

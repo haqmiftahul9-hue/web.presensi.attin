@@ -95,7 +95,7 @@ function MobileSlipPage() {
               type="button"
               onClick={() => navigate(-1)}
               aria-label="Kembali"
-              className="w-10 h-10 rounded-xl bg-white border border-[#E0E6F2] text-[#323D8F] flex items-center justify-center shrink-0 shadow-xs active:scale-95 transition-all cursor-pointer"
+              className="w-10 h-10 rounded-xl bg-white border border-[#E0E6F2] text-primary flex items-center justify-center shrink-0 shadow-xs active:scale-95 transition-all cursor-pointer"
             >
               <Icon name="arrow_back" className="text-[20px]" />
             </button>
@@ -104,7 +104,7 @@ function MobileSlipPage() {
               <h1 className="font-headline-sm text-headline-sm text-[#20243A] font-bold">Slip Kehadiran</h1>
             </div>
           </div>
-          <span className="w-10 h-10 rounded-xl bg-[#EEF0FC] border border-[#323D8F]/20 flex items-center justify-center text-[#323D8F] shrink-0 shadow-xs">
+          <span className="w-10 h-10 rounded-xl bg-[#EEF0FC] border border-primary/20 flex items-center justify-center text-primary shrink-0 shadow-xs">
             <Icon name="receipt_long" className="text-[22px]" />
           </span>
         </div>
@@ -120,7 +120,7 @@ function MobileSlipPage() {
               aria-pressed={key === bulan}
               className={`shrink-0 px-3.5 py-2 rounded-full font-label-md text-label-md transition-all cursor-pointer ${
                 key === bulan
-                  ? 'bg-[#323D8F] text-white shadow-xs font-semibold'
+                  ? 'bg-primary text-white shadow-xs font-semibold'
                   : 'bg-white border border-[#E0E6F2] text-[#20243A] hover:bg-slate-50'
               }`}
             >
@@ -133,7 +133,7 @@ function MobileSlipPage() {
         <section className="sp-card p-4 sp-print-slip flex flex-col gap-3.5 bg-white border border-[#E0E6F2] rounded-2xl shadow-xs">
           <div className="sp-card-head">
             <div className="flex items-center gap-2 min-w-0">
-              <span className="w-9 h-9 rounded-xl bg-[#EEF0FC] text-[#323D8F] flex items-center justify-center shrink-0">
+              <span className="w-9 h-9 rounded-xl bg-[#EEF0FC] text-primary flex items-center justify-center shrink-0">
                 <Icon name="fingerprint" className="text-[20px]" />
               </span>
               <div className="flex flex-col min-w-0">
@@ -149,11 +149,11 @@ function MobileSlipPage() {
           </div>
 
           <div className="flex items-center gap-3.5 p-3 rounded-xl bg-[#F3F5FC] border border-[#E0E6F2]">
-            <StaffAvatar staff={staff} size="w-12 h-12" textClass="font-headline-sm text-headline-sm" ring="ring-2 ring-[#323D8F]/20 shadow-xs" />
+            <StaffAvatar staff={staff} size="w-12 h-12" textClass="font-headline-sm text-headline-sm" ring="ring-2 ring-primary/20 shadow-xs" />
             <div className="flex flex-col min-w-0 flex-1">
               <span className="font-headline-sm text-headline-sm text-[#20243A] font-bold truncate">{staff.name}</span>
               <div className="flex items-center gap-2 mt-0.5">
-                <span className="px-2 py-0.5 rounded-md bg-white border border-[#E0E6F2] text-[#323D8F] font-label-sm text-label-sm font-semibold tabular-nums shrink-0">
+                <span className="px-2 py-0.5 rounded-md bg-white border border-[#E0E6F2] text-primary font-label-sm text-label-sm font-semibold tabular-nums shrink-0">
                   NIY {staff.niy}
                 </span>
                 <span className="font-label-sm text-label-sm text-[#77819A] font-medium truncate">
@@ -168,7 +168,7 @@ function MobileSlipPage() {
               { label: 'Hadir', nilai: rekap.hadir, tone: 'text-emerald-600' },
               { label: 'Tepat', nilai: rekap.tepatWaktu, tone: 'text-[#20243A]' },
               { label: 'Telat', nilai: rekap.terlambat, tone: 'text-amber-600' },
-              { label: 'Izin', nilai: disetujui.length, tone: 'text-[#323D8F]' },
+              { label: 'Izin', nilai: disetujui.length, tone: 'text-primary' },
             ].map((item) => (
               <div key={item.label} className="flex flex-col items-center gap-1 rounded-xl bg-[#F3F5FC] border border-[#E0E6F2] px-1 py-3">
                 <span className={`font-display-lg-mobile text-[18px] font-bold leading-none ${item.tone}`}>
@@ -245,7 +245,7 @@ function MobileSlipPage() {
           <button
             type="button"
             onClick={() => window.print()}
-            className="sp-btn flex-1 py-3.5 bg-[#323D8F] hover:bg-[#283273] text-white font-label-md text-label-md font-semibold rounded-xl flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-md shadow-[#323D8F]/20 cursor-pointer"
+            className="sp-btn flex-1 py-3.5 bg-primary hover:bg-[#283273] text-white font-label-md text-label-md font-semibold rounded-xl flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-md shadow-[var(--primary)]/20 cursor-pointer"
           >
             <Icon name="print" className="text-[18px] shrink-0" />
             Cetak Slip
@@ -255,7 +255,7 @@ function MobileSlipPage() {
             onClick={() => navigate('/mobile/riwayat')}
             className="sp-btn flex-1 py-3.5 bg-white hover:bg-slate-50 text-[#20243A] font-label-md text-label-md font-semibold rounded-xl flex items-center justify-center gap-2 active:scale-[0.98] transition-all border border-[#E0E6F2] shadow-xs cursor-pointer"
           >
-            <Icon name="calendar_month" className="text-[18px] shrink-0 text-[#323D8F]" />
+            <Icon name="calendar_month" className="text-[18px] shrink-0 text-primary" />
             Riwayat
           </button>
         </div>

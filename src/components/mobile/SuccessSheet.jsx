@@ -53,7 +53,7 @@ function SuccessSheet({ terbuka, judul, detail, baris = [], onTutup, onRiwayat }
           <button
             type="button"
             onClick={onTutup}
-            className="sp-btn flex-1 px-4 py-3 bg-[#323d8f] hover:bg-[#252e6d] text-white font-label-md text-label-md font-semibold rounded-xl shadow-md active:scale-[0.98] transition-all"
+            className="sp-btn flex-1 px-4 py-3 bg-primary hover:bg-[#252e6d] text-white font-label-md text-label-md font-semibold rounded-xl shadow-md active:scale-[0.98] transition-all"
           >
             Selesai
           </button>

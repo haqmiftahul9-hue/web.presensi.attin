@@ -43,7 +43,7 @@ export default function AppSplash({ show, onDone, duration = 1600 }) {
           justify-content: center;
           flex-direction: column;
           gap: 18px;
-          background: radial-gradient(ellipse at 50% 30%, #3b469e 0%, #323d8f 45%, #1c2254 100%);
+          background: radial-gradient(ellipse at 50% 30%, #3b469e 0%, var(--primary) 45%, #1c2254 100%);
           transition: opacity .42s cubic-bezier(.4,0,.2,1), transform .42s cubic-bezier(.4,0,.2,1);
         }
         .sp-app-splash-leave {

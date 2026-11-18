@@ -50,7 +50,7 @@ export function ThemeProvider({ children }) {
     // Perbarui meta theme-color untuk mobile browser
     const metaThemeColor = document.querySelector('meta[name="theme-color"]')
     if (metaThemeColor) {
-      metaThemeColor.setAttribute('content', currentTheme === 'dark' ? '#181f2c' : '#323d8f')
+      metaThemeColor.setAttribute('content', currentTheme === 'dark' ? '#181f2c' : 'var(--primary)')
     }
   }, [])
 

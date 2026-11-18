@@ -101,11 +101,11 @@ function MobileKartuIdPage() {
               type="button"
               onClick={() => navigate(-1)}
               aria-label="Kembali"
-              className="w-10 h-10 rounded-xl bg-white border border-[#E0E6F2] text-[#323D8F] flex items-center justify-center shrink-0 shadow-xs active:scale-95 transition-all"
+              className="w-10 h-10 rounded-xl bg-white border border-[#E0E6F2] text-primary flex items-center justify-center shrink-0 shadow-xs active:scale-95 transition-all"
             >
               <Icon name="arrow_back" className="text-[20px]" />
             </button>
-            <StaffAvatar staff={staff} size="w-12 h-12" textClass="font-headline-sm text-headline-sm" ring="ring-2 ring-[#323D8F]/20" />
+            <StaffAvatar staff={staff} size="w-12 h-12" textClass="font-headline-sm text-headline-sm" ring="ring-2 ring-primary/20" />
             <div className="flex flex-col min-w-0">
               <span className="font-label-sm text-label-sm text-[#77819A]">Kartu ID Pegawai</span>
               <h1 className="font-headline-sm text-headline-sm text-[#20243A] font-bold truncate">
@@ -146,7 +146,7 @@ function MobileKartuIdPage() {
           type="button"
           onClick={unduhKartu}
           disabled={sibuk}
-          className="sp-btn w-full min-h-[56px] py-4 bg-[#323D8F] hover:bg-[#283273] text-white border-[2px] border-[#323D8F] shadow-lg shadow-[#323D8F]/20 font-headline-sm text-headline-sm flex items-center justify-center gap-2.5 rounded-2xl active:scale-[0.98] transition-all disabled:opacity-60 cursor-pointer"
+          className="sp-btn w-full min-h-[56px] py-4 bg-primary hover:bg-[#283273] text-white border-[2px] border-primary shadow-lg shadow-[var(--primary)]/20 font-headline-sm text-headline-sm flex items-center justify-center gap-2.5 rounded-2xl active:scale-[0.98] transition-all disabled:opacity-60 cursor-pointer"
         >
           {sibuk ? <Spinner /> : <Icon name="download" className="text-[24px] shrink-0" />}
           {sibuk ? 'Menyiapkan…' : 'Download Kartu ID'}
@@ -159,9 +159,9 @@ function MobileKartuIdPage() {
         {status && (
           <p
             role="status"
-            className="rounded-2xl bg-[#EEF0FC] text-[#323D8F] border border-[#323D8F]/20 px-3.5 py-3 font-body-sm text-body-sm flex items-start gap-2 leading-snug"
+            className="rounded-2xl bg-[#EEF0FC] text-primary border border-primary/20 px-3.5 py-3 font-body-sm text-body-sm flex items-start gap-2 leading-snug"
           >
-            <Icon name="info" className="text-[16px] mt-0.5 shrink-0 text-[#323D8F]" />
+            <Icon name="info" className="text-[16px] mt-0.5 shrink-0 text-primary" />
             <span>{status}</span>
           </p>
         )}
@@ -170,9 +170,9 @@ function MobileKartuIdPage() {
         <button
           type="button"
           onClick={() => navigate('/mobile/qr')}
-          className="sp-card sp-btn p-4 flex items-center gap-3 text-left border border-[#E0E6F2] rounded-2xl bg-white shadow-xs hover:border-[#323D8F]/30 active:scale-[0.99] transition-all cursor-pointer"
+          className="sp-card sp-btn p-4 flex items-center gap-3 text-left border border-[#E0E6F2] rounded-2xl bg-white shadow-xs hover:border-primary/30 active:scale-[0.99] transition-all cursor-pointer"
         >
-          <span className="w-11 h-11 rounded-xl bg-[#EEF0FC] text-[#323D8F] flex items-center justify-center shrink-0">
+          <span className="w-11 h-11 rounded-xl bg-[#EEF0FC] text-primary flex items-center justify-center shrink-0">
             <Icon name="qr_code_scanner" className="text-[22px]" />
           </span>
           <span className="flex flex-col min-w-0 flex-1 gap-0.5">

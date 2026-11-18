@@ -66,11 +66,11 @@ function MobileQrPage() {
               type="button"
               onClick={() => navigate(-1)}
               aria-label="Kembali"
-              className="w-10 h-10 rounded-xl bg-white border border-[#E0E6F2] text-[#323D8F] flex items-center justify-center shrink-0 shadow-xs active:scale-95 transition-all"
+              className="w-10 h-10 rounded-xl bg-white border border-[#E0E6F2] text-primary flex items-center justify-center shrink-0 shadow-xs active:scale-95 transition-all"
             >
               <Icon name="arrow_back" className="text-[20px]" />
             </button>
-            <StaffAvatar staff={staff} size="w-12 h-12" textClass="font-headline-sm text-headline-sm" ring="ring-2 ring-[#323D8F]/20" />
+            <StaffAvatar staff={staff} size="w-12 h-12" textClass="font-headline-sm text-headline-sm" ring="ring-2 ring-primary/20" />
             <div className="flex flex-col min-w-0">
               <span className="font-label-sm text-label-sm text-[#77819A]">QR Presensi</span>
               <h1 className="font-headline-sm text-headline-sm text-[#20243A] font-bold truncate">
@@ -86,7 +86,7 @@ function MobileQrPage() {
         <section className="sp-card p-5 flex flex-col items-center gap-4 bg-white border border-[#E0E6F2] rounded-2xl shadow-xs">
           {/* QR sebesar mungkin supaya mudah dipindai dari layar. */}
           <div className="w-full max-w-[280px] aspect-square rounded-2xl bg-white border-2 border-[#EEF0FC] p-4 shadow-sm flex items-center justify-center">
-            <QRCodeSvg value={employeeQrPayload(staff)} className="h-full w-full text-[#323D8F]" title="QR presensi pegawai" />
+            <QRCodeSvg value={employeeQrPayload(staff)} className="h-full w-full text-primary" title="QR presensi pegawai" />
           </div>
 
           <div className="text-center flex flex-col gap-1">
@@ -126,7 +126,7 @@ function MobileQrPage() {
         {barcode && (
           <section className="sp-card p-4 flex flex-col items-center gap-2.5 bg-white border border-[#E0E6F2] rounded-2xl shadow-xs">
             <span className="font-label-sm text-label-sm text-[#77819A]">Barcode (cadangan pemindaian 1D)</span>
-            <div className="w-full max-w-[240px] text-[#323D8F]">
+            <div className="w-full max-w-[240px] text-primary">
               <BarcodeSvg value={barcode} className="h-[56px] w-full" />
             </div>
             <span className="font-mono text-body-sm text-body-sm text-[#20243A] font-bold tracking-widest">{barcode}</span>
@@ -136,9 +136,9 @@ function MobileQrPage() {
         <button
           type="button"
           onClick={() => navigate('/mobile/kartu-id')}
-          className="sp-card sp-btn p-4 flex items-center gap-3 text-left bg-white border border-[#E0E6F2] rounded-2xl shadow-xs hover:border-[#323D8F]/30 active:scale-[0.99] transition-all cursor-pointer"
+          className="sp-card sp-btn p-4 flex items-center gap-3 text-left bg-white border border-[#E0E6F2] rounded-2xl shadow-xs hover:border-primary/30 active:scale-[0.99] transition-all cursor-pointer"
         >
-          <span className="w-11 h-11 rounded-xl bg-[#EEF0FC] text-[#323D8F] flex items-center justify-center shrink-0">
+          <span className="w-11 h-11 rounded-xl bg-[#EEF0FC] text-primary flex items-center justify-center shrink-0">
             <Icon name="contact_page" className="text-[22px]" />
           </span>
           <span className="flex flex-col min-w-0 flex-1 gap-0.5">
@@ -162,7 +162,7 @@ function MobileQrPage() {
 function Penggunaan({ ikon, judul, detail }) {
   return (
     <div className="flex items-start gap-2.5">
-      <span className="w-9 h-9 rounded-xl bg-[#EEF0FC] text-[#323D8F] flex items-center justify-center shrink-0">
+      <span className="w-9 h-9 rounded-xl bg-[#EEF0FC] text-primary flex items-center justify-center shrink-0">
         <Icon name={ikon} className="text-[18px]" />
       </span>
       <span className="flex flex-col min-w-0 gap-0.5">
