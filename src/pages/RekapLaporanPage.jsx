@@ -127,8 +127,8 @@ function exportPresensiToExcel(data, unitLabel, periodLabel, yayasanInfo = null,
       const petugas = s.petugasPresensi || { nama: '', jabatan: 'Petugas Presensi' }
       return [
         emptyRow,
-        ['', ...Array(pad - 1).fill(''), `Padang / Jakarta, ${printDate}`],
-        ['Mengetahui,', ...Array(pad).fill(''), 'Diperiksa oleh,'],
+        ['', ...Array(pad - 1).fill(''), `Pariaman, ${printDate}`],
+        ['Mengetahui,', ...Array(pad).fill(''), 'Dikerjakan oleh,'],
         [kepsek.jabatan || 'Kepala Sekolah', ...Array(pad).fill(''), petugas.jabatan || 'Petugas Presensi'],
         emptyRow,
         emptyRow,
@@ -779,7 +779,7 @@ function drawFooterSignature(doc, unitLabel) {
   doc.setFontSize(10)
   doc.setFont('helvetica', 'normal')
   doc.setTextColor(80)
-  doc.text(`Padang / Jakarta, ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}`, pageWidth - 15, y, { align: 'right' })
+  doc.text(`Pariaman, ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}`, pageWidth - 15, y, { align: 'right' })
 
   // Mengetahui dan Disiapkan
   y += 14
@@ -811,7 +811,7 @@ function drawFooterSignature(doc, unitLabel) {
 }
 
 function exportPresensiToPDF(data, unitLabel, periodLabel, yayasanInfo = null, signatory = null, options = {}) {
-  const doc = new jsPDF('landscape', 'mm', 'a4')
+  const doc = new jsPDF('portrait', 'mm', 'a4')
   const pageWidth = doc.internal.pageSize.width
   const centerX = pageWidth / 2
   
@@ -839,7 +839,7 @@ function exportPresensiToPDF(data, unitLabel, periodLabel, yayasanInfo = null, s
   
   // Info Laporan Box
   const infoBoxY = y
-  const infoBoxHeight = 22
+  const infoBoxHeight = 24
   doc.setDrawColor(203, 213, 225)
   doc.setFillColor(248, 250, 252)
   doc.roundedRect(15, infoBoxY, pageWidth - 30, infoBoxHeight, 2, 2, 'FD')
@@ -862,22 +862,22 @@ function exportPresensiToPDF(data, unitLabel, periodLabel, yayasanInfo = null, s
   doc.text('Jenis Laporan:', 20, infoBoxY + 12)
   
   doc.setFont('helvetica', 'normal')
-  doc.text(unitDisplay, 48, infoBoxY + 6)
-  doc.text(`Rekap Presensi (${periodType})`, 48, infoBoxY + 12)
+  doc.text(unitDisplay, 55, infoBoxY + 6)
+  doc.text(`Rekap Presensi (${periodType})`, 55, infoBoxY + 12)
   doc.setFontSize(7.5)
-  doc.text(doc.splitTextToSize(ringkasanJamKerja, 115), 48, infoBoxY + 17)
+  doc.text(doc.splitTextToSize(ringkasanJamKerja, 95), 55, infoBoxY + 18)
   
   // Kolom kanan info box
   doc.setFontSize(8)
   doc.setFont('helvetica', 'bold')
-  doc.text('Periode Laporan:', pageWidth - 90, infoBoxY + 6)
-  doc.text('Tanggal Cetak:', pageWidth - 90, infoBoxY + 12)
-  doc.text('Total Pegawai:', pageWidth - 90, infoBoxY + 18)
+  doc.text('Periode Laporan:', pageWidth - 75, infoBoxY + 6)
+  doc.text('Tanggal Cetak:', pageWidth - 75, infoBoxY + 12)
+  doc.text('Total Pegawai:', pageWidth - 75, infoBoxY + 18)
   
   doc.setFont('helvetica', 'normal')
-  doc.text(periodDisplay, pageWidth - 20, infoBoxY + 6, { align: 'right' })
-  doc.text(printDate, pageWidth - 20, infoBoxY + 12, { align: 'right' })
-  doc.text(`${data.length} Orang`, pageWidth - 20, infoBoxY + 18, { align: 'right' })
+  doc.text(periodDisplay, pageWidth - 15, infoBoxY + 6, { align: 'right' })
+  doc.text(printDate, pageWidth - 15, infoBoxY + 12, { align: 'right' })
+  doc.text(`${data.length} Orang`, pageWidth - 15, infoBoxY + 18, { align: 'right' })
   
   y = infoBoxY + infoBoxHeight + 6
   
@@ -1060,7 +1060,7 @@ function exportPresensiToPDF(data, unitLabel, periodLabel, yayasanInfo = null, s
   const totalPages = doc.getNumberOfPages()
   doc.setPage(totalPages)
   const pageHeight = doc.internal.pageSize.height
-  const footerY = pageHeight - 55
+  const footerY = pageHeight - 60
   drawFooterSignatureAt(doc, unitLabel, footerY, signatory, 'presensi')
   
   const fileName = `Rekap_Presensi_${unitLabel.replace(/\s+/g, '_')}_${periodLabel}.pdf`
@@ -1071,89 +1071,71 @@ function exportPresensiToPDF(data, unitLabel, periodLabel, yayasanInfo = null, s
 function drawFooterSignatureAt(doc, unitLabel, startY, signatory = null, reportType = 'presensi') {
   const pageWidth = doc.internal.pageSize.width
   let y = startY
-  
-  // Garis pemisah
-  doc.setDrawColor(180)
-  doc.setLineWidth(0.3)
-  doc.line(15, y, pageWidth - 15, y)
-  y += 10
-  
-  // Tempat, tanggal
-  doc.setFontSize(10)
-  doc.setFont('helvetica', 'normal')
-  doc.setTextColor(80)
-  doc.text(`Jakarta, ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}`, pageWidth - 15, y, { align: 'right' })
-  
+
   if (reportType === 'presensi') {
     // ===== REKAP PRESENSI =====
     // Mengetahui: Kepala Sekolah
-    // Diperiksa oleh: Petugas Presensi
+    // Dikerjakan oleh: Petugas Presensi
     const kepalaSekolah = signatory?.kepalaSekolah || { nama: '', jabatan: 'Kepala Sekolah' }
     const petugasPresensi = signatory?.petugasPresensi || { nama: '', jabatan: 'Petugas Presensi' }
-    
-    // Mengetahui dan Diperiksa
+
+    // Tempat, tanggal (di atas kolom tanda tangan petugas presensi)
+    doc.setFontSize(10)
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(80)
+    doc.text(`Pariaman, ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}`, pageWidth - 15, y, { align: 'right' })
+
+    // Mengetahui dan Dikerjakan oleh
     y += 12
     doc.setTextColor(0)
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(10)
-    doc.text('Mengetahui,', pageWidth - 15, y, { align: 'right' })
-    doc.text('Diperiksa oleh,', 15, y)
-    
-    // Ruang tanda tangan
-    y += 22
-    doc.setFont('helvetica', 'normal')
-    doc.setFontSize(10)
-    doc.text('_________________________', pageWidth - 15, y, { align: 'right' })
-    doc.text('_________________________', 15, y)
-    
+    doc.text('Mengetahui,', 15, y)
+    doc.text('Dikerjakan oleh,', pageWidth - 15, y, { align: 'right' })
+
+    // Ruang tanda tangan (tanpa garis)
+    y += 28
+
     // Nama jabatan
-    y += 6
     doc.setFont('helvetica', 'bold')
-    doc.text(kepalaSekolah.jabatan || 'Kepala Sekolah', pageWidth - 15, y, { align: 'right' })
-    doc.text(petugasPresensi.jabatan || 'Petugas Presensi', 15, y)
-    
+    doc.text(kepalaSekolah.jabatan || 'Kepala Sekolah', 15, y)
+    doc.text(petugasPresensi.jabatan || 'Petugas Presensi', pageWidth - 15, y, { align: 'right' })
+
     // Nama (if available)
     y += 10
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(9)
     doc.setTextColor(120)
-    doc.text(kepalaSekolah.nama ? `(${kepalaSekolah.nama})` : '(________________________)', pageWidth - 15, y, { align: 'right' })
-    doc.text(petugasPresensi.nama ? `(${petugasPresensi.nama})` : '(________________________)', 15, y)
+    doc.text(kepalaSekolah.nama ? `(${kepalaSekolah.nama})` : '(________________________)', 15, y)
+    doc.text(petugasPresensi.nama ? `(${petugasPresensi.nama})` : '(________________________)', pageWidth - 15, y, { align: 'right' })
   } else {
     // ===== REKAP CUTI/IZIN =====
-    // Mengetahui: Ketua Yayasan
-    // Disiapkan oleh: Admin/TU (Kepala TU atau Operator)
     const ketuaYayasan = signatory?.ketuaYayasan || { nama: '', jabatan: 'Ketua Yayasan' }
     const adminTU = signatory?.adminTU?.kepalaTU || signatory?.adminTU?.operatorSistem || { nama: '', jabatan: 'Admin TU' }
-    
-    // Mengetahui dan Disiapkan
+
+    doc.setFontSize(10)
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(80)
+    doc.text(`Pariaman, ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}`, pageWidth - 15, y, { align: 'right' })
+
     y += 12
     doc.setTextColor(0)
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(10)
-    doc.text('Mengetahui,', pageWidth - 15, y, { align: 'right' })
-    doc.text('Disiapkan oleh,', 15, y)
-    
-    // Ruang tanda tangan
-    y += 22
-    doc.setFont('helvetica', 'normal')
-    doc.setFontSize(10)
-    doc.text('_________________________', pageWidth - 15, y, { align: 'right' })
-    doc.text('_________________________', 15, y)
-    
-    // Nama jabatan
-    y += 6
+    doc.text('Mengetahui,', 15, y)
+    doc.text('Disiapkan oleh,', pageWidth - 15, y, { align: 'right' })
+
+    y += 28
     doc.setFont('helvetica', 'bold')
-    doc.text(ketuaYayasan.jabatan || 'Ketua Yayasan', pageWidth - 15, y, { align: 'right' })
-    doc.text(adminTU.jabatan || 'Admin TU', 15, y)
-    
-    // Nama (if available)
+    doc.text(ketuaYayasan.jabatan || 'Ketua Yayasan', 15, y)
+    doc.text(adminTU.jabatan || 'Admin TU', pageWidth - 15, y, { align: 'right' })
+
     y += 10
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(9)
     doc.setTextColor(120)
-    doc.text(ketuaYayasan.nama ? `(${ketuaYayasan.nama})` : '(________________________)', pageWidth - 15, y, { align: 'right' })
-    doc.text(adminTU.nama ? `(${adminTU.nama})` : '(________________________)', 15, y)
+    doc.text(ketuaYayasan.nama ? `(${ketuaYayasan.nama})` : '(________________________)', 15, y)
+    doc.text(adminTU.nama ? `(${adminTU.nama})` : '(________________________)', pageWidth - 15, y, { align: 'right' })
   }
 }
 
@@ -2230,18 +2212,17 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
           const kepalaSekolah = signatory.kepalaSekolah || { nama: '', jabatan: 'Kepala Sekolah' }
           const petugasPresensi = signatory.petugasPresensi || { nama: '', jabatan: 'Petugas Presensi' }
           footerHtml = `
+            <div style="text-align: right; margin: 16px 0 24px; font-size: 10.5px;">Pariaman, ${dateStr}</div>
             <div class="footer">
               <div>
-                <div class="sign-line"></div>
                 <div class="footer-title">Mengetahui,</div>
-                <div>${kepalaSekolah.jabatan}</div>
-                <div style="margin-top: 10px; color: #888;">${kepalaSekolah.nama ? `(${kepalaSekolah.nama})` : '(________________________)'}</div>
+                <div style="margin-top: 60px;">${kepalaSekolah.jabatan}</div>
+                <div style="margin-top: 4px; color: #888;">${kepalaSekolah.nama ? `(${kepalaSekolah.nama})` : '(________________________)'}</div>
               </div>
               <div>
-                <div class="sign-line"></div>
-                <div class="footer-title">Diperiksa oleh,</div>
-                <div>${petugasPresensi.jabatan}</div>
-                <div style="margin-top: 10px; color: #888;">${petugasPresensi.nama ? `(${petugasPresensi.nama})` : '(________________________)'}</div>
+                <div class="footer-title">Dikerjakan oleh,</div>
+                <div style="margin-top: 60px;">${petugasPresensi.jabatan}</div>
+                <div style="margin-top: 4px; color: #888;">${petugasPresensi.nama ? `(${petugasPresensi.nama})` : '(________________________)'}</div>
               </div>
             </div>
           `
@@ -2284,13 +2265,11 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
           footerHtml = `
             <div class="footer">
               <div>
-                <div class="sign-line"></div>
                 <div class="footer-title">Mengetahui,</div>
                 <div>${ketuaYayasan.jabatan}</div>
                 <div style="margin-top: 10px; color: #888;">${ketuaYayasan.nama ? `(${ketuaYayasan.nama})` : '(________________________)'}</div>
               </div>
               <div>
-                <div class="sign-line"></div>
                 <div class="footer-title">Disiapkan oleh,</div>
                 <div>${adminTU.jabatan}</div>
                 <div style="margin-top: 10px; color: #888;">${adminTU.nama ? `(${adminTU.nama})` : '(________________________)'}</div>
@@ -2324,13 +2303,12 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
               td:first-child, td:nth-child(2), td:nth-child(3), td:nth-child(4) { text-align: left; padding-left: 8px; }
               .footer { margin-top: 40px; display: flex; justify-content: space-between; font-size: 10.5px; }
               .footer div { text-align: center; width: 45%; }
-              .sign-line { border-top: 1px solid #000; margin: 50px 0 8px; }
-              .footer-title { font-weight: bold; }
+                            .footer-title { font-weight: bold; }
               @media print {
                 body { padding: 0; }
                 .no-print { display: none; }
               }
-              @page { margin: 12mm; size: landscape; }
+              @page { margin: 12mm; size: portrait; }
             </style>
           </head>
           <body>
@@ -2509,18 +2487,17 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
       const kepalaSekolah = signatory.kepalaSekolah || { nama: '', jabatan: 'Kepala Sekolah' }
       const petugasPresensi = signatory.petugasPresensi || { nama: '', jabatan: 'Petugas Presensi' }
       footerHtml = `
+        <div style="text-align: right; margin: 16px 0 24px; font-size: 10.5px;">Pariaman, ${dateStr}</div>
         <div class="footer">
           <div>
-            <div class="sign-line"></div>
             <div class="footer-title">Mengetahui,</div>
-            <div>${kepalaSekolah.jabatan}</div>
-            <div style="margin-top: 10px; color: #888;">${kepalaSekolah.nama ? `(${kepalaSekolah.nama})` : '(________________________)'}</div>
+            <div style="margin-top: 60px;">${kepalaSekolah.jabatan}</div>
+            <div style="margin-top: 4px; color: #888;">${kepalaSekolah.nama ? `(${kepalaSekolah.nama})` : '(________________________)'}</div>
           </div>
           <div>
-            <div class="sign-line"></div>
-            <div class="footer-title">Diperiksa oleh,</div>
-            <div>${petugasPresensi.jabatan}</div>
-            <div style="margin-top: 10px; color: #888;">${petugasPresensi.nama ? `(${petugasPresensi.nama})` : '(________________________)'}</div>
+            <div class="footer-title">Dikerjakan oleh,</div>
+            <div style="margin-top: 60px;">${petugasPresensi.jabatan}</div>
+            <div style="margin-top: 4px; color: #888;">${petugasPresensi.nama ? `(${petugasPresensi.nama})` : '(________________________)'}</div>
           </div>
         </div>
       `
@@ -2563,13 +2540,11 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
       footerHtml = `
         <div class="footer">
           <div>
-            <div class="sign-line"></div>
             <div class="footer-title">Mengetahui,</div>
             <div>${ketuaYayasan.jabatan}</div>
             <div style="margin-top: 10px; color: #888;">${ketuaYayasan.nama ? `(${ketuaYayasan.nama})` : '(________________________)'}</div>
           </div>
           <div>
-            <div class="sign-line"></div>
             <div class="footer-title">Disiapkan oleh,</div>
             <div>${adminTU.jabatan}</div>
             <div style="margin-top: 10px; color: #888;">${adminTU.nama ? `(${adminTU.nama})` : '(________________________)'}</div>
@@ -2603,13 +2578,12 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
           td:first-child, td:nth-child(2), td:nth-child(3), td:nth-child(4) { text-align: left; padding-left: 8px; }
           .footer { margin-top: 40px; display: flex; justify-content: space-between; font-size: 10.5px; }
           .footer div { text-align: center; width: 45%; }
-          .sign-line { border-top: 1px solid #000; margin: 50px 0 8px; }
-          .footer-title { font-weight: bold; }
+                    .footer-title { font-weight: bold; }
           @media print {
             body { padding: 0; }
             .no-print { display: none; }
           }
-          @page { margin: 12mm; size: landscape; }
+          @page { margin: 12mm; size: portrait; }
         </style>
       </head>
       <body>
