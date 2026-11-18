@@ -143,7 +143,7 @@ function exportPresensiToExcel(data, unitLabel, periodLabel, yayasanInfo = null,
         [`Alamat: ${info.alamat} | Telp/WA: ${info.kontak} | Email: ${info.email || 'sekretariat@attinsumbar.sch.id'}`],
         [],
         ['REKAP LAPORAN PRESENSI HARIAN PEGAWAI'],
-        [`Hari & Tanggal: ${data[0]?.hari || 'Hari Ini'}, ${data[0]?.tanggal || printDate} | Jam Kerja Global: ${ringkasanJamKerja}`],
+        [`Hari & Tanggal: ${data[0]?.hari || 'Hari Ini'}, ${data[0]?.tanggal || printDate}`],
         [],
       ]
       
@@ -250,7 +250,7 @@ function exportPresensiToExcel(data, unitLabel, periodLabel, yayasanInfo = null,
         [`Alamat: ${info.alamat} | Telp/WA: ${info.kontak} | Email: ${info.email || 'sekretariat@attinsumbar.sch.id'}`],
         [],
         ['MATRIKS PRESENSI BULANAN PEGAWAI (WAKTU DATANG & PULANG)'],
-        [`Periode: ${periodLabel.replace(/_/g, ' ')} | Jam Kerja Global: ${ringkasanJamKerja}`],
+        [`Periode: ${periodLabel.replace(/_/g, ' ')}`],
         [],
       ]
       
@@ -347,12 +347,12 @@ function exportPresensiToExcel(data, unitLabel, periodLabel, yayasanInfo = null,
         [`Alamat: ${info.alamat} | Telp/WA: ${info.kontak} | Email: ${info.email || 'sekretariat@attinsumbar.sch.id'}`],
         [],
         ['REKAPITULASI LAPORAN PRESENSI BULANAN PEGAWAI'],
-        [`Periode: ${periodLabel.replace(/_/g, ' ')} | Jam Kerja Global: ${ringkasanJamKerja}`],
+        [`Periode: ${periodLabel.replace(/_/g, ' ')}`],
         [],
       ]
       
       const summaryHeader = [
-        'No', 'Nama Pegawai', 'NIY', 'Jabatan / Peran', 'Unit Sekolah', 'Periode Rekap', 'Jam Kerja Global', 'Total Hari Kerja', 'Hadir', 'Tepat Waktu', 'Terlambat', 'Keterlambatan (menit)', 'Izin/Sakit', 'Alpha', 'Persentase Kehadiran', 'Predikat Disiplin'
+        'No', 'Nama Pegawai', 'NIY', 'Jabatan / Peran', 'Unit Sekolah', 'Periode Rekap', 'Total Hari Kerja', 'Hadir', 'Tepat Waktu', 'Terlambat', 'Keterlambatan (menit)', 'Izin/Sakit', 'Alpha', 'Persentase Kehadiran', 'Predikat Disiplin'
       ]
       
       const summaryRows = data.map((row, i) => [
@@ -362,7 +362,6 @@ function exportPresensiToExcel(data, unitLabel, periodLabel, yayasanInfo = null,
         row.role || '-',
         row.unit,
         row.periode,
-        row.jamKerja || ringkasanJamKerja,
         row.totalHariKerja,
         row.hadir,
         row.tepatWaktu,
@@ -388,7 +387,7 @@ function exportPresensiToExcel(data, unitLabel, periodLabel, yayasanInfo = null,
         [`Alamat: ${info.alamat} | Telp/WA: ${info.kontak} | Email: ${info.email || 'sekretariat@attinsumbar.sch.id'}`],
         [],
         ['REKAP LAPORAN PRESENSI MINGGUAN PEGAWAI (WAKTU DATANG & PULANG)'],
-        [`Periode: ${periodLabel.replace(/_/g, ' ')} | Jam Kerja Global: ${ringkasanJamKerja}`],
+        [`Periode: ${periodLabel.replace(/_/g, ' ')}`],
         [],
       ]
       
@@ -442,7 +441,7 @@ function exportPresensiToExcel(data, unitLabel, periodLabel, yayasanInfo = null,
         [`Alamat: ${info.alamat} | Telp/WA: ${info.kontak} | Email: ${info.email || 'sekretariat@attinsumbar.sch.id'}`],
         [],
         ['REKAP LAPORAN PRESENSI TAHUNAN PEGAWAI'],
-        [`Periode: ${periodLabel.replace(/_/g, ' ')} | Jam Kerja Global: ${ringkasanJamKerja}`],
+        [`Periode: ${periodLabel.replace(/_/g, ' ')}`],
         [],
       ]
       
@@ -861,7 +860,6 @@ function exportPresensiToPDF(data, unitLabel, periodLabel, yayasanInfo = null, s
   doc.setTextColor(30, 41, 59)
   doc.text('Unit Laporan:', 20, infoBoxY + 6)
   doc.text('Jenis Laporan:', 20, infoBoxY + 12)
-  doc.text('Jam Kerja Global:', 20, infoBoxY + 18)
   
   doc.setFont('helvetica', 'normal')
   doc.text(unitDisplay, 48, infoBoxY + 6)
@@ -1648,7 +1646,7 @@ function RekapLaporanPage() {
       // Petugas Presensi Yayasan
       petugasPresensiYayasan: {
         nama: penandatangan.petugasPresensi?.yayasan?.nama || '',
-        jabatan: penandatangan.petugasPresensi?.yayasan?.jabatan || 'Petugas Presensi Yayasan',
+        jabatan: 'Tata Usaha',
       },
       // Admin/TU
       adminTU: {
@@ -2348,7 +2346,6 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
             <div class="info-row"><span class="info-label">Unit Laporan:</span> <span>${unitDisplay}</span></div>
             <div class="info-row"><span class="info-label">Periode Laporan:</span> <span>${periodDisplay}</span></div>
             <div class="info-row"><span class="info-label">Tanggal Cetak:</span> <span>${dateStr}</span></div>
-            <div class="info-row"><span class="info-label">Jam Kerja Global:</span> <span>${ringkasanJamKerja}</span></div>
             ${tableHtml}
             ${footerHtml}
             <script>
@@ -2628,7 +2625,6 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
         <div class="info-row"><span class="info-label">Unit Laporan:</span> <span>${unitDisplay}</span></div>
         <div class="info-row"><span class="info-label">Periode Laporan:</span> <span>${periodDisplay}</span></div>
         <div class="info-row"><span class="info-label">Tanggal Cetak:</span> <span>${dateStr}</span></div>
-        <div class="info-row"><span class="info-label">Jam Kerja Global:</span> <span>${ringkasanJamKerja}</span></div>
         ${tableHtml}
         ${footerHtml}
         <script>
@@ -2723,6 +2719,21 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
                       <input type="radio" name="format" value="print" checked={reportSettings.format === 'print'} onChange={(e) => setReportSettings(prev => ({...prev, format: e.target.value}))} className="sr-only" />
                       <span className="material-symbols-outlined text-[20px] text-primary">print</span>
                       <span className="text-[11px] font-medium leading-tight">Cetak (Print)</span>
+                    </label>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-muted-foreground mb-1.5">Ukuran Kertas</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <label className={`flex flex-col items-center justify-center gap-1 cursor-pointer p-2.5 rounded-xl border text-center transition-all ${reportSettings.paperSize === 'a4' ? 'bg-primary/10 border-primary text-primary font-bold shadow-2xs' : 'border-border bg-muted/30 hover:bg-muted text-foreground'}`}>
+                      <input type="radio" name="paperSize" value="a4" checked={reportSettings.paperSize === 'a4'} onChange={(e) => setReportSettings(prev => ({...prev, paperSize: e.target.value}))} className="sr-only" />
+                      <span className="material-symbols-outlined text-[20px] text-primary">description</span>
+                      <span className="text-[11px] font-medium leading-tight">A4</span>
+                    </label>
+                    <label className={`flex flex-col items-center justify-center gap-1 cursor-pointer p-2.5 rounded-xl border text-center transition-all ${reportSettings.paperSize === 'f4' ? 'bg-primary/10 border-primary text-primary font-bold shadow-2xs' : 'border-border bg-muted/30 hover:bg-muted text-foreground'}`}>
+                      <input type="radio" name="paperSize" value="f4" checked={reportSettings.paperSize === 'f4'} onChange={(e) => setReportSettings(prev => ({...prev, paperSize: e.target.value}))} className="sr-only" />
+                      <span className="material-symbols-outlined text-[20px] text-primary">description</span>
+                      <span className="text-[11px] font-medium leading-tight">F4 (Folio)</span>
                     </label>
                   </div>
                 </div>

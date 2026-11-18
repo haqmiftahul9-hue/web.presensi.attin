@@ -25,6 +25,8 @@ function RekapLaporanPage() {
   const [activePeriod, setActivePeriod] = useState('Bulanan')
   const [selectedUnit, setSelectedUnit] = useState('all')
   const [search, setSearch] = useState('')
+  const [mainCustomStart, setMainCustomStart] = useState('')
+  const [mainCustomEnd, setMainCustomEnd] = useState('')
 
   const periods = ['Harian', 'Mingguan', 'Bulanan', 'Tahunan']
   const unitOptions = ['all', ...state.units.map(u => u.id)]
@@ -44,6 +46,10 @@ function RekapLaporanPage() {
   const unitLabel = selectedUnit === 'all' ? `Semua Unit (${state.units.length} Unit)` : selectedUnitObj?.nama || 'Semua Unit'
 
   const getPeriodLabel = (period) => {
+    if (period === 'custom') {
+      if (mainCustomStart && mainCustomEnd) return 'Custom Tanggal'
+      return 'Custom Tanggal'
+    }
     switch (period) {
       case 'Harian': return 'Hari Ini'
       case 'Mingguan': return 'Minggu Ini'
@@ -83,25 +89,40 @@ function RekapLaporanPage() {
         </div>
 
         {/* Filter & Action Card */}
-        <div className="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex flex-col xl:flex-row xl:items-center xl:justify-between gap-space-md">
-          <div className="flex flex-wrap items-center gap-space-sm">
-            {/* Segmented Tabs */}
-            <div className="inline-flex p-1 bg-surface-container rounded-lg gap-1">
-              {periods.map((period) => (
-                <button
-                  key={period}
-                  onClick={() => setActivePeriod(period)}
-                  className={`px-3.5 py-1.5 rounded-md font-label-md text-label-md transition-colors cursor-pointer ${
-                    activePeriod === period
-                      ? 'bg-primary text-on-primary shadow-sm'
-                      : 'text-on-surface-variant hover:text-on-surface'
-                  }`}
-                  type="button"
-                >
-                  {period}
-                </button>
-              ))}
-            </div>
+           <div className="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex flex-col gap-space-md">
+             <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-space-md">
+               <div className="flex flex-wrap items-center gap-space-sm">
+                 {/* Segmented Tabs */}
+                 <div className="overflow-x-auto pb-1 flex-shrink-0 max-w-full">
+                   <div className="inline-flex p-1 bg-surface-container rounded-lg gap-1 whitespace-nowrap">
+                     {periods.map((period) => (
+                       <button
+                         key={period}
+                         onClick={() => setActivePeriod(period)}
+                         className={`px-3.5 py-1.5 rounded-md font-label-md text-label-md transition-colors cursor-pointer whitespace-nowrap ${
+                           activePeriod === period
+                             ? 'bg-primary text-on-primary shadow-sm'
+                             : 'text-on-surface-variant hover:text-on-surface'
+                         }`}
+                         type="button"
+                       >
+                         {period}
+                       </button>
+                     ))}
+                     <button
+                       key="custom"
+                       onClick={() => setActivePeriod('custom')}
+                       className={`px-3.5 py-1.5 rounded-md font-label-md text-label-md transition-colors cursor-pointer whitespace-nowrap ${
+                         activePeriod === 'custom'
+                           ? 'bg-primary text-on-primary shadow-sm'
+                           : 'text-on-surface-variant hover:text-on-surface'
+                       }`}
+                       type="button"
+                     >
+                       Custom Tanggal
+                     </button>
+                   </div>
+                 </div>
             {/* Date Range */}
             <div className="relative flex items-center bg-surface-container rounded-lg px-3 py-2 cursor-pointer hover:bg-surface-container-low transition-colors">
               <span className="material-symbols-outlined text-[18px] text-outline mr-2">calendar_today</span>
@@ -130,6 +151,13 @@ function RekapLaporanPage() {
               <span className="hidden sm:inline">Cetak</span>
             </button>
           </div>
+          {activePeriod === 'custom' && (
+            <div className="flex items-center gap-2 flex-wrap">
+              <input type="date" value={mainCustomStart} onChange={(e) => setMainCustomStart(e.target.value)} className="h-8 px-2 bg-surface-container rounded-lg text-xs" />
+              <span className="text-xs text-on-surface-variant">s.d.</span>
+              <input type="date" value={mainCustomEnd} onChange={(e) => setMainCustomEnd(e.target.value)} className="h-8 px-2 bg-surface-container rounded-lg text-xs" />
+            </div>
+          )}
         </div>
 
         {/* Chart Card */}
