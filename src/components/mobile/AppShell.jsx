@@ -2,6 +2,7 @@ import Icon from '../Icon.jsx'
 import { NavLink } from 'react-router-dom'
 import StaffAvatar from './StaffAvatar.jsx'
 import { ThemeToggle } from '../ui/ThemeToggle.jsx'
+import { useSimPres } from '../../store/simPresStore.jsx'
 
 /**
  * Elemen visual bersama untuk aplikasi mobile Guru/Pegawai.
@@ -48,6 +49,9 @@ export function AppBackground({ children }) {
  * selalu aman tanpa perlu varian lain.
  */
 export function GlassTopBar({ staff }) {
+  const { state } = useSimPres()
+  const logo = state?.settings?.logo || '/icons/logo-simpeg.png'
+  const appName = state?.settings?.namaAplikasi || 'SIMPEG'
   return (
     <div className="h-14 px-3.5 flex items-center justify-between gap-2 sp-glass-bar">
       <NavLink
@@ -56,7 +60,7 @@ export function GlassTopBar({ staff }) {
         aria-label="SIMPEG Kepegawaian"
       >
         <span className="w-9 h-9 rounded-xl bg-white p-1.5 shadow-2xs border border-border/40 flex items-center justify-center shrink-0">
-          <img src="/icons/logo-simpeg.png" alt="SIMPEG" className="w-full h-full object-contain" />
+          <img src={logo} alt={appName} className="w-full h-full object-contain" />
         </span>
         <span className="flex flex-col min-w-0">
           <span className="font-headline-sm text-headline-sm text-[#20243a] dark:text-white font-bold tracking-tight leading-tight truncate">

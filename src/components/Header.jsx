@@ -70,24 +70,20 @@ function Header({ onBukaMenu } = {}) {
 
         <div className="h-5 w-px bg-border mx-1 hidden sm:block" />
 
-        <div className="flex items-center gap-2.5 px-2.5 py-1 rounded-lg border border-border bg-muted/40 hover:bg-muted/70 transition-colors">
-          {settings.logo ? (
+        <div className="flex items-center gap-2.5 px-2.5 py-1 rounded-lg border border-border bg-card/80 hover:bg-card transition-colors">
+          <div className="w-7 h-7 rounded-lg bg-white p-1 shadow-2xs flex items-center justify-center border border-border/40 shrink-0">
             <img
-              src={settings.logo}
-              alt={settings.namaAplikasi || 'SIMPEG'}
-              className="w-7 h-7 rounded-md object-cover border border-border shadow-2xs"
+              src={settings?.logo || '/icons/logo-simpeg.png'}
+              alt={settings?.namaAplikasi || 'SIMPEG'}
+              className="w-full h-full object-contain"
             />
-          ) : (
-            <div className="w-7 h-7 rounded-lg bg-white p-1 shadow-2xs flex items-center justify-center border border-border/40 shrink-0">
-              <img src="/icons/logo-simpeg.png" alt="SIMPEG" className="w-full h-full object-contain" />
-            </div>
-          )}
+          </div>
           <div className="hidden lg:flex flex-col text-left">
             <span className="text-xs font-semibold text-foreground leading-tight">
-              {settings.namaAplikasi || 'SIMPEG'}
+              {settings?.namaAplikasi || 'SIMPEG'}
             </span>
             <span className="text-[11px] font-medium text-muted-foreground leading-tight">
-              {selectIsAllUnits(state) ? (settings.namaYayasan || 'Yayasan Pendidikan') : selectActiveUnitLabel(state)}
+              {selectIsAllUnits(state) ? (settings?.namaYayasan || 'Yayasan Pendidikan') : selectActiveUnitLabel(state)}
             </span>
           </div>
         </div>

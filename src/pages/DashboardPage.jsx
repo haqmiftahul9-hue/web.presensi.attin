@@ -40,11 +40,11 @@ function DashboardPage() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-1 border-b border-border">
           <div className="flex items-center gap-3">
             <div className="w-11 h-11 rounded-xl bg-white p-1.5 border border-border shadow-2xs flex items-center justify-center shrink-0">
-              {settings.logo ? (
-                <img src={settings.logo} alt={settings.namaAplikasi || 'SIMPEG'} className="w-full h-full rounded-lg object-cover" />
-              ) : (
-                <img src="/icons/logo-simpeg.png" alt="SIMPEG" className="w-full h-full object-contain" />
-              )}
+              <img
+                src={settings?.logo || '/icons/logo-simpeg.png'}
+                alt={settings?.namaAplikasi || 'SIMPEG'}
+                className="w-full h-full object-contain"
+              />
             </div>
             <div className="flex flex-col">
               <div className="flex items-center gap-2">
