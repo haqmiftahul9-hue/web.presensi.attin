@@ -223,8 +223,13 @@ export function hitungDurasiHari(mulai, selesai) {
   const a = new Date(`${mulai}T00:00:00`)
   const b = new Date(`${akhir}T00:00:00`)
   if (Number.isNaN(a.getTime()) || Number.isNaN(b.getTime())) return 1
-  const selisih = Math.round((b - a) / 86400000) + 1
-  return Math.max(1, selisih)
+  let jumlah = 0
+  const cur = new Date(a)
+  while (cur <= b) {
+    if (cur.getDay() !== 0) jumlah += 1
+    cur.setDate(cur.getDate() + 1)
+  }
+  return Math.max(1, jumlah)
 }
 
 /** "1 Hari" / "3 Hari" — format yang sudah dipakai di seluruh tabel. */
@@ -245,6 +250,8 @@ export function buildPengajuan({ id, staffId, jenis, mulai, selesai, alasan, lam
     selesai: selesai || mulai || null,
     periode: formatPeriode(mulai, selesai || mulai),
     durasi: formatDurasi(mulai, selesai || mulai),
+    durasiHari: hitungDurasiHari(mulai, selesai || mulai),
+    durasi_hari: hitungDurasiHari(mulai, selesai || mulai),
     alasan: (alasan || '').trim() || null,
     keterangan: (keterangan || alasan || '').trim() || '',
     lampiran: lampiran || '',

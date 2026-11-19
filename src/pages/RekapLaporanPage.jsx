@@ -3074,7 +3074,7 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
 
           <div className="overflow-hidden">
             <div className="sp-table-wrap">
-              <table className="w-full text-left text-xs">
+              <table className="w-full text-left text-xs min-w-[960px]">
                 <thead>
                   <tr className="bg-muted border-b border-border text-[11px] font-bold text-muted-foreground uppercase tracking-wider leading-tight">
                     <th className="py-3 px-3.5 text-center" scope="col" style={{ width: '40px' }}>No</th>
@@ -3334,7 +3334,7 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
 
           <div className="overflow-hidden">
             <div className="sp-table-wrap">
-              <table className="w-full text-left text-xs">
+              <table className="w-full text-left text-xs min-w-[960px]">
                 <thead>
                   <tr className="bg-muted border-b border-border text-[11px] font-bold text-muted-foreground uppercase tracking-wider leading-tight">
                     <th className="py-3 px-3.5 text-center" scope="col" style={{ width: '40px' }}>No</th>
