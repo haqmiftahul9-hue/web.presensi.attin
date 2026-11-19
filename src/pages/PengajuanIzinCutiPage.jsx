@@ -9,6 +9,7 @@ import LeaveDetailModal from '../components/LeaveDetailModal.jsx'
 import {
   JENIS_UTAMA, SEMUA_JENIS, kelompokIzinCuti,
   WARNA_STATUS_PORTAL, WARNA_TITIK_STATUS, hitungSisaKuota,
+  isLeavePending, isLeaveApproved, isLeaveRejected, ikonJenis, LABEL_STATUS_PANJANG,
 } from '../data/jenisIzinCuti.js'
 import { rentangPengajuan } from '../data/presensiMobile.js'
 
@@ -19,10 +20,7 @@ const statusTabs = [
   { id: 'ditolak', label: 'Ditolak', count: 0, color: 'bg-red-100 text-red-800' },
 ]
 
-// Pilihan jenis, warna badge, dan kelas avatar SEMUA membaca daftar jenis
-// terpusat (data/jenisIzinCuti.js), bukan daftar lokal yang bisa berbeda dari
-// form mobile. Karena itu pengajuan "Cuti Melahirkan" yang dibuat guru langsung
-// tampil dengan warna dan filter yang benar di halaman ini.
+// Pilihan jenis terpusat
 const jenisOptions = [
   'Semua Jenis Izin/Cuti',
   'Semua Cuti',
@@ -33,14 +31,6 @@ const jenisOptions = [
   'Tugas Luar',
 ]
 
-const periodeOptions = [
-  'Semua Periode',
-  'Bulan Ini',
-  'Tahun Ini',
-]
-
-// Peta warna status dipakai bersama dengan modul jenis izin/cuti supaya
-// badge "Menunggu / Disetujui / Ditolak" sama di portal dan mobile.
 const statusClassMap = WARNA_STATUS_PORTAL
 const statusDotMap = WARNA_TITIK_STATUS
 const jenisClassMap = Object.fromEntries(SEMUA_JENIS.map((j) => [j.nama, j.warna]))
@@ -52,80 +42,78 @@ function PengajuanIzinCutiPage() {
   const searchTerm = selectSearchTerm(state)
   const [filterStatus, setFilterStatus] = useState('Semua Status')
   const [filterJenis, setFilterJenis] = useState('Semua Jenis Izin/Cuti')
-  const [filterBulan, setFilterBulan] = useState('Sep 2026')
+  const [filterBulan, setFilterBulan] = useState('Semua Periode')
   const [currentPage, setCurrentPage] = useState(1)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [detailLeave, setDetailLeave] = useState(null)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
-  const [confirmRejectId, setConfirmRejectId] = useState(null)
+  
+  // State untuk Approval Modal Superadmin
+  const [approvalModal, setApprovalModal] = useState({
+    isOpen: false,
+    leave: null,
+    action: 'approve', // 'approve' | 'reject'
+    note: '',
+  })
+  const [feedbackAlert, setFeedbackAlert] = useState(null)
 
   const staffList = selectActiveStaff(state)
   const currentUserRole = selectCurrentUserRole(state)
   const currentUser = state.currentUser
   const isSuperadmin = currentUserRole === 'Superadmin'
-  const canApproveLeave = isSuperadmin || hasPermission(state, currentUserRole, 'pengajuanIzinCuti', 'edit')
+  const isKepsek = currentUserRole === 'Kepala Sekolah'
+  const canApproveLeave = isSuperadmin || isKepsek || hasPermission(state, currentUserRole, 'pengajuanIzinCuti', 'edit')
   const canSwitchUnit = isSuperadmin
   const userUnitId = selectActiveUnitId(state)
-  // Unit terpilih (store utama) menggantikan filter unit lokal.
   const selectedUnitObj = state.units.find(u => u.id === userUnitId)
   const filterUnit = isSuperadmin
     ? (selectedUnitObj ? selectedUnitObj.nama : 'Semua Unit')
     : (selectedUnitObj ? selectedUnitObj.nama : 'Semua Unit')
 
-  // Ambil konfigurasi penandatangan dari global settings
+  // Helper penandatangan
   const settings = state.settings
   const penandatangan = settings.penandatangan || {}
   
-  // Helper untuk mendapatkan Kepala Sekolah per unit
-  const getKepalaSekolah = (unitId) => {
-    return penandatangan.kepalaSekolah?.[unitId] || { nama: '', jabatan: `Kepala ${state.units.find(u => u.id === unitId)?.nama || 'Sekolah'}` }
-  }
-  
-  // Helper untuk mendapatkan Admin TU
-  const getAdminTU = () => {
-    return {
-      kepalaTU: penandatangan.adminTU?.kepalaTU || { nama: '', jabatan: 'Kepala Tata Usaha' },
-      operatorSistem: penandatangan.adminTU?.operatorSistem || { nama: '', jabatan: 'Operator Sistem' },
-    }
-  }
-  
-  // Helper untuk mendapatkan Ketua Yayasan
-  const getKetuaYayasan = () => {
-    return penandatangan.kepalaYayasan || { nama: '', jabatan: 'Ketua Yayasan' }
-  }
-
-  // Izin/cuti + identitas pegawai dari satu sumber data (store).
-  // selectLeavesEnriched sudah membatasi data ke unit terpilih, jadi halaman
-  // ini tidak lagi memfilter unit secara manual.
   const allLeaves = selectLeavesEnriched(state)
-  const pendingLeaves = selectPendingLeaves(state)
-  const approvedLeaves = selectApprovedLeaves(state)
-  const rejectedLeaves = selectRejectedLeaves(state)
 
   // 1. Terapkan filter ke allLeaves
   const filtered = allLeaves.filter((l) => {
-    // Unit sudah dibatasi oleh unit terpilih di store.
     // Tab status filter
     if (activeStatusTab !== 'semua') {
-      const statusMap = { menunggu: 'Menunggu', disetujui: 'Disetujui', ditolak: 'Ditolak' }
-      if (l.status !== statusMap[activeStatusTab]) return false
+      if (activeStatusTab === 'menunggu') {
+        if (!isLeavePending(l.status)) return false
+      } else if (activeStatusTab === 'disetujui') {
+        if (!isLeaveApproved(l.status)) return false
+      } else if (activeStatusTab === 'ditolak') {
+        if (!isLeaveRejected(l.status)) return false
+      }
     }
     // Search filter
     if (searchTerm && !l.name?.toLowerCase().includes(searchTerm.toLowerCase()) && !String(l.staffId).includes(searchTerm) && !l.keterangan?.toLowerCase().includes(searchTerm.toLowerCase())) return false
+    
     // Filter Status dropdown
     if (filterStatus !== 'Semua Status') {
-      const statusMap = { 'Menunggu Persetujuan': 'Menunggu', 'Disetujui': 'Disetujui', 'Ditolak': 'Ditolak' }
-      if (l.status !== statusMap[filterStatus]) return false
+      if (filterStatus === 'Menunggu Persetujuan') {
+        if (!isLeavePending(l.status)) return false
+      } else if (filterStatus === 'Menunggu Kepsek (Tahap 1)') {
+        if (l.status !== 'Menunggu Kepsek' && (l.approvalKepsek?.status !== 'Menunggu' || isLeaveApproved(l.status))) return false
+      } else if (filterStatus === 'Menunggu Superadmin (Tahap 2)') {
+        if (l.status !== 'Menunggu Superadmin' && (l.approvalKepsek?.status !== 'Disetujui' || isLeaveApproved(l.status))) return false
+      } else if (filterStatus === 'Disetujui') {
+        if (!isLeaveApproved(l.status)) return false
+      } else if (filterStatus === 'Ditolak') {
+        if (!isLeaveRejected(l.status)) return false
+      }
     }
-    // Filter Jenis dropdown: "Semua Cuti"/"Semua Izin" mencocokkan kelompoknya,
-    // selain itu cocok nama persis.
+
+    // Filter Jenis dropdown
     if (filterJenis === 'Semua Cuti' || filterJenis === 'Semua Izin') {
       if (kelompokIzinCuti(l.jenis) !== filterJenis.replace('Semua ', '')) return false
     } else if (filterJenis !== 'Semua Jenis Izin/Cuti') {
       if (l.jenis !== filterJenis) return false
     }
-    // Filter Periode dropdown. Pengajuan baru menyimpan tanggal ISO (l.mulai),
-    // jadi bulan/tahun dibaca dari sana; pengajuan lama jatuh ke teks periode.
+
+    // Filter Periode dropdown
     if (filterBulan !== 'Semua Periode') {
       const now = new Date()
       const currentMonth = now.getMonth()
@@ -144,9 +132,11 @@ function PengajuanIzinCutiPage() {
   })
 
   // 2. Hitung statistik dari filtered
-  const filteredPending = filtered.filter(l => l.status === 'Menunggu').length
-  const filteredApproved = filtered.filter(l => l.status === 'Disetujui').length
-  const filteredRejected = filtered.filter(l => l.status === 'Ditolak').length
+  const filteredPending = filtered.filter(l => isLeavePending(l.status)).length
+  const filteredPendingSuperadmin = filtered.filter(l => l.status === 'Menunggu Superadmin' || (isLeavePending(l.status) && l.approvalKepsek?.status === 'Disetujui')).length
+  const filteredPendingKepsek = filtered.filter(l => l.status === 'Menunggu Kepsek' || (isLeavePending(l.status) && l.approvalKepsek?.status !== 'Disetujui')).length
+  const filteredApproved = filtered.filter(l => isLeaveApproved(l.status)).length
+  const filteredRejected = filtered.filter(l => isLeaveRejected(l.status)).length
 
   // 3. Update tab counts dari filtered
   const updatedTabs = [
@@ -157,31 +147,48 @@ function PengajuanIzinCutiPage() {
   ]
 
   // 4. Pagination
-  const ITEMS_PER_PAGE = 5
+  const ITEMS_PER_PAGE = 6
   const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE))
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
   const endIndex = startIndex + ITEMS_PER_PAGE
   const paginatedData = filtered.slice(startIndex, endIndex)
 
-  // Baris tabel memakai hasil join pegawai dari selector store.
-  const tableData = paginatedData.map((leave) => ({
-    id: leave.id,
-    initials: initialsOf(leave.name),
-    name: leave.name,
-    niy: leave.niy,
-    role: leave.role,
-    jenis: leave.jenis,
-    periode: leave.periode,
-    durasi: leave.durasi,
-    lampiran: leave.lampiran,
-    status: leave.status,
-    keterangan: leave.keterangan,
-    unitName: leave.unitName,
-    avatarClass: avatarClassMap[leave.jenis] || 'bg-muted text-muted-foreground',
-    jenisClass: jenisClassMap[leave.jenis] || 'bg-muted text-muted-foreground',
-    statusClass: statusClassMap[leave.status] || 'bg-muted text-muted-foreground',
-    statusDot: statusDotMap[leave.status] || 'bg-muted-foreground',
-  }))
+  // Baris tabel dengan informasi alur persetujuan lengkap
+  const tableData = paginatedData.map((leave) => {
+    const isPending = isLeavePending(leave.status)
+    const isApproved = isLeaveApproved(leave.status)
+    const isRejected = isLeaveRejected(leave.status)
+
+    const kepsekStatus = leave.approvalKepsek?.status || (isApproved ? 'Disetujui' : leave.status === 'Menunggu Superadmin' ? 'Disetujui' : 'Menunggu')
+    const superadminStatus = leave.approvalSuperadmin?.status || (isApproved ? 'Disetujui' : 'Menunggu')
+
+    return {
+      ...leave,
+      id: leave.id,
+      staffId: leave.staffId,
+      initials: initialsOf(leave.name),
+      name: leave.name,
+      niy: leave.niy,
+      role: leave.role,
+      jenis: leave.jenis,
+      periode: leave.periode,
+      durasi: leave.durasi,
+      lampiran: leave.lampiran,
+      status: leave.status,
+      keterangan: leave.keterangan || leave.alasan || '-',
+      unitName: leave.unitName,
+      isPending,
+      isApproved,
+      isRejected,
+      approvalKepsekStatus: kepsekStatus,
+      approvalSuperadminStatus: superadminStatus,
+      avatarClass: avatarClassMap[leave.jenis] || 'bg-muted text-muted-foreground',
+      jenisClass: jenisClassMap[leave.jenis] || 'bg-muted text-muted-foreground',
+      statusClass: statusClassMap[leave.status] || (isApproved ? statusClassMap.Disetujui : isRejected ? statusClassMap.Ditolak : statusClassMap.Menunggu),
+      statusDot: statusDotMap[leave.status] || (isApproved ? statusDotMap.Disetujui : isRejected ? statusDotMap.Ditolak : statusDotMap.Menunggu),
+      statusLabel: LABEL_STATUS_PANJANG[leave.status] || leave.status,
+    }
+  })
 
   const handleOpenModal = () => setIsModalOpen(true)
   const handleCloseModal = () => setIsModalOpen(false)
@@ -194,36 +201,106 @@ function PengajuanIzinCutiPage() {
       payload: leaveData,
     })
     const staff = state.staff.find(s => s.id === newLeave.staffId)
-    addActivityLog(dispatch, state, 'Pengajuan', `Cuti/Izin • ${staff?.name || newLeave.staffId}`, `${staff?.name || 'Pegawai'} mengajukan ${newLeave.jenis} (${newLeave.durasi}): ${newLeave.keterangan}`, null, null, staff?.unitId)
+    addActivityLog(dispatch, state, 'Pengajuan', `Cuti/Izin • ${staff?.name || newLeave.staffId}`, `${staff?.name || 'Pegawai'} mengajukan ${newLeave.jenis} (${newLeave.durasi}): ${newLeave.keterangan}`, currentUser?.name, currentUserRole, staff?.unitId)
+    setFeedbackAlert({
+      type: 'success',
+      message: `Pengajuan ${newLeave.jenis} untuk ${staff?.name || 'pegawai'} berhasil disimpan.`,
+    })
+    setTimeout(() => setFeedbackAlert(null), 4000)
   }
 
-  const handleApprove = (id) => {
-    const leave = state.leaves.find(l => l.id === id)
-    const staff = leave ? state.staff.find(s => s.id === leave.staffId) : null
-    dispatch({ type: 'UPDATE_LEAVE_STATUS', id, status: 'Disetujui' })
-    if (leave && staff) {
-      addActivityLog(dispatch, state, 'Persetujuan', `Cuti/Izin • ${staff.name}`, `Menyetujui pengajuan ${leave.jenis} (${leave.durasi}) untuk ${staff.name}`, null, null, staff.unitId)
+  // Buka Modal Approval (Setujui atau Tolak)
+  const handleOpenApprovalModal = (leave, action) => {
+    setApprovalModal({
+      isOpen: true,
+      leave,
+      action,
+      note: action === 'approve' ? 'Disetujui penuh oleh Superadmin' : '',
+    })
+  }
+
+  // Eksekusi Konfirmasi Persetujuan / Penolakan oleh Superadmin
+  const handleConfirmApproval = () => {
+    const { leave, action, note } = approvalModal
+    if (!leave) return
+    const approverName = currentUser?.name || 'Superadmin Yayasan'
+
+    if (action === 'approve') {
+      // Setujui oleh Superadmin -> Status Final "Disetujui"
+      dispatch({
+        type: 'UPDATE_LEAVE_STATUS',
+        id: leave.id,
+        status: 'Disetujui',
+        tahapApproval: 3,
+        approvalSuperadmin: {
+          status: 'Disetujui',
+          approverName,
+          approverRole: 'Superadmin',
+          tanggal: new Date().toISOString(),
+          catatan: note.trim() || 'Disetujui penuh oleh Superadmin',
+        },
+        // Jika Kepsek belum sempat verifikasi, Superadmin memberikan persetujuan langsung
+        ...(leave.approvalKepsek?.status !== 'Disetujui'
+          ? {
+              approvalKepsek: {
+                ...(leave.approvalKepsek || {}),
+                status: 'Disetujui',
+                approverName: leave.approvalKepsek?.approverName || 'Disetujui langsung oleh Superadmin',
+                approverRole: 'Kepala Sekolah',
+                tanggal: new Date().toISOString(),
+                catatan: 'Disetujui langsung oleh Superadmin (Yayasan)',
+              },
+            }
+          : {}),
+      })
+      addActivityLog(
+        dispatch,
+        state,
+        'Persetujuan Final',
+        `Cuti/Izin • ${leave.name}`,
+        `Superadmin (${approverName}) menyetujui pengajuan ${leave.jenis} (${leave.durasi}) untuk ${leave.name}. Status: Disetujui Penuh.${note ? ` Catatan: ${note}` : ''}`,
+        approverName,
+        currentUserRole,
+        leave.unitId
+      )
+      setFeedbackAlert({
+        type: 'success',
+        message: `Pengajuan ${leave.jenis} untuk ${leave.name} berhasil disetujui (Status: Disetujui Penuh).`,
+      })
+    } else {
+      // Tolak oleh Superadmin -> Status Final "Ditolak"
+      dispatch({
+        type: 'UPDATE_LEAVE_STATUS',
+        id: leave.id,
+        status: 'Ditolak',
+        tahapApproval: 3,
+        rejectedStage: 'superadmin',
+        approvalSuperadmin: {
+          status: 'Ditolak',
+          approverName,
+          approverRole: 'Superadmin',
+          tanggal: new Date().toISOString(),
+          catatan: note.trim() || 'Ditolak oleh Superadmin',
+        },
+      })
+      addActivityLog(
+        dispatch,
+        state,
+        'Penolakan Final',
+        `Cuti/Izin • ${leave.name}`,
+        `Superadmin (${approverName}) menolak pengajuan ${leave.jenis} (${leave.durasi}) untuk ${leave.name}. Alasan: ${note || 'Tidak memenuhi ketentuan'}`,
+        approverName,
+        currentUserRole,
+        leave.unitId
+      )
+      setFeedbackAlert({
+        type: 'error',
+        message: `Pengajuan ${leave.jenis} untuk ${leave.name} telah ditolak.`,
+      })
     }
-  }
 
-  const handleReject = (id) => {
-    setConfirmRejectId(id)
-  }
-
-  const handleConfirmReject = () => {
-    if (confirmRejectId) {
-      const leave = state.leaves.find(l => l.id === confirmRejectId)
-      const staff = leave ? state.staff.find(s => s.id === leave.staffId) : null
-      dispatch({ type: 'UPDATE_LEAVE_STATUS', id: confirmRejectId, status: 'Ditolak' })
-      if (leave && staff) {
-        addActivityLog(dispatch, state, 'Penolakan', `Cuti/Izin • ${staff.name}`, `Menolak pengajuan ${leave.jenis} (${leave.durasi}) untuk ${staff.name}`, null, null, staff.unitId)
-      }
-      setConfirmRejectId(null)
-    }
-  }
-
-  const handleCancelReject = () => {
-    setConfirmRejectId(null)
+    setApprovalModal({ isOpen: false, leave: null, action: 'approve', note: '' })
+    setTimeout(() => setFeedbackAlert(null), 4000)
   }
 
   const handleDetail = (leave) => {
@@ -237,8 +314,6 @@ function PengajuanIzinCutiPage() {
   }
 
   const handleViewAttachment = (leave) => {
-    // Buka bukti surat/lampiran yang dilampirkan. Jika lampiran berupa URL/data,
-    // buka di tab baru; selain itu tampilkan detail modal dengan tab lampiran.
     const lampiran = leave?.lampiran
     if (lampiran && /^(https?:|data:|blob:)/i.test(String(lampiran))) {
       window.open(String(lampiran), '_blank', 'noopener,noreferrer')
@@ -249,7 +324,6 @@ function PengajuanIzinCutiPage() {
   }
 
   const handleExportExcel = () => {
-    // Parse period for filename
     let periodLabel = 'Semua_Periode'
     const now = new Date()
     const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
@@ -261,14 +335,11 @@ function PengajuanIzinCutiPage() {
       periodLabel = filterBulan.replace(/\s+/g, '_')
     }
 
-    // Unit label for filename — mengikuti unit terpilih di store
     const unitLabel = selectIsAllUnits(state)
       ? 'Semua_Unit'
       : (filterUnit || '').replace(/\s+/g, '_')
 
-    // Prepare data for export - using filtered data
     const exportData = filtered.map((leave, index) => {
-      // Parse periode to get start and end dates
       const periodeParts = leave.periode.split(' - ')
       const tanggalMulai = periodeParts[0] || '-'
       const tanggalSelesai = periodeParts[1] || tanggalMulai
@@ -283,21 +354,19 @@ function PengajuanIzinCutiPage() {
         'Tanggal Selesai': tanggalSelesai,
         Durasi: leave.durasi,
         Alasan: leave.keterangan || '-',
-        Status: leave.status,
+        'Tahap 1 (Kepsek)': leave.approvalKepsek?.status || '-',
+        'Catatan Kepsek': leave.approvalKepsek?.catatan || '-',
+        'Tahap 2 (Superadmin)': leave.approvalSuperadmin?.status || '-',
+        'Catatan Superadmin': leave.approvalSuperadmin?.catatan || '-',
+        'Status Final': leave.status,
       }
     })
 
-    // Create workbook
     const wb = XLSX.utils.book_new()
-
-    // Title row
-    const titleRow = [['Laporan Pengajuan Izin dan Cuti Pegawai']]
+    const titleRow = [['Laporan Pengajuan Izin dan Cuti Pegawai (Sistem Persetujuan 2 Tahap)']]
     const ws = XLSX.utils.aoa_to_sheet(titleRow, { origin: 'A1' })
-
-    // Add data starting from row 3
     XLSX.utils.sheet_add_json(ws, exportData, { origin: 'A3', skipHeader: false })
 
-    // Set column widths
     const colWidths = [
       { wch: 5 },   // No
       { wch: 30 },  // Nama Pegawai
@@ -308,16 +377,16 @@ function PengajuanIzinCutiPage() {
       { wch: 18 },  // Tanggal Selesai
       { wch: 12 },  // Durasi
       { wch: 30 },  // Alasan
-      { wch: 15 },  // Status
+      { wch: 20 },  // Tahap 1 (Kepsek)
+      { wch: 25 },  // Catatan Kepsek
+      { wch: 22 },  // Tahap 2 (Superadmin)
+      { wch: 25 },  // Catatan Superadmin
+      { wch: 18 },  // Status Final
     ]
     ws['!cols'] = colWidths
 
     XLSX.utils.book_append_sheet(wb, ws, 'Laporan Izin Cuti')
-
-    // Generate filename
     const fileName = `Laporan_Izin_Cuti_${unitLabel}_${periodLabel}.xlsx`
-
-    // Save file
     const out = XLSX.write(wb, { bookType: 'xlsx', type: 'array' })
     downloadBlob(new Blob([out], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), fileName)
   }
@@ -336,9 +405,16 @@ function PengajuanIzinCutiPage() {
                 <span className="material-symbols-outlined text-[14px]">chevron_right</span>
                 <span className="font-semibold text-foreground">Pengajuan Izin/Cuti</span>
               </div>
-              <h1 className="text-2xl font-bold tracking-tight text-foreground">Pengajuan Izin &amp; Cuti</h1>
+              <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
+                <span>Pengajuan Izin &amp; Cuti</span>
+                {isSuperadmin && (
+                  <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 tracking-normal">
+                    Portal Superadmin (Approval Tingkat 2)
+                  </span>
+                )}
+              </h1>
               <p className="text-xs text-muted-foreground">
-                Kelola, tinjau berkas lampiran, dan proses verifikasi persetujuan dispensasi izin sakit dan cuti pegawai.
+                Kelola, tinjau berkas lampiran, dan proses verifikasi approval persetujuan izin/cuti pegawai melalui 2 tahap: Kepala Sekolah &amp; Superadmin.
               </p>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
@@ -361,6 +437,29 @@ function PengajuanIzinCutiPage() {
             </div>
           </div>
 
+          {/* Feedback Alert Toast */}
+          {feedbackAlert && (
+            <div className={`p-3.5 rounded-xl border flex items-center justify-between text-xs transition-all animate-sp-rise ${
+              feedbackAlert.type === 'success'
+                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-800 dark:text-emerald-300'
+                : 'bg-destructive/10 border-destructive/30 text-destructive'
+            }`}>
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-[18px]">
+                  {feedbackAlert.type === 'success' ? 'check_circle' : 'error'}
+                </span>
+                <span className="font-semibold">{feedbackAlert.message}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setFeedbackAlert(null)}
+                className="w-6 h-6 rounded flex items-center justify-center hover:bg-black/10 dark:hover:bg-white/10"
+              >
+                <span className="material-symbols-outlined text-[16px]">close</span>
+              </button>
+            </div>
+          )}
+
           {/* 3 Metric Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-card rounded-xl border border-border p-5 shadow-xs flex flex-col justify-between hover:border-border/80 transition-all">
@@ -376,27 +475,32 @@ function PengajuanIzinCutiPage() {
                   <span className="material-symbols-outlined text-[20px]">hourglass_top</span>
                 </div>
               </div>
-              <div className="mt-4 pt-3 border-t border-border flex items-center gap-2 text-xs">
-                <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-                <span className="text-amber-600 dark:text-amber-400 font-medium">Perlu tindakan verifikasi hari ini</span>
+              <div className="mt-4 pt-3 border-t border-border flex items-center justify-between text-xs">
+                <div className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400 font-medium">
+                  <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                  <span>Perlu verifikasi</span>
+                </div>
+                <span className="text-[11px] text-muted-foreground font-semibold">
+                  {filteredPendingSuperadmin} Tahap 2 (Superadmin)
+                </span>
               </div>
             </div>
 
             <div className="bg-card rounded-xl border border-border p-5 shadow-xs flex flex-col justify-between hover:border-border/80 transition-all">
               <div className="flex items-start justify-between">
                 <div className="flex flex-col">
-                  <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Disetujui Bulan Ini</span>
+                  <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Disetujui Penuh (Final)</span>
                   <div className="flex items-baseline gap-1.5 mt-1.5">
                     <span className="text-3xl font-bold tracking-tight text-foreground">{filteredApproved}</span>
                     <span className="text-xs font-medium text-muted-foreground">Pegawai</span>
                   </div>
                 </div>
                 <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 flex items-center justify-center shrink-0">
-                  <span className="material-symbols-outlined text-[20px]">check_circle</span>
+                  <span className="material-symbols-outlined text-[20px]">verified</span>
                 </div>
               </div>
-              <div className="mt-4 pt-3 border-t border-border flex items-center gap-2 text-xs">
-                <span className="text-muted-foreground">Unit:</span>
+              <div className="mt-4 pt-3 border-t border-border flex items-center justify-between text-xs">
+                <span className="text-muted-foreground">Cakupan Unit:</span>
                 <span className="font-semibold text-emerald-600 dark:text-emerald-400">
                   {selectIsAllUnits(state)
                     ? `Semua Unit (${state.units.length} Unit)`
@@ -409,7 +513,7 @@ function PengajuanIzinCutiPage() {
             <div className="bg-card rounded-xl border border-border p-5 shadow-xs flex flex-col justify-between hover:border-border/80 transition-all">
               <div className="flex items-start justify-between">
                 <div className="flex flex-col">
-                  <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Ditolak / Dibatalkan</span>
+                  <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Ditolak / Batal</span>
                   <div className="flex items-baseline gap-1.5 mt-1.5">
                     <span className="text-3xl font-bold tracking-tight text-foreground">{filteredRejected}</span>
                     <span className="text-xs font-medium text-muted-foreground">Pengajuan</span>
@@ -420,7 +524,7 @@ function PengajuanIzinCutiPage() {
                 </div>
               </div>
               <div className="mt-4 pt-3 border-t border-border flex items-center gap-2 text-xs">
-                <span className="text-destructive font-medium">Dokumen tidak lengkap / kedaluwarsa</span>
+                <span className="text-destructive font-medium">Dokumen tidak lengkap / tidak memenuhi syarat</span>
               </div>
             </div>
           </div>
@@ -468,7 +572,7 @@ function PengajuanIzinCutiPage() {
                   onChange={(e) => { dispatch({ type: 'SET_SEARCH_TERM', payload: e.target.value }); setCurrentPage(1) }}
                 />
               </div>
-              <div className="md:col-span-2">
+              <div className="md:col-span-3">
                 <div className="relative">
                   <select
                     className="w-full h-9 pl-2.5 pr-7 bg-card border border-input rounded-lg text-xs font-medium text-foreground appearance-none focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring cursor-pointer"
@@ -477,13 +581,15 @@ function PengajuanIzinCutiPage() {
                   >
                     <option>Semua Status</option>
                     <option>Menunggu Persetujuan</option>
+                    <option>Menunggu Kepsek (Tahap 1)</option>
+                    <option>Menunggu Superadmin (Tahap 2)</option>
                     <option>Disetujui</option>
                     <option>Ditolak</option>
                   </select>
                   <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground text-[16px] pointer-events-none">expand_more</span>
                 </div>
               </div>
-              <div className="md:col-span-3">
+              <div className="md:col-span-2">
                 <div className="relative">
                   <select
                     className="w-full h-9 pl-2.5 pr-7 bg-card border border-input rounded-lg text-xs font-medium text-foreground appearance-none focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring cursor-pointer"
@@ -517,83 +623,193 @@ function PengajuanIzinCutiPage() {
             </div>
           </div>
 
-          {/* Table Container */}
-          <div className="bg-card rounded-xl border border-border shadow-xs overflow-hidden">
-            <div className="sp-table-wrap">
-              <table className="w-full text-left table-fixed min-w-[760px]">
-                <thead className="bg-muted border-b border-border text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+          {/* Table Container - Lebar Responsif Tanpa Berdempet */}
+          <div className="bg-card rounded-xl border border-border shadow-xs overflow-hidden flex flex-col">
+            {/* Banner bantuan swipe/geser untuk tampilan di mobile desktop mode */}
+            <div className="px-4 py-2 bg-muted/40 border-b border-border flex items-center justify-between text-xs text-muted-foreground flex-wrap gap-2">
+              <div className="flex items-center gap-1.5 font-medium">
+                <span className="material-symbols-outlined text-[16px] text-primary">touch_app</span>
+                <span>Tabel responsif lebar penuh: Geser ke samping untuk melihat seluruh rincian dan tombol approval.</span>
+              </div>
+              <div className="text-[11px] font-semibold text-foreground">
+                Menampilkan {filtered.length} pengajuan
+              </div>
+            </div>
+
+            <div className="sp-table-wrap overflow-x-auto w-full">
+              <table className="w-full text-left border-collapse min-w-[1180px]">
+                <thead className="bg-muted/80 border-b border-border text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
                   <tr>
-                    <th className="py-2.5 px-3.5 w-[28%]">Pegawai</th>
-                    <th className="py-2.5 px-2.5 w-[11%]">Unit</th>
-                    <th className="py-2.5 px-2.5 w-[12%]">Jenis</th>
-                    <th className="py-2.5 px-2.5 w-[13%]">Periode</th>
-                    <th className="py-2.5 px-2.5 text-center w-[7%]">Durasi</th>
-                    <th className="py-2.5 px-2.5 text-center w-[12%]">Lampiran</th>
-                    <th className="py-2.5 px-2.5 text-center w-[9%]">Status</th>
-                    <th className="py-2.5 px-2.5 text-right w-[12%]">Aksi</th>
+                    <th className="py-3 px-3.5 min-w-[240px]">Pegawai</th>
+                    <th className="py-3 px-3 min-w-[95px] whitespace-nowrap">Unit</th>
+                    <th className="py-3 px-3 min-w-[145px] whitespace-nowrap">Jenis</th>
+                    <th className="py-3 px-3 min-w-[185px] whitespace-nowrap">Periode</th>
+                    <th className="py-3 px-2.5 text-center min-w-[85px] whitespace-nowrap">Durasi</th>
+                    <th className="py-3 px-3 text-center min-w-[140px] whitespace-nowrap">Lampiran</th>
+                    <th className="py-3 px-3 min-w-[210px] whitespace-nowrap">Status &amp; Verifikasi (2-Tahap)</th>
+                    <th className="py-3 px-3.5 text-right min-w-[170px] whitespace-nowrap">Aksi Approval</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/60 text-xs">
                   {tableData.map((row) => (
                     <tr key={row.id} className="hover:bg-muted/40 transition-colors">
-                      <td className="py-2.5 px-3.5">
+                      {/* Pegawai */}
+                      <td className="py-3.5 px-3.5">
                         <div className="flex items-center gap-2.5 min-w-0">
-                          <div className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs flex-shrink-0 bg-primary/10 text-primary border border-primary/20">
+                          <div className="w-8.5 h-8.5 rounded-lg flex items-center justify-center font-bold text-xs flex-shrink-0 bg-primary/10 text-primary border border-primary/20">
                             {row.initials}
                           </div>
                           <div className="flex flex-col min-w-0 overflow-hidden leading-tight">
                             <span className="text-xs font-semibold text-foreground truncate block">{row.name}</span>
                             <span className="text-[10.5px] text-muted-foreground font-mono truncate block mt-0.5">{row.niy} • {row.role}</span>
-                            <span className="text-[10px] text-muted-foreground truncate block mt-0.5">Kuota: Tahunan {hitungSisaKuota(row.staffId, 'Cuti Tahunan', allLeaves)}/7 • Menikah {hitungSisaKuota(row.staffId, 'Cuti Menikah', allLeaves)}/3 • Melahirkan {hitungSisaKuota(row.staffId, 'Cuti Melahirkan', allLeaves)}/90</span>
+                            <span className="text-[10px] text-muted-foreground truncate block mt-0.5">
+                              Sisa Kuota Tahunan: <strong className="text-foreground">{hitungSisaKuota(row.staffId, 'Cuti Tahunan', allLeaves)}</strong> hari
+                            </span>
                           </div>
                         </div>
                       </td>
-                      <td className="py-2.5 px-2.5 text-xs text-foreground/80 whitespace-nowrap">
-                        {row.unitName || '-'}
-                      </td>
-                      <td className="py-2.5 px-2.5">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium ${row.jenisClass} whitespace-nowrap border border-border/50`}>
-                          {row.jenis}
+
+                      {/* Unit */}
+                      <td className="py-3.5 px-3 text-xs whitespace-nowrap">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-muted text-foreground border border-border/60">
+                          {row.unitName || '-'}
                         </span>
                       </td>
-                      <td className="py-2.5 px-2.5 text-xs text-foreground/90 font-mono whitespace-nowrap">
-                        {row.periode}
-                      </td>
-                      <td className="py-2.5 px-2.5 text-xs font-semibold text-primary whitespace-nowrap">
-                        {row.durasi}
-                      </td>
-                      <td className="py-2.5 px-2.5">
-                        <button onClick={() => handleViewAttachment(row)} className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-secondary hover:bg-secondary/80 text-secondary-foreground border border-border/50 transition-colors text-[11px] font-medium cursor-pointer w-full justify-center" title={row.lampiran}>
-                          <span className="material-symbols-outlined text-[13px] flex-shrink-0">attach_file</span>
-                          <span className="truncate block max-w-[90px]">{row.lampiran}</span>
-                        </button>
-                      </td>
-                      <td className="py-2.5 px-2.5">
-                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10.5px] font-semibold ${row.statusClass} whitespace-nowrap flex-shrink-0`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${row.statusDot} flex-shrink-0`}></span>
-                          {row.status}
+
+                      {/* Jenis */}
+                      <td className="py-3.5 px-3 whitespace-nowrap">
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium ${row.jenisClass} border border-border/50`}>
+                          <span className="material-symbols-outlined text-[14px]">{ikonJenis(row.jenis)}</span>
+                          <span>{row.jenis}</span>
                         </span>
                       </td>
-                      <td className="py-2.5 px-2.5 text-right pr-3">
-                        {row.status === 'Menunggu' && canApproveLeave ? (
-                          <div className="flex flex-wrap items-center justify-end gap-1.5">
-                            <button onClick={() => handleApprove(row.id)} className="h-7 w-7 rounded-md bg-emerald-600 text-white hover:bg-emerald-700 transition-colors flex items-center justify-center shadow-xs cursor-pointer flex-shrink-0" type="button" title="Setujui">
-                              <span className="material-symbols-outlined text-[15px]">check</span>
-                            </button>
-                            <button onClick={() => handleReject(row.id)} className="h-7 w-7 rounded-md bg-destructive/10 text-destructive hover:bg-destructive/20 border border-destructive/20 transition-colors flex items-center justify-center cursor-pointer flex-shrink-0" type="button" title="Tolak">
-                              <span className="material-symbols-outlined text-[15px]">close</span>
-                            </button>
-                            <button onClick={() => handleDetail(row)} className="h-7 w-7 rounded-md bg-card text-foreground hover:bg-muted border border-border transition-colors flex items-center justify-center cursor-pointer flex-shrink-0" type="button" title="Detail">
-                              <span className="material-symbols-outlined text-[16px]">visibility</span>
-                            </button>
-                          </div>
+
+                      {/* Periode */}
+                      <td className="py-3.5 px-3 whitespace-nowrap">
+                        <div className="flex items-center gap-1.5 text-xs text-foreground/90 font-mono">
+                          <span className="material-symbols-outlined text-[15px] text-muted-foreground shrink-0">calendar_month</span>
+                          <span>{row.periode}</span>
+                        </div>
+                      </td>
+
+                      {/* Durasi */}
+                      <td className="py-3.5 px-2.5 text-center whitespace-nowrap">
+                        <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-md bg-primary/10 text-primary font-bold text-xs">
+                          {row.durasi}
+                        </span>
+                      </td>
+
+                      {/* Lampiran */}
+                      <td className="py-3.5 px-3 text-center whitespace-nowrap">
+                        {row.lampiran ? (
+                          <button
+                            onClick={() => handleViewAttachment(row)}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-secondary hover:bg-secondary/80 text-secondary-foreground border border-border/60 transition-colors text-xs font-medium cursor-pointer max-w-[130px] justify-center mx-auto"
+                            title={row.lampiran}
+                            type="button"
+                          >
+                            <span className="material-symbols-outlined text-[14px] shrink-0 text-primary">attach_file</span>
+                            <span className="truncate block">{row.lampiran}</span>
+                          </button>
                         ) : (
-                          <div className="flex flex-wrap items-center justify-end gap-1.5">
-                            <button onClick={() => handleDetail(row)} className="h-7 w-7 rounded-md bg-card hover:bg-muted text-foreground border border-border flex items-center justify-center transition-colors cursor-pointer flex-shrink-0" type="button" title="Detail">
-                              <span className="material-symbols-outlined text-[16px]">visibility</span>
-                            </button>
-                          </div>
+                          <span className="text-[11px] text-muted-foreground italic">- Tidak ada -</span>
                         )}
+                      </td>
+
+                      {/* Status & Verifikasi (2-Tahap) */}
+                      <td className="py-3.5 px-3">
+                        <div className="flex flex-col gap-1 min-w-[190px]">
+                          <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${row.statusClass} w-fit whitespace-nowrap`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${row.statusDot} shrink-0`}></span>
+                            {row.statusLabel}
+                          </span>
+                          {/* 2-tier badge */}
+                          <div className="flex items-center gap-1.5 text-[10.5px] text-muted-foreground mt-0.5">
+                            <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded border text-[10px] font-semibold whitespace-nowrap ${
+                              row.approvalKepsekStatus === 'Disetujui'
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950/40 dark:text-emerald-300'
+                                : row.approvalKepsekStatus === 'Ditolak'
+                                ? 'bg-red-50 text-red-700 border-red-300 dark:bg-red-950/40 dark:text-red-300'
+                                : 'bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950/40 dark:text-amber-300'
+                            }`}>
+                              <span className="material-symbols-outlined text-[11px]">
+                                {row.approvalKepsekStatus === 'Disetujui' ? 'check' : row.approvalKepsekStatus === 'Ditolak' ? 'close' : 'hourglass_empty'}
+                              </span>
+                              Kepsek
+                            </span>
+                            <span className="text-muted-foreground/60 text-[10px]">➔</span>
+                            <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded border text-[10px] font-semibold whitespace-nowrap ${
+                              row.approvalSuperadminStatus === 'Disetujui'
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950/40 dark:text-emerald-300'
+                                : row.approvalSuperadminStatus === 'Ditolak'
+                                ? 'bg-red-50 text-red-700 border-red-300 dark:bg-red-950/40 dark:text-red-300'
+                                : 'bg-muted text-muted-foreground border-border'
+                            }`}>
+                              <span className="material-symbols-outlined text-[11px]">
+                                {row.approvalSuperadminStatus === 'Disetujui' ? 'check' : row.approvalSuperadminStatus === 'Ditolak' ? 'close' : 'hourglass_empty'}
+                              </span>
+                              Superadmin
+                            </span>
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Aksi Approval */}
+                      <td className="py-3.5 px-3.5 text-right whitespace-nowrap">
+                        <div className="flex items-center justify-end gap-1.5">
+                          {canApproveLeave && row.isPending ? (
+                            <>
+                              <button
+                                onClick={() => handleOpenApprovalModal(row, 'approve')}
+                                className="h-7.5 px-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs inline-flex items-center gap-1 shadow-2xs transition-colors cursor-pointer"
+                                type="button"
+                                title="Setujui Pengajuan Ini (Superadmin)"
+                              >
+                                <span className="material-symbols-outlined text-[15px]">check</span>
+                                <span>Setujui</span>
+                              </button>
+                              <button
+                                onClick={() => handleOpenApprovalModal(row, 'reject')}
+                                className="h-7.5 px-2.5 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20 border border-destructive/20 font-semibold text-xs inline-flex items-center gap-1 transition-colors cursor-pointer"
+                                type="button"
+                                title="Tolak Pengajuan Ini"
+                              >
+                                <span className="material-symbols-outlined text-[15px]">close</span>
+                                <span>Tolak</span>
+                              </button>
+                              <button
+                                onClick={() => handleDetail(row)}
+                                className="h-7.5 w-7.5 rounded-lg bg-card hover:bg-muted text-foreground border border-border inline-flex items-center justify-center transition-colors cursor-pointer"
+                                type="button"
+                                title="Lihat Berkas &amp; Detail"
+                              >
+                                <span className="material-symbols-outlined text-[16px]">visibility</span>
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <button
+                                onClick={() => handleDetail(row)}
+                                className="h-7.5 px-2.5 rounded-lg bg-card hover:bg-muted text-foreground border border-border inline-flex items-center gap-1 font-medium text-xs transition-colors cursor-pointer"
+                                type="button"
+                                title="Lihat Detail"
+                              >
+                                <span className="material-symbols-outlined text-[15px]">visibility</span>
+                                <span>Detail</span>
+                              </button>
+                              {canApproveLeave && (
+                                <button
+                                  onClick={() => handleOpenApprovalModal(row, row.status === 'Disetujui' ? 'reject' : 'approve')}
+                                  className="h-7.5 px-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted border border-border text-[11px] font-medium transition-colors cursor-pointer"
+                                  type="button"
+                                  title="Ubah Keputusan Persetujuan"
+                                >
+                                  <span>Ubah</span>
+                                </button>
+                              )}
+                            </>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -648,103 +864,297 @@ function PengajuanIzinCutiPage() {
             </div>
           </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <div className="lg:col-span-2 bg-card rounded-xl border border-border shadow-xs p-5 flex flex-col justify-between">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <span className="material-symbols-outlined text-primary text-[18px]">info</span>
-                <h3 className="text-sm font-bold text-foreground tracking-tight">Aturan &amp; Ketentuan Cuti Pegawai Yayasan</h3>
+          {/* Pedoman & Kuota Info */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div className="lg:col-span-2 bg-card rounded-xl border border-border shadow-xs p-5 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="material-symbols-outlined text-primary text-[18px]">info</span>
+                  <h3 className="text-sm font-bold text-foreground tracking-tight">Aturan &amp; Ketentuan Alur Persetujuan 2 Tahap</h3>
+                </div>
+                <p className="text-xs text-muted-foreground mb-4">
+                  Pedoman verifikasi otomatis berdasarkan SK Direktur Yayasan Pendidikan Attin Sumbar No. 42/SK-DIR/2025.
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="p-3 rounded-lg bg-muted/40 border border-border/60 flex flex-col gap-1">
+                    <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                      <span className="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[11px] font-bold">1</span>
+                      Tahap 1: Persetujuan Kepala Sekolah
+                    </span>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      Kepala Sekolah unit bersangkutan memvalidasi kesiapan jadwal piket mengajar dan lampiran surat dokter/dokumen dinas.
+                    </p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-muted/40 border border-border/60 flex flex-col gap-1">
+                    <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                      <span className="w-5 h-5 rounded-full bg-emerald-500/10 text-emerald-600 flex items-center justify-center text-[11px] font-bold">2</span>
+                      Tahap 2: Persetujuan Superadmin (Yayasan)
+                    </span>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      Superadmin Pusat/Yayasan memberikan otorisasi final setelah memeriksa sisa kuota cuti tahunan dan rekap kehadiran yayasan.
+                    </p>
+                  </div>
+                </div>
               </div>
-              <p className="text-xs text-muted-foreground mb-4">
-                Pedoman verifikasi otomatis berdasarkan SK Direktur Yayasan Pendidikan No. 42/SK-DIR/2025.
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div className="p-3 rounded-lg bg-muted/40 border border-border/60 flex flex-col gap-1">
-                  <span className="text-xs font-semibold text-foreground">1. Izin Sakit &gt; 2 Hari</span>
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    Wajib melampirkan surat keterangan dokter atau klinik dengan cap stempel basah / QR barcode verifikasi digital faskes.
-                  </p>
-                </div>
-                <div className="p-3 rounded-lg bg-muted/40 border border-border/60 flex flex-col gap-1">
-                  <span className="text-xs font-semibold text-foreground">2. Cuti Melahirkan &amp; Bersalin</span>
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    Maksimal 90 hari kalender, diajukan paling lambat 14 hari sebelum hari perkiraan lahir (HPL) dari dokter spesialis.
-                  </p>
-                </div>
+              <div className="mt-4 pt-3 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
+                <span>Waktu Otorisasi Standar: <strong className="text-foreground">1 x 24 Jam Kerja per Tahap</strong></span>
+                <span className="text-primary font-medium flex items-center gap-1">
+                  <span className="material-symbols-outlined text-[15px]">verified_user</span>
+                  <span>Otorisasi Resmi Terenkripsi</span>
+                </span>
               </div>
             </div>
-            <div className="mt-4 pt-3 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
-              <span>Batas Waktu Validasi Unit: <strong className="text-foreground">2 x 24 Jam Kerja</strong></span>
-              <a className="text-primary hover:underline font-medium flex items-center gap-1 cursor-pointer">
-                <span>Unduh Pedoman Lengkap (PDF)</span>
-                <span className="material-symbols-outlined text-[15px]">open_in_new</span>
-              </a>
-            </div>
-          </div>
 
-          <div className="bg-card rounded-xl border border-border shadow-xs p-5 flex flex-col justify-between">
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <h3 className="text-sm font-bold text-foreground tracking-tight">Statistik Kuota Cuti</h3>
-                <span className="text-[11px] font-bold text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-full">T.A 2026/2027</span>
-              </div>
-              <p className="text-xs text-muted-foreground mb-4">
-                Monitor utilisasi jatah tahunan staf dan guru tetap.
-              </p>
-              <div className="flex flex-col gap-3.5">
-                <div>
-                  <div className="flex justify-between text-xs mb-1">
-                    <span className="text-muted-foreground">Cuti Tahunan Digunakan</span>
-                    <span className="font-semibold text-foreground">64% (292 / 456 Hari)</span>
+            <div className="bg-card rounded-xl border border-border shadow-xs p-5 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <h3 className="text-sm font-bold text-foreground tracking-tight">Status Antrean Approval</h3>
+                  <span className="text-[11px] font-bold text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-full">Realtime</span>
+                </div>
+                <p className="text-xs text-muted-foreground mb-4">
+                  Ringkasan beban verifikasi izin/cuti yayasan hari ini.
+                </p>
+                <div className="flex flex-col gap-3.5">
+                  <div>
+                    <div className="flex justify-between text-xs mb-1">
+                      <span className="text-muted-foreground">Menunggu Superadmin (Tahap 2)</span>
+                      <span className="font-semibold text-sky-600 dark:text-sky-400">{filteredPendingSuperadmin} Berkas</span>
+                    </div>
+                    <div className="w-full h-1.5 rounded-full bg-muted overflow-hidden">
+                      <div className="h-full bg-sky-500 rounded-full" style={{ width: `${filteredPending ? (filteredPendingSuperadmin / filteredPending) * 100 : 0}%` }}></div>
+                    </div>
                   </div>
-                  <div className="w-full h-1.5 rounded-full bg-muted overflow-hidden">
-                    <div className="h-full bg-primary rounded-full" style={{ width: '64%' }}></div>
+                  <div>
+                    <div className="flex justify-between text-xs mb-1">
+                      <span className="text-muted-foreground">Menunggu Kepala Sekolah (Tahap 1)</span>
+                      <span className="font-semibold text-amber-600 dark:text-amber-400">{filteredPendingKepsek} Berkas</span>
+                    </div>
+                    <div className="w-full h-1.5 rounded-full bg-muted overflow-hidden">
+                      <div className="h-full bg-amber-500 rounded-full" style={{ width: `${filteredPending ? (filteredPendingKepsek / filteredPending) * 100 : 0}%` }}></div>
+                    </div>
                   </div>
                 </div>
-                <div>
-                  <div className="flex justify-between text-xs mb-1">
-                    <span className="text-muted-foreground">Tingkat Ketidakhadiran Izin/Sakit</span>
-                    <span className="font-semibold text-emerald-600 dark:text-emerald-400">1.8% (Sangat Sehat)</span>
-                  </div>
-                  <div className="w-full h-1.5 rounded-full bg-muted overflow-hidden">
-                    <div className="h-full bg-emerald-500 rounded-full" style={{ width: '18%' }}></div>
-                  </div>
-                </div>
               </div>
-            </div>
-            <div className="mt-4 p-2.5 rounded-lg bg-muted/40 border border-border/60 flex items-center gap-2 text-xs text-muted-foreground">
-              <span className="material-symbols-outlined text-muted-foreground text-[17px]">verified_user</span>
-              <span>Sinkronisasi Data SimPres Pusat: <strong className="text-foreground">Realtime</strong></span>
+              <div className="mt-4 p-2.5 rounded-lg bg-muted/40 border border-border/60 flex items-center gap-2 text-xs text-muted-foreground">
+                <span className="material-symbols-outlined text-emerald-600 text-[17px]">sync</span>
+                <span>Sinkronisasi Data SimPres: <strong className="text-foreground">Aktif</strong></span>
+              </div>
             </div>
           </div>
         </div>
       </div>
-      </div>
 
-      {/* Confirm Reject Dialog */}
-      {confirmRejectId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs" onClick={handleCancelReject}>
-          <div className="relative w-full max-w-sm bg-card rounded-2xl shadow-xl border border-border overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
-            <div className="px-5 py-4 border-b border-border flex items-center justify-between bg-muted/30">
-              <h3 className="text-sm font-bold text-foreground">Konfirmasi Tolak Pengajuan</h3>
-              <button onClick={handleCancelReject} className="w-7 h-7 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer" type="button">
+      {/* Approval & Rejection Modal for Superadmin */}
+      {approvalModal.isOpen && approvalModal.leave && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+          onClick={() => setApprovalModal({ isOpen: false, leave: null, action: 'approve', note: '' })}
+        >
+          <div
+            className="relative w-full max-w-lg bg-card rounded-2xl shadow-2xl border border-border overflow-hidden flex flex-col max-h-[90vh]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className={`px-6 py-4 border-b flex items-center justify-between ${
+              approvalModal.action === 'approve'
+                ? 'bg-emerald-500/10 border-emerald-500/20'
+                : 'bg-destructive/10 border-destructive/20'
+            }`}>
+              <div className="flex items-center gap-2.5">
+                <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold ${
+                  approvalModal.action === 'approve'
+                    ? 'bg-emerald-600 text-white shadow-2xs'
+                    : 'bg-destructive text-destructive-foreground shadow-2xs'
+                }`}>
+                  <span className="material-symbols-outlined text-[20px]">
+                    {approvalModal.action === 'approve' ? 'check_circle' : 'cancel'}
+                  </span>
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-foreground">
+                    {approvalModal.action === 'approve'
+                      ? 'Konfirmasi Persetujuan Izin/Cuti'
+                      : 'Konfirmasi Penolakan Izin/Cuti'}
+                  </h3>
+                  <p className="text-[11px] text-muted-foreground">
+                    {approvalModal.action === 'approve'
+                      ? 'Persetujuan Tingkat 2 (Final oleh Superadmin)'
+                      : 'Keputusan penolakan izin/cuti pegawai'}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setApprovalModal({ isOpen: false, leave: null, action: 'approve', note: '' })}
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
+                type="button"
+              >
                 <span className="material-symbols-outlined text-[18px]">close</span>
               </button>
             </div>
-            <div className="p-5 text-center">
-              <div className="w-12 h-12 rounded-full bg-destructive/10 border border-destructive/20 text-destructive flex items-center justify-center mx-auto mb-3">
-                <span className="material-symbols-outlined text-[24px]">cancel</span>
+
+            {/* Modal Body */}
+            <div className="p-6 overflow-y-auto space-y-4 text-xs">
+              {/* Pegawai & Unit summary */}
+              <div className="p-3.5 bg-muted/40 rounded-xl border border-border/70 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary border border-primary/20 flex items-center justify-center font-bold text-sm shrink-0">
+                    {initialsOf(approvalModal.leave.name)}
+                  </div>
+                  <div className="min-w-0">
+                    <span className="font-semibold text-foreground text-xs block truncate">
+                      {approvalModal.leave.name}
+                    </span>
+                    <span className="text-[10.5px] text-muted-foreground font-mono block">
+                      NIY: {approvalModal.leave.niy} • {approvalModal.leave.role}
+                    </span>
+                  </div>
+                </div>
+                <span className="px-2.5 py-1 rounded-md text-[11px] font-medium bg-card border border-border text-foreground shrink-0">
+                  {approvalModal.leave.unitName}
+                </span>
               </div>
-              <p className="text-sm font-bold text-foreground mb-1">Tolak pengajuan izin/cuti ini?</p>
-              <p className="text-xs text-muted-foreground leading-relaxed">Status akan diperbarui menjadi <strong className="text-destructive font-semibold">Ditolak</strong>. Keputusan ini akan dicatat dan dapat dilihat oleh pegawai.</p>
+
+              {/* Rincian Pengajuan */}
+              <div className="grid grid-cols-2 gap-3 p-3 bg-card rounded-xl border border-border/80">
+                <div>
+                  <span className="text-[10.5px] font-semibold text-muted-foreground uppercase tracking-wider block">
+                    Jenis Izin/Cuti
+                  </span>
+                  <span className="text-xs font-semibold text-foreground mt-0.5 block">
+                    {approvalModal.leave.jenis}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-[10.5px] font-semibold text-muted-foreground uppercase tracking-wider block">
+                    Durasi &amp; Periode
+                  </span>
+                  <span className="text-xs font-semibold text-primary mt-0.5 block">
+                    {approvalModal.leave.durasi} ({approvalModal.leave.periode})
+                  </span>
+                </div>
+                <div className="col-span-2 pt-2 border-t border-border/60">
+                  <span className="text-[10.5px] font-semibold text-muted-foreground uppercase tracking-wider block">
+                    Alasan Pengajuan
+                  </span>
+                  <p className="text-xs text-foreground/90 mt-0.5 leading-relaxed bg-muted/30 p-2 rounded-lg border border-border/40">
+                    {approvalModal.leave.keterangan || approvalModal.leave.alasan || '-'}
+                  </p>
+                </div>
+                {approvalModal.leave.lampiran && (
+                  <div className="col-span-2 pt-1 flex items-center justify-between bg-secondary/40 p-2 rounded-lg border border-border/50">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <span className="material-symbols-outlined text-[16px] text-primary shrink-0">attach_file</span>
+                      <span className="text-xs text-foreground font-medium truncate">
+                        {approvalModal.leave.lampiran}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleViewAttachment(approvalModal.leave)}
+                      className="px-2.5 py-1 rounded bg-card hover:bg-muted border border-border text-[11px] font-medium text-foreground cursor-pointer shrink-0 transition-colors"
+                    >
+                      Buka Dokumen
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Status Alur 2-Tahap Saat Ini */}
+              <div className="p-3 bg-muted/40 rounded-xl border border-border/70 space-y-2">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                  <span className="material-symbols-outlined text-[15px] text-primary">flowsheet</span>
+                  Status Verifikasi Saat Ini
+                </span>
+                <div className="grid grid-cols-2 gap-2 text-[11px]">
+                  <div className="p-2 rounded-lg bg-card border border-border/60">
+                    <span className="text-[10px] text-muted-foreground block font-medium">1. Kepala Sekolah:</span>
+                    <span className={`font-semibold inline-flex items-center gap-1 mt-0.5 ${
+                      approvalModal.leave.approvalKepsekStatus === 'Disetujui'
+                        ? 'text-emerald-600 dark:text-emerald-400'
+                        : approvalModal.leave.approvalKepsekStatus === 'Ditolak'
+                        ? 'text-destructive'
+                        : 'text-amber-600 dark:text-amber-400'
+                    }`}>
+                      <span className="material-symbols-outlined text-[13px]">
+                        {approvalModal.leave.approvalKepsekStatus === 'Disetujui' ? 'check_circle' : 'hourglass_empty'}
+                      </span>
+                      {approvalModal.leave.approvalKepsekStatus || 'Menunggu'}
+                    </span>
+                    {approvalModal.leave.approvalKepsek?.catatan && (
+                      <p className="text-[10.5px] text-muted-foreground italic mt-0.5 truncate">
+                        &ldquo;{approvalModal.leave.approvalKepsek.catatan}&rdquo;
+                      </p>
+                    )}
+                  </div>
+                  <div className="p-2 rounded-lg bg-card border border-border/60">
+                    <span className="text-[10px] text-muted-foreground block font-medium">2. Superadmin:</span>
+                    <span className={`font-semibold inline-flex items-center gap-1 mt-0.5 ${
+                      approvalModal.leave.approvalSuperadminStatus === 'Disetujui'
+                        ? 'text-emerald-600 dark:text-emerald-400'
+                        : approvalModal.leave.approvalSuperadminStatus === 'Ditolak'
+                        ? 'text-destructive'
+                        : 'text-sky-600 dark:text-sky-400'
+                    }`}>
+                      <span className="material-symbols-outlined text-[13px]">
+                        {approvalModal.leave.approvalSuperadminStatus === 'Disetujui' ? 'check_circle' : 'hourglass_empty'}
+                      </span>
+                      {approvalModal.action === 'approve' ? 'Menunggu Keputusan Anda' : 'Akan Ditolak'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Input Catatan / Alasan */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-foreground flex items-center justify-between">
+                  <span>
+                    {approvalModal.action === 'approve'
+                      ? 'Catatan Persetujuan Superadmin (Opsional):'
+                      : 'Alasan Penolakan (Wajib Diisi):'}
+                  </span>
+                  {approvalModal.action === 'reject' && (
+                    <span className="text-destructive text-[11px] font-normal">* Wajib diisi</span>
+                  )}
+                </label>
+                <textarea
+                  rows={3}
+                  value={approvalModal.note}
+                  onChange={(e) => setApprovalModal(prev => ({ ...prev, note: e.target.value }))}
+                  placeholder={
+                    approvalModal.action === 'approve'
+                      ? 'Tambahkan pesan atau instruksi untuk guru/pegawai (opsional)...'
+                      : 'Contoh: Dokumen surat dokter belum berstempel resmi, kuota cuti tahunan telah habis...'
+                  }
+                  className="w-full p-2.5 bg-card border border-input rounded-xl text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring resize-none leading-relaxed"
+                />
+              </div>
             </div>
-            <div className="px-5 py-3.5 bg-muted/30 border-t border-border flex items-center justify-end gap-2.5">
-              <button onClick={handleCancelReject} className="h-8.5 px-3.5 rounded-lg border border-border bg-card hover:bg-muted text-foreground font-semibold text-xs transition-colors cursor-pointer" type="button">
+
+            {/* Modal Footer */}
+            <div className="px-6 py-3.5 bg-muted/30 border-t border-border flex items-center justify-end gap-2.5">
+              <button
+                onClick={() => setApprovalModal({ isOpen: false, leave: null, action: 'approve', note: '' })}
+                className="h-9 px-4 rounded-lg border border-border bg-card hover:bg-muted text-foreground font-semibold text-xs transition-colors cursor-pointer"
+                type="button"
+              >
                 Batal
               </button>
-              <button onClick={handleConfirmReject} className="h-8.5 px-3.5 rounded-lg bg-destructive hover:bg-destructive/90 text-destructive-foreground font-semibold text-xs flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer" type="button">
-                <span className="material-symbols-outlined text-[16px]">close</span>
-                <span>Tolak Pengajuan</span>
+              <button
+                onClick={handleConfirmApproval}
+                disabled={approvalModal.action === 'reject' && !approvalModal.note.trim()}
+                className={`h-9 px-4 rounded-lg font-semibold text-xs flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+                  approvalModal.action === 'approve'
+                    ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                    : 'bg-destructive hover:bg-destructive/90 text-destructive-foreground'
+                }`}
+                type="button"
+              >
+                <span className="material-symbols-outlined text-[16px]">
+                  {approvalModal.action === 'approve' ? 'check' : 'close'}
+                </span>
+                <span>
+                  {approvalModal.action === 'approve' ? 'Konfirmasi Setujui (Final)' : 'Konfirmasi Tolak'}
+                </span>
               </button>
             </div>
           </div>
@@ -756,6 +1166,9 @@ function PengajuanIzinCutiPage() {
         isOpen={isDetailOpen}
         onClose={handleCloseDetail}
         leave={detailLeave}
+        canApprove={canApproveLeave}
+        onApprove={(l) => handleOpenApprovalModal(l, 'approve')}
+        onReject={(l) => handleOpenApprovalModal(l, 'reject')}
       />
 
       <LeaveRequestModal

@@ -12,6 +12,9 @@ import {
   calculateAttendanceStatus, calculateCheckoutStatus, jamKerjaRules, jamKeMenit, menitKeJam,
   labelJamKerja, STATUS_TERLAMBAT, STATUS_TEPAT_WAKTU, STATUS_BELUM_PRESENSI,
 } from '../data/jamKerja.js'
+import {
+  isLeavePending, isLeaveApproved, isLeaveRejected,
+} from '../data/jenisIzinCuti.js'
 
 // Konversi jam <-> menit sekarang milik modul jam kerja. Alias di bawah hanya
 // menjaga nama lama yang masih dipakai halaman lain.
@@ -669,10 +672,88 @@ function getInitialUserAccounts(staffList) {
   return [...byKey.values()]
 }
 
+export function normalizeLeaveApprovals(leave) {
+  if (!leave) return leave
+  const isApproved = isLeaveApproved(leave.status)
+  const isRejected = isLeaveRejected(leave.status)
+  const isPendingSuperadmin = leave.status === 'Menunggu Superadmin'
+
+  let kepsek = leave.approvalKepsek ? { ...leave.approvalKepsek } : null
+  let superadmin = leave.approvalSuperadmin ? { ...leave.approvalSuperadmin } : null
+
+  if (!kepsek) {
+    if (isApproved || isPendingSuperadmin) {
+      kepsek = {
+        status: 'Disetujui',
+        approverName: leave.kepsekApprover || 'Kepala Sekolah',
+        approverRole: 'Kepala Sekolah',
+        tanggal: leave.kepsekApprovedAt || leave.createdAt || null,
+        catatan: leave.kepsekCatatan || 'Disetujui oleh Kepala Sekolah',
+      }
+    } else if (isRejected) {
+      kepsek = {
+        status: leave.rejectedStage === 'superadmin' ? 'Disetujui' : 'Ditolak',
+        approverName: 'Kepala Sekolah',
+        approverRole: 'Kepala Sekolah',
+        tanggal: leave.createdAt || null,
+        catatan: leave.catatanPenolakan || null,
+      }
+    } else {
+      kepsek = {
+        status: 'Menunggu',
+        approverName: null,
+        approverRole: 'Kepala Sekolah',
+        tanggal: null,
+        catatan: null,
+      }
+    }
+  }
+
+  if (!superadmin) {
+    if (isApproved) {
+      superadmin = {
+        status: 'Disetujui',
+        approverName: leave.superadminApprover || 'Superadmin',
+        approverRole: 'Superadmin',
+        tanggal: leave.approvedAt || leave.createdAt || null,
+        catatan: leave.superadminCatatan || 'Disetujui oleh Superadmin',
+      }
+    } else if (isRejected) {
+      superadmin = {
+        status: leave.rejectedStage === 'kepsek' ? 'Menunggu' : 'Ditolak',
+        approverName: 'Superadmin',
+        approverRole: 'Superadmin',
+        tanggal: leave.createdAt || null,
+        catatan: leave.catatanPenolakan || null,
+      }
+    } else {
+      superadmin = {
+        status: 'Menunggu',
+        approverName: null,
+        approverRole: 'Superadmin',
+        tanggal: null,
+        catatan: null,
+      }
+    }
+  }
+
+  return {
+    ...leave,
+    approvalKepsek: kepsek,
+    approvalSuperadmin: superadmin,
+  }
+}
+
+function getInitialLeaves() {
+  const saved = readPersistedItem(PERSISTED_LEAVES_KEY, null)
+  const raw = Array.isArray(saved) && saved.length > 0 ? saved : LEAVES
+  return raw.map(normalizeLeaveApprovals)
+}
+
 const initialStaff = getInitialStaff()
 const initialAdminUsers = getInitialAdminUsers()
 const initialUserAccounts = getInitialUserAccounts(initialStaff)
-const initialLeaves = readPersistedItem(PERSISTED_LEAVES_KEY, [])
+const initialLeaves = getInitialLeaves()
 const initialUnits = getInitialUnits()
 const initialSettings = getInitialSettings()
 
@@ -802,9 +883,22 @@ export const initialState = {
 export function simPresReducer(state, action) {
   switch (action.type) {
     case 'UPDATE_LEAVE_STATUS': {
-      const nextLeaves = state.leaves.map((l) =>
-        l.id === action.id ? { ...l, status: action.status } : l,
-      )
+      const nextLeaves = state.leaves.map((l) => {
+        if (l.id !== action.id) return l
+        const updates = { ...action }
+        delete updates.type
+        delete updates.id
+        const extra = action.payload || action.extra || {}
+        const merged = {
+          ...l,
+          ...updates,
+          ...extra,
+          status: action.status ?? extra.status ?? l.status,
+          ...(action.approvalKepsek ? { approvalKepsek: { ...(l.approvalKepsek || {}), ...action.approvalKepsek } } : {}),
+          ...(action.approvalSuperadmin ? { approvalSuperadmin: { ...(l.approvalSuperadmin || {}), ...action.approvalSuperadmin } } : {}),
+        }
+        return normalizeLeaveApprovals(merged)
+      })
       writePersistedItem(PERSISTED_LEAVES_KEY, nextLeaves)
       return {
         ...state,
@@ -2303,9 +2397,9 @@ export function selectTrendByRange(state, days) {
 
 export function selectIzinCutiSummary(state) {
   const leaves = selectScopedLeaves(state)
-  const menunggu = leaves.filter((l) => l.status === 'Menunggu').length
-  const disetujui = leaves.filter((l) => l.status === 'Disetujui').length
-  const ditolak = leaves.filter((l) => l.status === 'Ditolak').length
+  const menunggu = leaves.filter((l) => isLeavePending(l.status)).length
+  const disetujui = leaves.filter((l) => isLeaveApproved(l.status)).length
+  const ditolak = leaves.filter((l) => isLeaveRejected(l.status)).length
   return { menunggu, disetujui, ditolak, total: leaves.length }
 }
 
@@ -2316,19 +2410,28 @@ export function selectBelumPresensi(state) {
 export function selectLeavesByStatus(state, status) {
   const leaves = selectScopedLeaves(state)
   if (!status || status === 'semua') return leaves
+  if (status === 'menunggu' || status === 'Menunggu') {
+    return leaves.filter((l) => isLeavePending(l.status))
+  }
+  if (status === 'disetujui' || status === 'Disetujui') {
+    return leaves.filter((l) => isLeaveApproved(l.status))
+  }
+  if (status === 'ditolak' || status === 'Ditolak') {
+    return leaves.filter((l) => isLeaveRejected(l.status))
+  }
   return leaves.filter((l) => l.status === status)
 }
 
 export function selectPendingLeaves(state) {
-  return selectScopedLeaves(state).filter((l) => l.status === 'Menunggu').length
+  return selectScopedLeaves(state).filter((l) => isLeavePending(l.status)).length
 }
 
 export function selectApprovedLeaves(state) {
-  return selectScopedLeaves(state).filter((l) => l.status === 'Disetujui').length
+  return selectScopedLeaves(state).filter((l) => isLeaveApproved(l.status)).length
 }
 
 export function selectRejectedLeaves(state) {
-  return selectScopedLeaves(state).filter((l) => l.status === 'Ditolak').length
+  return selectScopedLeaves(state).filter((l) => isLeaveRejected(l.status)).length
 }
 
 export function selectStaffById(state, id) {
@@ -2546,13 +2649,14 @@ function syncAdminUserFromStaff(adminUsers, staffUser, action) {
 export function selectLeavesEnriched(state) {
   return selectScopedLeaves(state).map((l) => {
     const staff = selectStaffById(state, l.staffId)
+    const normalized = normalizeLeaveApprovals(l)
     return {
-      ...l,
-      name: staff ? staff.name : 'N/A',
-      niy: staff ? staff.niy : '-',
-      role: staff ? staff.role : '-',
-      unitId: staff ? staff.unitId : null,
-      unitName: staff ? selectUnitName(state, staff.unitId) : '-',
+      ...normalized,
+      name: staff ? staff.name : (l.name || 'N/A'),
+      niy: staff ? staff.niy : (l.niy || '-'),
+      role: staff ? staff.role : (l.role || '-'),
+      unitId: staff ? staff.unitId : (l.unitId || null),
+      unitName: staff ? selectUnitName(state, staff.unitId) : (l.unitName || '-'),
     }
   })
 }

@@ -167,23 +167,44 @@ export function warnaAvatarJenis(nama) {
   return jenisIzinCuti(nama)?.warnaAvatar || 'bg-surface-container text-on-surface'
 }
 
-/** Label status pengajuan, dipakai kartu mobile dan tabel portal. */
+/** Status pengajuan dalam sistem alur 2 tahap (Kepala Sekolah & Superadmin). */
 export const STATUS_PENGAJUAN = ['Menunggu', 'Disetujui', 'Ditolak']
+
+export function isLeavePending(status) {
+  const s = String(status || '').toLowerCase()
+  return s === 'menunggu' || s.includes('menunggu')
+}
+
+export function isLeaveApproved(status) {
+  const s = String(status || '').toLowerCase()
+  return s === 'disetujui' || s === 'approved'
+}
+
+export function isLeaveRejected(status) {
+  const s = String(status || '').toLowerCase()
+  return s === 'ditolak' || s === 'rejected'
+}
 
 export const WARNA_STATUS = {
   Menunggu: 'bg-amber-50 text-amber-800',
+  'Menunggu Kepsek': 'bg-amber-50 text-amber-800',
+  'Menunggu Superadmin': 'bg-sky-50 text-sky-800',
   Disetujui: 'bg-emerald-50 text-emerald-700',
   Ditolak: 'bg-error-container text-on-error-container',
 }
 
 export const WARNA_STATUS_PORTAL = {
-  Menunggu: 'bg-amber-50 text-amber-700',
-  Disetujui: 'bg-emerald-50 text-emerald-700',
-  Ditolak: 'bg-red-50 text-red-700',
+  Menunggu: 'bg-amber-50 text-amber-700 border border-amber-200/80',
+  'Menunggu Kepsek': 'bg-amber-50 text-amber-700 border border-amber-200/80',
+  'Menunggu Superadmin': 'bg-sky-50 text-sky-700 border border-sky-200/80',
+  Disetujui: 'bg-emerald-50 text-emerald-700 border border-emerald-200/80',
+  Ditolak: 'bg-red-50 text-red-700 border border-red-200/80',
 }
 
 export const WARNA_TITIK_STATUS = {
   Menunggu: 'bg-amber-500',
+  'Menunggu Kepsek': 'bg-amber-500',
+  'Menunggu Superadmin': 'bg-sky-500',
   Disetujui: 'bg-emerald-500',
   Ditolak: 'bg-red-500',
 }
@@ -191,6 +212,8 @@ export const WARNA_TITIK_STATUS = {
 /** Label panjang status untuk layar ("Menunggu Persetujuan"). */
 export const LABEL_STATUS_PANJANG = {
   Menunggu: 'Menunggu Persetujuan',
+  'Menunggu Kepsek': 'Menunggu Kepsek (Tahap 1)',
+  'Menunggu Superadmin': 'Menunggu Superadmin (Tahap 2)',
   Disetujui: 'Disetujui',
   Ditolak: 'Ditolak',
 }
@@ -257,6 +280,22 @@ export function buildPengajuan({ id, staffId, jenis, mulai, selesai, alasan, lam
     lampiran: lampiran || '',
     lampiranUkuran: lampiranUkuran ?? null,
     status: 'Menunggu',
+    tahapApproval: 1, // 1: Menunggu Kepsek, 2: Menunggu Superadmin, 3: Selesai
+    approvalKepsek: {
+      status: 'Menunggu',
+      approverName: null,
+      approverRole: 'Kepala Sekolah',
+      tanggal: null,
+      catatan: null,
+    },
+    approvalSuperadmin: {
+      status: 'Menunggu',
+      approverName: null,
+      approverRole: 'Superadmin',
+      tanggal: null,
+      catatan: null,
+    },
+    createdAt: new Date().toISOString(),
   }
 }
 
@@ -293,7 +332,7 @@ export function hitungSisaKuota(staffId, jenis, leaves = []) {
   const kuota = kuotaJenis(jenis)
   if (kuota === null) return null
   const terpakai = (leaves || [])
-    .filter((l) => (l.staffId ?? l.staff_id) === staffId && normalisasiJenis(l.jenis) === normalisasiJenis(jenis) && (l.status === 'Disetujui' || l.status === 'Approved'))
+    .filter((l) => (l.staffId ?? l.staff_id) === staffId && normalisasiJenis(l.jenis) === normalisasiJenis(jenis) && isLeaveApproved(l.status))
     .reduce((sum, l) => sum + (Number(l.durasi_hari ?? l.durasiHari ?? 1) || hitungDurasiHari(l.mulai ?? l.tanggal_mulai, l.selesai ?? l.tanggal_selesai)), 0)
   return Math.max(0, kuota - terpakai)
 }

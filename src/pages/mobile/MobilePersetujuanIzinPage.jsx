@@ -8,8 +8,15 @@ import {
 import { EmptyState, LoadingState } from '../../components/mobile/Feedback.jsx'
 
 function BarisStatus({ status }) {
-  const warna = status === 'Menunggu' ? 'bg-status-warning-soft text-status-warning-text' : status === 'Disetujui' ? 'bg-status-success-soft text-status-success-text' : 'bg-status-danger-soft text-status-danger-text'
-  return <span className={`px-2.5 py-1 rounded-full font-label-sm text-label-sm ${warna}`}>{status}</span>
+  const isApproved = status === 'Disetujui'
+  const isRejected = status === 'Ditolak'
+  const warna = isApproved
+    ? 'bg-status-success-soft text-status-success-text'
+    : isRejected
+    ? 'bg-status-danger-soft text-status-danger-text'
+    : 'bg-status-warning-soft text-status-warning-text'
+  const label = status === 'Menunggu Superadmin' ? 'Menunggu Superadmin (2/2)' : status === 'Menunggu Kepsek' ? 'Menunggu Kepsek (1/2)' : status
+  return <span className={`px-2.5 py-1 rounded-full font-label-sm text-label-sm ${warna}`}>{label}</span>
 }
 
 function MobilePersetujuanIzinPage() {
@@ -23,13 +30,21 @@ function MobilePersetujuanIzinPage() {
   const currentRole = state ? selectCurrentUserRole(state) : ''
   const isSuperadmin = currentRole === ROLE_SUPERADMIN
 
-  const canApprove = state ? hasPermission(state, currentRole, 'pengajuanIzinCuti', 'edit') : false
+  const canApprove = state ? (isSuperadmin || hasPermission(state, currentRole, 'pengajuanIzinCuti', 'edit')) : false
 
   const daftar = useMemo(() => {
     if (!state) return []
-    let list = selectLeavesEnriched(state).filter((l) => l.status === 'Menunggu')
-    if (!isSuperadmin && userUnitId) {
-      list = list.filter((l) => l.unitId === userUnitId)
+    let list = selectLeavesEnriched(state)
+    // Filter berdasarkan role:
+    if (!isSuperadmin) {
+      // Kepala Sekolah: tampilkan yang belum disetujui Kepsek
+      list = list.filter((l) => l.status !== 'Disetujui' && l.status !== 'Ditolak' && l.approvalKepsek?.status !== 'Disetujui')
+      if (userUnitId) {
+        list = list.filter((l) => l.unitId === userUnitId)
+      }
+    } else {
+      // Superadmin: tampilkan semua yang masih pending
+      list = list.filter((l) => l.status !== 'Disetujui' && l.status !== 'Ditolak')
     }
     return list
   }, [state, isSuperadmin, userUnitId])
@@ -45,20 +60,83 @@ function MobilePersetujuanIzinPage() {
   const handleApprove = (id) => {
     const leave = state.leaves.find((l) => l.id === id)
     const staff = leave ? state.staff.find((s) => s.id === leave.staffId) : null
-    dispatch({ type: 'UPDATE_LEAVE_STATUS', id, status: 'Disetujui' })
-    if (leave && staff) {
-      addActivityLog(dispatch, state, 'Persetujuan', `Cuti/Izin • ${staff.name}`, `Menyetujui pengajuan ${leave.jenis} (${leave.durasi}) untuk ${staff.name}`, null, null, staff.unitId)
+    const approverName = state.currentUser?.name || selfStaff?.name || (isSuperadmin ? 'Superadmin' : 'Kepala Sekolah')
+
+    if (!isSuperadmin) {
+      // Approval Tahap 1 oleh Kepala Sekolah -> lanjut ke Superadmin
+      dispatch({
+        type: 'UPDATE_LEAVE_STATUS',
+        id,
+        status: 'Menunggu Superadmin',
+        tahapApproval: 2,
+        approvalKepsek: {
+          status: 'Disetujui',
+          approverName,
+          approverRole: 'Kepala Sekolah',
+          tanggal: new Date().toISOString(),
+          catatan: 'Disetujui oleh Kepala Sekolah',
+        },
+      })
+      if (leave && staff) {
+        addActivityLog(dispatch, state, 'Persetujuan Tahap 1', `Cuti/Izin • ${staff.name}`, `Kepala Sekolah (${approverName}) menyetujui pengajuan ${leave.jenis} (${leave.durasi}) untuk ${staff.name}. Menunggu persetujuan Superadmin.`, approverName, currentRole, staff.unitId)
+      }
+      setPesan('Pengajuan disetujui Kepala Sekolah. Menunggu persetujuan akhir dari Superadmin.')
+    } else {
+      // Approval oleh Superadmin -> Final Disetujui
+      dispatch({
+        type: 'UPDATE_LEAVE_STATUS',
+        id,
+        status: 'Disetujui',
+        tahapApproval: 3,
+        approvalSuperadmin: {
+          status: 'Disetujui',
+          approverName,
+          approverRole: 'Superadmin',
+          tanggal: new Date().toISOString(),
+          catatan: 'Disetujui penuh oleh Superadmin',
+        },
+      })
+      if (leave && staff) {
+        addActivityLog(dispatch, state, 'Persetujuan Final', `Cuti/Izin • ${staff.name}`, `Superadmin (${approverName}) menyetujui pengajuan ${leave.jenis} (${leave.durasi}) untuk ${staff.name}. Status pengajuan: Disetujui Penuh.`, approverName, currentRole, staff.unitId)
+      }
+      setPesan('Pengajuan disetujui penuh oleh Superadmin.')
     }
-    setPesan('Pengajuan disetujui.')
-    setTimeout(() => setPesan(''), 3000)
+    setTimeout(() => setPesan(''), 4000)
   }
 
   const handleReject = (id) => {
     const leave = state.leaves.find((l) => l.id === id)
     const staff = leave ? state.staff.find((s) => s.id === leave.staffId) : null
-    dispatch({ type: 'UPDATE_LEAVE_STATUS', id, status: 'Ditolak' })
+    const approverName = state.currentUser?.name || selfStaff?.name || (isSuperadmin ? 'Superadmin' : 'Kepala Sekolah')
+
+    dispatch({
+      type: 'UPDATE_LEAVE_STATUS',
+      id,
+      status: 'Ditolak',
+      tahapApproval: 3,
+      rejectedStage: isSuperadmin ? 'superadmin' : 'kepsek',
+      ...(isSuperadmin
+        ? {
+            approvalSuperadmin: {
+              status: 'Ditolak',
+              approverName,
+              approverRole: 'Superadmin',
+              tanggal: new Date().toISOString(),
+              catatan: 'Ditolak oleh Superadmin',
+            },
+          }
+        : {
+            approvalKepsek: {
+              status: 'Ditolak',
+              approverName,
+              approverRole: 'Kepala Sekolah',
+              tanggal: new Date().toISOString(),
+              catatan: 'Ditolak oleh Kepala Sekolah',
+            },
+          }),
+    })
     if (leave && staff) {
-      addActivityLog(dispatch, state, 'Penolakan', `Cuti/Izin • ${staff.name}`, `Menolak pengajuan ${leave.jenis} (${leave.durasi}) untuk ${staff.name}`, null, null, staff.unitId)
+      addActivityLog(dispatch, state, 'Penolakan', `Cuti/Izin • ${staff.name}`, `${isSuperadmin ? 'Superadmin' : 'Kepala Sekolah'} (${approverName}) menolak pengajuan ${leave.jenis} (${leave.durasi}) untuk ${staff.name}`, approverName, currentRole, staff.unitId)
     }
     setPesan('Pengajuan ditolak.')
     setTimeout(() => setPesan(''), 3000)
@@ -79,7 +157,7 @@ function MobilePersetujuanIzinPage() {
               Persetujuan Izin &amp; Cuti
             </h1>
             <span className="font-label-sm text-label-sm text-primary-muted">
-              {daftar.length} pengajuan menunggu verifikasi
+              {daftar.length} pengajuan menunggu verifikasi {isSuperadmin ? '(Superadmin)' : '(Kepala Sekolah)'}
             </span>
           </div>
         </div>
@@ -103,6 +181,15 @@ function MobilePersetujuanIzinPage() {
                 {(item.keterangan || item.alasan) && (
                   <p className="font-body-sm text-body-sm text-on-surface-variant leading-snug">{item.keterangan || item.alasan}</p>
                 )}
+                
+                {/* Info status 2 tahap */}
+                <div className="p-2.5 rounded-xl bg-muted/40 border border-border/60 text-xs flex items-center justify-between">
+                  <span className="text-muted-foreground text-[11px]">Status Tahap:</span>
+                  <span className="font-semibold text-foreground text-[11px]">
+                    {item.approvalKepsek?.status === 'Disetujui' ? '✓ Disetujui Kepsek (Menunggu Superadmin)' : 'Menunggu Persetujuan Kepsek'}
+                  </span>
+                </div>
+
                 {canApprove ? (
                   <div className="flex items-center gap-2">
                     <button
@@ -110,7 +197,7 @@ function MobilePersetujuanIzinPage() {
                       onClick={() => handleApprove(item.id)}
                       className="flex-1 h-9 rounded-xl bg-status-success text-white font-label-md text-label-md px-4 py-2 shadow-2xs active:scale-95 transition-all"
                     >
-                      Setujui
+                      {isSuperadmin ? 'Setujui (Final)' : 'Setujui (Lanjut Superadmin)'}
                     </button>
                     <button
                       type="button"

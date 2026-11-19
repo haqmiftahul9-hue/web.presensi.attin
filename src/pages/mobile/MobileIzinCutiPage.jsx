@@ -10,6 +10,7 @@ import {
   warnaJenis, WARNA_STATUS, LABEL_STATUS_PANJANG, STATUS_PENGAJUAN,
   buildPengajuan, validasiFormPengajuan, formatPeriode, hitungDurasiHari,
   MAKS_LAMPIRAN, hitungSisaKuota, kuotaJenis,
+  isLeavePending, isLeaveApproved, isLeaveRejected,
 } from '../../data/jenisIzinCuti.js'
 import StaffAvatar from '../../components/mobile/StaffAvatar.jsx'
 import { SectionTitle } from '../../components/mobile/AppShell.jsx'
@@ -36,8 +37,15 @@ function ukuranBerkas(byte) {
 }
 
 function BarisStatus({ status }) {
+  const isApproved = isLeaveApproved(status)
+  const isRejected = isLeaveRejected(status)
+  const warna = isApproved
+    ? 'bg-status-success-soft text-status-success-text'
+    : isRejected
+    ? 'bg-status-danger-soft text-status-danger-text'
+    : 'bg-status-warning-soft text-status-warning-text'
   return (
-    <span className={`px-2.5 py-1 rounded-full font-label-sm text-label-sm ${WARNA_STATUS[status] || WARNA_STATUS.Menunggu}`}>
+    <span className={`px-2.5 py-1 rounded-full font-label-sm text-label-sm ${warna}`}>
       {LABEL_STATUS_PANJANG[status] || status}
     </span>
   )
@@ -251,7 +259,12 @@ function MobileIzinCutiPage() {
     )
   }
 
-  const jumlah = (status) => daftar.filter((l) => l.status === status).length
+  const jumlah = (status) => {
+    if (status === 'Menunggu') return daftar.filter((l) => isLeavePending(l.status)).length
+    if (status === 'Disetujui') return daftar.filter((l) => isLeaveApproved(l.status)).length
+    if (status === 'Ditolak') return daftar.filter((l) => isLeaveRejected(l.status)).length
+    return daftar.filter((l) => l.status === status).length
+  }
 
   /** Validasi form: aturan sama dengan modal portal admin (modul data). */
   function validasi() {
@@ -349,7 +362,7 @@ function MobileIzinCutiPage() {
               setPesan('')
               setGalat('')
             }}
-            className="sp-btn w-full min-h-[60px] py-3.5 bg-primary hover:bg-primary-strong text-white border-[3px] border-primary shadow-lg shadow-[var(--primary)]/20 font-headline-sm text-headline-sm flex items-center justify-center gap-2 rounded-2xl active:scale-[0.98] transition-all"
+            className="sp-btn w-full min-h-[60px] py-3.5 bg-primary bg-[#323d8f] hover:bg-primary-strong text-white border-[3px] border-primary shadow-lg shadow-[var(--primary)]/20 font-headline-sm text-headline-sm flex items-center justify-center gap-2 rounded-2xl active:scale-[0.98] transition-all"
           >
             <Icon name="add" className="text-[22px] shrink-0 text-white" />
             <span className="text-white font-semibold tracking-wide">Buat Pengajuan</span>
@@ -426,6 +439,18 @@ function MobileIzinCutiPage() {
                       </span>
                       <BarisStatus status={item.status} />
                     </div>
+                    {item.status === 'Menunggu Superadmin' && (
+                      <p className="text-[11px] font-medium text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/40 px-2.5 py-1 rounded-lg border border-sky-200 dark:border-sky-800 flex items-center gap-1.5">
+                        <Icon name="verified" className="text-[14px] text-sky-600 dark:text-sky-400 shrink-0" />
+                        <span>Disetujui Kepala Sekolah • Menunggu persetujuan Superadmin</span>
+                      </p>
+                    )}
+                    {item.status === 'Menunggu Kepsek' && (
+                      <p className="text-[11px] font-medium text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 px-2.5 py-1 rounded-lg border border-amber-200 dark:border-amber-800 flex items-center gap-1.5">
+                        <Icon name="hourglass_empty" className="text-[14px] text-amber-600 dark:text-amber-400 shrink-0" />
+                        <span>Menunggu peninjauan &amp; persetujuan Kepala Sekolah</span>
+                      </p>
+                    )}
                     <div className="flex items-center gap-2 text-on-surface-variant flex-wrap">
                       <Icon name="event" className="text-[15px] shrink-0" />
                       <span className="font-body-sm text-body-sm text-on-surface">{item.periode}</span>
