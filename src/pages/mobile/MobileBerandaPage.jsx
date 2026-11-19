@@ -280,38 +280,49 @@ function MobileBerandaPage() {
             </div>
 
             <div className="flex flex-col min-w-0 flex-1">
-              {roleSalutation ? (
-                <>
-                  {/* Sapaan Kepala Sekolah atau Admin di masing-masing unit */}
-                  <span className="font-label-sm text-label-sm text-primary-muted dark:text-slate-400 font-medium leading-none">
-                    Halo,
-                  </span>
-                  <span className="font-label-sm text-label-sm text-primary font-bold leading-tight mt-0.5 truncate">
-                    {roleSalutation}
-                  </span>
-                  {/* Di bawah sapaan: Nama kepala sekolah atau admin tersebut beserta gelarnya */}
-                  <span
-                    className="font-headline-sm text-headline-sm text-sp-ink dark:text-white font-bold tracking-tight leading-tight truncate mt-0.5"
-                    title={leaderDisplayName}
-                  >
-                    {leaderDisplayName}
-                  </span>
-                </>
-              ) : (
-                <>
-                  {/* Sapaan dinamis pegawai/guru */}
-                  <span className="font-label-sm text-label-sm text-primary-muted dark:text-slate-400 font-medium">
-                    Halo, {getEmployeeSalutation(staff, { unit })}
-                  </span>
-                  {/* Nama lengkap — sudah memuat gelar, jadi gelar tidak ditulis lagi */}
-                  <span
-                    className="font-headline-sm text-headline-sm text-sp-ink dark:text-white font-bold tracking-tight leading-tight truncate"
-                    title={staff.name}
-                  >
-                    {staff.name}
-                  </span>
-                </>
-              )}
+               {roleSalutation ? (
+                 <>
+                   {/* Sapaan Assalamu'alaikum sesuai gender / unit TK */}
+                   <span className="font-label-sm text-label-sm text-primary-muted dark:text-slate-400 font-medium leading-none">
+                     Assalamu'alaikum {(() => {
+                       const s = getEmployeeSalutation(staff, { unit })
+                       return s === 'Umi' ? 'Ummi' : s
+                     })()}
+                   </span>
+                   {/* Nama kepala sekolah atau admin tersebut beserta gelarnya */}
+                   <span
+                     className="font-headline-sm text-headline-sm text-sp-ink dark:text-white font-bold tracking-tight leading-tight truncate mt-0.5"
+                     title={leaderDisplayName}
+                   >
+                     {leaderDisplayName}
+                   </span>
+                   {/* Jabatan */}
+                   <span className="font-label-sm text-label-sm text-primary-muted dark:text-slate-400 font-medium leading-tight truncate mt-0.5">
+                     {staff?.role || roleSalutation}
+                   </span>
+                 </>
+               ) : (
+                 <>
+                   {/* Sapaan Assalamu'alaikum sesuai gender / unit TK */}
+                   <span className="font-label-sm text-label-sm text-primary-muted dark:text-slate-400 font-medium">
+                     Assalamu'alaikum {(() => {
+                       const s = getEmployeeSalutation(staff, { unit })
+                       return s === 'Umi' ? 'Ummi' : s
+                     })()}
+                   </span>
+                   {/* Nama lengkap */}
+                   <span
+                     className="font-headline-sm text-headline-sm text-sp-ink dark:text-white font-bold tracking-tight leading-tight truncate"
+                     title={staff.name}
+                   >
+                     {staff.name}
+                   </span>
+                   {/* Jabatan */}
+                   <span className="font-label-sm text-label-sm text-primary-muted dark:text-slate-400 font-medium leading-tight truncate mt-0.5">
+                     {staff?.role}
+                   </span>
+                 </>
+               )}
               {/* Badge Peran / Penugasan Khusus */}
               {roleBadgeStyle && (
                 <div className="flex items-center gap-1.5 mt-1">
