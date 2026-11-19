@@ -72,7 +72,7 @@ function PresensiHariIniCard({ presensi, zonaWaktu, tanggal }) {
           <span className="w-8 h-8 rounded-xl bg-primary-soft border border-primary/15 flex items-center justify-center shrink-0 shadow-2xs">
             <Icon name="history_toggle_off" className="text-primary text-[18px]" />
           </span>
-          <span className="font-headline-sm text-headline-sm text-[#20243a] font-bold tracking-tight truncate">Presensi Hari Ini</span>
+          <span className="font-headline-sm text-headline-sm text-sp-ink font-bold tracking-tight truncate">Presensi Hari Ini</span>
         </div>
         <span className="font-label-sm text-label-sm text-primary-muted font-medium shrink-0">{tanggalPendek(tanggal)}</span>
       </div>
@@ -80,7 +80,7 @@ function PresensiHariIniCard({ presensi, zonaWaktu, tanggal }) {
       {baris(
         'Jam Masuk',
         masuk,
-        masuk ? (lateMinutes > 0 ? 'bg-amber-50 text-amber-800 border border-amber-200/80 font-semibold' : 'bg-emerald-50 text-emerald-700 border border-emerald-200/80 font-semibold') : 'bg-[#f3f5fc] text-primary-muted border border-primary-border',
+        masuk ? (lateMinutes > 0 ? 'bg-status-warning-soft text-status-warning-bright border border-status-warning-border/80 font-semibold' : 'bg-status-success-soft text-status-success-text border border-status-success-border/80 font-semibold') : 'bg-sp-surface-sunken text-primary-muted border border-primary-border',
         masuk ? (lateMinutes > 0 ? 'schedule' : 'task_alt') : 'hourglass_empty',
         masuk ? statusMasuk : 'Belum Masuk',
       )}
@@ -91,18 +91,18 @@ function PresensiHariIniCard({ presensi, zonaWaktu, tanggal }) {
       {baris(
         'Jam Pulang',
         pulang,
-        pulang ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/80 font-semibold' : 'bg-[#f3f5fc] text-primary-muted border border-primary-border',
+        pulang ? 'bg-status-success-soft text-status-success-text border border-status-success-border/80 font-semibold' : 'bg-sp-surface-sunken text-primary-muted border border-primary-border',
         pulang ? 'task_alt' : 'hourglass_empty',
         pulang ? 'Sudah Absen' : (rules.pulangBebas ? 'Bebas' : `Menunggu ${rules.jamPulang}`),
       )}
 
       {/* Informasi hari kerja */}
       <div className="grid grid-cols-2 gap-2.5">
-        <div className="p-3 rounded-xl bg-[#f3f5fc] border border-primary-border flex flex-col gap-1 min-w-0">
+        <div className="p-3 rounded-xl bg-sp-surface-sunken border border-primary-border flex flex-col gap-1 min-w-0">
           <span className="font-label-sm text-label-sm text-primary-muted font-medium">Hari kerja</span>
-          <span className="font-body-md-medium text-body-md-medium text-[#20243a] font-semibold truncate">{hari}</span>
+          <span className="font-body-md-medium text-body-md-medium text-sp-ink font-semibold truncate">{hari}</span>
         </div>
-        <div className="p-3 rounded-xl bg-[#f3f5fc] border border-primary-border flex flex-col gap-1 min-w-0">
+        <div className="p-3 rounded-xl bg-sp-surface-sunken border border-primary-border flex flex-col gap-1 min-w-0">
           <span className="font-label-sm text-label-sm text-primary-muted font-medium">Jam kerja</span>
           <span className="font-body-md-medium text-body-md-medium text-primary font-semibold tabular-nums truncate">
             {rules.jamKerja}
@@ -110,13 +110,13 @@ function PresensiHariIniCard({ presensi, zonaWaktu, tanggal }) {
         </div>
       </div>
 
-      <div className="p-3.5 rounded-2xl bg-amber-50/70 border border-amber-200/70 flex items-start gap-2.5 text-amber-900">
-        <Icon name="info" className="text-[17px] text-amber-600 shrink-0 mt-0.5" />
+      <div className="p-3.5 rounded-2xl bg-status-warning-soft/70 border border-status-warning-border/70 flex items-start gap-2.5 text-status-warning-bright">
+        <Icon name="info" className="text-[17px] text-status-warning-text shrink-0 mt-0.5" />
         <div className="flex flex-col gap-0.5 min-w-0">
-          <span className="font-body-sm-medium text-body-sm-medium font-bold text-amber-950">
+          <span className="font-body-sm-medium text-body-sm-medium font-bold text-status-warning-bright">
             Batas presensi: {batasMasuk} {zonaWaktu}
           </span>
-          <span className="font-body-sm text-body-sm text-amber-900/90 leading-snug">
+          <span className="font-body-sm text-body-sm text-status-warning-bright/90 leading-snug">
             Masuk tepat pada batas atau sebelumnya berstatus Tepat Waktu; setelahnya Terlambat.
           </span>
         </div>
@@ -847,7 +847,7 @@ function MobilePresensiPage() {
       <section className="sp-page-container pt-3.5 pb-1">
         <div className="flex items-center justify-between gap-2">
           <div className="flex flex-col min-w-0">
-            <h1 className="font-headline-sm text-headline-sm text-[#20243a] font-bold tracking-tight">Presensi</h1>
+            <h1 className="font-headline-sm text-headline-sm text-sp-ink font-bold tracking-tight">Presensi</h1>
             <span className="font-label-sm text-label-sm text-primary-muted font-medium truncate">{tanggalPanjang(now)}</span>
           </div>
         </div>
@@ -861,14 +861,14 @@ function MobilePresensiPage() {
               <span className="font-display-lg text-[36px] sm:text-[40px] leading-none text-white font-extrabold tracking-tight tabular-nums drop-shadow-sm">
                 {jamDetik(now)}
               </span>
-              <span className="font-label-sm text-label-sm text-blue-100/90 mt-1.5 font-medium">
+              <span className="font-label-sm text-label-sm text-white/90 mt-1.5 font-medium">
                 {tanggalPanjang(now)} · {zonaWaktu}
               </span>
             </div>
             <span
               className={`px-3 py-1.5 rounded-full border font-label-sm text-label-sm font-semibold flex items-center gap-1.5 shrink-0 ${
                 presensi.sudahMasuk
-                  ? 'bg-emerald-400 border-emerald-300 text-slate-900 font-bold'
+                  ? 'bg-status-success border-status-success-border text-slate-900 font-bold'
                   : 'bg-white/20 border-white/30 text-white font-semibold'
               }`}
             >
@@ -877,7 +877,7 @@ function MobilePresensiPage() {
             </span>
           </div>
           <div className="flex items-center gap-2 rounded-xl bg-white/15 border border-white/20 px-3 py-2 min-w-0">
-            <Icon name="schedule" className="text-[15px] text-blue-200 shrink-0" />
+            <Icon name="schedule" className="text-[15px] text-white/80 shrink-0" />
             <span className="font-label-sm text-label-sm text-white font-medium truncate">
               Jam Kerja {rules.hari}: <span className="font-semibold">{rules.jamKerja}</span>
             </span>
@@ -888,15 +888,15 @@ function MobilePresensiPage() {
       {/* Indikator antrian offline */}
       {offlineQueueCount > 0 && (
         <section className="sp-page-container pb-2">
-          <div className="sp-card p-3 flex flex-col gap-2 border border-amber-200 bg-amber-50 rounded-xl">
+          <div className="sp-card p-3 flex flex-col gap-2 border border-status-warning-border bg-status-warning-soft rounded-xl">
             <div className="flex items-center gap-2">
-              <span className="w-6 h-6 rounded-full bg-amber-600 text-white flex items-center justify-center shrink-0 text-[12px] font-bold">
+              <span className="w-6 h-6 rounded-full bg-status-warning text-white flex items-center justify-center shrink-0 text-[12px] font-bold">
                 {offlineQueueCount}
               </span>
-              <span className="font-label-sm text-label-sm text-amber-900 font-medium">
+              <span className="font-label-sm text-label-sm text-status-warning-bright font-medium">
                 Ada {offlineQueueCount} presensi menunggu sinkronisasi
               </span>
-              <span className="ml-auto text-[10px] text-amber-700 font-medium">
+              <span className="ml-auto text-[10px] text-status-warning-text font-medium">
                 Akan tersinkron otomatis saat online
               </span>
             </div>
@@ -1019,14 +1019,14 @@ function MobilePresensiPage() {
 
         {/* Banner Status Pendaftaran Wajah & Simulasi AI Face Recognition */}
         {mode === 'face' && !registeredFace && (
-          <div className="sp-card p-4 flex flex-col gap-3 bg-amber-50/70 border border-amber-200/80">
+          <div className="sp-card p-4 flex flex-col gap-3 bg-status-warning-soft/70 border border-status-warning-border/80">
             <div className="flex items-start gap-2.5">
-              <span className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-900 flex items-center justify-center shrink-0">
+              <span className="w-8 h-8 rounded-xl bg-status-warning/20 text-status-warning-bright flex items-center justify-center shrink-0">
                 <Icon name="scan_face" className="text-[18px]" />
               </span>
               <div className="flex flex-col min-w-0 flex-1">
-                <span className="font-headline-sm text-sm font-bold text-amber-950">Wajah Belum Terdaftar</span>
-                <span className="font-body-sm text-xs text-amber-900/80 leading-relaxed mt-0.5">
+                <span className="font-headline-sm text-sm font-bold text-status-warning-bright">Wajah Belum Terdaftar</span>
+                <span className="font-body-sm text-xs text-status-warning-bright/80 leading-relaxed mt-0.5">
                   Untuk presensi biometrik Face Recognition, silakan daftarkan wajah Anda terlebih dahulu. Sistem akan mengekstrak vektor biometrik untuk pencocokan.
                 </span>
               </div>
@@ -1051,22 +1051,22 @@ function MobilePresensiPage() {
         )}
 
         {mode === 'face' && registeredFace && (
-          <div className="sp-card p-3.5 flex flex-col gap-2.5 bg-emerald-50/60 border border-emerald-200/80">
+          <div className="sp-card p-3.5 flex flex-col gap-2.5 bg-status-success-soft/60 border border-status-success-border/80">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2.5 min-w-0">
                 {registeredFace.photo ? (
-                  <img src={registeredFace.photo} alt="Wajah" className="w-9 h-9 rounded-full object-cover ring-2 ring-emerald-500 shrink-0" />
+                  <img src={registeredFace.photo} alt="Wajah" className="w-9 h-9 rounded-full object-cover ring-2 ring-status-success shrink-0" />
                 ) : (
-                  <span className="w-9 h-9 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0">
+                  <span className="w-9 h-9 rounded-full bg-status-success text-white flex items-center justify-center shrink-0">
                     <Icon name="face" className="text-[20px]" />
                   </span>
                 )}
                 <div className="flex flex-col min-w-0">
-                  <span className="font-label-md text-xs font-bold text-emerald-950 flex items-center gap-1">
-                    <Icon name="verified" className="text-emerald-600 text-[15px]" />
+                  <span className="font-label-md text-xs font-bold text-status-success-bright flex items-center gap-1">
+                    <Icon name="verified" className="text-status-success-text text-[15px]" />
                     Wajah Terdaftar (AI Active)
                   </span>
-                  <span className="font-label-sm text-[11px] text-emerald-800 truncate">
+                  <span className="font-label-sm text-[11px] text-status-success-bright truncate">
                     Biometrik 128-d siap dicocokkan
                   </span>
                 </div>
@@ -1077,7 +1077,7 @@ function MobilePresensiPage() {
                 disabled={!isModelLoaded}
                 className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold shrink-0 transition-all ${
                   isModelLoaded
-                    ? 'text-emerald-900 bg-white/80 border border-emerald-300 hover:bg-emerald-100 cursor-pointer'
+                    ? 'text-status-success-bright bg-white/80 border border-status-success-border hover:bg-status-success-soft cursor-pointer'
                     : 'text-slate-400 bg-slate-100 border border-slate-200 cursor-not-allowed opacity-75'
                 }`}
               >
@@ -1144,7 +1144,7 @@ function MobilePresensiPage() {
                   ? 'bg-primary hover:bg-primary-strong text-white'
                   : belumPulang
                     ? 'bg-primary-strong hover:bg-primary-strong text-white'
-                    : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                    : 'bg-status-success hover:bg-status-success text-white'
               }`}
             >
               <Icon name={busy ? 'progress_activity' : belumMasuk ? 'check_circle' : belumPulang ? 'logout' : 'task_alt'} className={`text-[20px] shrink-0 ${busy ? 'animate-spin' : ''}`} />

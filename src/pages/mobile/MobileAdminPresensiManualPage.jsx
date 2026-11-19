@@ -127,7 +127,7 @@ export default function MobileAdminPresensiManualPage() {
             <Icon name="arrow_back" className="text-[18px]" />
           </Link>
           <div className="flex flex-col min-w-0 flex-1">
-            <h1 className="font-headline-sm text-headline-sm text-[#20243a] font-bold tracking-tight truncate">
+            <h1 className="font-headline-sm text-headline-sm text-sp-ink font-bold tracking-tight truncate">
               Input Presensi Manual
             </h1>
             <span className="font-label-sm text-label-sm text-primary-muted truncate">
@@ -143,8 +143,8 @@ export default function MobileAdminPresensiManualPage() {
             <div
               className={`p-3 rounded-xl border text-xs font-medium flex items-center gap-2 ${
                 pesanTipe === 'success'
-                  ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                  : 'bg-rose-50 text-rose-800 border-rose-200'
+                  ? 'bg-status-success-soft text-status-success-bright border-status-success-border'
+                  : 'bg-status-danger-soft text-status-danger-bright border-status-danger-border'
               }`}
             >
               <Icon name={pesanTipe === 'success' ? 'check_circle' : 'error'} className="text-[16px] shrink-0" />
@@ -154,13 +154,13 @@ export default function MobileAdminPresensiManualPage() {
 
           {/* 1. Pilih Pegawai */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-bold text-[#20243a]">
-              Pilih Guru / Pegawai <span className="text-rose-500">*</span>
+            <label className="text-xs font-bold text-sp-ink">
+              Pilih Guru / Pegawai <span className="text-status-danger-text">*</span>
             </label>
             <select
               value={selectedStaffId}
               onChange={(e) => setSelectedStaffId(e.target.value)}
-              className="w-full h-10 px-3 rounded-xl bg-[#f8fafc] border border-primary-border text-xs text-[#20243a] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 shadow-2xs"
+              className="w-full h-10 px-3 rounded-xl bg-sp-surface-sunken border border-primary-border text-xs text-sp-ink focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 shadow-2xs"
               required
             >
               <option value="">-- Pilih Pegawai --</option>
@@ -174,22 +174,22 @@ export default function MobileAdminPresensiManualPage() {
 
           {/* 2. Tanggal */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-bold text-[#20243a]">Tanggal</label>
+            <label className="text-xs font-bold text-sp-ink">Tanggal</label>
             <input
               type="date"
               value={tanggal}
               onChange={(e) => setTanggal(e.target.value)}
-              className="w-full h-10 px-3 rounded-xl bg-[#f8fafc] border border-primary-border text-xs text-[#20243a] focus:outline-none focus:border-primary shadow-2xs"
+              className="w-full h-10 px-3 rounded-xl bg-sp-surface-sunken border border-primary-border text-xs text-sp-ink focus:outline-none focus:border-primary shadow-2xs"
             />
           </div>
 
           {/* 3. Status Kehadiran */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-bold text-[#20243a]">Status Presensi</label>
+            <label className="text-xs font-bold text-sp-ink">Status Presensi</label>
             <select
               value={statusKehadiran}
               onChange={(e) => setStatusKehadiran(e.target.value)}
-              className="w-full h-10 px-3 rounded-xl bg-[#f8fafc] border border-primary-border text-xs text-[#20243a] focus:outline-none focus:border-primary shadow-2xs"
+              className="w-full h-10 px-3 rounded-xl bg-sp-surface-sunken border border-primary-border text-xs text-sp-ink focus:outline-none focus:border-primary shadow-2xs"
             >
               <option value="Hadir">Hadir (Tepat Waktu)</option>
               <option value="Terlambat">Hadir Terlambat</option>
@@ -203,36 +203,36 @@ export default function MobileAdminPresensiManualPage() {
           {/* 4. Jam Masuk & Jam Pulang */}
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-[#20243a]">Jam Masuk</label>
+              <label className="text-xs font-bold text-sp-ink">Jam Masuk</label>
               <input
                 type="text"
                 placeholder="07:15"
                 value={jamMasuk}
                 onChange={(e) => setJamMasuk(e.target.value)}
-                className="w-full h-10 px-3 rounded-xl bg-[#f8fafc] border border-primary-border text-xs text-[#20243a] focus:outline-none focus:border-primary shadow-2xs"
+                className="w-full h-10 px-3 rounded-xl bg-sp-surface-sunken border border-primary-border text-xs text-sp-ink focus:outline-none focus:border-primary shadow-2xs"
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-[#20243a]">Jam Pulang</label>
+              <label className="text-xs font-bold text-sp-ink">Jam Pulang</label>
               <input
                 type="text"
                 placeholder="16:00 (opsional)"
                 value={jamPulang}
                 onChange={(e) => setJamPulang(e.target.value)}
-                className="w-full h-10 px-3 rounded-xl bg-[#f8fafc] border border-primary-border text-xs text-[#20243a] focus:outline-none focus:border-primary shadow-2xs"
+                className="w-full h-10 px-3 rounded-xl bg-sp-surface-sunken border border-primary-border text-xs text-sp-ink focus:outline-none focus:border-primary shadow-2xs"
               />
             </div>
           </div>
 
           {/* 5. Catatan / Alasan */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-bold text-[#20243a]">Keterangan / Alasan</label>
+            <label className="text-xs font-bold text-sp-ink">Keterangan / Alasan</label>
             <textarea
               rows={2}
               placeholder="Contoh: Terkendala sinyal GPS / handphone rusak"
               value={keterangan}
               onChange={(e) => setKeterangan(e.target.value)}
-              className="w-full p-2.5 rounded-xl bg-[#f8fafc] border border-primary-border text-xs text-[#20243a] focus:outline-none focus:border-primary shadow-2xs resize-none"
+              className="w-full p-2.5 rounded-xl bg-sp-surface-sunken border border-primary-border text-xs text-sp-ink focus:outline-none focus:border-primary shadow-2xs resize-none"
             />
           </div>
 

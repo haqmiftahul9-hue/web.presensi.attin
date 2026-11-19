@@ -83,7 +83,7 @@ function BarisMenu({ ikon, judul, sub, tone = 'text-primary', onClick }) {
           <Icon name={ikon} className={`text-[18px] ${tone}`} />
         </span>
         <span className="flex flex-col min-w-0 flex-1 gap-0.5">
-          <span className="font-body-md-medium text-body-md-medium text-[#20243A] font-semibold">{judul}</span>
+          <span className="font-body-md-medium text-body-md-medium text-sp-ink font-semibold">{judul}</span>
           {sub && <span className="font-label-sm text-label-sm text-primary-muted leading-snug">{sub}</span>}
         </span>
         <Icon name="chevron_right" className="text-primary-muted text-[20px] shrink-0" />
@@ -206,10 +206,10 @@ function MobileProfilPage() {
   const isLeaderOrAdmin = isSuperadmin || isAdminUnit || isKepsek || isPetugas
 
   const roleBadgeStyle = (() => {
-    if (isSuperadmin) return { label: 'Superadmin', ikon: 'shield_person', kelas: 'bg-indigo-100 text-indigo-800 border-indigo-200' }
-    if (isKepsek) return { label: 'Kepala Sekolah', ikon: 'person', kelas: 'bg-purple-100 text-purple-800 border-purple-200' }
-    if (isAdminUnit) return { label: 'Admin Unit', ikon: 'admin_panel_settings', kelas: 'bg-blue-100 text-blue-800 border-blue-200' }
-    if (isPetugas) return { label: 'Petugas Presensi', ikon: 'qr_code_scanner', kelas: 'bg-teal-100 text-teal-800 border-teal-200' }
+    if (isSuperadmin) return { label: 'Superadmin', ikon: 'shield_person', kelas: 'bg-role-badge text-role-badge-text border-role-badge-border' }
+    if (isKepsek) return { label: 'Kepala Sekolah', ikon: 'person', kelas: 'bg-role-badge text-role-badge-text border-role-badge-border' }
+    if (isAdminUnit) return { label: 'Admin Unit', ikon: 'admin_panel_settings', kelas: 'bg-role-badge text-role-badge-text border-role-badge-border' }
+    if (isPetugas) return { label: 'Petugas Presensi', ikon: 'qr_code_scanner', kelas: 'bg-role-badge text-role-badge-text border-role-badge-border' }
     return { label: staff?.role || 'Guru / Pegawai', ikon: 'school', kelas: 'bg-slate-100 text-slate-700 border-slate-200' }
   })()
 
@@ -233,12 +233,12 @@ function MobileProfilPage() {
               <Icon name="badge" className="text-[20px]" />
             </span>
             <div className="flex flex-col">
-              <h1 className="font-headline-sm text-headline-sm text-[#20243A] font-bold tracking-tight">Profil Pegawai</h1>
+              <h1 className="font-headline-sm text-headline-sm text-sp-ink font-bold tracking-tight">Profil Pegawai</h1>
               <span className="font-label-sm text-label-sm text-primary-muted text-[11px]">SIMPEG Attin Sumbar</span>
             </div>
           </div>
-          <span className="px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 font-label-sm text-label-sm text-emerald-700 font-medium flex items-center gap-1">
-            <Icon name="verified_user" className="text-[14px] text-emerald-600" />
+          <span className="px-2.5 py-1 rounded-full bg-status-success-soft border border-status-success-border font-label-sm text-label-sm text-status-success-text font-medium flex items-center gap-1">
+            <Icon name="verified_user" className="text-[14px] text-status-success-text" />
             Terverifikasi
           </span>
         </div>
@@ -248,7 +248,7 @@ function MobileProfilPage() {
         {pesan && (
           <p
             role="status"
-            className="rounded-2xl bg-emerald-50 text-emerald-800 border border-emerald-200 px-3.5 py-2.5 font-body-sm text-body-sm flex items-start gap-2"
+            className="rounded-2xl bg-status-success-soft text-status-success-bright border border-status-success-border px-3.5 py-2.5 font-body-sm text-body-sm flex items-start gap-2"
           >
             <Icon name="check_circle" className="text-[16px] mt-0.5 shrink-0" />
             <span>{pesan}</span>
@@ -267,7 +267,7 @@ function MobileProfilPage() {
             />
             <span
               className={`absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full ring-2 ring-white z-10 ${
-                staff.status === 'Aktif' ? 'bg-emerald-500' : 'bg-slate-400'
+                staff.status === 'Aktif' ? 'bg-status-success' : 'bg-slate-400'
               }`}
               title={staff.status}
             />
@@ -284,7 +284,7 @@ function MobileProfilPage() {
           </div>
 
           <div className="flex flex-col items-center min-w-0 max-w-full gap-1">
-            <span className="font-headline-sm text-headline-sm text-[#20243A] font-bold tracking-tight truncate max-w-full">
+            <span className="font-headline-sm text-headline-sm text-sp-ink font-bold tracking-tight truncate max-w-full">
               {isKepsek || isAdminUnit ? leaderDisplayName : getEmployeeGreeting(staff, { unit })}
             </span>
             {roleSalutation && (
@@ -324,7 +324,7 @@ function MobileProfilPage() {
                 type="button"
                 onClick={handleQuickPhotoDelete}
                 disabled={uploadingFoto}
-                className="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200/80 font-label-md text-xs font-semibold flex items-center gap-1.5 transition-all active:scale-[0.98] cursor-pointer"
+                className="px-3 py-1.5 rounded-xl bg-status-danger-soft hover:bg-status-danger-soft text-status-danger-text border border-status-danger-border/80 font-label-md text-xs font-semibold flex items-center gap-1.5 transition-all active:scale-[0.98] cursor-pointer"
               >
                 <Icon name="delete" className="text-[15px]" />
                 <span>Hapus Foto</span>
@@ -345,18 +345,18 @@ function MobileProfilPage() {
             Kepegawaian, Hari kerja, dan Jam kerja sebagai satu kelompok metadata. */}
         <section className="sp-card p-3.5 flex flex-col gap-2.5 rounded-2xl" style={{ backgroundColor: 'var(--primary-soft)' }}>
           <div className="sp-card-head-plain pb-2">
-            <span className="font-headline-sm text-headline-sm text-[#20243A] font-bold">Metadata Pegawai</span>
+            <span className="font-headline-sm text-headline-sm text-sp-ink font-bold">Metadata Pegawai</span>
           </div>
           <div className="grid grid-cols-2 gap-2">
             <div className="flex items-center gap-2 p-2 rounded-xl bg-primary/10 border border-primary/15 min-w-0">
-              <span className="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-700 flex items-center justify-center shrink-0">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 {${
+              <span className="w-8 h-8 rounded-full bg-status-success/20 text-status-success-text flex items-center justify-center shrink-0">
+                <span className="w-2.5 h-2.5 rounded-full bg-status-success {${
                   staff.status === 'Aktif' ? 'animate-pulse' : ''
                 }}" />
               </span>
               <div className="flex flex-col min-w-0">
                 <span className="text-[10px] font-semibold text-primary-muted uppercase tracking-wider">Status Akun</span>
-                <span className="font-label-sm text-label-sm font-bold text-emerald-800 truncate">{staff.status}</span>
+                <span className="font-label-sm text-label-sm font-bold text-status-success-bright truncate">{staff.status}</span>
               </div>
             </div>
             <div className="flex items-center gap-2 p-2 rounded-xl bg-primary/10 border border-primary/15 min-w-0">
@@ -365,7 +365,7 @@ function MobileProfilPage() {
               </span>
               <div className="flex flex-col min-w-0">
                 <span className="text-[10px] font-semibold text-primary-muted uppercase tracking-wider">Kepegawaian</span>
-                <span className="font-label-sm text-label-sm font-bold text-[#20243A] truncate">{staff.statusPegawai || 'Pegawai'}</span>
+                <span className="font-label-sm text-label-sm font-bold text-sp-ink truncate">{staff.statusPegawai || 'Pegawai'}</span>
               </div>
             </div>
             <div className="flex items-center gap-2 p-2 rounded-xl bg-primary/10 border border-primary/15 min-w-0">
@@ -390,13 +390,13 @@ function MobileProfilPage() {
         </section>
 
         {/* Informasi utama sesuai data kepegawaian. */}
-        <section className="sp-card p-4 flex flex-col gap-3.5 bg-white border border-primary-border rounded-2xl shadow-xs">
+        <section className="sp-card p-4 flex flex-col gap-3.5 bg-card border border-primary-border rounded-2xl shadow-xs">
           <div className="sp-card-head">
             <div className="flex items-center gap-2 min-w-0">
               <span className="w-8 h-8 rounded-xl bg-primary-soft flex items-center justify-center shrink-0">
                 <Icon name="badge" className="text-primary text-[18px]" />
               </span>
-              <span className="font-headline-sm text-headline-sm text-[#20243A] font-bold truncate">Informasi Kepegawaian</span>
+              <span className="font-headline-sm text-headline-sm text-sp-ink font-bold truncate">Informasi Kepegawaian</span>
             </div>
           </div>
           <div>
@@ -415,13 +415,13 @@ function MobileProfilPage() {
         </section>
 
         {/* Jadwal jam kerja global — inilah satu-satunya acuan presensi, tanpa shift. */}
-        <section className="sp-card p-4 flex flex-col gap-3.5 bg-white border border-primary-border rounded-2xl shadow-xs">
+        <section className="sp-card p-4 flex flex-col gap-3.5 bg-card border border-primary-border rounded-2xl shadow-xs">
           <div className="sp-card-head">
             <div className="flex items-center gap-2 min-w-0">
               <span className="w-8 h-8 rounded-xl bg-primary-soft flex items-center justify-center shrink-0">
                 <Icon name="schedule" className="text-primary text-[18px]" />
               </span>
-              <span className="font-headline-sm text-headline-sm text-[#20243A] font-bold truncate">Jam Kerja Global</span>
+              <span className="font-headline-sm text-headline-sm text-sp-ink font-bold truncate">Jam Kerja Global</span>
             </div>
           </div>
           <div>
@@ -437,9 +437,9 @@ function MobileProfilPage() {
         {/* Menu: data pribadi, kartu ID, ubah password, keluar.
             `sp-card-flush` + pembungkus `px-4` membuat isi dan divider menu
             sama-sama berjarak 16px dari sisi kartu. */}
-        <section className="sp-card sp-card-flush overflow-hidden bg-white border border-primary-border rounded-2xl shadow-xs">
+        <section className="sp-card sp-card-flush overflow-hidden bg-card border border-primary-border rounded-2xl shadow-xs">
           <div className="px-4 pt-4 pb-3">
-            <span className="font-headline-sm text-headline-sm text-[#20243A] font-bold">Menu</span>
+            <span className="font-headline-sm text-headline-sm text-sp-ink font-bold">Menu</span>
           </div>
 
           <div className="px-4">
@@ -478,7 +478,7 @@ function MobileProfilPage() {
 
             {bukaPribadi && (
               <div className="pb-4 -mt-1 animate-sp-rise">
-                <div className="rounded-2xl bg-[#F3F5FC] border border-primary-border p-4">
+                <div className="rounded-2xl bg-sp-surface-sunken border border-primary-border p-4">
                   <Baris label="Tempat, tanggal lahir" nilai={[staff.tempatLahir, staff.tanggalLahir].filter(Boolean).join(', ')} />
                   <Baris label="Jenis kelamin" nilai={staff.jenisKelamin} />
                   <Baris label="Pendidikan asal" nilai={staff.pendidikanAsal} />
@@ -518,7 +518,7 @@ function MobileProfilPage() {
               const sixMonths = 6 * 30 * 24 * 60 * 60 * 1000
               if (ms < sixMonths) return null
               return (
-                <div className="mt-2 p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs">
+                <div className="mt-2 p-3 rounded-xl bg-status-warning-soft border border-status-warning-border text-status-warning-bright text-xs">
                   Biometrik wajah terdaftar lebih dari 6 bulan lalu. Disarankan mendaftar ulang untuk akurasi.
                 </div>
               )

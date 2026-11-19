@@ -181,7 +181,7 @@ export default function MobileAdminScanPage() {
             <Icon name="arrow_back" className="text-[18px]" />
           </Link>
           <div className="flex flex-col min-w-0 flex-1">
-            <h1 className="font-headline-sm text-headline-sm text-[#20243a] font-bold tracking-tight truncate">
+            <h1 className="font-headline-sm text-headline-sm text-sp-ink font-bold tracking-tight truncate">
               Scan QR Presensi Pegawai
             </h1>
             <span className="font-label-sm text-label-sm text-primary-muted truncate">
@@ -212,7 +212,7 @@ export default function MobileAdminScanPage() {
           {/* Frame pembidik QR */}
           <div className="absolute inset-0 pointer-events-none flex items-center justify-center p-6">
             <div className="w-48 h-48 border-2 border-dashed border-white/80 rounded-2xl relative shadow-2xl flex items-center justify-center">
-              <span className="w-full h-0.5 bg-emerald-400 absolute shadow-sm animate-pulse" />
+              <span className="w-full h-0.5 bg-status-success absolute shadow-sm animate-pulse" />
             </div>
           </div>
 
@@ -228,7 +228,7 @@ export default function MobileAdminScanPage() {
             placeholder="Atau ketik NIY pegawai…"
             value={code}
             onChange={(e) => setCode(e.target.value)}
-            className="flex-1 h-10 px-3 rounded-xl bg-white border border-primary-border text-xs text-[#20243a] placeholder:text-slate-400 focus:outline-none focus:border-primary shadow-2xs"
+            className="flex-1 h-10 px-3 rounded-xl bg-white border border-primary-border text-xs text-sp-ink placeholder:text-slate-400 focus:outline-none focus:border-primary shadow-2xs"
           />
           <button
             type="submit"
@@ -243,9 +243,9 @@ export default function MobileAdminScanPage() {
           <div
             className={`p-3 rounded-xl border text-xs font-medium flex items-center gap-2 ${
               pesanTipe === 'success'
-                ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                ? 'bg-status-success-soft text-status-success-bright border-status-success-border'
                 : pesanTipe === 'error'
-                ? 'bg-rose-50 text-rose-800 border-rose-200'
+                ? 'bg-status-danger-soft text-status-danger-bright border-status-danger-border'
                 : 'bg-blue-50 text-blue-800 border-blue-200'
             }`}
           >
@@ -268,7 +268,7 @@ export default function MobileAdminScanPage() {
                 ring="ring-2 ring-primary-soft"
               />
               <div className="flex flex-col min-w-0 flex-1">
-                <span className="font-headline-sm text-sm font-bold text-[#20243a] truncate">
+                <span className="font-headline-sm text-sm font-bold text-sp-ink truncate">
                   {staff.name}
                 </span>
                 <span className="font-label-sm text-xs text-primary-muted truncate">
@@ -283,11 +283,11 @@ export default function MobileAdminScanPage() {
             <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-100 text-xs">
               <div className="p-2 rounded-xl bg-slate-50 flex flex-col">
                 <span className="text-[10px] text-slate-500">Jam Masuk</span>
-                <span className="font-bold text-[#20243a]">{staff.masuk || '--:--'}</span>
+                <span className="font-bold text-sp-ink">{staff.masuk || '--:--'}</span>
               </div>
               <div className="p-2 rounded-xl bg-slate-50 flex flex-col">
                 <span className="text-[10px] text-slate-500">Jam Pulang</span>
-                <span className="font-bold text-[#20243a]">{staff.pulang || '--:--'}</span>
+                <span className="font-bold text-sp-ink">{staff.pulang || '--:--'}</span>
               </div>
             </div>
 
@@ -298,8 +298,8 @@ export default function MobileAdminScanPage() {
                 onClick={() => handlePresensi('masuk')}
                 className={`flex-1 py-2.5 rounded-xl font-label-md text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all ${
                   sudahMasuk
-                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                    : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                    ? 'bg-status-success-soft text-status-success-bright border border-status-success-border'
+                    : 'bg-status-success hover:bg-status-success text-white'
                 }`}
               >
                 <Icon name="login" className="text-[16px]" />
@@ -312,7 +312,7 @@ export default function MobileAdminScanPage() {
                 onClick={() => handlePresensi('pulang')}
                 className={`flex-1 py-2.5 rounded-xl font-label-md text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all ${
                   sudahPulang
-                    ? 'bg-blue-100 text-primary border border-blue-300'
+                    ? 'bg-primary-soft text-primary border border-primary-border'
                     : 'bg-primary hover:bg-primary-strong text-white'
                 }`}
               >

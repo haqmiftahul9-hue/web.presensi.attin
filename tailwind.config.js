@@ -18,6 +18,58 @@ export default {
         "primary-border": "var(--primary-border)",
         "primary-muted": "var(--primary-muted)",
         "primary-strong": "var(--primary-strong)",
+        /* Status semantik (hadir / terlambat / ditolak / info).
+           Dipakai komponen mobile supaya warna badge tidak lagi
+           bertabrakan dengan warna aksen tema yang aktif.
+
+           Nilai diambil dari triplet RGB kustom, sehingga modifier
+           opasitas Tailwind (mis. `border-status-success-border/80`)
+           tetap bisa dipakai. */
+        "status-success": {
+          DEFAULT: "rgb(var(--status-success-solid-rgb) / <alpha-value>)",
+          soft: "rgb(var(--status-success-soft-rgb) / <alpha-value>)",
+          border: "rgb(var(--status-success-border-rgb) / <alpha-value>)",
+          text: "rgb(var(--status-success-rgb) / <alpha-value>)",
+          bright: "rgb(var(--status-success-bright-rgb) / <alpha-value>)",
+        },
+        "status-warning": {
+          DEFAULT: "rgb(var(--status-warning-solid-rgb) / <alpha-value>)",
+          soft: "rgb(var(--status-warning-soft-rgb) / <alpha-value>)",
+          border: "rgb(var(--status-warning-border-rgb) / <alpha-value>)",
+          text: "rgb(var(--status-warning-rgb) / <alpha-value>)",
+          bright: "rgb(var(--status-warning-bright-rgb) / <alpha-value>)",
+        },
+        "status-danger": {
+          DEFAULT: "rgb(var(--status-danger-solid-rgb) / <alpha-value>)",
+          soft: "rgb(var(--status-danger-soft-rgb) / <alpha-value>)",
+          border: "rgb(var(--status-danger-border-rgb) / <alpha-value>)",
+          text: "rgb(var(--status-danger-rgb) / <alpha-value>)",
+          bright: "rgb(var(--status-danger-bright-rgb) / <alpha-value>)",
+        },
+        "status-info": {
+          DEFAULT: "rgb(var(--status-info-solid-rgb) / <alpha-value>)",
+          soft: "rgb(var(--status-info-soft-rgb) / <alpha-value>)",
+          border: "rgb(var(--status-info-border-rgb) / <alpha-value>)",
+          text: "rgb(var(--status-info-rgb) / <alpha-value>)",
+          bright: "rgb(var(--status-info-bright-rgb) / <alpha-value>)",
+        },
+        /* Badge peran: mengikuti warna aksen tema yang aktif supaya tidak
+           bertabrakan dengan tema (lihat catatan di index.css). */
+        "role-badge": {
+          DEFAULT: "var(--sp-role-badge)",
+          text: "var(--sp-role-badge-text)",
+          border: "var(--sp-role-badge-border)",
+        },
+        /* Permukaan modul mobile: kartu (surface) dan cekungan (sunken).
+           Dipisah dari palet `surface-*` bawaan Material yang sudah dipakai
+           komponen desktop. */
+        "sp-surface": {
+          DEFAULT: "var(--sp-surface)",
+          sunken: "var(--sp-surface-sunken)",
+        },
+        /* Warna teks utama modul: mengikuti tinta tema aktif. Di mode
+           gelap nilainya otomatis berubah menjadi terang. */
+        "sp-ink": "var(--sp-ink)",
         secondary: {
           DEFAULT: "var(--secondary)",
           foreground: "var(--secondary-foreground)",

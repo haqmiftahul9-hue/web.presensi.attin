@@ -2,8 +2,8 @@ import Icon from '../Icon.jsx'
 const STATUS_STYLE = {
   menunggu: { icon: 'radio_button_unchecked', badge: 'bg-slate-100 text-slate-500 border border-slate-200/60', label: 'Menunggu' },
   berjalan: { icon: 'progress_activity', badge: 'bg-primary/10 text-primary border border-primary/20', label: 'Memeriksa' },
-  berhasil: { icon: 'check_circle', badge: 'bg-emerald-50 text-emerald-700 border border-emerald-200/60', label: 'Lolos' },
-  gagal: { icon: 'cancel', badge: 'bg-rose-50 text-rose-700 border border-rose-200/60', label: 'Gagal' },
+  berhasil: { icon: 'check_circle', badge: 'bg-status-success-soft text-status-success-text border border-status-success-border/60', label: 'Lolos' },
+  gagal: { icon: 'cancel', badge: 'bg-status-danger-soft text-status-danger-text border border-status-danger-border/60', label: 'Gagal' },
 }
 
 /**
@@ -19,7 +19,7 @@ function ValidationSteps({ langkah, statusPenutup, pesanPenutup }) {
         <span
           className={`px-2.5 py-1 rounded-full font-label-sm text-label-sm shrink-0 ${
             statusPenutup === 'berhasil'
-              ? 'bg-emerald-50 text-emerald-700'
+              ? 'bg-status-success-soft text-status-success-text'
               : statusPenutup === 'gagal'
                 ? 'bg-error-container text-on-error-container'
                 : 'bg-surface-container text-on-surface-variant'
@@ -61,7 +61,7 @@ function ValidationSteps({ langkah, statusPenutup, pesanPenutup }) {
             statusPenutup === 'gagal'
               ? 'bg-error-container text-on-error-container'
               : statusPenutup === 'berhasil'
-                ? 'bg-emerald-50 text-emerald-800'
+                ? 'bg-status-success-soft text-status-success-bright'
                 : 'bg-surface-container-low text-on-surface-variant'
           }`}
         >

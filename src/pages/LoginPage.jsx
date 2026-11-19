@@ -249,7 +249,7 @@ function DesktopVisualShowcase() {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
               </span>
-              <span className="text-[10px] font-bold text-primary dark:text-indigo-300">Terminal Presensi</span>
+              <span className="text-[10px] font-bold text-primary">Terminal Presensi</span>
             </div>
             <span className="text-[9px] font-semibold text-primary-muted dark:text-slate-400">Aktif</span>
           </div>
@@ -285,7 +285,7 @@ function DesktopVisualShowcase() {
           <div className="mt-2.5 pt-2 flex items-center justify-between">
             <div>
               <p className="text-[8.5px] font-medium text-primary-muted dark:text-slate-400">Jam Masuk Kerja</p>
-              <p className="text-xs font-bold text-primary dark:text-indigo-300">07:10 WIB</p>
+              <p className="text-xs font-bold text-primary">07:10 WIB</p>
             </div>
             <span className="px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-[9px] font-bold border border-emerald-200 dark:border-emerald-800">
               Tepat Waktu
@@ -295,8 +295,8 @@ function DesktopVisualShowcase() {
 
         {/* Floating Unit Integration Badge */}
         <div className="absolute -bottom-2 left-6 z-20 bg-white dark:bg-slate-800 border border-primary-border dark:border-slate-700 shadow-md rounded-xl px-3 py-1.5 flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-primary dark:bg-indigo-400" />
-          <span className="text-[10px] font-bold text-primary dark:text-indigo-300">
+          <span className="w-2 h-2 rounded-full bg-primary" />
+          <span className="text-[10px] font-bold text-primary">
             Portal Terintegrasi Presensi Pegawai
           </span>
         </div>
@@ -666,7 +666,7 @@ function MobileLoginForm({
           <button
             type="button"
             onClick={() => setForgotMsg((v) => !v)}
-            className="text-xs font-semibold text-primary dark:text-indigo-400 hover:text-primary-strong dark:hover:text-indigo-300 underline-offset-2 hover:underline transition-colors cursor-pointer"
+            className="text-xs font-semibold text-primary hover:text-primary-strong underline-offset-2 hover:underline transition-colors cursor-pointer"
           >
             Lupa kata sandi?
           </button>
@@ -674,8 +674,8 @@ function MobileLoginForm({
 
         {/* Banner Info Lupa Password */}
         {forgotMsg && (
-          <div className="p-3 rounded-xl bg-primary-soft dark:bg-slate-800 border border-primary-border dark:border-slate-700 text-primary dark:text-indigo-300 text-xs leading-relaxed flex items-start gap-2 animate-fade-in">
-            <span className="material-symbols-outlined text-[16px] text-primary dark:text-indigo-400 shrink-0 mt-0.5">info</span>
+          <div className="p-3 rounded-xl bg-primary-soft border border-primary-border text-primary text-xs leading-relaxed flex items-start gap-2 animate-fade-in">
+            <span className="material-symbols-outlined text-[16px] text-primary shrink-0 mt-0.5">info</span>
             <p className="text-[11px]">
               Silakan hubungi administrator Tata Usaha (TU) unit sekolah atau HRD untuk melakukan reset kata sandi akun Anda.
             </p>

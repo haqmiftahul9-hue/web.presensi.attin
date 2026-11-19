@@ -140,7 +140,7 @@ function MobileLayout() {
                       </span>
                       <span
                         className={`font-label-sm text-[10px] sm:text-[11px] font-bold ${
-                          isActive ? 'text-primary dark:text-indigo-400' : 'text-primary-muted dark:text-slate-400'
+                          isActive ? 'text-primary' : 'text-primary-muted dark:text-slate-400'
                         }`}
                       >
                         {item.label}
@@ -154,7 +154,7 @@ function MobileLayout() {
                           className={`text-[21px] ${isActive ? 'text-white' : 'text-primary-muted dark:text-slate-400'}`}
                         />
                         {Boolean(item.badge && item.badge > 0) && (
-                          <span className="absolute -top-1.5 -right-2 bg-rose-500 text-white text-[9px] font-bold min-w-[15px] h-[15px] px-1 rounded-full flex items-center justify-center shadow-xs">
+                          <span className="absolute -top-1.5 -right-2 bg-status-danger text-white text-[9px] font-bold min-w-[15px] h-[15px] px-1 rounded-full flex items-center justify-center shadow-xs">
                             {item.badge > 99 ? '99+' : item.badge}
                           </span>
                         )}

@@ -64,7 +64,7 @@ export function GlassTopBar({ staff }) {
           <img src={logo} alt={appName} className="w-full h-full object-contain" />
         </span>
         <span className="flex flex-col min-w-0">
-          <span className="font-headline-sm text-headline-sm text-[#20243a] dark:text-white font-bold tracking-tight leading-tight truncate">
+          <span className="font-headline-sm text-headline-sm text-sp-ink dark:text-white font-bold tracking-tight leading-tight truncate">
             SIMPEG
           </span>
           <span className="font-label-sm text-label-sm text-primary-muted dark:text-slate-400 font-medium truncate">Kepegawaian</span>
@@ -77,17 +77,17 @@ export function GlassTopBar({ staff }) {
         <button
           type="button"
           aria-label="Notifikasi"
-          className="sp-press w-9 h-9 rounded-full flex items-center justify-center bg-[#f3f5fc] dark:bg-slate-800 hover:bg-primary-soft dark:hover:bg-slate-700 border border-primary-border dark:border-slate-700 text-[#20243a] dark:text-white relative transition-colors"
+          className="sp-press w-9 h-9 rounded-full flex items-center justify-center bg-primary-soft hover:bg-primary-soft/80 border border-primary-border text-sp-ink dark:text-white relative transition-colors"
         >
-          <Icon name="notifications" className="text-primary dark:text-indigo-300 text-[19px]" />
-          <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-white" />
+          <Icon name="notifications" className="text-primary text-[19px]" />
+          <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-status-success ring-2 ring-white" />
         </button>
         <NavLink to="/mobile/profil" aria-label="Profil saya" className="sp-press w-9 h-9 rounded-full flex items-center justify-center">
           <StaffAvatar
             staff={staff}
             size="w-9 h-9"
             textClass="font-label-sm text-label-sm font-semibold"
-            ring="ring-2 ring-primary-border dark:ring-slate-700"
+            ring="ring-2 ring-primary-border"
           />
         </NavLink>
       </div>
@@ -117,13 +117,13 @@ export function ShortcutGrid({ items, columns = 2, compact = false }) {
               <Icon name={item.ikon} className={isCompact ? 'text-[20px]' : 'text-[22px]'} />
             </span>
             {Boolean(item.badge && item.badge > 0) && (
-              <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[9px] font-bold min-w-[15px] h-[15px] px-1 rounded-full flex items-center justify-center shadow-xs">
+              <span className="absolute -top-1 -right-1 bg-status-danger text-white text-[9px] font-bold min-w-[15px] h-[15px] px-1 rounded-full flex items-center justify-center shadow-xs">
                 {item.badge > 99 ? '99+' : item.badge}
               </span>
             )}
           </div>
           <span className="text-center leading-tight">
-            <span className={`block font-semibold text-[#20243a] dark:text-slate-100 ${isCompact ? 'text-[11px] line-clamp-2' : 'font-label-md text-label-md'}`}>
+            <span className={`block font-semibold text-sp-ink dark:text-slate-100 ${isCompact ? 'text-[11px] line-clamp-2' : 'font-label-md text-label-md'}`}>
               {item.judul}
             </span>
             {item.sub && (
@@ -144,11 +144,11 @@ export function SectionTitle({ ikon, judul, aksi }) {
     <div className="flex items-center justify-between gap-2">
       <span className="flex items-center gap-2 min-w-0">
         {ikon && (
-          <span className="w-8 h-8 rounded-xl bg-primary-soft dark:bg-slate-800 border border-primary/15 dark:border-slate-700 flex items-center justify-center shrink-0 shadow-2xs">
-            <Icon name={ikon} className="text-[17px] text-primary dark:text-indigo-400" />
+          <span className="w-8 h-8 rounded-xl bg-primary-soft border border-primary/15 flex items-center justify-center shrink-0 shadow-2xs">
+            <Icon name={ikon} className="text-[17px] text-primary" />
           </span>
         )}
-        <span className="font-headline-sm text-headline-sm text-[#20243a] dark:text-white font-bold tracking-tight truncate">{judul}</span>
+        <span className="font-headline-sm text-headline-sm text-sp-ink dark:text-white font-bold tracking-tight truncate">{judul}</span>
       </span>
       {aksi}
     </div>
@@ -163,14 +163,14 @@ export function SectionTitle({ ikon, judul, aksi }) {
  */
 export function Sensor({ ikon, label, nilai, tone = 'netral' }) {
   const nilaiWarna = {
-    baik: 'text-emerald-600',
-    lambat: 'text-amber-600',
-    netral: 'text-[#20243a] dark:text-slate-100',
-  }[tone] || 'text-[#20243a]'
+    baik: 'text-status-success-text',
+    lambat: 'text-status-warning-text',
+    netral: 'text-sp-ink dark:text-slate-100',
+  }[tone] || 'text-sp-ink'
   return (
-    <div className="rounded-2xl bg-primary-soft dark:bg-slate-800/80 border border-primary/15 dark:border-slate-700 p-3 flex flex-col items-center gap-1.5 min-w-0 shadow-2xs">
+    <div className="rounded-2xl bg-primary-soft border border-primary/15 p-3 flex flex-col items-center gap-1.5 min-w-0 shadow-2xs">
       <span className="w-9 h-9 rounded-full bg-primary/15 flex items-center justify-center shrink-0">
-        <Icon name={ikon} className="text-[18px] text-primary dark:text-indigo-300" />
+        <Icon name={ikon} className="text-[18px] text-primary" />
       </span>
       <span className="font-label-sm text-label-sm text-primary-muted dark:text-slate-400 font-medium">{label}</span>
       <span className={`font-label-md text-label-md font-semibold text-center leading-snug break-words ${nilaiWarna}`}>

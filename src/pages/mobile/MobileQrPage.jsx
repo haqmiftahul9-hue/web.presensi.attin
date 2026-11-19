@@ -66,14 +66,14 @@ function MobileQrPage() {
               type="button"
               onClick={() => navigate(-1)}
               aria-label="Kembali"
-              className="w-10 h-10 rounded-xl bg-white border border-primary-border text-primary flex items-center justify-center shrink-0 shadow-xs active:scale-95 transition-all"
+              className="w-10 h-10 rounded-xl bg-card border border-primary-border text-primary flex items-center justify-center shrink-0 shadow-xs active:scale-95 transition-all"
             >
               <Icon name="arrow_back" className="text-[20px]" />
             </button>
             <StaffAvatar staff={staff} size="w-12 h-12" textClass="font-headline-sm text-headline-sm" ring="ring-2 ring-primary/20" />
             <div className="flex flex-col min-w-0">
               <span className="font-label-sm text-label-sm text-primary-muted">QR Presensi</span>
-              <h1 className="font-headline-sm text-headline-sm text-[#20243A] font-bold truncate">
+              <h1 className="font-headline-sm text-headline-sm text-sp-ink font-bold truncate">
                 {getEmployeeGreeting(staff, { unit })}
               </h1>
               <span className="font-label-sm text-label-sm text-primary-muted truncate">{unit?.nama}</span>
@@ -83,7 +83,7 @@ function MobileQrPage() {
       </section>
 
       <div className="px-4 relative z-[2] flex flex-col gap-4 pb-2">
-        <section className="sp-card p-5 flex flex-col items-center gap-4 bg-white border border-primary-border rounded-2xl shadow-xs">
+        <section className="sp-card p-5 flex flex-col items-center gap-4 bg-card border border-primary-border rounded-2xl shadow-xs">
           {/* QR sebesar mungkin supaya mudah dipindai dari layar. */}
           <div className="w-full max-w-[280px] aspect-square rounded-2xl bg-white border-2 border-primary-border p-4 shadow-sm flex items-center justify-center">
             <QRCodeSvg value={employeeQrPayload(staff)} className="h-full w-full text-primary" title="QR presensi pegawai" />
@@ -91,20 +91,20 @@ function MobileQrPage() {
 
           <div className="text-center flex flex-col gap-1">
             <span className="font-label-sm text-label-sm text-primary-muted">Kode pegawai ({qr.sumber})</span>
-            <span className="font-mono text-headline-sm text-headline-sm text-[#20243A] font-bold tracking-widest break-all">
+            <span className="font-mono text-headline-sm text-headline-sm text-sp-ink font-bold tracking-widest break-all">
               {qr.identitas}
             </span>
           </div>
 
-          <div className="w-full rounded-xl bg-[#F3F5FC] border border-primary-border px-3.5 py-3 text-center">
+          <div className="w-full rounded-xl bg-sp-surface-sunken border border-primary-border px-3.5 py-3 text-center">
             <span className="font-label-sm text-label-sm text-primary-muted block">Payload QR</span>
-            <span className="font-mono text-body-sm text-body-sm text-[#20243A] font-medium break-all">{qr.value}</span>
+            <span className="font-mono text-body-sm text-body-sm text-sp-ink font-medium break-all">{qr.value}</span>
           </div>
         </section>
 
-        <section className="sp-card p-4 flex flex-col gap-3.5 bg-white border border-primary-border rounded-2xl shadow-xs">
+        <section className="sp-card p-4 flex flex-col gap-3.5 bg-card border border-primary-border rounded-2xl shadow-xs">
           <div className="sp-card-head">
-            <span className="font-headline-sm text-headline-sm text-[#20243A] font-bold">Kegunaan Kode</span>
+            <span className="font-headline-sm text-headline-sm text-sp-ink font-bold">Kegunaan Kode</span>
           </div>
           <Penggunaan
             ikon="how_to_reg"
@@ -124,25 +124,25 @@ function MobileQrPage() {
         </section>
 
         {barcode && (
-          <section className="sp-card p-4 flex flex-col items-center gap-2.5 bg-white border border-primary-border rounded-2xl shadow-xs">
+          <section className="sp-card p-4 flex flex-col items-center gap-2.5 bg-card border border-primary-border rounded-2xl shadow-xs">
             <span className="font-label-sm text-label-sm text-primary-muted">Barcode (cadangan pemindaian 1D)</span>
             <div className="w-full max-w-[240px] text-primary">
               <BarcodeSvg value={barcode} className="h-[56px] w-full" />
             </div>
-            <span className="font-mono text-body-sm text-body-sm text-[#20243A] font-bold tracking-widest">{barcode}</span>
+            <span className="font-mono text-body-sm text-body-sm text-sp-ink font-bold tracking-widest">{barcode}</span>
           </section>
         )}
 
         <button
           type="button"
           onClick={() => navigate('/mobile/kartu-id')}
-          className="sp-card sp-btn p-4 flex items-center gap-3 text-left bg-white border border-primary-border rounded-2xl shadow-xs hover:border-primary/30 active:scale-[0.99] transition-all cursor-pointer"
+          className="sp-card sp-btn p-4 flex items-center gap-3 text-left bg-card border border-primary-border rounded-2xl shadow-xs hover:border-primary/30 active:scale-[0.99] transition-all cursor-pointer"
         >
           <span className="w-11 h-11 rounded-xl bg-primary-soft text-primary flex items-center justify-center shrink-0">
             <Icon name="contact_page" className="text-[22px]" />
           </span>
           <span className="flex flex-col min-w-0 flex-1 gap-0.5">
-            <span className="font-body-md-medium text-body-md-medium text-[#20243A] font-semibold">Lihat Kartu ID</span>
+            <span className="font-body-md-medium text-body-md-medium text-sp-ink font-semibold">Lihat Kartu ID</span>
             <span className="font-label-sm text-label-sm text-primary-muted leading-snug">Pratinjau kartu PVC lengkap</span>
           </span>
           <Icon name="chevron_right" className="text-[20px] text-primary-muted shrink-0" />
@@ -166,7 +166,7 @@ function Penggunaan({ ikon, judul, detail }) {
         <Icon name={ikon} className="text-[18px]" />
       </span>
       <span className="flex flex-col min-w-0 gap-0.5">
-        <span className="font-body-sm-medium text-body-sm-medium text-[#20243A] font-semibold">{judul}</span>
+        <span className="font-body-sm-medium text-body-sm-medium text-sp-ink font-semibold">{judul}</span>
         <span className="font-body-sm text-body-sm text-primary-muted leading-snug">{detail}</span>
       </span>
     </div>

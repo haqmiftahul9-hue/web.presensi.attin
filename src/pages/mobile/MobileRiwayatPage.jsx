@@ -28,7 +28,7 @@ function ChipFilter({ label, aktif, onClick }) {
       className={`shrink-0 px-3.5 py-2 rounded-full font-label-md text-label-md transition-all ${
         aktif
           ? 'bg-primary text-white shadow-xs font-semibold'
-          : 'bg-[#f3f5fc] border border-primary-border text-[#20243a] hover:bg-primary-soft'
+          : 'bg-sp-surface-sunken border border-primary-border text-sp-ink hover:bg-primary-soft'
       }`}
     >
       {label}
@@ -79,21 +79,21 @@ function KartuHari({ tanggal, masuk, pulang, lateMinutes, status, metode, titikL
             sendiri — karena itu label memakai `break-words`: kalau tidak, teksnya
             keluar dari kotaknya dan menabrak kotak sebelah. */}
         <div className="grid grid-cols-3 gap-2">
-          <div className="rounded-xl bg-[#f3f5fc] border border-primary-border px-3 py-2.5 flex flex-col gap-1 min-w-0">
+          <div className="rounded-xl bg-sp-surface-sunken border border-primary-border px-3 py-2.5 flex flex-col gap-1 min-w-0">
             <span className="font-label-sm text-label-sm text-primary-muted font-medium break-words">Masuk</span>
-            <span className="font-body-md-medium text-body-md-medium text-[#20243a] font-semibold tabular-nums">
+            <span className="font-body-md-medium text-body-md-medium text-sp-ink font-semibold tabular-nums">
               {masuk ? jamPendek(masuk) : '--:--'}
             </span>
           </div>
-          <div className="rounded-xl bg-[#f3f5fc] border border-primary-border px-3 py-2.5 flex flex-col gap-1 min-w-0">
+          <div className="rounded-xl bg-sp-surface-sunken border border-primary-border px-3 py-2.5 flex flex-col gap-1 min-w-0">
             <span className="font-label-sm text-label-sm text-primary-muted font-medium break-words">Pulang</span>
-            <span className="font-body-md-medium text-body-md-medium text-[#20243a] font-semibold tabular-nums">
+            <span className="font-body-md-medium text-body-md-medium text-sp-ink font-semibold tabular-nums">
               {pulang ? jamPendek(pulang) : '--:--'}
             </span>
           </div>
-          <div className="rounded-xl bg-[#f3f5fc] border border-primary-border px-3 py-2.5 flex flex-col gap-1 min-w-0">
+          <div className="rounded-xl bg-sp-surface-sunken border border-primary-border px-3 py-2.5 flex flex-col gap-1 min-w-0">
             <span className="font-label-sm text-label-sm text-primary-muted font-medium break-words">Keterlambatan</span>
-            <span className={`font-body-md-medium text-body-md-medium font-semibold tabular-nums truncate ${lateMinutes > 0 ? 'text-amber-700' : 'text-[#20243a]'}`}>
+            <span className={`font-body-md-medium text-body-md-medium font-semibold tabular-nums truncate ${lateMinutes > 0 ? 'text-status-warning-text' : 'text-sp-ink'}`}>
               {lateMinutes} menit
             </span>
           </div>
@@ -117,8 +117,8 @@ function KartuHari({ tanggal, masuk, pulang, lateMinutes, status, metode, titikL
       </div>
 
       {terbuka && (
-        <div className="pt-3 border-t border-slate-100 animate-sp-rise">
-          <div className="divide-y divide-slate-100">
+        <div className="pt-3 border-t border-primary-border/40 animate-sp-rise">
+          <div className="divide-y divide-primary-border/40">
             <BarisDetail label="Tanggal" nilai={tanggalLengkapISO(tanggal)} />
             <BarisDetail label="Status" nilai={status.label} />
             <BarisDetail label="Jam masuk" nilai={masuk ? `${jamPendek(masuk)} ${zonaWaktu}` : 'Tidak ada presensi'} />
@@ -172,12 +172,12 @@ function FilterPeriode({ mode, form, daftarTahun, tahunBerjalan, onUbahMode, onU
           <span className="w-8 h-8 rounded-xl bg-primary/10 border border-primary/15 flex items-center justify-center shrink-0">
             <Icon name="calendar_month" className="text-primary text-[18px]" />
           </span>
-          <span className="font-headline-sm text-headline-sm text-slate-900 font-bold tracking-tight truncate">Periode Presensi</span>
+          <span className="font-headline-sm text-headline-sm text-foreground font-bold tracking-tight truncate">Periode Presensi</span>
         </div>
       </div>
 
       {/* Pemilih mode: Bulanan atau Rentang Tanggal. */}
-      <div className="grid grid-cols-2 gap-1.5 p-1 rounded-2xl bg-[#f3f5fc] border border-primary-border">
+      <div className="grid grid-cols-2 gap-1.5 p-1 rounded-2xl bg-sp-surface-sunken border border-primary-border">
         {[
           { nilai: MODE_BULANAN, label: 'Bulanan', ikon: 'calendar_month' },
           { nilai: MODE_RENTANG, label: 'Rentang Tanggal', ikon: 'date_range' },
@@ -190,7 +190,7 @@ function FilterPeriode({ mode, form, daftarTahun, tahunBerjalan, onUbahMode, onU
             className={`flex items-center justify-center gap-1.5 min-h-[44px] px-3 py-2.5 rounded-xl font-label-md text-label-md transition-all ${
               mode === opsi.nilai
                 ? 'bg-primary text-white shadow-xs font-semibold'
-                : 'text-primary-muted hover:text-[#20243a]'
+                : 'text-primary-muted hover:text-sp-ink'
             }`}
           >
             <Icon name={opsi.ikon} className="text-[16px] shrink-0" />
@@ -244,7 +244,7 @@ function FilterPeriode({ mode, form, daftarTahun, tahunBerjalan, onUbahMode, onU
       )}
 
       {pesanGalat && (
-        <p role="alert" className="font-body-sm text-body-sm text-rose-600 flex items-start gap-2 leading-snug">
+        <p role="alert" className="font-body-sm text-body-sm text-status-danger-text flex items-start gap-2 leading-snug">
           <Icon name="error" className="text-[16px] shrink-0 mt-0.5" />
           {pesanGalat}
         </p>
@@ -445,18 +445,18 @@ function MobileRiwayatPage() {
             <StaffAvatar staff={staff} size="w-12 h-12" textClass="font-headline-sm text-headline-sm font-bold text-white" ring="ring-2 ring-white/60" className="shadow-xs" />
             <div className="flex flex-col min-w-0">
               <span className="font-label-sm text-label-sm text-primary-muted font-medium">Riwayat Kehadiran</span>
-              <h1 className="font-headline-sm text-headline-sm text-[#20243a] font-bold tracking-tight truncate">{labelPeriodeAktif}</h1>
+              <h1 className="font-headline-sm text-headline-sm text-sp-ink font-bold tracking-tight truncate">{labelPeriodeAktif}</h1>
             </div>
           </div>
 
           <div className="grid grid-cols-4 gap-2 pt-2">
             {[
               { label: 'Hadir', nilai: rekap.hadir, tone: 'text-primary' },
-              { label: 'Tepat', nilai: rekap.tepatWaktu, tone: 'text-emerald-600' },
-              { label: 'Terlambat', nilai: rekap.terlambat, tone: 'text-amber-600' },
+              { label: 'Tepat', nilai: rekap.tepatWaktu, tone: 'text-status-success-text' },
+              { label: 'Terlambat', nilai: rekap.terlambat, tone: 'text-status-warning-text' },
               { label: 'Izin/Cuti', nilai: rekap.izin + rekap.cuti, tone: 'text-primary' },
             ].map((item) => (
-              <div key={item.label} className="rounded-xl bg-[#ffffff] border border-primary-border p-3 flex flex-col items-center gap-0.5 min-w-0 shadow-2xs">
+              <div key={item.label} className="rounded-xl bg-sp-surface border border-primary-border p-3 flex flex-col items-center gap-0.5 min-w-0 shadow-2xs">
                 <span className={`font-display-lg-mobile text-[22px] font-bold leading-none ${item.tone}`}>{item.nilai}</span>
                 <span className="font-label-sm text-[11px] text-primary-muted text-center font-medium mt-0.5">{item.label}</span>
               </div>
@@ -492,7 +492,7 @@ function MobileRiwayatPage() {
 
           <div className="h-1.5 w-full rounded-full bg-surface-container overflow-hidden">
             <div
-              className="h-full rounded-full bg-emerald-500 transition-all duration-500"
+              className="h-full rounded-full bg-status-success transition-all duration-500"
               style={{ width: `${Math.min(100, rekap.persen)}%` }}
             />
           </div>

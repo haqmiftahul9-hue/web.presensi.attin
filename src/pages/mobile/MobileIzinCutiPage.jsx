@@ -16,7 +16,7 @@ import { SectionTitle } from '../../components/mobile/AppShell.jsx'
 import { EmptyState, ErrorState, LoadingState, Spinner } from '../../components/mobile/Feedback.jsx'
 
 const FIELD =
-  'sp-field px-3.5 py-3 bg-slate-50 border border-slate-200/80 rounded-xl text-body-md text-slate-900 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all'
+  'sp-field px-3.5 py-3 bg-slate-50 dark:bg-card border border-slate-200/80 dark:border-primary-border rounded-xl text-body-md text-slate-900 dark:text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all'
 const LABEL = 'font-label-sm text-label-sm text-on-surface-variant mb-2 block'
 
 /** Grouping pilihan jenis: Cuti dulu, lalu Izin. */
@@ -89,7 +89,7 @@ export function FormPengajuan({
                       className={`px-3.5 py-2.5 rounded-xl border text-left transition-all active:scale-[0.98] ${
                         aktif
                           ? 'border-primary bg-primary/10 text-primary font-semibold shadow-xs'
-                          : 'border-slate-200/80 bg-slate-50 text-slate-700 hover:bg-slate-100'
+                          : 'border-slate-200/80 dark:border-primary-border bg-slate-50 dark:bg-card text-slate-700 dark:text-foreground hover:bg-slate-100 dark:hover:bg-primary-soft'
                       }`}
                     >
                       <span className="flex items-center gap-1.5 font-label-md text-label-md">
@@ -97,7 +97,7 @@ export function FormPengajuan({
                         {item}
                       </span>
                       {aturanLampiran(item) === 'wajib' && (
-                        <span className="block font-label-sm text-label-sm text-rose-700 mt-1">Lampiran wajib</span>
+                        <span className="block font-label-sm text-label-sm text-status-danger-text mt-1">Lampiran wajib</span>
                       )}
                     </button>
                   )
@@ -132,7 +132,7 @@ export function FormPengajuan({
 
       <div>
         <label className={LABEL} htmlFor="izin-alasan">
-          Alasan <span className="text-rose-700">*</span>
+          Alasan <span className="text-status-danger-text">*</span>
         </label>
         <textarea
           id="izin-alasan"
@@ -147,7 +147,7 @@ export function FormPengajuan({
       <div>
         <label className={LABEL} htmlFor="izin-lampiran">
           Lampiran dokumen
-          {aturan === 'wajib' && <span className="text-rose-700"> *</span>}
+          {aturan === 'wajib' && <span className="text-status-danger-text"> *</span>}
           {aturan === 'disarankan' && <span className="text-on-surface-variant"> (disarankan)</span>}
         </label>
         <div className="flex flex-col gap-2">
@@ -164,7 +164,7 @@ export function FormPengajuan({
               <Icon name="attach_file" className="text-[15px] shrink-0" />
               <span className="truncate">{lampiran.name}</span>
               <span className="shrink-0">{ukuranBerkas(lampiran.size)}</span>
-              <button type="button" onClick={onHapusLampiran} className="shrink-0 -mr-2 px-2 py-1.5 rounded-lg text-rose-700 font-label-sm text-label-sm">
+              <button type="button" onClick={onHapusLampiran} className="shrink-0 -mr-2 px-2 py-1.5 rounded-lg text-status-danger-text font-label-sm text-label-sm">
                 Hapus
               </button>
             </p>
@@ -173,7 +173,7 @@ export function FormPengajuan({
       </div>
 
       {galat && (
-        <p role="alert" className="rounded-2xl bg-rose-50 text-rose-800 border border-rose-200 px-3.5 py-3 font-body-sm text-body-sm flex items-start gap-2 leading-snug">
+        <p role="alert" className="rounded-2xl bg-status-danger-soft text-status-danger-bright border border-status-danger-border px-3.5 py-3 font-body-sm text-body-sm flex items-start gap-2 leading-snug">
           <Icon name="error" className="text-[16px] mt-0.5 shrink-0" />
           <span>{galat}</span>
         </p>
@@ -315,7 +315,7 @@ function MobileIzinCutiPage() {
             <StaffAvatar staff={staff} size="w-12 h-12" textClass="font-headline-sm text-headline-sm font-bold text-white" ring="ring-2 ring-white/60" className="shadow-xs" />
             <div className="flex flex-col min-w-0">
               <span className="font-label-sm text-label-sm text-primary-muted font-medium">Pengajuan Saya</span>
-              <h1 className="font-headline-sm text-headline-sm text-[#20243a] font-bold tracking-tight">Izin &amp; Cuti</h1>
+              <h1 className="font-headline-sm text-headline-sm text-sp-ink font-bold tracking-tight">Izin &amp; Cuti</h1>
               <span className="font-label-sm text-label-sm text-primary-muted truncate">{unit?.nama}</span>
             </div>
           </div>
@@ -323,10 +323,10 @@ function MobileIzinCutiPage() {
           {/* Ringkasan tiga status pengajuan. */}
           <div className="grid grid-cols-3 gap-2 pt-2">
             {STATUS_PENGAJUAN.map((status) => (
-              <div key={status} className="rounded-xl bg-[#ffffff] border border-primary-border p-3 flex flex-col items-center gap-0.5 min-w-0">
+              <div key={status} className="rounded-xl bg-sp-surface border border-primary-border p-3 flex flex-col items-center gap-0.5 min-w-0">
                 <span
                   className={`font-display-lg-mobile text-[22px] font-bold leading-none ${
-                    status === 'Menunggu' ? 'text-amber-600' : status === 'Disetujui' ? 'text-emerald-600' : 'text-rose-600'
+                    status === 'Menunggu' ? 'text-status-warning-text' : status === 'Disetujui' ? 'text-status-success-text' : 'text-status-danger-text'
                   }`}
                 >
                   {jumlah(status)}
@@ -349,7 +349,7 @@ function MobileIzinCutiPage() {
               setPesan('')
               setGalat('')
             }}
-            className="sp-btn w-full min-h-[60px] py-3.5 bg-primary bg-[#323d8f] hover:bg-primary-strong text-white border-[3px] border-primary border-[#323d8f] shadow-lg shadow-[var(--primary)]/20 font-headline-sm text-headline-sm flex items-center justify-center gap-2 rounded-2xl active:scale-[0.98] transition-all"
+            className="sp-btn w-full min-h-[60px] py-3.5 bg-primary hover:bg-primary-strong text-white border-[3px] border-primary shadow-lg shadow-[var(--primary)]/20 font-headline-sm text-headline-sm flex items-center justify-center gap-2 rounded-2xl active:scale-[0.98] transition-all"
           >
             <Icon name="add" className="text-[22px] shrink-0 text-white" />
             <span className="text-white font-semibold tracking-wide">Buat Pengajuan</span>
@@ -357,7 +357,7 @@ function MobileIzinCutiPage() {
         )}
 
         {pesan && (
-          <p className="rounded-2xl bg-emerald-50 text-emerald-800 border border-emerald-200 px-3.5 py-3 font-body-sm text-body-sm flex items-start gap-2 leading-snug">
+          <p className="rounded-2xl bg-status-success-soft text-status-success-bright border border-status-success-border px-3.5 py-3 font-body-sm text-body-sm flex items-start gap-2 leading-snug">
             <Icon name="check_circle" className="text-[16px] mt-0.5 shrink-0" />
             <span>{pesan}</span>
           </p>
@@ -398,7 +398,7 @@ function MobileIzinCutiPage() {
           <SectionTitle ikon="event_available" judul="Sisa Kuota Cuti" />
           <div className="grid grid-cols-3 gap-2 mt-2">
             {['Cuti Tahunan', 'Cuti Menikah', 'Cuti Melahirkan'].map((j) => (
-              <div key={j} className="flex flex-col items-center p-2 rounded-xl bg-slate-50">
+              <div key={j} className="flex flex-col items-center p-2 rounded-xl bg-slate-50 dark:bg-card border border-slate-200/60 dark:border-primary-border">
                 <span className="font-label-sm text-label-sm text-on-surface-variant">{j.replace('Cuti ', '')}</span>
                 <span className="font-headline-md text-headline-md text-primary">{hitungSisaKuota(staff?.id, j, daftar)}</span>
                 <span className="font-label-sm text-label-sm text-on-surface-variant">dari {kuotaJenis(j)} hari</span>

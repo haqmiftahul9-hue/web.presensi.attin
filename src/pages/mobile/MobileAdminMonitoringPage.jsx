@@ -49,21 +49,21 @@ export default function MobileAdminMonitoringPage() {
       if (hasApprovedLeave) {
         statusCategory = 'izin'
         statusLabel = 'Izin / Cuti'
-        statusColor = 'bg-blue-100 text-blue-700 border-blue-200'
+        statusColor = 'bg-status-info-soft text-status-info-text border-status-info-border'
       } else if (masuk) {
         if (isLate) {
           statusCategory = 'terlambat'
           statusLabel = `Terlambat ${s.lateMinutes}m`
-          statusColor = 'bg-amber-100 text-amber-800 border-amber-300'
+          statusColor = 'bg-status-warning-soft text-status-warning-bright border-status-warning-border'
         } else {
           statusCategory = 'hadir'
           statusLabel = 'Tepat Waktu'
-          statusColor = 'bg-emerald-100 text-emerald-800 border-emerald-300'
+          statusColor = 'bg-status-success-soft text-status-success-bright border-status-success-border'
         }
       } else if (isAlpha) {
         statusCategory = 'belum'
         statusLabel = 'Tanpa Keterangan'
-        statusColor = 'bg-rose-100 text-rose-700 border-rose-200'
+        statusColor = 'bg-status-danger-soft text-status-danger-text border-status-danger-border'
       }
 
       return {
@@ -129,7 +129,7 @@ export default function MobileAdminMonitoringPage() {
             <Icon name="arrow_back" className="text-[18px]" />
           </Link>
           <div className="flex flex-col min-w-0 flex-1">
-            <h1 className="font-headline-sm text-headline-sm text-[#20243a] font-bold tracking-tight truncate">
+            <h1 className="font-headline-sm text-headline-sm text-sp-ink font-bold tracking-tight truncate">
               Monitoring Kehadiran
             </h1>
             <span className="font-label-sm text-label-sm text-primary-muted truncate">
@@ -144,15 +144,15 @@ export default function MobileAdminMonitoringPage() {
         <div className="grid grid-cols-4 gap-2">
           <div className="rounded-xl bg-white border border-primary-border p-2.5 flex flex-col items-center justify-center shadow-2xs">
             <span className="font-label-sm text-[11px] text-primary-muted font-medium">Total</span>
-            <span className="font-display-lg text-[20px] font-bold text-[#20243a] leading-tight">{kpi.total}</span>
+            <span className="font-display-lg text-[20px] font-bold text-sp-ink leading-tight">{kpi.total}</span>
           </div>
-          <div className="rounded-xl bg-emerald-50 border border-emerald-200/80 p-2.5 flex flex-col items-center justify-center shadow-2xs">
-            <span className="font-label-sm text-[11px] text-emerald-700 font-medium">Hadir</span>
-            <span className="font-display-lg text-[20px] font-bold text-emerald-800 leading-tight">{kpi.hadir}</span>
+          <div className="rounded-xl bg-status-success-soft border border-status-success-border/80 p-2.5 flex flex-col items-center justify-center shadow-2xs">
+            <span className="font-label-sm text-[11px] text-status-success-text font-medium">Hadir</span>
+            <span className="font-display-lg text-[20px] font-bold text-status-success-bright leading-tight">{kpi.hadir}</span>
           </div>
-          <div className="rounded-xl bg-amber-50 border border-amber-200/80 p-2.5 flex flex-col items-center justify-center shadow-2xs">
-            <span className="font-label-sm text-[11px] text-amber-700 font-medium">Telat</span>
-            <span className="font-display-lg text-[20px] font-bold text-amber-800 leading-tight">{kpi.terlambat}</span>
+          <div className="rounded-xl bg-status-warning-soft border border-status-warning-border/80 p-2.5 flex flex-col items-center justify-center shadow-2xs">
+            <span className="font-label-sm text-[11px] text-status-warning-text font-medium">Telat</span>
+            <span className="font-display-lg text-[20px] font-bold text-status-warning-bright leading-tight">{kpi.terlambat}</span>
           </div>
           <div className="rounded-xl bg-slate-50 border border-slate-200/80 p-2.5 flex flex-col items-center justify-center shadow-2xs">
             <span className="font-label-sm text-[11px] text-slate-600 font-medium">Belum</span>
@@ -169,7 +169,7 @@ export default function MobileAdminMonitoringPage() {
               placeholder="Cari nama guru / NIY…"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full h-10 pl-9 pr-3 rounded-xl bg-white border border-primary-border text-xs text-[#20243a] placeholder:text-slate-400 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 shadow-2xs transition-all"
+              className="w-full h-10 pl-9 pr-3 rounded-xl bg-white border border-primary-border text-xs text-sp-ink placeholder:text-slate-400 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 shadow-2xs transition-all"
             />
           </div>
 
@@ -219,7 +219,7 @@ export default function MobileAdminMonitoringPage() {
                     ring="ring-1 ring-slate-200"
                   />
                   <div className="flex flex-col min-w-0 flex-1">
-                    <span className="font-label-md text-xs font-bold text-[#20243a] truncate">
+                    <span className="font-label-md text-xs font-bold text-sp-ink truncate">
                       {s.name}
                     </span>
                     <span className="font-label-sm text-[11px] text-primary-muted truncate">

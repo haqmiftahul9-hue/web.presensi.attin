@@ -101,14 +101,14 @@ function MobileKartuIdPage() {
               type="button"
               onClick={() => navigate(-1)}
               aria-label="Kembali"
-              className="w-10 h-10 rounded-xl bg-white border border-primary-border text-primary flex items-center justify-center shrink-0 shadow-xs active:scale-95 transition-all"
+              className="w-10 h-10 rounded-xl bg-card border border-primary-border text-primary flex items-center justify-center shrink-0 shadow-xs active:scale-95 transition-all"
             >
               <Icon name="arrow_back" className="text-[20px]" />
             </button>
             <StaffAvatar staff={staff} size="w-12 h-12" textClass="font-headline-sm text-headline-sm" ring="ring-2 ring-primary/20" />
             <div className="flex flex-col min-w-0">
               <span className="font-label-sm text-label-sm text-primary-muted">Kartu ID Pegawai</span>
-              <h1 className="font-headline-sm text-headline-sm text-[#20243A] font-bold truncate">
+              <h1 className="font-headline-sm text-headline-sm text-sp-ink font-bold truncate">
                 {getEmployeeGreeting(staff, { unit })}
               </h1>
               <span className="font-label-sm text-label-sm text-primary-muted truncate">{unit?.nama}</span>
@@ -121,7 +121,7 @@ function MobileKartuIdPage() {
         {/* Pratinjau kartu digital: kartu CR80 asli (85.60 x 53.98 mm) dengan
             rasio yang persis, duduk di atas bayangan lembut supaya terbaca
             seperti kartu fisik di tangan. */}
-        <section className="sp-card p-4 flex flex-col gap-3.5 sp-rise border border-primary-border rounded-2xl bg-white shadow-xs">
+        <section className="sp-card p-4 flex flex-col gap-3.5 sp-rise border border-primary-border rounded-2xl bg-card shadow-xs">
           <SectionTitle
             ikon="contact_page"
             judul="Pratinjau Kartu"
@@ -170,13 +170,13 @@ function MobileKartuIdPage() {
         <button
           type="button"
           onClick={() => navigate('/mobile/qr')}
-          className="sp-card sp-btn p-4 flex items-center gap-3 text-left border border-primary-border rounded-2xl bg-white shadow-xs hover:border-primary/30 active:scale-[0.99] transition-all cursor-pointer"
+          className="sp-card sp-btn p-4 flex items-center gap-3 text-left border border-primary-border rounded-2xl bg-card shadow-xs hover:border-primary/30 active:scale-[0.99] transition-all cursor-pointer"
         >
           <span className="w-11 h-11 rounded-xl bg-primary-soft text-primary flex items-center justify-center shrink-0">
             <Icon name="qr_code_scanner" className="text-[22px]" />
           </span>
           <span className="flex flex-col min-w-0 flex-1 gap-0.5">
-            <span className="font-body-md-medium text-body-md-medium text-[#20243A] font-semibold">QR Presensi</span>
+            <span className="font-body-md-medium text-body-md-medium text-sp-ink font-semibold">QR Presensi</span>
             <span className="font-label-sm text-label-sm text-primary-muted leading-snug">
               Kode yang sama dengan pada kartu ini
             </span>

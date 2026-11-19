@@ -3,7 +3,7 @@ import QRCodeSvg from '../cards/QRCodeSvg.jsx'
 
 // Bingkai empat sudut + garis sapuan dipakai kedua mode supaya kesan
 // "sensor aktif" konsisten di halaman yang sama.
-function CornerBrackets({ tone = 'border-emerald-400' }) {
+function CornerBrackets({ tone = 'border-status-success-border' }) {
   const corner = `w-4 h-4 ${tone}`
   return (
     <div className="absolute w-36 h-44 pointer-events-none flex flex-col justify-between">
@@ -11,7 +11,7 @@ function CornerBrackets({ tone = 'border-emerald-400' }) {
         <div className={`${corner} border-t-2 border-l-2 rounded-tl-sm`} />
         <div className={`${corner} border-t-2 border-r-2 rounded-tr-sm`} />
       </div>
-      <div className="w-full h-0.5 bg-gradient-to-r from-transparent via-emerald-400 to-transparent opacity-80 animate-pulse" />
+      <div className="w-full h-0.5 bg-gradient-to-r from-transparent via-status-success to-transparent opacity-80 animate-pulse" />
       <div className="flex justify-between w-full">
         <div className={`${corner} border-b-2 border-l-2 rounded-bl-sm`} />
         <div className={`${corner} border-b-2 border-r-2 rounded-br-sm`} />
@@ -23,7 +23,7 @@ function CornerBrackets({ tone = 'border-emerald-400' }) {
 function ScanLine({ vertical = false }) {
   return (
     <div
-      className={`absolute bg-gradient-to-r from-transparent via-emerald-400 to-transparent animate-sp-sweep ${
+      className={`absolute bg-gradient-to-r from-transparent via-status-success to-transparent animate-sp-sweep ${
         vertical ? 'inset-y-0 left-0 w-0.5 h-full' : 'inset-x-0 top-0 h-0.5 w-full'
       }`}
       style={{ animationDuration: '2.6s' }}
@@ -59,13 +59,13 @@ function FaceFrame({ videoRef, cameraAktif, initials, captured, faceStatus = 'id
     <div
       className={`relative w-56 h-56 rounded-full p-2 bg-gradient-to-b from-primary-strong via-primary-strong to-primary/40 shadow-inner flex items-center justify-center transition-all duration-300 ${
         focusing
-          ? 'ring-2 ring-amber-400 shadow-amber-400/30'
+          ? 'ring-2 ring-status-warning-border shadow-status-warning/30'
           : isMismatch
-            ? 'ring-4 ring-rose-500 shadow-rose-500/40'
+            ? 'ring-4 ring-status-danger shadow-status-danger/40'
             : isMatch
-              ? 'ring-4 ring-emerald-500 shadow-emerald-500/40'
+              ? 'ring-4 ring-status-success shadow-emerald-500/40'
               : faceDetected
-                ? 'ring-2 ring-emerald-400/80'
+                ? 'ring-2 ring-status-success-border/80'
                 : ''
       }`}
     >
@@ -73,14 +73,14 @@ function FaceFrame({ videoRef, cameraAktif, initials, captured, faceStatus = 'id
         <span
           className={`absolute -inset-3 rounded-full blur-xl pointer-events-none transition-colors duration-300 ${
             focusing
-              ? 'bg-amber-400/20 animate-pulse'
+              ? 'bg-status-warning/20 animate-pulse'
               : isMismatch
-                ? 'bg-rose-500/30 animate-pulse'
+                ? 'bg-status-danger/30 animate-pulse'
                 : isMatch
-                  ? 'bg-emerald-400/25 animate-sp-glow'
+                  ? 'bg-status-success/25 animate-sp-glow'
                   : faceDetected
-                    ? 'bg-emerald-400/20 animate-pulse'
-                    : 'bg-emerald-400/15 animate-sp-glow'
+                    ? 'bg-status-success/20 animate-pulse'
+                    : 'bg-status-success/15 animate-sp-glow'
           }`}
         />
       )}
@@ -91,11 +91,11 @@ function FaceFrame({ videoRef, cameraAktif, initials, captured, faceStatus = 'id
           <svg
             className={`w-32 h-40 drop-shadow-md transition-colors duration-300 ${
               isMismatch
-                ? 'text-rose-400'
+                ? 'text-status-danger-bright'
                 : isMatch
-                  ? 'text-emerald-300'
+                  ? 'text-status-success-bright'
                   : faceDetected
-                    ? 'text-emerald-400'
+                    ? 'text-status-success-bright'
                     : 'text-white/75'
             }`}
             fill="none"
@@ -117,27 +117,27 @@ function FaceFrame({ videoRef, cameraAktif, initials, captured, faceStatus = 'id
           </svg>
         </div>
 
-        <CornerBrackets tone={focusing ? 'border-amber-300' : isMismatch ? 'border-rose-400' : isMatch ? 'border-emerald-400' : 'border-emerald-400'} />
+        <CornerBrackets tone={focusing ? 'border-status-warning-border' : isMismatch ? 'border-status-danger-border' : isMatch ? 'border-status-success-border' : 'border-status-success-border'} />
         <ScanLine />
-        {isMatch && <div className="absolute inset-0 bg-emerald-500/25 animate-sp-fade" />}
-        {isMismatch && <div className="absolute inset-0 bg-rose-500/35 animate-pulse" />}
+        {isMatch && <div className="absolute inset-0 bg-status-success/25 animate-sp-fade" />}
+        {isMismatch && <div className="absolute inset-0 bg-status-danger/35 animate-pulse" />}
       </CameraLayer>
 
       {/* Floating Status Pill */}
       {focusing && !isMatch && !isMismatch && (
-        <span className="absolute -bottom-2.5 inset-x-0 mx-auto w-fit px-3 py-1 rounded-full bg-amber-600 text-white font-label-sm text-[11px] font-bold shadow-md animate-pulse flex items-center gap-1.5 z-10">
+        <span className="absolute -bottom-2.5 inset-x-0 mx-auto w-fit px-3 py-1 rounded-full bg-status-warning text-white font-label-sm text-[11px] font-bold shadow-md animate-pulse flex items-center gap-1.5 z-10">
           <Icon name="center_focus_strong" className="text-[14px] animate-spin" />
           Sedang memfokuskan...
         </span>
       )}
       {!focusing && isMismatch && (
-        <span className="absolute -bottom-2.5 inset-x-0 mx-auto w-fit px-3 py-1 rounded-full bg-rose-600 text-white font-label-sm text-xs font-bold shadow-md animate-bounce flex items-center gap-1 z-10">
+        <span className="absolute -bottom-2.5 inset-x-0 mx-auto w-fit px-3 py-1 rounded-full bg-status-danger text-white font-label-sm text-xs font-bold shadow-md animate-bounce flex items-center gap-1 z-10">
           <Icon name="block" className="text-[14px]" />
           Akses Ditolak
         </span>
       )}
       {!focusing && isMatch && !isMismatch && (
-        <span className="absolute -bottom-2.5 inset-x-0 mx-auto w-fit px-3 py-1 rounded-full bg-emerald-600 text-white font-label-sm text-xs font-bold shadow-md flex items-center gap-1 z-10">
+        <span className="absolute -bottom-2.5 inset-x-0 mx-auto w-fit px-3 py-1 rounded-full bg-status-success text-white font-label-sm text-xs font-bold shadow-md flex items-center gap-1 z-10">
           <Icon name="verified" className="text-[14px]" />
           Wajah Cocok {faceConfidence ? `(${faceConfidence}%)` : ''}
         </span>
@@ -158,7 +158,7 @@ function BarcodeFrame({ videoRef, cameraAktif, qrValue, qrTerbaca, captured }) {
   return (
     <div className="relative w-56 h-56 rounded-2xl flex items-center justify-center overflow-hidden shadow-inner">
       {cameraAktif && (
-        <span className="absolute -inset-3 rounded-[24px] bg-emerald-400/15 blur-xl animate-sp-glow pointer-events-none" />
+        <span className="absolute -inset-3 rounded-[24px] bg-status-success/15 blur-xl animate-sp-glow pointer-events-none" />
       )}
       <CameraLayer videoRef={videoRef} cameraAktif={cameraAktif} rounded="rounded-2xl">
         {/* Placeholder kartu ID hanya muncul saat kamera tidak aktif: begitu
@@ -171,10 +171,10 @@ function BarcodeFrame({ videoRef, cameraAktif, qrValue, qrTerbaca, captured }) {
         )}
         <CornerBrackets />
         <ScanLine vertical />
-        {captured && <div className="absolute inset-0 bg-emerald-500/25 animate-sp-fade" />}
+        {captured && <div className="absolute inset-0 bg-status-success/25 animate-sp-fade" />}
       </CameraLayer>
       {qrTerbaca && (
-        <span className="absolute bottom-2 inset-x-0 mx-auto w-fit px-2 py-0.5 rounded-full bg-emerald-500/90 text-white font-label-sm text-label-sm">
+        <span className="absolute bottom-2 inset-x-0 mx-auto w-fit px-2 py-0.5 rounded-full bg-status-success/90 text-white font-label-sm text-label-sm">
           QR terbaca
         </span>
       )}
@@ -216,8 +216,8 @@ function ScanFrame({
   return (
     <section className="sp-card p-4 flex flex-col items-center text-center gap-3.5 relative overflow-hidden">
       <div className="w-full flex items-center justify-between gap-2">
-        <div className="flex items-center gap-1.5 text-emerald-700 font-label-sm text-label-sm">
-          <span className={`w-2 h-2 rounded-full ${cameraAktif ? 'bg-emerald-500' : 'bg-amber-400'}`} />
+        <div className="flex items-center gap-1.5 text-status-success-text font-label-sm text-label-sm">
+          <span className={`w-2 h-2 rounded-full ${cameraAktif ? 'bg-status-success' : 'bg-status-warning'}`} />
           <span>{cameraAktif ? (focusing ? 'Memfokuskan Kamera' : 'Sensor Siap') : cameraStatus === 'meminta' ? 'Menyiapkan Kamera' : 'Mode Tampilan'}</span>
         </div>
         <button
@@ -277,7 +277,7 @@ function ScanFrame({
       {/* Status perangkat: kamera yang dipakai dan kemampuan pembacaan QR. */}
       <div className="flex flex-wrap items-center justify-center gap-2">
         <span className="px-2.5 py-0.5 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm flex items-center gap-1">
-          <span className={`w-1.5 h-1.5 rounded-full ${cameraAktif ? 'bg-emerald-500' : 'bg-amber-400'}`} />
+          <span className={`w-1.5 h-1.5 rounded-full ${cameraAktif ? 'bg-status-success' : 'bg-status-warning'}`} />
           {labelKamera}
         </span>
         {mode === 'barcode' && (
@@ -303,7 +303,7 @@ function ScanFrame({
       )}
 
       {!cameraAktif && cameraError && (
-        <p className="font-label-sm text-label-sm text-amber-700 leading-snug">Kamera: {cameraError}</p>
+        <p className="font-label-sm text-label-sm text-status-warning-text leading-snug">Kamera: {cameraError}</p>
       )}
     </section>
   )

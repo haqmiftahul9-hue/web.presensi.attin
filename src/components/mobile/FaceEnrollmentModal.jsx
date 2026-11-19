@@ -479,8 +479,8 @@ export function FaceEnrollmentModal({
         <div className="p-4 flex flex-col items-center gap-3 overflow-y-auto">
           {modelError ? (
             <div className="py-8 flex flex-col items-center justify-center gap-3 text-center">
-              <Icon name="error" className="text-[36px] text-rose-500" />
-              <span className="font-body-md text-rose-700 font-semibold">{modelError}</span>
+              <Icon name="error" className="text-[36px] text-status-danger-text" />
+              <span className="font-body-md text-status-danger-text font-semibold">{modelError}</span>
               <button
                 type="button"
                 onClick={() => setModelLoading(true)}
@@ -496,14 +496,14 @@ export function FaceEnrollmentModal({
                   <img
                     src={successData.photo}
                     alt="Wajah Terdaftar"
-                    className="w-24 h-24 rounded-full object-cover ring-4 ring-emerald-500 shadow-md"
+                    className="w-24 h-24 rounded-full object-cover ring-4 ring-status-success shadow-md"
                   />
                 ) : (
-                  <div className="w-24 h-24 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center ring-4 ring-emerald-500">
+                  <div className="w-24 h-24 rounded-full bg-status-success-soft text-status-success-text flex items-center justify-center ring-4 ring-status-success">
                     <Icon name="check" className="text-[40px]" />
                   </div>
                 )}
-                <span className="absolute bottom-0 right-0 w-7 h-7 rounded-full bg-emerald-600 text-white flex items-center justify-center ring-2 ring-white shadow">
+                <span className="absolute bottom-0 right-0 w-7 h-7 rounded-full bg-status-success text-white flex items-center justify-center ring-2 ring-white shadow">
                   <Icon name="task_alt" className="text-[16px]" />
                 </span>
               </div>
@@ -514,7 +514,7 @@ export function FaceEnrollmentModal({
               <button
                 type="button"
                 onClick={onTutup}
-                className="sp-btn w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-headline-sm text-sm rounded-xl mt-3 shadow-md cursor-pointer"
+                className="sp-btn w-full py-3 bg-status-success hover:bg-status-success text-white font-headline-sm text-sm rounded-xl mt-3 shadow-md cursor-pointer"
               >
                 Selesai & Siap Presensi
               </button>
@@ -525,7 +525,7 @@ export function FaceEnrollmentModal({
               <div className="grid grid-cols-3 gap-1.5 w-full max-w-[280px]">
                 <div className={`py-1.5 px-2 rounded-xl text-center text-[10px] font-bold border transition-all ${
                   livenessStep > 1
-                    ? 'bg-emerald-500 text-white border-emerald-500'
+                    ? 'bg-status-success text-white border-status-success'
                     : livenessStep === 1
                       ? 'bg-primary text-white border-primary shadow-xs'
                       : 'bg-slate-100 text-slate-400 border-slate-200'
@@ -534,7 +534,7 @@ export function FaceEnrollmentModal({
                 </div>
                 <div className={`py-1.5 px-2 rounded-xl text-center text-[10px] font-bold border transition-all ${
                   livenessStep > 2
-                    ? 'bg-emerald-500 text-white border-emerald-500'
+                    ? 'bg-status-success text-white border-status-success'
                     : livenessStep === 2
                       ? 'bg-primary text-white border-primary shadow-xs'
                       : 'bg-slate-100 text-slate-400 border-slate-200'
@@ -543,7 +543,7 @@ export function FaceEnrollmentModal({
                 </div>
                 <div className={`py-1.5 px-2 rounded-xl text-center text-[10px] font-bold border transition-all ${
                   livenessPassed
-                    ? 'bg-emerald-500 text-white border-emerald-500'
+                    ? 'bg-status-success text-white border-status-success'
                     : livenessStep === 3
                       ? 'bg-primary text-white border-primary shadow-xs'
                       : 'bg-slate-100 text-slate-400 border-slate-200'
@@ -556,12 +556,12 @@ export function FaceEnrollmentModal({
               <div className="relative w-52 h-52 rounded-full p-2 bg-gradient-to-b from-primary-strong to-primary shadow-inner flex items-center justify-center">
                 <div className={`relative w-full h-full rounded-full overflow-hidden flex items-center justify-center bg-slate-900 ring-2 transition-all duration-300 ${
                   cameraStage === 'focusing'
-                    ? 'ring-amber-400 shadow-amber-400/40'
+                    ? 'ring-status-warning-border shadow-status-warning/40'
                     : livenessPassed
-                      ? 'ring-emerald-400 shadow-emerald-400/40'
+                      ? 'ring-status-success-border shadow-emerald-400/40'
                       : faceDetected
-                        ? 'ring-emerald-400'
-                        : 'ring-amber-400/80'
+                        ? 'ring-status-success-border'
+                        : 'ring-status-warning-border/80'
                 }`}>
                   <video
                     ref={setVideoNode}
@@ -584,12 +584,12 @@ export function FaceEnrollmentModal({
                   {cameraStage === 'focusing' && (
                     <div className="absolute inset-0 bg-black/20 flex flex-col items-center justify-center pointer-events-none z-15 animate-sp-fade">
                       {/* Reticle / Kotak Fokus Kamera */}
-                      <div className="relative w-28 h-28 border-2 border-amber-300/80 rounded-2xl flex items-center justify-center animate-pulse">
-                        <div className="w-3 h-3 border-t-2 border-l-2 border-amber-300 absolute -top-1 -left-1" />
-                        <div className="w-3 h-3 border-t-2 border-r-2 border-amber-300 absolute -top-1 -right-1" />
-                        <div className="w-3 h-3 border-b-2 border-l-2 border-amber-300 absolute -bottom-1 -left-1" />
-                        <div className="w-3 h-3 border-b-2 border-r-2 border-amber-300 absolute -bottom-1 -right-1" />
-                        <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
+                      <div className="relative w-28 h-28 border-2 border-status-warning-border/80 rounded-2xl flex items-center justify-center animate-pulse">
+                        <div className="w-3 h-3 border-t-2 border-l-2 border-status-warning-border absolute -top-1 -left-1" />
+                        <div className="w-3 h-3 border-t-2 border-r-2 border-status-warning-border absolute -top-1 -right-1" />
+                        <div className="w-3 h-3 border-b-2 border-l-2 border-status-warning-border absolute -bottom-1 -left-1" />
+                        <div className="w-3 h-3 border-b-2 border-r-2 border-status-warning-border absolute -bottom-1 -right-1" />
+                        <span className="w-2 h-2 rounded-full bg-status-warning animate-ping" />
                       </div>
                     </div>
                   )}
@@ -608,7 +608,7 @@ export function FaceEnrollmentModal({
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
                       <svg
                         className={`w-28 h-36 drop-shadow-md transition-colors duration-300 ${
-                          livenessPassed ? 'text-emerald-400' : faceDetected ? 'text-emerald-400' : 'text-white/60'
+                          livenessPassed ? 'text-status-success-bright' : faceDetected ? 'text-status-success-bright' : 'text-white/60'
                         }`}
                         fill="none"
                         stroke="currentColor"
@@ -632,14 +632,14 @@ export function FaceEnrollmentModal({
                 {/* Status Pill Live */}
                 <span className={`absolute -bottom-2.5 inset-x-0 mx-auto w-fit px-3 py-1 rounded-full text-white font-label-sm text-[11px] font-bold shadow-md flex items-center gap-1.5 z-20 transition-all ${
                   cameraStage === 'focusing'
-                    ? 'bg-amber-600 ring-2 ring-amber-300/60 animate-pulse'
+                    ? 'bg-status-warning ring-2 ring-status-warning-border/60 animate-pulse'
                     : modelLoading
                       ? 'bg-slate-700/90'
                       : livenessPassed
-                        ? 'bg-emerald-600 ring-2 ring-emerald-300/60'
+                        ? 'bg-status-success ring-2 ring-status-success-border/60'
                         : faceDetected
                           ? 'bg-primary ring-2 ring-primary/40'
-                          : 'bg-amber-600'
+                          : 'bg-status-warning'
                 }`}>
                   <Icon
                     name={
@@ -679,9 +679,9 @@ export function FaceEnrollmentModal({
               <div className="mt-2 text-center flex flex-col gap-1 w-full">
                 <span className={`font-body-sm-medium text-xs font-semibold leading-snug ${
                   cameraStage === 'focusing'
-                    ? 'text-amber-700'
+                    ? 'text-status-warning-text'
                     : livenessPassed
-                      ? 'text-emerald-700 font-bold'
+                      ? 'text-status-success-text font-bold'
                       : 'text-slate-800'
                 }`}>
                   {cameraStage === 'focusing'
@@ -717,7 +717,7 @@ export function FaceEnrollmentModal({
                     !livenessPassed
                   }
                   className={`sp-btn w-full py-3 bg-gradient-to-r from-primary-strong to-primary hover:from-primary-strong hover:to-primary-strong text-white font-headline-sm text-sm rounded-xl flex items-center justify-center gap-2 shadow-md disabled:opacity-50 active:scale-[0.99] transition-all cursor-pointer ${
-                    livenessPassed ? 'from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 shadow-emerald-500/30' : ''
+                    livenessPassed ? 'from-status-success to-teal-700 hover:from-emerald-700 hover:to-teal-800 shadow-emerald-500/30' : ''
                   }`}
                 >
                   <Icon name={processing ? 'progress_activity' : livenessPassed ? 'task_alt' : 'camera_alt'} className={`text-[18px] ${processing ? 'animate-spin' : ''}`} />

@@ -34,15 +34,15 @@ function GeofenceCard({ geofence, namaTitik, koordinatTeks }) {
         <div
           className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border min-w-0 ${
             aktif
-              ? 'bg-emerald-50 text-emerald-700 border-emerald-200/70'
+              ? 'bg-status-success-soft text-status-success-text border-status-success-border/70'
               : 'bg-error-container text-on-error-container border-error/30'
           }`}
         >
           <span className="relative flex h-2 w-2 shrink-0">
             {aktif && (
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-status-success opacity-75" />
             )}
-            <span className={`relative inline-flex rounded-full h-2 w-2 ${aktif ? 'bg-emerald-600' : 'bg-error'}`} />
+            <span className={`relative inline-flex rounded-full h-2 w-2 ${aktif ? 'bg-status-success' : 'bg-error'}`} />
           </span>
           <span className="font-label-sm text-label-sm font-semibold leading-snug">
             {bebasRadius
@@ -58,7 +58,7 @@ function GeofenceCard({ geofence, namaTitik, koordinatTeks }) {
           title="Perbarui koordinat GPS"
           className="font-label-sm text-label-sm text-on-surface-variant hover:text-foreground flex items-center gap-1 shrink-0 p-1 rounded-md hover:bg-black/5 transition-colors cursor-pointer"
         >
-          <Icon name={membaca ? 'sync' : 'gps_fixed'} className={`text-[14px] ${membaca ? 'animate-spin' : aktif ? 'text-emerald-600' : 'text-error'}`} />
+          <Icon name={membaca ? 'sync' : 'gps_fixed'} className={`text-[14px] ${membaca ? 'animate-spin' : aktif ? 'text-status-success-text' : 'text-error'}`} />
           <span>{sumber === 'gps' ? `GPS ±${akurasi ?? '-'} m` : 'GPS nonaktif'}</span>
         </button>
       </div>
@@ -83,7 +83,7 @@ function GeofenceCard({ geofence, namaTitik, koordinatTeks }) {
           </p>
           <div className="h-1.5 w-full rounded-full bg-surface-container overflow-hidden">
             <div
-              className={`h-full rounded-full transition-all duration-500 ${aktif ? 'bg-emerald-500' : 'bg-error'}`}
+              className={`h-full rounded-full transition-all duration-500 ${aktif ? 'bg-status-success' : 'bg-error'}`}
               style={{ width: `${persen}%` }}
             />
           </div>
@@ -108,7 +108,7 @@ function GeofenceCard({ geofence, namaTitik, koordinatTeks }) {
       </div>
 
       {errorGps && sumber === 'simulasi' && (
-        <p className="font-label-sm text-label-sm text-amber-700 flex items-start gap-2 leading-snug">
+        <p className="font-label-sm text-label-sm text-status-warning-text flex items-start gap-2 leading-snug">
           <Icon name="gps_off" className="text-[14px] shrink-0 mt-px" />
           <span>{errorGps} — jarak dihitung dari simulasi.</span>
         </p>

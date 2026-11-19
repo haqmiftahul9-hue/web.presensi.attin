@@ -60,9 +60,12 @@
     --shadow-2xl: 0px 1px 3px 0px hsl(0 0% 0% / 0.25);
     --tracking-normal: 0em;
     --spacing: 0.25rem;
+    color-scheme: light dark;
+    scrollbar-color: var(--primary-border) transparent;
   }
 
   .dark {
+    color-scheme: dark;
     --background: #111723;
     --foreground: #f3f5f9;
     --card: #18202f;
@@ -130,6 +133,7 @@
     --sp-muted: var(--primary-muted, #9da5b5);
     --sp-line: var(--primary-border, #2d3748);
     --mobile-line: var(--primary-border, #2d3748);
+    --sp-shadow: rgba(2, 6, 23, 0.45);
   }
 
   * {
@@ -683,15 +687,15 @@ main > :last-child {
 .sp-card {
   width: 100%;
   box-sizing: border-box;
-  background: #ffffff;
+  background: var(--sp-surface, #ffffff);
   border-radius: 20px;
-  box-shadow: 0 4px 20px -8px rgba(50, 61, 143, 0.08), 0 1px 3px 0 rgba(0, 0, 0, 0.04);
+  box-shadow: 0 4px 20px -8px var(--sp-shadow, rgba(50, 61, 143, 0.08)), 0 1px 3px 0 rgba(0, 0, 0, 0.04);
   border: 1px solid var(--primary-border, #d2dcfa);
   padding-inline: var(--mobile-card-pad-inline);
 }
 
 .dark .sp-card {
-  background: #18202f;
+  background: var(--sp-surface, #18202f);
   border-color: var(--primary-border, #2d3748);
 }
 
@@ -810,11 +814,106 @@ main > :last-child {
   --sp-ink: #20243a;
   --sp-muted: var(--primary-muted, #77819a);
   --sp-line: var(--primary-border, #d2dcfa);
+  --sp-shadow: rgba(50, 61, 143, 0.08);
+  /* Permukaan netral: dipakai kartu, navigasi, dan glass bar supaya
+     semuanya memakai putih bersih yang sama dan tidak saling bertabrakan. */
+  --sp-surface: #ffffff;
+  --sp-surface-sunken: #f4f6fb;
+
+  /* Token status (hadir / terlambat / ditolak / informasi).
+     Permukaannya dibuat sangat lembut — hampir netral dengan sedikit
+     warna — supaya badge status tidak terasa lebih "berteriak" daripada
+     warna aksen tema yang sedang aktif.
+
+     Nilai disimpan sebagai triplet RGB (tanpa fungsi warna) supaya
+     Tailwind bisa menerapkan modifier opasitas, mis.
+     `border-status-success-border/80` → `rgb(... / 0.8)`. */
+  --status-success-rgb: 47 107 71;
+  --status-success-solid-rgb: 21 128 61;
+  --status-success-soft-rgb: 241 247 243;
+  --status-success-border-rgb: 207 227 214;
+  --status-success-bright-rgb: 22 101 52;
+
+  --status-warning-rgb: 138 95 28;
+  --status-warning-solid-rgb: 180 83 9;
+  --status-warning-soft-rgb: 251 246 236;
+  --status-warning-border-rgb: 232 217 188;
+  --status-warning-bright-rgb: 146 64 14;
+
+  --status-danger-rgb: 165 56 79;
+  --status-danger-solid-rgb: 190 18 60;
+  --status-danger-soft-rgb: 253 242 244;
+  --status-danger-border-rgb: 240 208 215;
+  --status-danger-bright-rgb: 159 18 57;
+
+  --status-info-rgb: 65 78 140;
+  --status-info-solid-rgb: 50 61 143;
+  --status-info-soft-rgb: 240 242 250;
+  --status-info-border-rgb: 213 220 242;
+  --status-info-bright-rgb: 40 50 115;
+
+  /* Badge peran (Superadmin, Kepala Sekolah, Admin Unit, Petugas).
+     Badge ini TIDAK memakai warna tetap — kalau memakai indigo/purple/teal,
+     badge akan bertabrakan dengan warna tema yang sedang aktif (mis.
+     badge ungu di tema ungu, badge teal di tema teal). Peran sudah
+     pembeda lewat ikon dan teksnya, jadi badge cukup serasi dengan tema:
+     permission lembut dari warna aksen aktif. */
+  --sp-role-badge: var(--primary-soft);
+  --sp-role-badge-text: var(--primary);
+  --sp-role-badge-border: var(--primary-border);
+}
+
+/* Versi gelap dari token mobile.
+ *
+ * Sengaja ditulis DI LUAR `@layer base`: blok `.dark` di dalam layer itu
+ * kalah dari selektor `:root` di atas yang juga tidak berlapis — urutan
+ * layer lebih diutamakan daripada spesifisitas. Karena itu override gelap
+ * harus berada di lapisan yang sama (tidak berlapis) agar benar-benar
+ * menang, kalau tidak kartu mobile tetap putih di mode gelap.
+ */
+html.dark {
+  /* Permukaan mengikuti `--card`/`--background` tema aktif, sehingga kartu
+     mobile selalu serasi dengan tema — bukan biru default. */
+  --sp-surface: var(--card, #141d2e);
+  --sp-surface-sunken: var(--background, #0d131f);
+  --sp-shadow: rgba(2, 6, 23, 0.45);
+
+  /* Token status versi gelap: triplet RGB yang sama, rona dibuat sedikit
+     lebih terang supaya tetap terbaca di atas permukaan gelap.
+
+     Token SOLID sengaja dibuat lebih pekat (bukan terang) karena dipakai
+     sebagai latar tombol berlabel putih — di mode gelap, hijau/teal
+     terang akan membuat teks putih jauh di bawah ambang kontras. */
+  --status-success-rgb: 110 231 183;
+  --status-success-solid-rgb: 4 120 87;
+  --status-success-soft-rgb: 16 40 32;
+  --status-success-border-rgb: 30 74 58;
+  --status-success-bright-rgb: 167 243 208;
+
+  --status-warning-rgb: 252 211 77;
+  --status-warning-solid-rgb: 180 83 9;
+  --status-warning-soft-rgb: 44 33 16;
+  --status-warning-border-rgb: 84 62 26;
+  --status-warning-bright-rgb: 253 230 138;
+
+  --status-danger-rgb: 253 164 175;
+  --status-danger-solid-rgb: 190 18 60;
+  --status-danger-soft-rgb: 48 22 30;
+  --status-danger-border-rgb: 92 40 56;
+  --status-danger-bright-rgb: 254 205 211;
+
+  --status-info-rgb: 165 180 252;
+  --status-info-solid-rgb: 50 61 143;
+  --status-info-soft-rgb: 30 35 60;
+  --status-info-border-rgb: 55 62 102;
+  --status-info-bright-rgb: 199 210 254;
 }
 
 /* --- 1. SHELL APLIKASI --------------------------------------------------- */
 
-/* Latar modul: Soft Grayish Blue (#F3F5FC). */
+/* Latar modul: netral lembut yang mengikuti tema aktif (biru default
+   memakai #F3F5FC). Aksen radial memakai warna tema dengan intensitas
+   rendah supaya tidak "menang" melawan kartu. */
 .sp-app-bg {
   position: relative;
   display: flex;
@@ -825,7 +924,7 @@ main > :last-child {
   overflow: hidden;
   background:
     radial-gradient(460px 240px at 50% 0%, var(--primary-soft) 0%, transparent 80%),
-    #f3f5fc;
+    var(--sp-bg-main, #f3f5fc);
   background-repeat: no-repeat;
   background-attachment: scroll;
 }
@@ -848,7 +947,7 @@ main > :last-child {
   height: 240px;
   top: -60px;
   right: -80px;
-  background: radial-gradient(circle, rgba(50, 61, 143, 0.05) 0%, transparent 70%);
+  background: radial-gradient(circle, var(--sp-shadow, rgba(50, 61, 143, 0.05)) 0%, transparent 70%);
 }
 
 .sp-blob-b {
@@ -856,7 +955,7 @@ main > :last-child {
   height: 200px;
   top: 140px;
   left: -90px;
-  background: radial-gradient(circle, rgba(50, 61, 143, 0.04) 0%, transparent 70%);
+  background: radial-gradient(circle, var(--sp-shadow, rgba(50, 61, 143, 0.04)) 0%, transparent 70%);
 }
 
 /* Pola titik tipis soft pada latar belakang. */
@@ -864,7 +963,7 @@ main > :last-child {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background-image: radial-gradient(rgba(50, 61, 143, 0.07) 1px, transparent 1px);
+  background-image: radial-gradient(var(--sp-shadow, rgba(50, 61, 143, 0.07)) 1px, transparent 1px);
   background-size: 18px 18px;
   opacity: 0.55;
   contain: strict;
@@ -872,7 +971,7 @@ main > :last-child {
 
 /* --- 2. TOP BAR KACA PUTIH (logo, notifikasi, profil) ------------------- */
 .sp-glass-bar {
-  background: rgba(255, 255, 255, 0.95);
+  background: color-mix(in srgb, var(--sp-surface, #ffffff) 95%, transparent);
   backdrop-filter: blur(14px) saturate(140%);
   -webkit-backdrop-filter: blur(14px) saturate(140%);
   border-bottom: 1px solid var(--primary-border, #d2dcfa);
@@ -882,7 +981,7 @@ main > :last-child {
 }
 
 .dark .sp-glass-bar {
-  background: rgba(24, 32, 47, 0.95);
+  background: color-mix(in srgb, var(--sp-surface, #18202f) 95%, transparent);
   border-bottom: 1px solid var(--primary-border, #2d3748);
 }
 
@@ -891,13 +990,13 @@ main > :last-child {
   position: relative;
   overflow: hidden;
   isolation: isolate;
-  background: linear-gradient(180deg, #ffffff 0%, #f3f5fc 100%);
-  border-bottom: 1px solid rgba(224, 230, 242, 0.85);
+  background: linear-gradient(180deg, var(--sp-surface, #ffffff) 0%, var(--sp-bg-main, #f3f5fc) 100%);
+  border-bottom: 1px solid var(--primary-border, #d2dcfa);
 }
 
 .dark .sp-hero {
-  background: linear-gradient(180deg, #18202f 0%, #111723 100%);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, var(--sp-surface, #18202f) 0%, var(--sp-bg-main, #111723) 100%);
+  border-bottom: 1px solid var(--primary-border, #2d3748);
 }
 
 /* Kartu yang "melayang" menutupi batas hero: efek favorit aplikasi mobile. */
@@ -908,14 +1007,14 @@ main > :last-child {
   width: 100%;
   box-sizing: border-box;
   border-radius: 22px;
-  background: #ffffff;
+  background: var(--sp-surface, #ffffff);
   border: 1px solid var(--primary-border, #d2dcfa);
-  box-shadow: 0 12px 32px -16px rgba(50, 61, 143, 0.12);
+  box-shadow: 0 12px 32px -16px var(--sp-shadow, rgba(50, 61, 143, 0.12));
   padding-inline: var(--mobile-card-pad-inline);
 }
 
 .dark .sp-float-card {
-  background: #18202f;
+  background: var(--sp-surface, #18202f);
   border: 1px solid var(--primary-border, #2d3748);
 }
 
@@ -930,7 +1029,7 @@ main > :last-child {
   color: #ffffff;
   background: var(--primary);
   border: 1px solid var(--primary-strong);
-  box-shadow: 0 12px 30px -6px rgba(50, 61, 143, 0.35), 0 4px 10px -2px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 12px 30px -6px var(--sp-shadow, rgba(50, 61, 143, 0.35)), 0 4px 10px -2px rgba(0, 0, 0, 0.08);
   padding: clamp(16px, 4.5vw, 20px);
 }
 
@@ -958,20 +1057,20 @@ main > :last-child {
   padding: clamp(13px, 3.5vw, 16px) clamp(14px, 4vw, 20px);
   min-height: 96px;
   border-radius: 20px;
-  background: #ffffff;
+  background: var(--sp-surface, #ffffff);
   border: 1px solid var(--primary-border, #d2dcfa);
-  box-shadow: 0 2px 10px -4px rgba(50, 61, 143, 0.06), 0 1px 2px 0 rgba(0, 0, 0, 0.02);
+  box-shadow: 0 2px 10px -4px var(--sp-shadow, rgba(50, 61, 143, 0.06)), 0 1px 2px 0 rgba(0, 0, 0, 0.02);
   transition: transform 0.14s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.14s ease-out, border-color 0.14s ease-out;
 }
 
 .dark .sp-shortcut {
-  background: #18202f;
+  background: var(--sp-surface, #18202f);
   border: 1px solid var(--primary-border, #2d3748);
 }
 
 .sp-shortcut:hover {
-  border-color: rgba(50, 61, 143, 0.35);
-  box-shadow: 0 6px 20px -4px rgba(50, 61, 143, 0.12);
+  border-color: var(--primary-border, #d2dcfa);
+  box-shadow: 0 6px 20px -4px var(--sp-shadow, rgba(50, 61, 143, 0.12));
 }
 
 .sp-shortcut:active {
@@ -1000,20 +1099,20 @@ main > :last-child {
   padding: 10px 5px;
   min-height: 84px;
   border-radius: 16px;
-  background: #ffffff;
+  background: var(--sp-surface, #ffffff);
   border: 1px solid var(--primary-border, #d2dcfa);
-  box-shadow: 0 2px 8px -3px rgba(50, 61, 143, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.02);
+  box-shadow: 0 2px 8px -3px var(--sp-shadow, rgba(50, 61, 143, 0.05)), 0 1px 2px 0 rgba(0, 0, 0, 0.02);
   transition: transform 0.14s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.14s ease-out, border-color 0.14s ease-out;
 }
 
 .dark .sp-shortcut-compact {
-  background: #18202f;
+  background: var(--sp-surface, #18202f);
   border: 1px solid var(--primary-border, #2d3748);
 }
 
 .sp-shortcut-compact:hover {
-  border-color: rgba(50, 61, 143, 0.35);
-  box-shadow: 0 4px 14px -3px rgba(50, 61, 143, 0.12);
+  border-color: var(--primary-border, #d2dcfa);
+  box-shadow: 0 4px 14px -3px var(--sp-shadow, rgba(50, 61, 143, 0.12));
 }
 
 .sp-shortcut-compact:active {
@@ -1053,11 +1152,11 @@ main > :last-child {
   height: 76px;
   z-index: 50;
   border-radius: 24px;
-  background: rgba(255, 255, 255, 0.97);
+  background: color-mix(in srgb, var(--sp-surface, #ffffff) 97%, transparent);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   border: 1px solid var(--primary-border, #d2dcfa);
-  box-shadow: 0 10px 28px -6px rgba(50, 61, 143, 0.10), 0 2px 6px -1px rgba(32, 36, 58, 0.04);
+  box-shadow: 0 10px 28px -6px var(--sp-shadow, rgba(50, 61, 143, 0.10)), 0 2px 6px -1px rgba(32, 36, 58, 0.04);
   padding: 5px 6px;
   box-sizing: border-box;
   transform: translateZ(0);
@@ -1066,7 +1165,7 @@ main > :last-child {
 }
 
 .dark .sp-nav-float {
-  background: rgba(24, 32, 47, 0.96);
+  background: color-mix(in srgb, var(--sp-surface, #18202f) 96%, transparent);
   border: 1px solid var(--primary-border, #2d3748);
 }
 
@@ -1107,7 +1206,7 @@ main > :last-child {
 
 .sp-nav-float-item:not(.sp-nav-center)[aria-current='page'] {
   background: var(--primary);
-  box-shadow: 0 4px 14px -2px rgba(50, 61, 143, 0.45);
+  box-shadow: 0 4px 14px -2px var(--sp-shadow, rgba(50, 61, 143, 0.45));
 }
 
 /* Tombol tengah presensi menonjol (Floating Elevated Action Button) */
@@ -1130,8 +1229,8 @@ main > :last-child {
   margin-top: -24px;
   margin-bottom: 2px;
   background: linear-gradient(135deg, var(--primary) 0%, var(--primary-strong) 100%);
-  border: 4px solid #ffffff;
-  box-shadow: 0 8px 20px -4px rgba(50, 61, 143, 0.5), 0 2px 6px 0 rgba(0, 0, 0, 0.06);
+  border: 4px solid var(--sp-surface, #ffffff);
+  box-shadow: 0 8px 20px -4px var(--sp-shadow, rgba(50, 61, 143, 0.5)), 0 2px 6px 0 rgba(0, 0, 0, 0.06);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1146,7 +1245,7 @@ main > :last-child {
 .sp-nav-center[aria-current='page'] .sp-nav-center-btn,
 .sp-nav-center-active {
   background: var(--primary-strong);
-  box-shadow: 0 8px 24px -2px rgba(50, 61, 143, 0.65), 0 0 0 3px rgba(50, 61, 143, 0.25);
+  box-shadow: 0 8px 24px -2px var(--sp-shadow, rgba(50, 61, 143, 0.65)), 0 0 0 3px color-mix(in srgb, var(--primary) 25%, transparent);
   transform: translateY(-2px);
 }
 
@@ -1173,9 +1272,9 @@ main > :last-child {
   width: 100%;
   box-sizing: border-box;
   border-radius: 20px;
-  background: #ffffff;
+  background: var(--sp-surface, #ffffff);
   border: 1px solid var(--primary-border);
-  box-shadow: 0 3px 14px -4px rgba(50, 61, 143, 0.07), 0 1px 2px 0 rgba(0, 0, 0, 0.02);
+  box-shadow: 0 3px 14px -4px var(--sp-shadow, rgba(50, 61, 143, 0.07)), 0 1px 2px 0 rgba(0, 0, 0, 0.02);
   padding: var(--mobile-card-pad-block) var(--mobile-card-pad-inline);
 }
 
@@ -1594,66 +1693,90 @@ main > :last-child {
 
 /* ============================================================================
    DARK MODE OVERRIDES UNTUK MODUL MOBILE & KOMPONEN SP
+   Menjamin kepatuhan WCAG 1.4.11 Non-text Contrast (>= 3:1) dan integrasi
+   penuh token tema dinamis (--primary, --card, --primary-border, --primary-soft)
+   sehingga kartu mobile tidak pudar/muddy di semua 6 tema warna.
    ============================================================================ */
 .dark .sp-app-bg {
   background:
-    radial-gradient(460px 240px at 50% 0%, rgba(99, 102, 241, 0.14) 0%, transparent 80%),
-    #121824;
+    radial-gradient(460px 240px at 50% 0%, var(--primary-soft) 0%, transparent 80%),
+    var(--sp-bg-main, #0d131f);
 }
 
 .dark .sp-glass-bar {
-  background: rgba(18, 24, 36, 0.88);
+  background: color-mix(in srgb, var(--card) 85%, transparent);
   backdrop-filter: blur(14px) saturate(150%);
   -webkit-backdrop-filter: blur(14px) saturate(150%);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.25);
+  border-bottom: 1px solid var(--primary-border);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.35);
 }
 
 .dark .sp-hero {
-  background: linear-gradient(180deg, #232a39 0%, #121824 100%);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, var(--card) 0%, var(--sp-bg-main, #0d131f) 100%);
+  border-bottom: 1px solid var(--primary-border);
 }
 
-.dark .sp-card {
-  background: #232a39;
-  border-color: rgba(255, 255, 255, 0.09);
-  box-shadow: 0 4px 20px -8px rgba(0, 0, 0, 0.4), 0 1px 3px 0 rgba(0, 0, 0, 0.2);
-}
-
-.dark .sp-float-card {
-  background: #232a39;
-  border-color: rgba(255, 255, 255, 0.09);
-  box-shadow: 0 12px 32px -16px rgba(0, 0, 0, 0.45);
-}
-
-.dark .sp-list-card {
-  background: #232a39;
-  border-color: rgba(255, 255, 255, 0.09);
+.dark .sp-card,
+.dark .sp-card.bg-white,
+.dark .sp-float-card,
+.dark .sp-float-card.bg-white,
+.dark .sp-list-card,
+.dark .sp-list-card.bg-white {
+  background-color: var(--card) !important;
+  border-color: var(--primary-border) !important;
+  box-shadow: 0 4px 20px -8px rgba(0, 0, 0, 0.45), 0 0 0 1px var(--primary-border);
 }
 
 .dark .sp-shortcut,
-.dark .sp-shortcut-compact {
-  background: #232a39;
-  border-color: rgba(255, 255, 255, 0.09);
-  box-shadow: 0 2px 10px -4px rgba(0, 0, 0, 0.25);
+.dark .sp-shortcut.bg-white,
+.dark .sp-shortcut-compact,
+.dark .sp-shortcut-compact.bg-white {
+  background-color: var(--card) !important;
+  border-color: var(--primary-border) !important;
+  box-shadow: 0 2px 10px -4px rgba(0, 0, 0, 0.3), 0 0 0 1px var(--primary-border);
 }
 
 .dark .sp-shortcut:hover,
 .dark .sp-shortcut-compact:hover {
-  border-color: rgba(107, 137, 249, 0.4);
-  box-shadow: 0 6px 20px -4px rgba(0, 0, 0, 0.45);
+  border-color: var(--primary) !important;
+  box-shadow: 0 6px 20px -4px var(--primary-soft), 0 0 0 1.5px var(--primary);
 }
 
 .dark .sp-nav-float {
-  background: rgba(30, 38, 52, 0.94);
+  background: color-mix(in srgb, var(--card) 92%, transparent);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 10px 28px -6px rgba(0, 0, 0, 0.5), 0 2px 6px -1px rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--primary-border);
+  box-shadow: 0 10px 28px -6px rgba(0, 0, 0, 0.55), 0 2px 6px -1px rgba(0, 0, 0, 0.35);
+}
+
+.dark .sp-nav-center-btn {
+  border-color: var(--card) !important;
+  box-shadow: 0 8px 20px -4px var(--primary-soft), 0 0 0 1px var(--primary-border);
+}
+
+.dark .sp-nav-center[aria-current='page'] .sp-nav-center-btn,
+.dark .sp-nav-center-active {
+  background: var(--primary-strong) !important;
+  border-color: var(--card) !important;
+  box-shadow: 0 8px 24px -2px var(--primary-soft), 0 0 0 3px var(--primary);
+}
+
+.dark .sp-nav-float-item:not(.sp-nav-center)[aria-current='page'] {
+  background: var(--primary-strong);
+  border: 1px solid var(--primary-border);
+  box-shadow: 0 4px 14px -2px rgba(0, 0, 0, 0.5);
+}
+
+.dark .sp-hero-card {
+  background: linear-gradient(135deg, var(--primary-strong) 0%, color-mix(in srgb, var(--primary-strong) 75%, black) 100%);
+  border: 1px solid var(--primary-border);
+  box-shadow: 0 12px 30px -6px rgba(0, 0, 0, 0.6), 0 0 0 1px var(--primary-border);
+  color: #ffffff;
 }
 
 .dark .sp-data-row {
-  border-bottom-color: rgba(255, 255, 255, 0.08);
+  border-bottom-color: var(--primary-border);
 }
 
 /* Universal text & background bridge for elements with static color classes in dark mode */
@@ -1667,23 +1790,23 @@ main > :last-child {
 .dark .text-\[\#77819a\],
 .dark .text-\[\#77819A\],
 .dark .text-\[\#5e6987\] {
-  color: #9da5b5 !important;
+  color: var(--primary-muted, #9da5b5) !important;
 }
 
 .dark .text-\[\#323d8f\],
 .dark .text-\[\#323D8F\],
 .dark .text-\[\#283273\] {
-  color: #8da4fb !important;
+  color: var(--primary) !important;
 }
 
 .dark .bg-\[\#f3f5fc\],
 .dark .bg-\[\#F3F5FC\] {
-  background-color: rgba(35, 42, 57, 0.8) !important;
+  background-color: var(--primary-soft) !important;
 }
 
 .dark .bg-\[\#eef0fc\],
 .dark .bg-\[\#EEF0FC\] {
-  background-color: rgba(48, 56, 72, 0.6) !important;
+  background-color: var(--primary-soft) !important;
 }
 
 .dark .border-\[\#e0e6f2\],
@@ -1693,7 +1816,14 @@ main > :last-child {
 .dark .border-\[\#e2e8f5\],
 .dark .border-\[\#DCE3F5\],
 .dark .border-\[\#D5DCF7\] {
-  border-color: rgba(255, 255, 255, 0.1) !important;
+  border-color: var(--primary-border) !important;
+}
+
+/* Ensure mobile header buttons and inputs cleanly adapt to dark card surfaces */
+.dark .sp-mobile-column a.bg-white,
+.dark .sp-mobile-column button.bg-white:not(.sp-preserve-white) {
+  background-color: var(--card) !important;
+  border-color: var(--primary-border) !important;
 }
 
 /* Preserve original logo colors in both light and dark mode */
@@ -1749,29 +1879,39 @@ main > :last-child {
   --sp-ink: #20243a;
   --sp-muted: #77819a;
   --sp-line: #d2dcfa;
+  --sp-shadow: rgba(50, 61, 143, 0.08);
 }
 
 html.dark,
 html.dark[data-color-theme='blue'] {
+  --background: #0d131f;
+  --foreground: #f3f5f9;
+  --card: #141d2e;
+  --card-foreground: #f3f5f9;
+  --popover: #141d2e;
+  --popover-foreground: #f3f5f9;
+
   --primary: #818cf8;
   --primary-foreground: #ffffff;
   --primary-soft: rgba(99, 102, 241, 0.16);
-  --primary-border: rgba(129, 140, 248, 0.30);
+  --primary-border: rgba(129, 140, 248, 0.38);
   --primary-muted: #a5b4fc;
-  --primary-strong: #312e81;
+  --primary-strong: #1e285a;
 
-  --border: #2d3748;
-  --input: #2d3748;
+  --border: rgba(129, 140, 248, 0.35);
+  --input: rgba(129, 140, 248, 0.35);
   --ring: #818cf8;
   --accent: rgba(99, 102, 241, 0.16);
   --accent-foreground: #ffffff;
 
+  --sidebar: #0f1624;
+  --sidebar-foreground: #f3f5f9;
   --sidebar-primary: #818cf8;
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: rgba(99, 102, 241, 0.16);
   --sidebar-accent-foreground: #ffffff;
   --sidebar-ring: #818cf8;
-  --sidebar-border: #242e42;
+  --sidebar-border: rgba(129, 140, 248, 0.25);
 
   --sp-navy: #818cf8;
   --sp-navy-2: #6366f1;
@@ -1779,67 +1919,78 @@ html.dark[data-color-theme='blue'] {
   --sp-navy-light: #a5b4fc;
   --sp-accent: #818cf8;
   --sp-primary-soft: rgba(99, 102, 241, 0.16);
-  --sp-bg-main: #111723;
+  --sp-bg-main: #0d131f;
   --sp-ink: #f3f5f9;
   --sp-muted: #9da5b5;
-  --sp-line: #2d3748;
-  --mobile-line: #2d3748;
+  --sp-line: rgba(129, 140, 248, 0.28);
+  --mobile-line: rgba(129, 140, 248, 0.28);
+  --sp-shadow: rgba(2, 6, 23, 0.45);
 }
 
 /* --- 2. TEMA HIJAU (EMERALD ISLAMI) --- */
 :root[data-color-theme='green'] {
   --primary: #15803d;
   --primary-foreground: #ffffff;
-  --primary-soft: #ecfdf5;
-  --primary-border: #a7f3d0;
-  --primary-muted: #166534;
+  --primary-soft: #edf4ef;
+  --primary-border: #cfe0d6;
+  --primary-muted: #4a6b56;
   --primary-strong: #064e3b;
 
-  --border: #a7f3d0;
-  --input: #a7f3d0;
+  --border: #d3e2d8;
+  --input: #d3e2d8;
   --ring: #15803d;
-  --accent: #ecfdf5;
+  --accent: #edf4ef;
   --accent-foreground: #064e3b;
 
   --sidebar-primary: #15803d;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #ecfdf5;
+  --sidebar-accent: #edf4ef;
   --sidebar-accent-foreground: #064e3b;
   --sidebar-ring: #15803d;
-  --sidebar-border: #bbf7d0;
+  --sidebar-border: #d5e4da;
 
   --sp-navy: #064e3b;
   --sp-navy-2: #15803d;
   --sp-navy-3: #166534;
-  --sp-navy-light: #22c55e;
+  --sp-navy-light: #3f8f63;
   --sp-accent: #15803d;
-  --sp-primary-soft: #ecfdf5;
-  --sp-bg-main: #f2f8f4;
-  --sp-ink: #112519;
-  --sp-muted: #4e6a57;
-  --sp-line: #a7f3d0;
+  --sp-primary-soft: #edf4ef;
+  --sp-bg-main: #f4f7f4;
+  --sp-ink: #1d2b22;
+  --sp-muted: #5d7166;
+  --sp-line: #d3e2d8;
+  --sp-shadow: rgba(21, 128, 61, 0.09);
 }
 
 html.dark[data-color-theme='green'] {
+  --background: #08150f;
+  --foreground: #f0fdf4;
+  --card: #10241a;
+  --card-foreground: #f0fdf4;
+  --popover: #10241a;
+  --popover-foreground: #f0fdf4;
+
   --primary: #34d399;
   --primary-foreground: #022c22;
   --primary-soft: rgba(52, 211, 153, 0.16);
-  --primary-border: rgba(52, 211, 153, 0.30);
+  --primary-border: rgba(52, 211, 153, 0.38);
   --primary-muted: #6ee7b7;
-  --primary-strong: #022c22;
+  --primary-strong: #064e3b;
 
-  --border: #1b3827;
-  --input: #1b3827;
+  --border: rgba(52, 211, 153, 0.35);
+  --input: rgba(52, 211, 153, 0.35);
   --ring: #34d399;
   --accent: rgba(52, 211, 153, 0.16);
   --accent-foreground: #ecfdf5;
 
+  --sidebar: #0b1a13;
+  --sidebar-foreground: #f0fdf4;
   --sidebar-primary: #34d399;
   --sidebar-primary-foreground: #022c22;
   --sidebar-accent: rgba(52, 211, 153, 0.16);
   --sidebar-accent-foreground: #ecfdf5;
   --sidebar-ring: #34d399;
-  --sidebar-border: #173021;
+  --sidebar-border: rgba(52, 211, 153, 0.25);
 
   --sp-navy: #34d399;
   --sp-navy-2: #10b981;
@@ -1847,67 +1998,78 @@ html.dark[data-color-theme='green'] {
   --sp-navy-light: #6ee7b7;
   --sp-accent: #34d399;
   --sp-primary-soft: rgba(52, 211, 153, 0.16);
-  --sp-bg-main: #0c1711;
+  --sp-bg-main: #08150f;
   --sp-ink: #f0fdf4;
-  --sp-muted: #86efac;
-  --sp-line: #1b3827;
-  --mobile-line: #1b3827;
+  --sp-muted: #93b8a4;
+  --sp-line: rgba(52, 211, 153, 0.28);
+  --mobile-line: rgba(52, 211, 153, 0.28);
+  --sp-shadow: rgba(2, 6, 23, 0.45);
 }
 
 /* --- 3. TEMA ROSE (MERAH DELIMA) --- */
 :root[data-color-theme='rose'] {
   --primary: #be123c;
   --primary-foreground: #ffffff;
-  --primary-soft: #fff1f2;
-  --primary-border: #fecdd3;
-  --primary-muted: #9f1239;
+  --primary-soft: #fdf2f4;
+  --primary-border: #f0d4da;
+  --primary-muted: #8a5560;
   --primary-strong: #881337;
 
-  --border: #fecdd3;
-  --input: #fecdd3;
+  --border: #f0d4da;
+  --input: #f0d4da;
   --ring: #be123c;
-  --accent: #fff1f2;
+  --accent: #fdf2f4;
   --accent-foreground: #881337;
 
   --sidebar-primary: #be123c;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #fff1f2;
+  --sidebar-accent: #fdf2f4;
   --sidebar-accent-foreground: #881337;
   --sidebar-ring: #be123c;
-  --sidebar-border: #fecdd3;
+  --sidebar-border: #f0d4da;
 
   --sp-navy: #881337;
   --sp-navy-2: #be123c;
   --sp-navy-3: #9f1239;
-  --sp-navy-light: #f43f5e;
+  --sp-navy-light: #d9526c;
   --sp-accent: #be123c;
-  --sp-primary-soft: #fff1f2;
-  --sp-bg-main: #faf2f4;
+  --sp-primary-soft: #fdf2f4;
+  --sp-bg-main: #fdf6f7;
   --sp-ink: #2b1218;
-  --sp-muted: #7d4e58;
-  --sp-line: #fecdd3;
+  --sp-muted: #7f5a61;
+  --sp-line: #f0d4da;
+  --sp-shadow: rgba(190, 18, 60, 0.09);
 }
 
 html.dark[data-color-theme='rose'] {
+  --background: #15090f;
+  --foreground: #fff1f2;
+  --card: #24121a;
+  --card-foreground: #fff1f2;
+  --popover: #24121a;
+  --popover-foreground: #fff1f2;
+
   --primary: #fb7185;
   --primary-foreground: #4c0519;
   --primary-soft: rgba(251, 113, 133, 0.16);
-  --primary-border: rgba(251, 113, 133, 0.30);
+  --primary-border: rgba(251, 113, 133, 0.38);
   --primary-muted: #fda4af;
-  --primary-strong: #4c0519;
+  --primary-strong: #881337;
 
-  --border: #3b1922;
-  --input: #3b1922;
+  --border: rgba(251, 113, 133, 0.35);
+  --input: rgba(251, 113, 133, 0.35);
   --ring: #fb7185;
   --accent: rgba(251, 113, 133, 0.16);
   --accent-foreground: #fff1f2;
 
+  --sidebar: #190c13;
+  --sidebar-foreground: #fff1f2;
   --sidebar-primary: #fb7185;
   --sidebar-primary-foreground: #4c0519;
   --sidebar-accent: rgba(251, 113, 133, 0.16);
   --sidebar-accent-foreground: #fff1f2;
   --sidebar-ring: #fb7185;
-  --sidebar-border: #31151c;
+  --sidebar-border: rgba(251, 113, 133, 0.25);
 
   --sp-navy: #fb7185;
   --sp-navy-2: #f43f5e;
@@ -1915,67 +2077,78 @@ html.dark[data-color-theme='rose'] {
   --sp-navy-light: #fda4af;
   --sp-accent: #fb7185;
   --sp-primary-soft: rgba(251, 113, 133, 0.16);
-  --sp-bg-main: #180d11;
+  --sp-bg-main: #15090f;
   --sp-ink: #fff1f2;
-  --sp-muted: #fda4af;
-  --sp-line: #3b1922;
-  --mobile-line: #3b1922;
+  --sp-muted: #c99aa3;
+  --sp-line: rgba(251, 113, 133, 0.28);
+  --mobile-line: rgba(251, 113, 133, 0.28);
+  --sp-shadow: rgba(2, 6, 23, 0.45);
 }
 
 /* --- 4. TEMA AMBER (EMAS / BRONZE) --- */
 :root[data-color-theme='amber'] {
   --primary: #b45309;
   --primary-foreground: #ffffff;
-  --primary-soft: #fffbeb;
-  --primary-border: #fde68a;
-  --primary-muted: #92400e;
+  --primary-soft: #fdf6ec;
+  --primary-border: #eddcc0;
+  --primary-muted: #7f6535;
   --primary-strong: #78350f;
 
-  --border: #fde68a;
-  --input: #fde68a;
+  --border: #eddcc0;
+  --input: #eddcc0;
   --ring: #b45309;
-  --accent: #fffbeb;
+  --accent: #fdf6ec;
   --accent-foreground: #78350f;
 
   --sidebar-primary: #b45309;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #fffbeb;
+  --sidebar-accent: #fdf6ec;
   --sidebar-accent-foreground: #78350f;
   --sidebar-ring: #b45309;
-  --sidebar-border: #fde68a;
+  --sidebar-border: #eddcc0;
 
   --sp-navy: #78350f;
   --sp-navy-2: #b45309;
   --sp-navy-3: #92400e;
-  --sp-navy-light: #f59e0b;
+  --sp-navy-light: #d08a3c;
   --sp-accent: #b45309;
-  --sp-primary-soft: #fffbeb;
-  --sp-bg-main: #faf6ee;
+  --sp-primary-soft: #fdf6ec;
+  --sp-bg-main: #fcf8f2;
   --sp-ink: #2b1f0f;
-  --sp-muted: #755938;
-  --sp-line: #fde68a;
+  --sp-muted: #7c6b4e;
+  --sp-line: #eddcc0;
+  --sp-shadow: rgba(180, 83, 9, 0.09);
 }
 
 html.dark[data-color-theme='amber'] {
+  --background: #151008;
+  --foreground: #fffbeb;
+  --card: #241b10;
+  --card-foreground: #fffbeb;
+  --popover: #241b10;
+  --popover-foreground: #fffbeb;
+
   --primary: #fbbf24;
   --primary-foreground: #451a03;
   --primary-soft: rgba(251, 191, 36, 0.16);
-  --primary-border: rgba(251, 191, 36, 0.30);
+  --primary-border: rgba(251, 191, 36, 0.38);
   --primary-muted: #fcd34d;
-  --primary-strong: #451a03;
+  --primary-strong: #78350f;
 
-  --border: #382711;
-  --input: #382711;
+  --border: rgba(251, 191, 36, 0.35);
+  --input: rgba(251, 191, 36, 0.35);
   --ring: #fbbf24;
   --accent: rgba(251, 191, 36, 0.16);
   --accent-foreground: #fffbeb;
 
+  --sidebar: #191309;
+  --sidebar-foreground: #fffbeb;
   --sidebar-primary: #fbbf24;
   --sidebar-primary-foreground: #451a03;
   --sidebar-accent: rgba(251, 191, 36, 0.16);
   --sidebar-accent-foreground: #fffbeb;
   --sidebar-ring: #fbbf24;
-  --sidebar-border: #2e200e;
+  --sidebar-border: rgba(251, 191, 36, 0.25);
 
   --sp-navy: #fbbf24;
   --sp-navy-2: #f59e0b;
@@ -1983,67 +2156,78 @@ html.dark[data-color-theme='amber'] {
   --sp-navy-light: #fcd34d;
   --sp-accent: #fbbf24;
   --sp-primary-soft: rgba(251, 191, 36, 0.16);
-  --sp-bg-main: #17120a;
+  --sp-bg-main: #151008;
   --sp-ink: #fffbeb;
-  --sp-muted: #fcd34d;
-  --sp-line: #382711;
-  --mobile-line: #382711;
+  --sp-muted: #c2ac82;
+  --sp-line: rgba(251, 191, 36, 0.28);
+  --mobile-line: rgba(251, 191, 36, 0.28);
+  --sp-shadow: rgba(2, 6, 23, 0.45);
 }
 
 /* --- 5. TEMA UNGU (ROYAL PURPLE) --- */
 :root[data-color-theme='purple'] {
   --primary: #7c3aed;
   --primary-foreground: #ffffff;
-  --primary-soft: #f5f3ff;
-  --primary-border: #ddd6fe;
-  --primary-muted: #6d28d9;
+  --primary-soft: #f3f0fc;
+  --primary-border: #ddd5f5;
+  --primary-muted: #6a5a8f;
   --primary-strong: #4c1d95;
 
-  --border: #ddd6fe;
-  --input: #ddd6fe;
+  --border: #ddd5f5;
+  --input: #ddd5f5;
   --ring: #7c3aed;
-  --accent: #f5f3ff;
+  --accent: #f3f0fc;
   --accent-foreground: #4c1d95;
 
   --sidebar-primary: #7c3aed;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f5f3ff;
+  --sidebar-accent: #f3f0fc;
   --sidebar-accent-foreground: #4c1d95;
   --sidebar-ring: #7c3aed;
-  --sidebar-border: #ddd6fe;
+  --sidebar-border: #ddd5f5;
 
   --sp-navy: #4c1d95;
   --sp-navy-2: #7c3aed;
   --sp-navy-3: #6d28d9;
-  --sp-navy-light: #8b5cf6;
+  --sp-navy-light: #9d85e8;
   --sp-accent: #7c3aed;
-  --sp-primary-soft: #f5f3ff;
-  --sp-bg-main: #f7f5fc;
+  --sp-primary-soft: #f3f0fc;
+  --sp-bg-main: #f8f6fd;
   --sp-ink: #1f1235;
-  --sp-muted: #685382;
-  --sp-line: #ddd6fe;
+  --sp-muted: #6b6183;
+  --sp-line: #ddd5f5;
+  --sp-shadow: rgba(124, 58, 237, 0.09);
 }
 
 html.dark[data-color-theme='purple'] {
+  --background: #11091a;
+  --foreground: #f5f3ff;
+  --card: #1e112e;
+  --card-foreground: #f5f3ff;
+  --popover: #1e112e;
+  --popover-foreground: #f5f3ff;
+
   --primary: #a78bfa;
   --primary-foreground: #2e1065;
   --primary-soft: rgba(167, 139, 250, 0.16);
-  --primary-border: rgba(167, 139, 250, 0.30);
+  --primary-border: rgba(167, 139, 250, 0.38);
   --primary-muted: #c4b5fd;
-  --primary-strong: #2e1065;
+  --primary-strong: #4c1d95;
 
-  --border: #291a45;
-  --input: #291a45;
+  --border: rgba(167, 139, 250, 0.35);
+  --input: rgba(167, 139, 250, 0.35);
   --ring: #a78bfa;
   --accent: rgba(167, 139, 250, 0.16);
   --accent-foreground: #f5f3ff;
 
+  --sidebar: #150b20;
+  --sidebar-foreground: #f5f3ff;
   --sidebar-primary: #a78bfa;
   --sidebar-primary-foreground: #2e1065;
   --sidebar-accent: rgba(167, 139, 250, 0.16);
   --sidebar-accent-foreground: #f5f3ff;
   --sidebar-ring: #a78bfa;
-  --sidebar-border: #211538;
+  --sidebar-border: rgba(167, 139, 250, 0.25);
 
   --sp-navy: #a78bfa;
   --sp-navy-2: #8b5cf6;
@@ -2051,67 +2235,78 @@ html.dark[data-color-theme='purple'] {
   --sp-navy-light: #c4b5fd;
   --sp-accent: #a78bfa;
   --sp-primary-soft: rgba(167, 139, 250, 0.16);
-  --sp-bg-main: #130d1e;
+  --sp-bg-main: #11091a;
   --sp-ink: #f5f3ff;
-  --sp-muted: #c4b5fd;
-  --sp-line: #291a45;
-  --mobile-line: #291a45;
+  --sp-muted: #a89dc0;
+  --sp-line: rgba(167, 139, 250, 0.28);
+  --mobile-line: rgba(167, 139, 250, 0.28);
+  --sp-shadow: rgba(2, 6, 23, 0.45);
 }
 
 /* --- 6. TEMA TEAL (SAMUDRA MODERN) --- */
 :root[data-color-theme='teal'] {
   --primary: #0d9488;
   --primary-foreground: #ffffff;
-  --primary-soft: #f0fdfa;
-  --primary-border: #99f6e4;
-  --primary-muted: #0f766e;
+  --primary-soft: #eef6f5;
+  --primary-border: #cfe5e2;
+  --primary-muted: #4a6f6a;
   --primary-strong: #115e59;
 
-  --border: #99f6e4;
-  --input: #99f6e4;
+  --border: #cfe5e2;
+  --input: #cfe5e2;
   --ring: #0d9488;
-  --accent: #f0fdfa;
+  --accent: #eef6f5;
   --accent-foreground: #115e59;
 
   --sidebar-primary: #0d9488;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f0fdfa;
+  --sidebar-accent: #eef6f5;
   --sidebar-accent-foreground: #115e59;
   --sidebar-ring: #0d9488;
-  --sidebar-border: #99f6e4;
+  --sidebar-border: #cfe5e2;
 
   --sp-navy: #115e59;
   --sp-navy-2: #0d9488;
   --sp-navy-3: #0f766e;
-  --sp-navy-light: #14b8a6;
+  --sp-navy-light: #3aa99d;
   --sp-accent: #0d9488;
-  --sp-primary-soft: #f0fdfa;
-  --sp-bg-main: #f0f7f6;
+  --sp-primary-soft: #eef6f5;
+  --sp-bg-main: #f4f9f9;
   --sp-ink: #0f2422;
-  --sp-muted: #486a67;
-  --sp-line: #99f6e4;
+  --sp-muted: #55716d;
+  --sp-line: #cfe5e2;
+  --sp-shadow: rgba(13, 148, 136, 0.09);
 }
 
 html.dark[data-color-theme='teal'] {
+  --background: #061516;
+  --foreground: #f0fdfa;
+  --card: #0d2426;
+  --card-foreground: #f0fdfa;
+  --popover: #0d2426;
+  --popover-foreground: #f0fdfa;
+
   --primary: #2dd4bf;
   --primary-foreground: #042f2e;
   --primary-soft: rgba(45, 212, 191, 0.16);
-  --primary-border: rgba(45, 212, 191, 0.30);
+  --primary-border: rgba(45, 212, 191, 0.38);
   --primary-muted: #5eead4;
-  --primary-strong: #042f2e;
+  --primary-strong: #115e59;
 
-  --border: #133431;
-  --input: #133431;
+  --border: rgba(45, 212, 191, 0.35);
+  --input: rgba(45, 212, 191, 0.35);
   --ring: #2dd4bf;
   --accent: rgba(45, 212, 191, 0.16);
   --accent-foreground: #f0fdfa;
 
+  --sidebar: #091c1d;
+  --sidebar-foreground: #f0fdfa;
   --sidebar-primary: #2dd4bf;
   --sidebar-primary-foreground: #042f2e;
   --sidebar-accent: rgba(45, 212, 191, 0.16);
   --sidebar-accent-foreground: #f0fdfa;
   --sidebar-ring: #2dd4bf;
-  --sidebar-border: #0e2725;
+  --sidebar-border: rgba(45, 212, 191, 0.25);
 
   --sp-navy: #2dd4bf;
   --sp-navy-2: #14b8a6;
@@ -2119,11 +2314,12 @@ html.dark[data-color-theme='teal'] {
   --sp-navy-light: #5eead4;
   --sp-accent: #2dd4bf;
   --sp-primary-soft: rgba(45, 212, 191, 0.16);
-  --sp-bg-main: #0a1716;
+  --sp-bg-main: #061516;
   --sp-ink: #f0fdfa;
-  --sp-muted: #5eead4;
-  --sp-line: #133431;
-  --mobile-line: #133431;
+  --sp-muted: #8fb0ad;
+  --sp-line: rgba(45, 212, 191, 0.28);
+  --mobile-line: rgba(45, 212, 191, 0.28);
+  --sp-shadow: rgba(2, 6, 23, 0.45);
 }
 
 /* --- FONT THEMES --- */

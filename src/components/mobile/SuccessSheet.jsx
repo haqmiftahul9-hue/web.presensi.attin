@@ -24,8 +24,8 @@ function SuccessSheet({ terbuka, judul, detail, baris = [], onTutup, onRiwayat }
         <span className="absolute left-1/2 -translate-x-1/2 top-2.5 w-10 h-1 rounded-full bg-slate-300" />
 
         <div className="flex flex-col items-center text-center gap-2">
-          <span className="w-16 h-16 rounded-full bg-emerald-50 border-2 border-emerald-500/30 flex items-center justify-center animate-sp-rise shadow-xs">
-            <Icon name="task_alt" className="text-emerald-600 text-[34px]" />
+          <span className="w-16 h-16 rounded-full bg-status-success-soft border-2 border-status-success/30 flex items-center justify-center animate-sp-rise shadow-xs">
+            <Icon name="task_alt" className="text-status-success-text text-[34px]" />
           </span>
           <span className="font-headline-sm text-headline-sm text-slate-900 font-bold">{judul}</span>
           {detail && <span className="font-body-sm text-body-sm text-slate-500 leading-snug">{detail}</span>}

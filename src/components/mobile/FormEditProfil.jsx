@@ -186,7 +186,7 @@ export function FormEditProfil({ staff, unit, onSimpan, onBatal }) {
                   type="button"
                   onClick={hapusFoto}
                   disabled={uploadingFoto || sibuk}
-                  className="sp-press sp-btn px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl shadow-xs font-label-md text-label-md flex items-center gap-1.5 active:scale-[0.98] transition-all cursor-pointer disabled:opacity-60"
+                  className="sp-press sp-btn px-4 py-2.5 bg-status-danger hover:bg-status-danger text-white rounded-xl shadow-xs font-label-md text-label-md flex items-center gap-1.5 active:scale-[0.98] transition-all cursor-pointer disabled:opacity-60"
                 >
                   <Icon name="delete" className="text-[18px] shrink-0" />
                   <span>Hapus foto</span>
@@ -203,7 +203,7 @@ export function FormEditProfil({ staff, unit, onSimpan, onBatal }) {
             <span className="font-label-sm text-label-sm text-on-surface-variant text-center">
               JPG/PNG/WebP, maksimal {Math.round(MAKS_FOTO_BYTES / (1024 * 1024))} MB
             </span>
-            {galat.foto && <span className="font-label-sm text-label-sm text-rose-700">{galat.foto}</span>}
+            {galat.foto && <span className="font-label-sm text-label-sm text-status-danger-text">{galat.foto}</span>}
           </div>
         </div>
 
@@ -212,7 +212,7 @@ export function FormEditProfil({ staff, unit, onSimpan, onBatal }) {
           <div key={field.key}>
             <label className={LABEL} htmlFor={`profil-${field.key}`}>
               {field.label}
-              {field.key === 'nama' && <span className="text-rose-700"> *</span>}
+              {field.key === 'nama' && <span className="text-status-danger-text"> *</span>}
             </label>
             {field.tipe === 'textarea' ? (
               <textarea
@@ -236,7 +236,7 @@ export function FormEditProfil({ staff, unit, onSimpan, onBatal }) {
               />
             )}
             {galat[field.key] && (
-              <span className="font-label-sm text-label-sm text-rose-700 mt-1 block">{galat[field.key]}</span>
+              <span className="font-label-sm text-label-sm text-status-danger-text mt-1 block">{galat[field.key]}</span>
             )}
           </div>
         ))}
