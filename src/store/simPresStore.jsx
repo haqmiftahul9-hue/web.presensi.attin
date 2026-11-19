@@ -484,7 +484,7 @@ export function appModeOfRole(role) {
 export const ROLE_HOME_CANDIDATES = {
   // Superadmin tetap memakai dashboard desktop; '/superadmin' dipertahankan
   // sebagai halaman khusus Superadmin (bookmark lama) dan kandidat cadangan.
-  [ROLE_SUPERADMIN]: ['/superadmin', '/dashboard', '/manajemen-admin-user', '/unit-sd-islam-rj', '/data-guru-dan-pegawai', '/cetak-kartu-id', '/presensi', '/presensi-manual', '/attendance-approvals', '/edit-presensi', '/rekap-dan-laporan', '/pengaturan-global', '/log-aktivitas', '/mobile/home'],
+  [ROLE_SUPERADMIN]: ['/superadmin', '/dashboard', '/manajemen-admin-user', '/unit-sd-islam-rj', '/data-guru-dan-pegawai', '/cetak-kartu-id', '/presensi', '/presensi-manual', '/attendance-approvals', '/edit-presensi', '/rekap-dan-laporan', '/pengaturan-global', '/log-aktivitas'],
   [ROLE_ADMIN_UNIT]: ['/mobile/home', '/dashboard', '/data-guru-dan-pegawai', '/cetak-kartu-id', '/presensi', '/presensi-manual', '/edit-presensi', '/pengajuan-izin-dan-cuti', '/rekap-dan-laporan', '/ranking-kehadiran', '/log-aktivitas'],
   // Guru/Pegawai hanya membuka aplikasi mobile; kandidat portal yang tersisa
   // dipakai hanya bila someday modul mobile ditutup untuk sebagian akun.
@@ -1896,13 +1896,23 @@ export const ACCESS_DENIED_PATH = '/403'
 // memang berwenang, kalau tidak ke beranda role tersebut.
 export function resolvePostLoginPath(state, user, requestedPath) {
   const role = user?.role
+  const normRole = normalisasiRole(role)
   const allowed = (path) => canAccessPath(state, role, path)
+
+  // Superadmin selalu langsung masuk ke portal desktop penuh (/superadmin),
+  // tidak pernah diarahkan ke modul mobile (/mobile/*) meskipun dibuka di perangkat mobile.
+  if (normRole === ROLE_SUPERADMIN) {
+    if (requestedPath && !requestedPath.startsWith('/mobile') && allowed(requestedPath)) {
+      return requestedPath
+    }
+    return ROLE_HOME_PATH[ROLE_SUPERADMIN] || '/superadmin'
+  }
+
   if (requestedPath && allowed(requestedPath)) return requestedPath
 
   // Jika diakses dari perangkat mobile atau URL modul mobile.
-  // Hanya role dengan mode aplikasi mobile (Guru/Kepala Sekolah) yang diarahkan
-  // ke /mobile/home. Role portal desktop (Superadmin/Admin Unit/Petugas) tetap
-  // ke beranda desktop-nya agar tidak terjebak di portal mobile kosong.
+  // Hanya role dengan mode aplikasi mobile (Guru/Kepala Sekolah/Admin Unit) yang diarahkan
+  // ke /mobile/home. Role portal desktop tetap ke beranda desktop-nya.
   const isMobileClient = typeof window !== 'undefined' && (window.innerWidth <= 768 || window.location.pathname.startsWith('/mobile'))
   if (isMobileClient && appModeOfRole(role) === MODE_MOBILE && allowed('/mobile/home')) {
     return '/mobile/home'

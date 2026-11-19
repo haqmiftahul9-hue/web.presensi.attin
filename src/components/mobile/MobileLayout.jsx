@@ -83,7 +83,7 @@ function MobileLayout() {
     window.scrollTo({ top: 0, behavior: 'instant' })
   }, [location.pathname])
 
-  if (selectAppMode(state) !== MODE_MOBILE && !hasPermission(state, selectCurrentUserRole(state), 'berandaMobile', 'view')) {
+  if (normRole === ROLE_SUPERADMIN || (selectAppMode(state) !== MODE_MOBILE && !hasPermission(state, userRole, 'berandaMobile', 'view'))) {
     return <Navigate to={selectAppHomePath(state)} replace />
   }
 

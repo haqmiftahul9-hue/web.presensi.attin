@@ -279,7 +279,7 @@ function SidebarNav({ open = false, onTutup } = {}) {
   const currentRole = selectCurrentUserRole(state)
   // Item beranda memakai path mode milik role: Superadmin -> /superadmin,
   // Admin Unit & Petugas -> /dashboard. _roleMap di bawah tetap untuk tampilan.
-  const berandaPath = selectAppHomePath(state)
+  const berandaPath = currentRole === ROLE_SUPERADMIN ? '/superadmin' : '/dashboard'
   const visibleItems = navItems
     .filter((item) => hasMenuPermission(state, item.menuKey) && (!item.onlyRole || item.onlyRole === currentRole))
     .map((item) => (item.path === 'BERANDA' ? { ...item, path: berandaPath, activePath: berandaPath } : item))
