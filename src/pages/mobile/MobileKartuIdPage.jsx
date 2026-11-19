@@ -101,17 +101,17 @@ function MobileKartuIdPage() {
               type="button"
               onClick={() => navigate(-1)}
               aria-label="Kembali"
-              className="w-10 h-10 rounded-xl bg-white border border-[#E0E6F2] text-primary flex items-center justify-center shrink-0 shadow-xs active:scale-95 transition-all"
+              className="w-10 h-10 rounded-xl bg-white border border-primary-border text-primary flex items-center justify-center shrink-0 shadow-xs active:scale-95 transition-all"
             >
               <Icon name="arrow_back" className="text-[20px]" />
             </button>
             <StaffAvatar staff={staff} size="w-12 h-12" textClass="font-headline-sm text-headline-sm" ring="ring-2 ring-primary/20" />
             <div className="flex flex-col min-w-0">
-              <span className="font-label-sm text-label-sm text-[#77819A]">Kartu ID Pegawai</span>
+              <span className="font-label-sm text-label-sm text-primary-muted">Kartu ID Pegawai</span>
               <h1 className="font-headline-sm text-headline-sm text-[#20243A] font-bold truncate">
                 {getEmployeeGreeting(staff, { unit })}
               </h1>
-              <span className="font-label-sm text-label-sm text-[#77819A] truncate">{unit?.nama}</span>
+              <span className="font-label-sm text-label-sm text-primary-muted truncate">{unit?.nama}</span>
             </div>
           </div>
         </div>
@@ -121,14 +121,14 @@ function MobileKartuIdPage() {
         {/* Pratinjau kartu digital: kartu CR80 asli (85.60 x 53.98 mm) dengan
             rasio yang persis, duduk di atas bayangan lembut supaya terbaca
             seperti kartu fisik di tangan. */}
-        <section className="sp-card p-4 flex flex-col gap-3.5 sp-rise border border-[#E0E6F2] rounded-2xl bg-white shadow-xs">
+        <section className="sp-card p-4 flex flex-col gap-3.5 sp-rise border border-primary-border rounded-2xl bg-white shadow-xs">
           <SectionTitle
             ikon="contact_page"
             judul="Pratinjau Kartu"
-            aksi={<span className="font-mono font-label-sm text-label-sm text-[#77819A] shrink-0">CR80 85.6 × 53.98 mm</span>}
+            aksi={<span className="font-mono font-label-sm text-label-sm text-primary-muted shrink-0">CR80 85.6 × 53.98 mm</span>}
           />
 
-          <div className="w-full aspect-[85.6/53.98] rounded-xl overflow-hidden shadow-[0_12px_28px_-12px_rgba(50,61,143,0.35)] ring-1 ring-[#E0E6F2]">
+          <div className="w-full aspect-[85.6/53.98] rounded-xl overflow-hidden shadow-[0_12px_28px_-12px_rgba(50,61,143,0.35)] ring-1 ring-primary-border">
             <EmployeeIdCardPrint row={baris} settings={settings} units={state.units} />
           </div>
 
@@ -146,20 +146,20 @@ function MobileKartuIdPage() {
           type="button"
           onClick={unduhKartu}
           disabled={sibuk}
-          className="sp-btn w-full min-h-[56px] py-4 bg-primary hover:bg-[#283273] text-white border-[2px] border-primary shadow-lg shadow-[var(--primary)]/20 font-headline-sm text-headline-sm flex items-center justify-center gap-2.5 rounded-2xl active:scale-[0.98] transition-all disabled:opacity-60 cursor-pointer"
+          className="sp-btn w-full min-h-[56px] py-4 bg-primary hover:bg-primary-strong text-white border-[2px] border-primary shadow-lg shadow-[var(--primary)]/20 font-headline-sm text-headline-sm flex items-center justify-center gap-2.5 rounded-2xl active:scale-[0.98] transition-all disabled:opacity-60 cursor-pointer"
         >
           {sibuk ? <Spinner /> : <Icon name="download" className="text-[24px] shrink-0" />}
           {sibuk ? 'Menyiapkan…' : 'Download Kartu ID'}
         </button>
 
-        <p className="text-center font-label-sm text-label-sm text-[#77819A] leading-snug">
+        <p className="text-center font-label-sm text-label-sm text-primary-muted leading-snug">
           Berkas PDF sized CR80 — siap dicetak pada printer kartu PVC tanpa penskalaan.
         </p>
 
         {status && (
           <p
             role="status"
-            className="rounded-2xl bg-[#EEF0FC] text-primary border border-primary/20 px-3.5 py-3 font-body-sm text-body-sm flex items-start gap-2 leading-snug"
+            className="rounded-2xl bg-primary-soft text-primary border border-primary/20 px-3.5 py-3 font-body-sm text-body-sm flex items-start gap-2 leading-snug"
           >
             <Icon name="info" className="text-[16px] mt-0.5 shrink-0 text-primary" />
             <span>{status}</span>
@@ -170,22 +170,22 @@ function MobileKartuIdPage() {
         <button
           type="button"
           onClick={() => navigate('/mobile/qr')}
-          className="sp-card sp-btn p-4 flex items-center gap-3 text-left border border-[#E0E6F2] rounded-2xl bg-white shadow-xs hover:border-primary/30 active:scale-[0.99] transition-all cursor-pointer"
+          className="sp-card sp-btn p-4 flex items-center gap-3 text-left border border-primary-border rounded-2xl bg-white shadow-xs hover:border-primary/30 active:scale-[0.99] transition-all cursor-pointer"
         >
-          <span className="w-11 h-11 rounded-xl bg-[#EEF0FC] text-primary flex items-center justify-center shrink-0">
+          <span className="w-11 h-11 rounded-xl bg-primary-soft text-primary flex items-center justify-center shrink-0">
             <Icon name="qr_code_scanner" className="text-[22px]" />
           </span>
           <span className="flex flex-col min-w-0 flex-1 gap-0.5">
             <span className="font-body-md-medium text-body-md-medium text-[#20243A] font-semibold">QR Presensi</span>
-            <span className="font-label-sm text-label-sm text-[#77819A] leading-snug">
+            <span className="font-label-sm text-label-sm text-primary-muted leading-snug">
               Kode yang sama dengan pada kartu ini
             </span>
           </span>
-          <Icon name="chevron_right" className="text-[20px] text-[#77819A] shrink-0" />
+          <Icon name="chevron_right" className="text-[20px] text-primary-muted shrink-0" />
         </button>
 
         {presensi && (
-          <p className="text-center font-label-sm text-label-sm text-[#77819A] leading-snug">
+          <p className="text-center font-label-sm text-label-sm text-primary-muted leading-snug">
             Unit {presensi.rules.jamKerja ? 'terdaftar' : ''} • QR berlaku selama data pegawai aktif
           </p>
         )}

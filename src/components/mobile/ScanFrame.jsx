@@ -36,7 +36,7 @@ function ScanLine({ vertical = false }) {
 function CameraLayer({ videoRef, cameraAktif, children, rounded = 'rounded-full' }) {
   return (
     <div className={`relative w-full h-full overflow-hidden bg-primary ${rounded} flex items-center justify-center`}>
-      <div className="absolute inset-0 bg-gradient-to-br from-[#181d48] via-[#252e6d] to-primary" />
+      <div className="absolute inset-0 bg-gradient-to-br from-primary-strong via-primary-strong to-primary" />
       <video
         ref={videoRef}
         autoPlay
@@ -57,7 +57,7 @@ function FaceFrame({ videoRef, cameraAktif, initials, captured, faceStatus = 'id
 
   return (
     <div
-      className={`relative w-56 h-56 rounded-full p-2 bg-gradient-to-b from-[#181d48] via-[#252e6d] to-primary/40 shadow-inner flex items-center justify-center transition-all duration-300 ${
+      className={`relative w-56 h-56 rounded-full p-2 bg-gradient-to-b from-primary-strong via-primary-strong to-primary/40 shadow-inner flex items-center justify-center transition-all duration-300 ${
         focusing
           ? 'ring-2 ring-amber-400 shadow-amber-400/30'
           : isMismatch

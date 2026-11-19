@@ -124,7 +124,7 @@ export default function MobileAdminMonitoringPage() {
         <div className="flex items-center gap-2 mb-2">
           <Link
             to="/mobile/home"
-            className="w-8 h-8 rounded-xl bg-white border border-[#e0e6f2] flex items-center justify-center text-primary shadow-2xs active:scale-95"
+            className="w-8 h-8 rounded-xl bg-white border border-primary-border flex items-center justify-center text-primary shadow-2xs active:scale-95"
           >
             <Icon name="arrow_back" className="text-[18px]" />
           </Link>
@@ -132,7 +132,7 @@ export default function MobileAdminMonitoringPage() {
             <h1 className="font-headline-sm text-headline-sm text-[#20243a] font-bold tracking-tight truncate">
               Monitoring Kehadiran
             </h1>
-            <span className="font-label-sm text-label-sm text-[#77819a] truncate">
+            <span className="font-label-sm text-label-sm text-primary-muted truncate">
               {unit?.nama || 'Unit Sekolah'} • {tanggalPanjang(hariIni)}
             </span>
           </div>
@@ -142,8 +142,8 @@ export default function MobileAdminMonitoringPage() {
       <div className="px-4 flex flex-col gap-3.5">
         {/* 2. Grid KPI Ringkas */}
         <div className="grid grid-cols-4 gap-2">
-          <div className="rounded-xl bg-white border border-[#e0e6f2] p-2.5 flex flex-col items-center justify-center shadow-2xs">
-            <span className="font-label-sm text-[11px] text-[#77819a] font-medium">Total</span>
+          <div className="rounded-xl bg-white border border-primary-border p-2.5 flex flex-col items-center justify-center shadow-2xs">
+            <span className="font-label-sm text-[11px] text-primary-muted font-medium">Total</span>
             <span className="font-display-lg text-[20px] font-bold text-[#20243a] leading-tight">{kpi.total}</span>
           </div>
           <div className="rounded-xl bg-emerald-50 border border-emerald-200/80 p-2.5 flex flex-col items-center justify-center shadow-2xs">
@@ -169,7 +169,7 @@ export default function MobileAdminMonitoringPage() {
               placeholder="Cari nama guru / NIY…"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full h-10 pl-9 pr-3 rounded-xl bg-white border border-[#e0e6f2] text-xs text-[#20243a] placeholder:text-slate-400 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 shadow-2xs transition-all"
+              className="w-full h-10 pl-9 pr-3 rounded-xl bg-white border border-primary-border text-xs text-[#20243a] placeholder:text-slate-400 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 shadow-2xs transition-all"
             />
           </div>
 
@@ -188,7 +188,7 @@ export default function MobileAdminMonitoringPage() {
                 className={`px-3 py-1.5 rounded-full font-label-sm text-xs font-semibold whitespace-nowrap transition-colors ${
                   activeFilter === tab.id
                     ? 'bg-primary text-white shadow-2xs'
-                    : 'bg-white text-[#77819a] border border-[#e0e6f2] hover:bg-slate-50'
+                    : 'bg-white text-primary-muted border border-primary-border hover:bg-slate-50'
                 }`}
               >
                 {tab.label}
@@ -200,7 +200,7 @@ export default function MobileAdminMonitoringPage() {
         {/* 4. Daftar Staf */}
         <div className="flex flex-col gap-2">
           {filteredList.length === 0 ? (
-            <div className="rounded-2xl bg-white border border-[#e0e6f2] p-8 text-center flex flex-col items-center justify-center gap-2">
+            <div className="rounded-2xl bg-white border border-primary-border p-8 text-center flex flex-col items-center justify-center gap-2">
               <Icon name="person_search" className="text-slate-300 text-[32px]" />
               <p className="font-label-md text-slate-600 font-semibold">Tidak ada data pegawai</p>
               <p className="text-xs text-slate-400">Tidak ada pegawai yang cocok dengan filter atau kata kunci ini.</p>
@@ -209,7 +209,7 @@ export default function MobileAdminMonitoringPage() {
             filteredList.map((s) => (
               <div
                 key={s.id}
-                className="rounded-2xl bg-white border border-[#e0e6f2] p-3 flex items-center justify-between gap-3 shadow-2xs"
+                className="rounded-2xl bg-white border border-primary-border p-3 flex items-center justify-between gap-3 shadow-2xs"
               >
                 <div className="flex items-center gap-3 min-w-0 flex-1">
                   <StaffAvatar
@@ -222,7 +222,7 @@ export default function MobileAdminMonitoringPage() {
                     <span className="font-label-md text-xs font-bold text-[#20243a] truncate">
                       {s.name}
                     </span>
-                    <span className="font-label-sm text-[11px] text-[#77819a] truncate">
+                    <span className="font-label-sm text-[11px] text-primary-muted truncate">
                       {s.role || 'Guru/Pegawai'} • NIY {s.niy}
                     </span>
                   </div>

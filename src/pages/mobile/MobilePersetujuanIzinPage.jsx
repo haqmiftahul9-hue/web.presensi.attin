@@ -70,7 +70,7 @@ function MobilePersetujuanIzinPage() {
         <div className="flex items-center gap-2 mb-2">
           <Link
             to="/mobile/home"
-            className="w-8 h-8 rounded-xl bg-white border border-[#e0e6f2] flex items-center justify-center text-primary shadow-2xs active:scale-95"
+            className="w-8 h-8 rounded-xl bg-white border border-primary-border flex items-center justify-center text-primary shadow-2xs active:scale-95"
           >
             <Icon name="arrow_back" className="text-[18px]" />
           </Link>
@@ -78,7 +78,7 @@ function MobilePersetujuanIzinPage() {
             <h1 className="font-headline-sm text-headline-sm text-[#20243a] font-bold tracking-tight">
               Persetujuan Izin &amp; Cuti
             </h1>
-            <span className="font-label-sm text-label-sm text-[#77819a]">
+            <span className="font-label-sm text-label-sm text-primary-muted">
               {daftar.length} pengajuan menunggu verifikasi
             </span>
           </div>

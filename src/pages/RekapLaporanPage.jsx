@@ -2286,19 +2286,19 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
             <style>
               * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
               body { padding: 20px; font-size: 11px; color: #1e293b; }
-              .header { margin-bottom: 20px; border-bottom: 3px double #003366; padding-bottom: 14px; display: flex; align-items: center; justify-content: center; gap: 16px; }
-              .logo-box { width: 62px; height: 62px; border: 2px solid #003366; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #003366; font-weight: bold; font-size: 12px; }
+              .header { margin-bottom: 20px; border-bottom: 3px double var(--primary-strong); padding-bottom: 14px; display: flex; align-items: center; justify-content: center; gap: 16px; }
+              .logo-box { width: 62px; height: 62px; border: 2px solid var(--primary-strong); border-radius: 6px; display: flex; align-items: center; justify-content: center; color: var(--primary-strong); font-weight: bold; font-size: 12px; }
               .logo-img { max-height: 62px; max-width: 62px; object-fit: contain; }
               .header-text { text-align: center; }
-              .org-name { font-size: 15px; font-weight: bold; color: #003366; letter-spacing: 0.5px; }
+              .org-name { font-size: 15px; font-weight: bold; color: var(--primary-strong); letter-spacing: 0.5px; }
               .unit-name { font-size: 13px; font-weight: bold; color: #1e293b; margin-top: 2px; }
               .address { font-size: 9.5px; color: #64748b; margin-top: 3px; }
-              .title { font-size: 14px; font-weight: bold; margin: 18px 0 10px; text-align: center; text-transform: uppercase; color: #003366; }
+              .title { font-size: 14px; font-weight: bold; margin: 18px 0 10px; text-align: center; text-transform: uppercase; color: var(--primary-strong); }
               .info-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 10.5px; }
               .info-label { font-weight: bold; color: #334155; }
               table { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 9.5px; }
               th, td { border: 1px solid #cbd5e1; padding: 6px 4px; text-align: center; }
-              th { background: #003366; color: white; font-weight: bold; }
+              th { background: var(--primary-strong); color: white; font-weight: bold; }
               tr:nth-child(even) td { background: #f8fafc; }
               td:first-child, td:nth-child(2), td:nth-child(3), td:nth-child(4) { text-align: left; padding-left: 8px; }
               .footer { margin-top: 40px; display: flex; justify-content: space-between; font-size: 10.5px; }
@@ -2561,19 +2561,19 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
         <style>
           * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
           body { padding: 20px; font-size: 11px; color: #1e293b; }
-          .header { margin-bottom: 20px; border-bottom: 3px double #003366; padding-bottom: 14px; display: flex; align-items: center; justify-content: center; gap: 16px; }
-          .logo-box { width: 62px; height: 62px; border: 2px solid #003366; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #003366; font-weight: bold; font-size: 12px; }
+          .header { margin-bottom: 20px; border-bottom: 3px double var(--primary-strong); padding-bottom: 14px; display: flex; align-items: center; justify-content: center; gap: 16px; }
+          .logo-box { width: 62px; height: 62px; border: 2px solid var(--primary-strong); border-radius: 6px; display: flex; align-items: center; justify-content: center; color: var(--primary-strong); font-weight: bold; font-size: 12px; }
           .logo-img { max-height: 62px; max-width: 62px; object-fit: contain; }
           .header-text { text-align: center; }
-          .org-name { font-size: 15px; font-weight: bold; color: #003366; letter-spacing: 0.5px; }
+          .org-name { font-size: 15px; font-weight: bold; color: var(--primary-strong); letter-spacing: 0.5px; }
           .unit-name { font-size: 13px; font-weight: bold; color: #1e293b; margin-top: 2px; }
           .address { font-size: 9.5px; color: #64748b; margin-top: 3px; }
-          .title { font-size: 14px; font-weight: bold; margin: 18px 0 10px; text-align: center; text-transform: uppercase; color: #003366; }
+          .title { font-size: 14px; font-weight: bold; margin: 18px 0 10px; text-align: center; text-transform: uppercase; color: var(--primary-strong); }
           .info-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 10.5px; }
           .info-label { font-weight: bold; color: #334155; }
           table { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 9.5px; }
           th, td { border: 1px solid #cbd5e1; padding: 6px 4px; text-align: center; }
-          th { background: #003366; color: white; font-weight: bold; }
+          th { background: var(--primary-strong); color: white; font-weight: bold; }
           tr:nth-child(even) td { background: #f8fafc; }
           td:first-child, td:nth-child(2), td:nth-child(3), td:nth-child(4) { text-align: left; padding-left: 8px; }
           .footer { margin-top: 40px; display: flex; justify-content: space-between; font-size: 10.5px; }

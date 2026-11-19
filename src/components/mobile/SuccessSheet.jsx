@@ -17,7 +17,7 @@ function SuccessSheet({ terbuka, judul, detail, baris = [], onTutup, onRiwayat }
         type="button"
         onClick={onTutup}
         aria-label="Tutup konfirmasi"
-        className="absolute inset-0 bg-[#181d48]/60 backdrop-blur-[2px]"
+        className="absolute inset-0 bg-primary-strong/60 backdrop-blur-[2px]"
       />
 
       <div className="relative w-full bg-white rounded-t-[28px] px-5 pt-6 pb-7 shadow-2xl animate-sp-rise border-t border-slate-200/80">
@@ -53,7 +53,7 @@ function SuccessSheet({ terbuka, judul, detail, baris = [], onTutup, onRiwayat }
           <button
             type="button"
             onClick={onTutup}
-            className="sp-btn flex-1 px-4 py-3 bg-primary hover:bg-[#252e6d] text-white font-label-md text-label-md font-semibold rounded-xl shadow-md active:scale-[0.98] transition-all"
+            className="sp-btn flex-1 px-4 py-3 bg-primary hover:bg-primary-strong text-white font-label-md text-label-md font-semibold rounded-xl shadow-md active:scale-[0.98] transition-all"
           >
             Selesai
           </button>

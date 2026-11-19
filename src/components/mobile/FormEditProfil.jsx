@@ -173,7 +173,7 @@ export function FormEditProfil({ staff, unit, onSimpan, onBatal }) {
                 type="button"
                 onClick={() => inputFoto.current?.click()}
                 disabled={uploadingFoto || sibuk}
-                className="sp-press sp-btn px-4 py-2.5 bg-primary hover:bg-[#252e6d] text-white rounded-xl shadow-xs font-label-md text-label-md flex items-center gap-1.5 active:scale-[0.98] transition-all cursor-pointer disabled:opacity-60"
+                className="sp-press sp-btn px-4 py-2.5 bg-primary hover:bg-primary-strong text-white rounded-xl shadow-xs font-label-md text-label-md flex items-center gap-1.5 active:scale-[0.98] transition-all cursor-pointer disabled:opacity-60"
               >
                 <Icon
                   name={uploadingFoto ? 'hourglass_top' : 'photo_camera'}
@@ -284,7 +284,7 @@ export function FormEditProfil({ staff, unit, onSimpan, onBatal }) {
           <button
             type="submit"
             disabled={sibuk}
-            className="sp-btn flex-1 py-3 bg-primary hover:bg-[#252e6d] text-white font-label-md text-label-md font-semibold rounded-xl shadow-md flex items-center justify-center gap-2 active:scale-[0.98] transition-all disabled:opacity-60"
+            className="sp-btn flex-1 py-3 bg-primary hover:bg-primary-strong text-white font-label-md text-label-md font-semibold rounded-xl shadow-md flex items-center justify-center gap-2 active:scale-[0.98] transition-all disabled:opacity-60"
           >
             {sibuk ? <Spinner /> : <Icon name="save" className="text-[18px] shrink-0" />}
             {sibuk ? 'Menyimpan...' : 'Simpan'}

@@ -158,7 +158,7 @@ export function ThemeToggle({
           >
             <span
               className={cn(
-                'font-extrabold tracking-wider text-[#63748d] dark:text-[#7688a4] uppercase transition-colors',
+                'font-extrabold tracking-wider text-primary-muted dark:text-primary-muted uppercase transition-colors',
                 sizeStyles.text
               )}
             >
@@ -166,7 +166,7 @@ export function ThemeToggle({
             </span>
             <span
               className={cn(
-                'font-extrabold tracking-wider text-[#63748d] dark:text-[#7688a4] uppercase transition-colors',
+                'font-extrabold tracking-wider text-primary-muted dark:text-primary-muted uppercase transition-colors',
                 sizeStyles.text
               )}
             >
@@ -186,7 +186,7 @@ export function ThemeToggle({
           >
             <span
               className={cn(
-                'font-extrabold tracking-wider text-[#8b9bb2] uppercase transition-colors',
+                'font-extrabold tracking-wider text-primary-muted uppercase transition-colors',
                 sizeStyles.text
               )}
             >
@@ -194,7 +194,7 @@ export function ThemeToggle({
             </span>
             <span
               className={cn(
-                'font-extrabold tracking-wider text-[#8b9bb2] uppercase transition-colors',
+                'font-extrabold tracking-wider text-primary-muted uppercase transition-colors',
                 sizeStyles.text
               )}
             >
@@ -214,7 +214,7 @@ export function ThemeToggle({
                 sizeStyles.translate,
                 'bg-[#4c586e] text-[#cbd5e1] shadow-[2px_3px_6px_rgba(10,14,20,0.6),-1px_-1px_3px_rgba(120,140,170,0.25)] border border-slate-500/20'
               )
-            : 'translate-x-0 bg-[#f4f6fa] text-[#8696ad] shadow-[2px_3px_6px_rgba(160,172,190,0.45),-2px_-2px_5px_#ffffff] border border-white/80'
+            : 'translate-x-0 bg-primary-soft text-primary-muted shadow-[2px_3px_6px_rgba(160,172,190,0.45),-2px_-2px_5px_#ffffff] border border-white/80'
         )}
       >
         {isDark ? (

@@ -182,7 +182,7 @@ export function FormPengajuan({
       <button
         type="submit"
         disabled={mengirim}
-        className="sp-btn w-full py-3.5 bg-primary hover:bg-[#252e6d] text-white font-headline-sm text-headline-sm flex items-center justify-center gap-2 rounded-xl shadow-md active:scale-[0.98] transition-all disabled:opacity-60"
+        className="sp-btn w-full py-3.5 bg-primary hover:bg-primary-strong text-white font-headline-sm text-headline-sm flex items-center justify-center gap-2 rounded-xl shadow-md active:scale-[0.98] transition-all disabled:opacity-60"
       >
         {mengirim && <Spinner />}
         {mengirim ? 'Mengirim...' : 'Kirim Pengajuan'}
@@ -310,20 +310,20 @@ function MobileIzinCutiPage() {
       <section className="sp-hero sp-page-container pt-3.5 pb-3">
         {/* Ringkasan statistik pengajuan: permukaan soft blue agar terpisah
             dari area riwayat (putih) dan tombol aksi (navy) di bawahnya. */}
-        <div className="sp-card p-4 flex flex-col gap-3.5 border border-primary/20 rounded-2xl" style={{ backgroundColor: '#eef0fc' }}>
+        <div className="sp-card p-4 flex flex-col gap-3.5 border border-primary/20 rounded-2xl" style={{ backgroundColor: 'var(--primary-soft)' }}>
           <div className="flex items-center gap-3">
             <StaffAvatar staff={staff} size="w-12 h-12" textClass="font-headline-sm text-headline-sm font-bold text-white" ring="ring-2 ring-white/60" className="shadow-xs" />
             <div className="flex flex-col min-w-0">
-              <span className="font-label-sm text-label-sm text-[#77819a] font-medium">Pengajuan Saya</span>
+              <span className="font-label-sm text-label-sm text-primary-muted font-medium">Pengajuan Saya</span>
               <h1 className="font-headline-sm text-headline-sm text-[#20243a] font-bold tracking-tight">Izin &amp; Cuti</h1>
-              <span className="font-label-sm text-label-sm text-[#77819a] truncate">{unit?.nama}</span>
+              <span className="font-label-sm text-label-sm text-primary-muted truncate">{unit?.nama}</span>
             </div>
           </div>
 
           {/* Ringkasan tiga status pengajuan. */}
           <div className="grid grid-cols-3 gap-2 pt-2">
             {STATUS_PENGAJUAN.map((status) => (
-              <div key={status} className="rounded-xl bg-[#ffffff] border border-[#dfe5f2] p-3 flex flex-col items-center gap-0.5 min-w-0">
+              <div key={status} className="rounded-xl bg-[#ffffff] border border-primary-soft p-3 flex flex-col items-center gap-0.5 min-w-0">
                 <span
                   className={`font-display-lg-mobile text-[22px] font-bold leading-none ${
                     status === 'Menunggu' ? 'text-amber-600' : status === 'Disetujui' ? 'text-emerald-600' : 'text-rose-600'
@@ -331,7 +331,7 @@ function MobileIzinCutiPage() {
                 >
                   {jumlah(status)}
                 </span>
-                <span className="font-label-sm text-[11px] text-[#77819a] text-center font-medium mt-0.5">
+                <span className="font-label-sm text-[11px] text-primary-muted text-center font-medium mt-0.5">
                   {LABEL_STATUS_PANJANG[status]}
                 </span>
               </div>
@@ -349,7 +349,7 @@ function MobileIzinCutiPage() {
               setPesan('')
               setGalat('')
             }}
-            className="sp-btn w-full min-h-[60px] py-3.5 bg-primary hover:bg-[#283273] text-white border-[3px] border-primary shadow-lg shadow-[var(--primary)]/20 font-headline-sm text-headline-sm flex items-center justify-center gap-2 rounded-2xl active:scale-[0.98] transition-all"
+            className="sp-btn w-full min-h-[60px] py-3.5 bg-primary hover:bg-primary-strong text-white border-[3px] border-primary shadow-lg shadow-[var(--primary)]/20 font-headline-sm text-headline-sm flex items-center justify-center gap-2 rounded-2xl active:scale-[0.98] transition-all"
           >
             <Icon name="add" className="text-[22px] shrink-0 text-white" />
             <span className="text-white font-semibold tracking-wide">Buat Pengajuan</span>

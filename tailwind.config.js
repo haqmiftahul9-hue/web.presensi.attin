@@ -14,6 +14,10 @@ export default {
           DEFAULT: "var(--primary)",
           foreground: "var(--primary-foreground)",
         },
+        "primary-soft": "var(--primary-soft)",
+        "primary-border": "var(--primary-border)",
+        "primary-muted": "var(--primary-muted)",
+        "primary-strong": "var(--primary-strong)",
         secondary: {
           DEFAULT: "var(--secondary)",
           foreground: "var(--secondary-foreground)",

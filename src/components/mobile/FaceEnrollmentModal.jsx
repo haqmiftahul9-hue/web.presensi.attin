@@ -455,7 +455,7 @@ export function FaceEnrollmentModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-sp-fade">
       <div className="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl flex flex-col max-h-[92vh] border border-slate-100">
         {/* Header Modal */}
-        <div className="p-4 bg-gradient-to-r from-[#181d48] to-primary text-white flex items-center justify-between">
+        <div className="p-4 bg-gradient-to-r from-primary-strong to-primary text-white flex items-center justify-between">
           <div className="flex items-center gap-2 min-w-0">
             <span className="w-8 h-8 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
               <Icon name="scan_face" className="text-white text-[18px]" />
@@ -553,7 +553,7 @@ export function FaceEnrollmentModal({
               </div>
 
               {/* Bingkai Kamera Wajah Instan */}
-              <div className="relative w-52 h-52 rounded-full p-2 bg-gradient-to-b from-[#181d48] to-primary shadow-inner flex items-center justify-center">
+              <div className="relative w-52 h-52 rounded-full p-2 bg-gradient-to-b from-primary-strong to-primary shadow-inner flex items-center justify-center">
                 <div className={`relative w-full h-full rounded-full overflow-hidden flex items-center justify-center bg-slate-900 ring-2 transition-all duration-300 ${
                   cameraStage === 'focusing'
                     ? 'ring-amber-400 shadow-amber-400/40'
@@ -716,7 +716,7 @@ export function FaceEnrollmentModal({
                     (!stream && !localStream && !cameraAktif) ||
                     !livenessPassed
                   }
-                  className={`sp-btn w-full py-3 bg-gradient-to-r from-[#252e6d] to-primary hover:from-[#181d48] hover:to-[#252e6d] text-white font-headline-sm text-sm rounded-xl flex items-center justify-center gap-2 shadow-md disabled:opacity-50 active:scale-[0.99] transition-all cursor-pointer ${
+                  className={`sp-btn w-full py-3 bg-gradient-to-r from-primary-strong to-primary hover:from-primary-strong hover:to-primary-strong text-white font-headline-sm text-sm rounded-xl flex items-center justify-center gap-2 shadow-md disabled:opacity-50 active:scale-[0.99] transition-all cursor-pointer ${
                     livenessPassed ? 'from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 shadow-emerald-500/30' : ''
                   }`}
                 >

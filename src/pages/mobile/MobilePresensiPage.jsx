@@ -66,21 +66,21 @@ function PresensiHariIniCard({ presensi, zonaWaktu, tanggal }) {
   )
 
   return (
-    <section className="sp-card p-4 flex flex-col gap-3.5 border border-[#e0e6f2] shadow-xs">
+    <section className="sp-card p-4 flex flex-col gap-3.5 border border-primary-border shadow-xs">
       <div className="sp-card-head">
         <div className="flex items-center gap-2 min-w-0">
-          <span className="w-8 h-8 rounded-xl bg-[#eef0fc] border border-primary/15 flex items-center justify-center shrink-0 shadow-2xs">
+          <span className="w-8 h-8 rounded-xl bg-primary-soft border border-primary/15 flex items-center justify-center shrink-0 shadow-2xs">
             <Icon name="history_toggle_off" className="text-primary text-[18px]" />
           </span>
           <span className="font-headline-sm text-headline-sm text-[#20243a] font-bold tracking-tight truncate">Presensi Hari Ini</span>
         </div>
-        <span className="font-label-sm text-label-sm text-[#77819a] font-medium shrink-0">{tanggalPendek(tanggal)}</span>
+        <span className="font-label-sm text-label-sm text-primary-muted font-medium shrink-0">{tanggalPendek(tanggal)}</span>
       </div>
 
       {baris(
         'Jam Masuk',
         masuk,
-        masuk ? (lateMinutes > 0 ? 'bg-amber-50 text-amber-800 border border-amber-200/80 font-semibold' : 'bg-emerald-50 text-emerald-700 border border-emerald-200/80 font-semibold') : 'bg-[#f3f5fc] text-[#77819a] border border-[#e0e6f2]',
+        masuk ? (lateMinutes > 0 ? 'bg-amber-50 text-amber-800 border border-amber-200/80 font-semibold' : 'bg-emerald-50 text-emerald-700 border border-emerald-200/80 font-semibold') : 'bg-[#f3f5fc] text-primary-muted border border-primary-border',
         masuk ? (lateMinutes > 0 ? 'schedule' : 'task_alt') : 'hourglass_empty',
         masuk ? statusMasuk : 'Belum Masuk',
       )}
@@ -91,19 +91,19 @@ function PresensiHariIniCard({ presensi, zonaWaktu, tanggal }) {
       {baris(
         'Jam Pulang',
         pulang,
-        pulang ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/80 font-semibold' : 'bg-[#f3f5fc] text-[#77819a] border border-[#e0e6f2]',
+        pulang ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/80 font-semibold' : 'bg-[#f3f5fc] text-primary-muted border border-primary-border',
         pulang ? 'task_alt' : 'hourglass_empty',
         pulang ? 'Sudah Absen' : (rules.pulangBebas ? 'Bebas' : `Menunggu ${rules.jamPulang}`),
       )}
 
       {/* Informasi hari kerja */}
       <div className="grid grid-cols-2 gap-2.5">
-        <div className="p-3 rounded-xl bg-[#f3f5fc] border border-[#e0e6f2] flex flex-col gap-1 min-w-0">
-          <span className="font-label-sm text-label-sm text-[#77819a] font-medium">Hari kerja</span>
+        <div className="p-3 rounded-xl bg-[#f3f5fc] border border-primary-border flex flex-col gap-1 min-w-0">
+          <span className="font-label-sm text-label-sm text-primary-muted font-medium">Hari kerja</span>
           <span className="font-body-md-medium text-body-md-medium text-[#20243a] font-semibold truncate">{hari}</span>
         </div>
-        <div className="p-3 rounded-xl bg-[#f3f5fc] border border-[#e0e6f2] flex flex-col gap-1 min-w-0">
-          <span className="font-label-sm text-label-sm text-[#77819a] font-medium">Jam kerja</span>
+        <div className="p-3 rounded-xl bg-[#f3f5fc] border border-primary-border flex flex-col gap-1 min-w-0">
+          <span className="font-label-sm text-label-sm text-primary-muted font-medium">Jam kerja</span>
           <span className="font-body-md-medium text-body-md-medium text-primary font-semibold tabular-nums truncate">
             {rules.jamKerja}
           </span>
@@ -122,7 +122,7 @@ function PresensiHariIniCard({ presensi, zonaWaktu, tanggal }) {
         </div>
       </div>
 
-      <p className="font-label-sm text-label-sm text-[#77819a] leading-snug">
+      <p className="font-label-sm text-label-sm text-primary-muted leading-snug">
         Jam kerja {rules.hari} {rules.jamKerja} {zonaWaktu}
         {method ? ` • metode ${method}` : ''}
       </p>
@@ -848,14 +848,14 @@ function MobilePresensiPage() {
         <div className="flex items-center justify-between gap-2">
           <div className="flex flex-col min-w-0">
             <h1 className="font-headline-sm text-headline-sm text-[#20243a] font-bold tracking-tight">Presensi</h1>
-            <span className="font-label-sm text-label-sm text-[#77819a] font-medium truncate">{tanggalPanjang(now)}</span>
+            <span className="font-label-sm text-label-sm text-primary-muted font-medium truncate">{tanggalPanjang(now)}</span>
           </div>
         </div>
       </section>
 
       {/* 2. JAM DIGITAL + STATUS PRESENSI (navy, fokus utama). */}
       <section className="sp-page-container pb-1">
-        <div className="sp-card p-3.5 flex flex-col gap-3 border border-[#283273] rounded-2xl" style={{ backgroundColor: 'var(--primary)' }}>
+        <div className="sp-card p-3.5 flex flex-col gap-3 border border-primary-strong rounded-2xl" style={{ backgroundColor: 'var(--primary)' }}>
           <div className="flex items-end justify-between gap-3">
             <div className="flex flex-col">
               <span className="font-display-lg text-[36px] sm:text-[40px] leading-none text-white font-extrabold tracking-tight tabular-nums drop-shadow-sm">
@@ -1037,7 +1037,7 @@ function MobilePresensiPage() {
               disabled={!isModelLoaded}
               className={`sp-btn w-full py-2.5 px-4 font-label-md text-xs rounded-xl flex items-center justify-center gap-2 shadow-sm transition-all active:scale-[0.98] ${
                 isModelLoaded
-                  ? 'bg-primary hover:bg-[#252e6d] text-white cursor-pointer'
+                  ? 'bg-primary hover:bg-primary-strong text-white cursor-pointer'
                   : 'bg-slate-200 text-slate-500 cursor-not-allowed opacity-80'
               }`}
             >
@@ -1107,7 +1107,7 @@ function MobilePresensiPage() {
               />
               <button
                 type="submit"
-                className="sp-btn shrink-0 px-4 py-2.5 bg-primary text-white font-label-md text-label-md shadow-sm active:scale-[0.98] transition-transform hover:bg-[#252e6d]"
+                className="sp-btn shrink-0 px-4 py-2.5 bg-primary text-white font-label-md text-label-md shadow-sm active:scale-[0.98] transition-transform hover:bg-primary-strong"
               >
                 Verifikasi
               </button>
@@ -1141,9 +1141,9 @@ function MobilePresensiPage() {
               disabled={tombolAksiDisabled}
               className={`sp-btn w-full py-4 font-headline-sm text-headline-sm flex items-center justify-center gap-2 shadow-md transition-all active:scale-[0.99] disabled:opacity-60 disabled:active:scale-100 ${
                 belumMasuk
-                  ? 'bg-primary hover:bg-[#283273] text-white'
+                  ? 'bg-primary hover:bg-primary-strong text-white'
                   : belumPulang
-                    ? 'bg-[#283273] hover:bg-[#181d48] text-white'
+                    ? 'bg-primary-strong hover:bg-primary-strong text-white'
                     : 'bg-emerald-600 hover:bg-emerald-700 text-white'
               }`}
             >

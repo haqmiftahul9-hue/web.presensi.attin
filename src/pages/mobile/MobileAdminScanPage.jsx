@@ -176,7 +176,7 @@ export default function MobileAdminScanPage() {
         <div className="flex items-center gap-2 mb-2">
           <Link
             to="/mobile/home"
-            className="w-8 h-8 rounded-xl bg-white border border-[#e0e6f2] flex items-center justify-center text-primary shadow-2xs active:scale-95"
+            className="w-8 h-8 rounded-xl bg-white border border-primary-border flex items-center justify-center text-primary shadow-2xs active:scale-95"
           >
             <Icon name="arrow_back" className="text-[18px]" />
           </Link>
@@ -184,14 +184,14 @@ export default function MobileAdminScanPage() {
             <h1 className="font-headline-sm text-headline-sm text-[#20243a] font-bold tracking-tight truncate">
               Scan QR Presensi Pegawai
             </h1>
-            <span className="font-label-sm text-label-sm text-[#77819a] truncate">
+            <span className="font-label-sm text-label-sm text-primary-muted truncate">
               Arahkan kamera ke QR/Barcode Kartu ID
             </span>
           </div>
           <button
             type="button"
             onClick={() => setFacing((f) => (f === 'environment' ? 'user' : 'environment'))}
-            className="w-8 h-8 rounded-xl bg-white border border-[#e0e6f2] flex items-center justify-center text-primary shadow-2xs active:scale-95"
+            className="w-8 h-8 rounded-xl bg-white border border-primary-border flex items-center justify-center text-primary shadow-2xs active:scale-95"
             title="Ganti Kamera"
           >
             <Icon name="flip_camera_ios" className="text-[18px]" />
@@ -228,7 +228,7 @@ export default function MobileAdminScanPage() {
             placeholder="Atau ketik NIY pegawai…"
             value={code}
             onChange={(e) => setCode(e.target.value)}
-            className="flex-1 h-10 px-3 rounded-xl bg-white border border-[#e0e6f2] text-xs text-[#20243a] placeholder:text-slate-400 focus:outline-none focus:border-primary shadow-2xs"
+            className="flex-1 h-10 px-3 rounded-xl bg-white border border-primary-border text-xs text-[#20243a] placeholder:text-slate-400 focus:outline-none focus:border-primary shadow-2xs"
           />
           <button
             type="submit"
@@ -265,13 +265,13 @@ export default function MobileAdminScanPage() {
                 staff={staff}
                 size="w-12 h-12"
                 textClass="font-headline-sm text-sm font-bold"
-                ring="ring-2 ring-[#eef0fc]"
+                ring="ring-2 ring-primary-soft"
               />
               <div className="flex flex-col min-w-0 flex-1">
                 <span className="font-headline-sm text-sm font-bold text-[#20243a] truncate">
                   {staff.name}
                 </span>
-                <span className="font-label-sm text-xs text-[#77819a] truncate">
+                <span className="font-label-sm text-xs text-primary-muted truncate">
                   {staff.role || 'Guru/Pegawai'} • NIY {staff.niy}
                 </span>
                 <span className="font-label-sm text-[11px] text-blue-600 font-medium">
@@ -313,7 +313,7 @@ export default function MobileAdminScanPage() {
                 className={`flex-1 py-2.5 rounded-xl font-label-md text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all ${
                   sudahPulang
                     ? 'bg-blue-100 text-primary border border-blue-300'
-                    : 'bg-primary hover:bg-[#283273] text-white'
+                    : 'bg-primary hover:bg-primary-strong text-white'
                 }`}
               >
                 <Icon name="logout" className="text-[16px]" />
