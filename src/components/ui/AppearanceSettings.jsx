@@ -37,9 +37,14 @@ export function AppearanceSettings({ size = 'md', className = '' }) {
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-64 rounded-xl border border-border bg-card p-3 shadow-lg z-[60]">
-          <p className="text-xs font-semibold text-foreground mb-2">Warna Tema</p>
-          <div className="grid grid-cols-4 gap-2 mb-3">
+        <div className="absolute right-0 mt-2 w-72 max-w-[calc(100vw-24px)] rounded-2xl border border-border bg-card p-3.5 shadow-xl z-[60] backdrop-blur-md">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs font-bold text-foreground tracking-tight">Warna Tema</p>
+            <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
+              {COLOR_THEMES.find((t) => t.id === colorTheme)?.label || 'Biru'}
+            </span>
+          </div>
+          <div className="grid grid-cols-6 gap-2 mb-3.5">
             {COLOR_THEMES.map((t) => (
               <button
                 key={t.id}
@@ -48,19 +53,21 @@ export function AppearanceSettings({ size = 'md', className = '' }) {
                 title={t.label}
                 aria-label={t.label}
                 className={cn(
-                  'h-9 w-9 rounded-full border-2 flex items-center justify-center transition-transform hover:scale-105',
-                  colorTheme === t.id ? 'border-primary ring-2 ring-primary/30' : 'border-border'
+                  'h-8 w-8 rounded-full border-2 flex items-center justify-center transition-all hover:scale-110 active:scale-95 shrink-0',
+                  colorTheme === t.id
+                    ? 'border-white ring-2 ring-primary ring-offset-2 dark:ring-offset-slate-900 shadow-sm'
+                    : 'border-black/10 dark:border-white/20 hover:border-black/30'
                 )}
                 style={{ backgroundColor: t.swatch }}
               >
                 {colorTheme === t.id && (
-                  <span className="material-symbols-outlined text-white text-[16px]">check</span>
+                  <span className="material-symbols-outlined text-white text-[15px] drop-shadow-sm font-bold">check</span>
                 )}
               </button>
             ))}
           </div>
 
-          <p className="text-xs font-semibold text-foreground mb-2">Gaya Font</p>
+          <p className="text-xs font-bold text-foreground mb-2 tracking-tight">Gaya Font</p>
           <div className="flex flex-col gap-1">
             {FONT_THEMES.map((f) => (
               <button

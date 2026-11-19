@@ -323,7 +323,7 @@ function MobileIzinCutiPage() {
           {/* Ringkasan tiga status pengajuan. */}
           <div className="grid grid-cols-3 gap-2 pt-2">
             {STATUS_PENGAJUAN.map((status) => (
-              <div key={status} className="rounded-xl bg-[#ffffff] border border-primary-soft p-3 flex flex-col items-center gap-0.5 min-w-0">
+              <div key={status} className="rounded-xl bg-[#ffffff] border border-primary-border p-3 flex flex-col items-center gap-0.5 min-w-0">
                 <span
                   className={`font-display-lg-mobile text-[22px] font-bold leading-none ${
                     status === 'Menunggu' ? 'text-amber-600' : status === 'Disetujui' ? 'text-emerald-600' : 'text-rose-600'
@@ -349,7 +349,7 @@ function MobileIzinCutiPage() {
               setPesan('')
               setGalat('')
             }}
-            className="sp-btn w-full min-h-[60px] py-3.5 bg-primary hover:bg-primary-strong text-white border-[3px] border-primary shadow-lg shadow-[var(--primary)]/20 font-headline-sm text-headline-sm flex items-center justify-center gap-2 rounded-2xl active:scale-[0.98] transition-all"
+            className="sp-btn w-full min-h-[60px] py-3.5 bg-primary bg-[#323d8f] hover:bg-primary-strong text-white border-[3px] border-primary border-[#323d8f] shadow-lg shadow-[var(--primary)]/20 font-headline-sm text-headline-sm flex items-center justify-center gap-2 rounded-2xl active:scale-[0.98] transition-all"
           >
             <Icon name="add" className="text-[22px] shrink-0 text-white" />
             <span className="text-white font-semibold tracking-wide">Buat Pengajuan</span>

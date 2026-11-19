@@ -4,38 +4,42 @@
 
 @layer base {
   :root {
-    --background: oklch(0.9383 0.0042 236.4993);
-    --foreground: oklch(0.3211 0 0);
-    --card: oklch(1.0000 0 0);
-    --card-foreground: oklch(0.3211 0 0);
-    --popover: oklch(1.0000 0 0);
-    --popover-foreground: oklch(0.3211 0 0);
-    --primary: oklch(0.4003 0.1350 272.9497);
-    --primary-foreground: oklch(1.0000 0 0);
-    --secondary: oklch(0.9670 0.0029 264.5419);
-    --secondary-foreground: oklch(0.6128 0.0262 256.1525);
-    --muted: oklch(0.9846 0.0017 247.8389);
-    --muted-foreground: oklch(0.5510 0.0234 264.3637);
-    --accent: oklch(0.9119 0.0222 243.8174);
-    --accent-foreground: oklch(0.3791 0.1378 265.5222);
+    --background: #f3f5fc;
+    --foreground: #20243a;
+    --card: #ffffff;
+    --card-foreground: #20243a;
+    --popover: #ffffff;
+    --popover-foreground: #20243a;
+    --primary: #323d8f;
+    --primary-foreground: #ffffff;
+    --primary-soft: #eef0fc;
+    --primary-border: #d2dcfa;
+    --primary-muted: #52608a;
+    --primary-strong: #1c2254;
+    --secondary: #f3f5fc;
+    --secondary-foreground: #323d8f;
+    --muted: #f3f5fc;
+    --muted-foreground: #77819a;
+    --accent: #eef0fc;
+    --accent-foreground: #1c2254;
     --destructive: oklch(0.6368 0.2078 25.3313);
-    --destructive-foreground: oklch(1.0000 0 0);
-    --border: oklch(0.8600 0.0100 250.0);
-    --input: oklch(0.8200 0.0150 250.0);
-    --ring: oklch(0.4003 0.1350 272.9497);
-    --chart-1: oklch(0.7156 0.0605 248.6845);
-    --chart-2: oklch(0.7875 0.0917 35.9616);
-    --chart-3: oklch(0.5778 0.0759 254.1573);
-    --chart-4: oklch(0.5016 0.0849 259.4902);
-    --chart-5: oklch(0.4241 0.0952 264.0306);
-    --sidebar: oklch(0.9030 0.0046 258.3257);
-    --sidebar-foreground: oklch(0.3211 0 0);
-    --sidebar-primary: oklch(0.4003 0.1350 272.9497);
-    --sidebar-primary-foreground: oklch(1.0000 0 0);
-    --sidebar-accent: oklch(0.9119 0.0222 243.8174);
-    --sidebar-accent-foreground: oklch(0.3791 0.1378 265.5222);
-    --sidebar-border: oklch(0.8600 0.0100 250.0);
-    --sidebar-ring: oklch(0.4003 0.1350 272.9497);
+    --destructive-foreground: #ffffff;
+    --border: #d2dcfa;
+    --input: #d2dcfa;
+    --ring: #323d8f;
+    --chart-1: #323d8f;
+    --chart-2: #4352b8;
+    --chart-3: #283273;
+    --chart-4: #1c2254;
+    --chart-5: #6366f1;
+    --sidebar: #ffffff;
+    --sidebar-foreground: #20243a;
+    --sidebar-primary: #323d8f;
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: #eef0fc;
+    --sidebar-accent-foreground: #1c2254;
+    --sidebar-border: #d2dcfa;
+    --sidebar-ring: #323d8f;
     --font-sans: Inter, sans-serif;
     --font-serif: Source Serif 4, serif;
     --font-mono: JetBrains Mono, monospace;
@@ -59,38 +63,42 @@
   }
 
   .dark {
-    --background: oklch(0.2100 0.0250 264.0);
-    --foreground: oklch(0.9700 0.0050 264.0);
-    --card: oklch(0.2850 0.0300 264.0);
-    --card-foreground: oklch(0.9700 0.0050 264.0);
-    --popover: oklch(0.2850 0.0300 264.0);
-    --popover-foreground: oklch(0.9700 0.0050 264.0);
-    --primary: oklch(0.6600 0.1700 270.0);
-    --primary-foreground: oklch(1.0000 0 0);
-    --secondary: oklch(0.3400 0.0300 264.0);
-    --secondary-foreground: oklch(0.9700 0.0050 264.0);
-    --muted: oklch(0.3000 0.0250 264.0);
-    --muted-foreground: oklch(0.7200 0.0250 264.0);
-    --accent: oklch(0.3400 0.0350 268.0);
-    --accent-foreground: oklch(0.9700 0.0050 264.0);
+    --background: #111723;
+    --foreground: #f3f5f9;
+    --card: #18202f;
+    --card-foreground: #f3f5f9;
+    --popover: #18202f;
+    --popover-foreground: #f3f5f9;
+    --primary: #818cf8;
+    --primary-foreground: #ffffff;
+    --primary-soft: rgba(99, 102, 241, 0.16);
+    --primary-border: rgba(129, 140, 248, 0.30);
+    --primary-muted: #a5b4fc;
+    --primary-strong: #312e81;
+    --secondary: #1a2233;
+    --secondary-foreground: #a5b4fc;
+    --muted: #1e2638;
+    --muted-foreground: #9da5b5;
+    --accent: rgba(99, 102, 241, 0.16);
+    --accent-foreground: #ffffff;
     --destructive: oklch(0.6500 0.2200 27.0);
-    --destructive-foreground: oklch(1.0000 0 0);
-    --border: oklch(0.3600 0.0250 264.0);
-    --input: oklch(0.3600 0.0250 264.0);
-    --ring: oklch(0.6600 0.1700 270.0);
-    --chart-1: oklch(0.7156 0.0605 248.6845);
-    --chart-2: oklch(0.7693 0.0876 34.1875);
-    --chart-3: oklch(0.5778 0.0759 254.1573);
-    --chart-4: oklch(0.5016 0.0849 259.4902);
-    --chart-5: oklch(0.4241 0.0952 264.0306);
-    --sidebar: oklch(0.2450 0.0260 264.0);
-    --sidebar-foreground: oklch(0.9700 0.0050 264.0);
-    --sidebar-primary: oklch(0.6600 0.1700 270.0);
-    --sidebar-primary-foreground: oklch(1.0000 0 0);
-    --sidebar-accent: oklch(0.3000 0.0350 268.0);
-    --sidebar-accent-foreground: oklch(0.9700 0.0050 264.0);
-    --sidebar-border: oklch(0.3200 0.0250 264.0);
-    --sidebar-ring: oklch(0.6600 0.1700 270.0);
+    --destructive-foreground: #ffffff;
+    --border: #2d3748;
+    --input: #2d3748;
+    --ring: #818cf8;
+    --chart-1: #818cf8;
+    --chart-2: #a5b4fc;
+    --chart-3: #6366f1;
+    --chart-4: #4f46e5;
+    --chart-5: #312e81;
+    --sidebar: #131a27;
+    --sidebar-foreground: #f3f5f9;
+    --sidebar-primary: #818cf8;
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: rgba(99, 102, 241, 0.16);
+    --sidebar-accent-foreground: #ffffff;
+    --sidebar-border: #242e42;
+    --sidebar-ring: #818cf8;
     --font-sans: Inter, sans-serif;
     --font-serif: Source Serif 4, serif;
     --font-mono: JetBrains Mono, monospace;
@@ -112,16 +120,16 @@
 
     /* Token warna mobile saat dark mode aktif */
     --sp-navy: #818cf8;
-    --sp-navy-2: var(--primary);
-    --sp-navy-3: var(--primary);
+    --sp-navy-2: var(--primary, #6366f1);
+    --sp-navy-3: var(--primary, #4f46e5);
     --sp-navy-light: #a5b4fc;
-    --sp-accent: var(--primary);
-    --sp-primary-soft: rgba(99, 102, 241, 0.16);
-    --sp-bg-main: #121824;
+    --sp-accent: var(--primary, #818cf8);
+    --sp-primary-soft: var(--primary-soft, rgba(99, 102, 241, 0.16));
+    --sp-bg-main: #111723;
     --sp-ink: #f3f5f9;
-    --sp-muted: #9da5b5;
-    --sp-line: #363d4b;
-    --mobile-line: #363d4b;
+    --sp-muted: var(--primary-muted, #9da5b5);
+    --sp-line: var(--primary-border, #2d3748);
+    --mobile-line: var(--primary-border, #2d3748);
   }
 
   * {
@@ -678,8 +686,13 @@ main > :last-child {
   background: #ffffff;
   border-radius: 20px;
   box-shadow: 0 4px 20px -8px rgba(50, 61, 143, 0.08), 0 1px 3px 0 rgba(0, 0, 0, 0.04);
-  border: 1px solid var(--primary-border);
+  border: 1px solid var(--primary-border, #d2dcfa);
   padding-inline: var(--mobile-card-pad-inline);
+}
+
+.dark .sp-card {
+  background: #18202f;
+  border-color: var(--primary-border, #2d3748);
 }
 
 /* Kartu yang isinya menempel penuh (baris menu, accordion): padding kartu
@@ -787,16 +800,16 @@ main > :last-child {
    ========================================================================== */
 
 :root {
-  --sp-navy: var(--primary-strong);
-  --sp-navy-2: var(--primary);
-  --sp-navy-3: var(--primary-strong);
-  --sp-navy-light: var(--primary);
-  --sp-accent: var(--primary);
-  --sp-primary-soft: var(--primary-soft);
+  --sp-navy: var(--primary-strong, #181d48);
+  --sp-navy-2: var(--primary, #323d8f);
+  --sp-navy-3: var(--primary-strong, #283273);
+  --sp-navy-light: #4352b8;
+  --sp-accent: var(--primary, #323d8f);
+  --sp-primary-soft: var(--primary-soft, #eef0fc);
   --sp-bg-main: #f3f5fc;
   --sp-ink: #20243a;
-  --sp-muted: var(--primary-muted);
-  --sp-line: var(--primary-border);
+  --sp-muted: var(--primary-muted, #77819a);
+  --sp-line: var(--primary-border, #d2dcfa);
 }
 
 /* --- 1. SHELL APLIKASI --------------------------------------------------- */
@@ -862,10 +875,15 @@ main > :last-child {
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(14px) saturate(140%);
   -webkit-backdrop-filter: blur(14px) saturate(140%);
-  border-bottom: 1px solid var(--primary-border);
+  border-bottom: 1px solid var(--primary-border, #d2dcfa);
   box-shadow: 0 1px 3px 0 rgba(32, 36, 58, 0.02);
   transform: translateZ(0);
   -webkit-transform: translateZ(0);
+}
+
+.dark .sp-glass-bar {
+  background: rgba(24, 32, 47, 0.95);
+  border-bottom: 1px solid var(--primary-border, #2d3748);
 }
 
 /* --- 3. HERO (Light & Clean Minimalist) -------------------------------- */
@@ -877,6 +895,11 @@ main > :last-child {
   border-bottom: 1px solid rgba(224, 230, 242, 0.85);
 }
 
+.dark .sp-hero {
+  background: linear-gradient(180deg, #18202f 0%, #111723 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
 /* Kartu yang "melayang" menutupi batas hero: efek favorit aplikasi mobile. */
 .sp-float-card {
   position: relative;
@@ -886,9 +909,14 @@ main > :last-child {
   box-sizing: border-box;
   border-radius: 22px;
   background: #ffffff;
-  border: 1px solid var(--primary-border);
+  border: 1px solid var(--primary-border, #d2dcfa);
   box-shadow: 0 12px 32px -16px rgba(50, 61, 143, 0.12);
   padding-inline: var(--mobile-card-pad-inline);
+}
+
+.dark .sp-float-card {
+  background: #18202f;
+  border: 1px solid var(--primary-border, #2d3748);
 }
 
 /* --- 4. KARTU UTAMA PRESENSI (Solid Royal Blue Focal Card var(--primary)) ------------- */
@@ -931,9 +959,14 @@ main > :last-child {
   min-height: 96px;
   border-radius: 20px;
   background: #ffffff;
-  border: 1px solid var(--primary-border);
+  border: 1px solid var(--primary-border, #d2dcfa);
   box-shadow: 0 2px 10px -4px rgba(50, 61, 143, 0.06), 0 1px 2px 0 rgba(0, 0, 0, 0.02);
   transition: transform 0.14s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.14s ease-out, border-color 0.14s ease-out;
+}
+
+.dark .sp-shortcut {
+  background: #18202f;
+  border: 1px solid var(--primary-border, #2d3748);
 }
 
 .sp-shortcut:hover {
@@ -968,9 +1001,14 @@ main > :last-child {
   min-height: 84px;
   border-radius: 16px;
   background: #ffffff;
-  border: 1px solid var(--primary-border);
+  border: 1px solid var(--primary-border, #d2dcfa);
   box-shadow: 0 2px 8px -3px rgba(50, 61, 143, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.02);
   transition: transform 0.14s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.14s ease-out, border-color 0.14s ease-out;
+}
+
+.dark .sp-shortcut-compact {
+  background: #18202f;
+  border: 1px solid var(--primary-border, #2d3748);
 }
 
 .sp-shortcut-compact:hover {
@@ -1018,13 +1056,18 @@ main > :last-child {
   background: rgba(255, 255, 255, 0.97);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  border: 1px solid var(--primary-border);
+  border: 1px solid var(--primary-border, #d2dcfa);
   box-shadow: 0 10px 28px -6px rgba(50, 61, 143, 0.10), 0 2px 6px -1px rgba(32, 36, 58, 0.04);
   padding: 5px 6px;
   box-sizing: border-box;
   transform: translateZ(0);
   -webkit-transform: translateZ(0);
   will-change: transform;
+}
+
+.dark .sp-nav-float {
+  background: rgba(24, 32, 47, 0.96);
+  border: 1px solid var(--primary-border, #2d3748);
 }
 
 /* Banner pasang aplikasi. Tingginya dihitung dari navigasi (lihat
@@ -1658,226 +1701,435 @@ main > :last-child {
 .dark img[alt*="SIMPEG" i],
 .dark img[alt*="Logo" i] {
   filter: none !important;
-}/* ============================================================
-   APPEARANCE THEMES - warna & font (dikendalikan AppearanceContext)
-   ============================================================ */
-:root[data-color-theme='green'] {
-  --primary: oklch(0.5000 0.1600 150.0);
-  --primary-foreground: oklch(1.0000 0 0);
-  --ring: oklch(0.5000 0.1600 150.0);
-  --accent: oklch(0.9000 0.0500 150.0);
-  --accent-foreground: oklch(0.3000 0.1000 150.0);
-  --sidebar-primary: oklch(0.5000 0.1600 150.0);
-  --sidebar-primary-foreground: oklch(1.0000 0 0);
-  --sidebar-accent: oklch(0.9000 0.0500 150.0);
-  --sidebar-accent-foreground: oklch(0.3000 0.1000 150.0);
-  --sidebar-ring: oklch(0.5000 0.1600 150.0);
-}
-html.dark[data-color-theme='green'] {
-  --primary: oklch(0.6500 0.1700 150.0);
-  --primary-foreground: oklch(1.0000 0 0);
-  --ring: oklch(0.6500 0.1700 150.0);
-  --accent: oklch(0.3200 0.0400 150.0);
-  --accent-foreground: oklch(0.9700 0.0050 150.0);
-  --sidebar-primary: oklch(0.6500 0.1700 150.0);
-  --sidebar-primary-foreground: oklch(1.0000 0 0);
-  --sidebar-accent: oklch(0.3200 0.0400 150.0);
-  --sidebar-accent-foreground: oklch(0.9700 0.0050 150.0);
-  --sidebar-ring: oklch(0.6500 0.1700 150.0);
-}
-
-:root[data-color-theme='rose'] {
-  --primary: oklch(0.5500 0.2000 10.0);
-  --primary-foreground: oklch(1.0000 0 0);
-  --ring: oklch(0.5500 0.2000 10.0);
-  --accent: oklch(0.9200 0.0600 10.0);
-  --accent-foreground: oklch(0.3500 0.1500 10.0);
-  --sidebar-primary: oklch(0.5500 0.2000 10.0);
-  --sidebar-primary-foreground: oklch(1.0000 0 0);
-  --sidebar-accent: oklch(0.9200 0.0600 10.0);
-  --sidebar-accent-foreground: oklch(0.3500 0.1500 10.0);
-  --sidebar-ring: oklch(0.5500 0.2000 10.0);
-}
-html.dark[data-color-theme='rose'] {
-  --primary: oklch(0.6800 0.2000 10.0);
-  --primary-foreground: oklch(1.0000 0 0);
-  --ring: oklch(0.6800 0.2000 10.0);
-  --accent: oklch(0.3300 0.0600 10.0);
-  --accent-foreground: oklch(0.9700 0.0050 10.0);
-  --sidebar-primary: oklch(0.6800 0.2000 10.0);
-  --sidebar-primary-foreground: oklch(1.0000 0 0);
-  --sidebar-accent: oklch(0.3300 0.0600 10.0);
-  --sidebar-accent-foreground: oklch(0.9700 0.0050 10.0);
-  --sidebar-ring: oklch(0.6800 0.2000 10.0);
-}
-
-:root[data-color-theme='amber'] {
-  --primary: oklch(0.6200 0.1600 60.0);
-  --primary-foreground: oklch(1.0000 0 0);
-  --ring: oklch(0.6200 0.1600 60.0);
-  --accent: oklch(0.9300 0.0600 60.0);
-  --accent-foreground: oklch(0.3500 0.1200 60.0);
-  --sidebar-primary: oklch(0.6200 0.1600 60.0);
-  --sidebar-primary-foreground: oklch(1.0000 0 0);
-  --sidebar-accent: oklch(0.9300 0.0600 60.0);
-  --sidebar-accent-foreground: oklch(0.3500 0.1200 60.0);
-  --sidebar-ring: oklch(0.6200 0.1600 60.0);
-}
-html.dark[data-color-theme='amber'] {
-  --primary: oklch(0.7200 0.1600 60.0);
-  --primary-foreground: oklch(0.2000 0.0500 60.0);
-  --ring: oklch(0.7200 0.1600 60.0);
-  --accent: oklch(0.3300 0.0600 60.0);
-  --accent-foreground: oklch(0.9700 0.0050 60.0);
-  --sidebar-primary: oklch(0.7200 0.1600 60.0);
-  --sidebar-primary-foreground: oklch(0.2000 0.0500 60.0);
-  --sidebar-accent: oklch(0.3300 0.0600 60.0);
-  --sidebar-accent-foreground: oklch(0.9700 0.0050 60.0);
-  --sidebar-ring: oklch(0.7200 0.1600 60.0);
-}
-
-:root[data-font-theme='jakarta'] {
-  --font-sans: 'Plus Jakarta Sans', sans-serif;
-}
-:root[data-font-theme='system'] {
-  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-}
-/* ============================================================
-   APPEARANCE THEMES - warna & font (dikendalikan AppearanceContext)
-   ============================================================ */
-:root[data-color-theme='green'] {
-  --primary: oklch(0.5000 0.1600 150.0);
-  --primary-foreground: oklch(1.0000 0 0);
-  --ring: oklch(0.5000 0.1600 150.0);
-  --accent: oklch(0.9000 0.0500 150.0);
-  --accent-foreground: oklch(0.3000 0.1000 150.0);
-  --sidebar-primary: oklch(0.5000 0.1600 150.0);
-  --sidebar-primary-foreground: oklch(1.0000 0 0);
-  --sidebar-accent: oklch(0.9000 0.0500 150.0);
-  --sidebar-accent-foreground: oklch(0.3000 0.1000 150.0);
-  --sidebar-ring: oklch(0.5000 0.1600 150.0);
-}
-html.dark[data-color-theme='green'] {
-  --primary: oklch(0.6500 0.1700 150.0);
-  --primary-foreground: oklch(1.0000 0 0);
-  --ring: oklch(0.6500 0.1700 150.0);
-  --accent: oklch(0.3200 0.0400 150.0);
-  --accent-foreground: oklch(0.9700 0.0050 150.0);
-  --sidebar-primary: oklch(0.6500 0.1700 150.0);
-  --sidebar-primary-foreground: oklch(1.0000 0 0);
-  --sidebar-accent: oklch(0.3200 0.0400 150.0);
-  --sidebar-accent-foreground: oklch(0.9700 0.0050 150.0);
-  --sidebar-ring: oklch(0.6500 0.1700 150.0);
-}
-
-:root[data-color-theme='rose'] {
-  --primary: oklch(0.5500 0.2000 10.0);
-  --primary-foreground: oklch(1.0000 0 0);
-  --ring: oklch(0.5500 0.2000 10.0);
-  --accent: oklch(0.9200 0.0600 10.0);
-  --accent-foreground: oklch(0.3500 0.1500 10.0);
-  --sidebar-primary: oklch(0.5500 0.2000 10.0);
-  --sidebar-primary-foreground: oklch(1.0000 0 0);
-  --sidebar-accent: oklch(0.9200 0.0600 10.0);
-  --sidebar-accent-foreground: oklch(0.3500 0.1500 10.0);
-  --sidebar-ring: oklch(0.5500 0.2000 10.0);
-}
-html.dark[data-color-theme='rose'] {
-  --primary: oklch(0.6800 0.2000 10.0);
-  --primary-foreground: oklch(1.0000 0 0);
-  --ring: oklch(0.6800 0.2000 10.0);
-  --accent: oklch(0.3300 0.0600 10.0);
-  --accent-foreground: oklch(0.9700 0.0050 10.0);
-  --sidebar-primary: oklch(0.6800 0.2000 10.0);
-  --sidebar-primary-foreground: oklch(1.0000 0 0);
-  --sidebar-accent: oklch(0.3300 0.0600 10.0);
-  --sidebar-accent-foreground: oklch(0.9700 0.0050 10.0);
-  --sidebar-ring: oklch(0.6800 0.2000 10.0);
-}
-
-:root[data-color-theme='amber'] {
-  --primary: oklch(0.6200 0.1600 60.0);
-  --primary-foreground: oklch(1.0000 0 0);
-  --ring: oklch(0.6200 0.1600 60.0);
-  --accent: oklch(0.9300 0.0600 60.0);
-  --accent-foreground: oklch(0.3500 0.1200 60.0);
-  --sidebar-primary: oklch(0.6200 0.1600 60.0);
-  --sidebar-primary-foreground: oklch(1.0000 0 0);
-  --sidebar-accent: oklch(0.9300 0.0600 60.0);
-  --sidebar-accent-foreground: oklch(0.3500 0.1200 60.0);
-  --sidebar-ring: oklch(0.6200 0.1600 60.0);
-}
-html.dark[data-color-theme='amber'] {
-  --primary: oklch(0.7200 0.1600 60.0);
-  --primary-foreground: oklch(0.2000 0.0500 60.0);
-  --ring: oklch(0.7200 0.1600 60.0);
-  --accent: oklch(0.3300 0.0600 60.0);
-  --accent-foreground: oklch(0.9700 0.0050 60.0);
-  --sidebar-primary: oklch(0.7200 0.1600 60.0);
-  --sidebar-primary-foreground: oklch(0.2000 0.0500 60.0);
-  --sidebar-accent: oklch(0.3300 0.0600 60.0);
-  --sidebar-accent-foreground: oklch(0.9700 0.0050 60.0);
-  --sidebar-ring: oklch(0.7200 0.1600 60.0);
-}
-
-:root[data-font-theme='jakarta'] {
-  --font-sans: 'Plus Jakarta Sans', sans-serif;
-}
-:root[data-font-theme='system'] {
-  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 }
 
 /* ============================================================
-   APPEARANCE PALETTE TOKENS (soft/border/muted/strong)
+   SISTEM TEMA WARNA & FONT LENGKAP (AppearanceContext)
+   ------------------------------------------------------------
+   - Biru (#323d8f): Warna utama SimPres original (default).
+   - Hijau (#15803d): Emerald Islami profesional & segar.
+   - Rose (#be123c): Merah delima berwibawa & elegan.
+   - Amber (#b45309): Emas/bronze hangat & berkelas.
+   - Ungu (#7c3aed): Royal purple modern.
+   - Teal (#0d9488): Samudra modern & sejuk.
+   Setiap tema mengatur warna primer, latar soft, border card
+   kontras tinggi, teks muted terbaca, dan token mobile/desktop.
    ============================================================ */
-:root {
-  --primary-soft: var(--primary-soft);
-  --primary-border: var(--primary-border);
-  --primary-muted: var(--primary-muted);
-  --primary-strong: var(--primary-strong);
-}
-html.dark {
-  --primary-soft: #232a39;
-  --primary-border: #363d4b;
-  --primary-muted: #9da5b5;
-  --primary-strong: var(--primary-strong);
+
+/* --- 1. DEFAULT & TEMA BIRU (SIMPRES ORIGINAL) --- */
+:root,
+:root[data-color-theme='blue'] {
+  --primary: #323d8f;
+  --primary-foreground: #ffffff;
+  --primary-soft: #eef0fc;
+  --primary-border: #d2dcfa;
+  --primary-muted: #52608a;
+  --primary-strong: #1c2254;
+
+  --border: #d2dcfa;
+  --input: #d2dcfa;
+  --ring: #323d8f;
+  --accent: #eef0fc;
+  --accent-foreground: #1c2254;
+
+  --sidebar-primary: #323d8f;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #eef0fc;
+  --sidebar-accent-foreground: #1c2254;
+  --sidebar-ring: #323d8f;
+  --sidebar-border: #d2dcfa;
+
+  --sp-navy: #181d48;
+  --sp-navy-2: #323d8f;
+  --sp-navy-3: #283273;
+  --sp-navy-light: #4352b8;
+  --sp-accent: #323d8f;
+  --sp-primary-soft: #eef0fc;
+  --sp-bg-main: #f3f5fc;
+  --sp-ink: #20243a;
+  --sp-muted: #77819a;
+  --sp-line: #d2dcfa;
 }
 
-:root[data-color-theme="green"] {
-  --primary-soft: #f0fdf4;
-  --primary-border: #bbf7d0;
-  --primary-muted: #15803d;
-  --primary-strong: #166534;
-}
-html.dark[data-color-theme="green"] {
-  --primary-soft: #1a2e23;
-  --primary-border: #2d4a3a;
-  --primary-muted: #86efac;
-  --primary-strong: #052e16;
+html.dark,
+html.dark[data-color-theme='blue'] {
+  --primary: #818cf8;
+  --primary-foreground: #ffffff;
+  --primary-soft: rgba(99, 102, 241, 0.16);
+  --primary-border: rgba(129, 140, 248, 0.30);
+  --primary-muted: #a5b4fc;
+  --primary-strong: #312e81;
+
+  --border: #2d3748;
+  --input: #2d3748;
+  --ring: #818cf8;
+  --accent: rgba(99, 102, 241, 0.16);
+  --accent-foreground: #ffffff;
+
+  --sidebar-primary: #818cf8;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: rgba(99, 102, 241, 0.16);
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-ring: #818cf8;
+  --sidebar-border: #242e42;
+
+  --sp-navy: #818cf8;
+  --sp-navy-2: #6366f1;
+  --sp-navy-3: #4f46e5;
+  --sp-navy-light: #a5b4fc;
+  --sp-accent: #818cf8;
+  --sp-primary-soft: rgba(99, 102, 241, 0.16);
+  --sp-bg-main: #111723;
+  --sp-ink: #f3f5f9;
+  --sp-muted: #9da5b5;
+  --sp-line: #2d3748;
+  --mobile-line: #2d3748;
 }
 
-:root[data-color-theme="rose"] {
+/* --- 2. TEMA HIJAU (EMERALD ISLAMI) --- */
+:root[data-color-theme='green'] {
+  --primary: #15803d;
+  --primary-foreground: #ffffff;
+  --primary-soft: #ecfdf5;
+  --primary-border: #a7f3d0;
+  --primary-muted: #166534;
+  --primary-strong: #064e3b;
+
+  --border: #a7f3d0;
+  --input: #a7f3d0;
+  --ring: #15803d;
+  --accent: #ecfdf5;
+  --accent-foreground: #064e3b;
+
+  --sidebar-primary: #15803d;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #ecfdf5;
+  --sidebar-accent-foreground: #064e3b;
+  --sidebar-ring: #15803d;
+  --sidebar-border: #bbf7d0;
+
+  --sp-navy: #064e3b;
+  --sp-navy-2: #15803d;
+  --sp-navy-3: #166534;
+  --sp-navy-light: #22c55e;
+  --sp-accent: #15803d;
+  --sp-primary-soft: #ecfdf5;
+  --sp-bg-main: #f2f8f4;
+  --sp-ink: #112519;
+  --sp-muted: #4e6a57;
+  --sp-line: #a7f3d0;
+}
+
+html.dark[data-color-theme='green'] {
+  --primary: #34d399;
+  --primary-foreground: #022c22;
+  --primary-soft: rgba(52, 211, 153, 0.16);
+  --primary-border: rgba(52, 211, 153, 0.30);
+  --primary-muted: #6ee7b7;
+  --primary-strong: #022c22;
+
+  --border: #1b3827;
+  --input: #1b3827;
+  --ring: #34d399;
+  --accent: rgba(52, 211, 153, 0.16);
+  --accent-foreground: #ecfdf5;
+
+  --sidebar-primary: #34d399;
+  --sidebar-primary-foreground: #022c22;
+  --sidebar-accent: rgba(52, 211, 153, 0.16);
+  --sidebar-accent-foreground: #ecfdf5;
+  --sidebar-ring: #34d399;
+  --sidebar-border: #173021;
+
+  --sp-navy: #34d399;
+  --sp-navy-2: #10b981;
+  --sp-navy-3: #059669;
+  --sp-navy-light: #6ee7b7;
+  --sp-accent: #34d399;
+  --sp-primary-soft: rgba(52, 211, 153, 0.16);
+  --sp-bg-main: #0c1711;
+  --sp-ink: #f0fdf4;
+  --sp-muted: #86efac;
+  --sp-line: #1b3827;
+  --mobile-line: #1b3827;
+}
+
+/* --- 3. TEMA ROSE (MERAH DELIMA) --- */
+:root[data-color-theme='rose'] {
+  --primary: #be123c;
+  --primary-foreground: #ffffff;
   --primary-soft: #fff1f2;
   --primary-border: #fecdd3;
-  --primary-muted: #be123c;
-  --primary-strong: #9f1239;
-}
-html.dark[data-color-theme="rose"] {
-  --primary-soft: #2e1a1f;
-  --primary-border: #4a2d33;
-  --primary-muted: #fda4af;
-  --primary-strong: #4c0519;
+  --primary-muted: #9f1239;
+  --primary-strong: #881337;
+
+  --border: #fecdd3;
+  --input: #fecdd3;
+  --ring: #be123c;
+  --accent: #fff1f2;
+  --accent-foreground: #881337;
+
+  --sidebar-primary: #be123c;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #fff1f2;
+  --sidebar-accent-foreground: #881337;
+  --sidebar-ring: #be123c;
+  --sidebar-border: #fecdd3;
+
+  --sp-navy: #881337;
+  --sp-navy-2: #be123c;
+  --sp-navy-3: #9f1239;
+  --sp-navy-light: #f43f5e;
+  --sp-accent: #be123c;
+  --sp-primary-soft: #fff1f2;
+  --sp-bg-main: #faf2f4;
+  --sp-ink: #2b1218;
+  --sp-muted: #7d4e58;
+  --sp-line: #fecdd3;
 }
 
-:root[data-color-theme="amber"] {
+html.dark[data-color-theme='rose'] {
+  --primary: #fb7185;
+  --primary-foreground: #4c0519;
+  --primary-soft: rgba(251, 113, 133, 0.16);
+  --primary-border: rgba(251, 113, 133, 0.30);
+  --primary-muted: #fda4af;
+  --primary-strong: #4c0519;
+
+  --border: #3b1922;
+  --input: #3b1922;
+  --ring: #fb7185;
+  --accent: rgba(251, 113, 133, 0.16);
+  --accent-foreground: #fff1f2;
+
+  --sidebar-primary: #fb7185;
+  --sidebar-primary-foreground: #4c0519;
+  --sidebar-accent: rgba(251, 113, 133, 0.16);
+  --sidebar-accent-foreground: #fff1f2;
+  --sidebar-ring: #fb7185;
+  --sidebar-border: #31151c;
+
+  --sp-navy: #fb7185;
+  --sp-navy-2: #f43f5e;
+  --sp-navy-3: #e11d48;
+  --sp-navy-light: #fda4af;
+  --sp-accent: #fb7185;
+  --sp-primary-soft: rgba(251, 113, 133, 0.16);
+  --sp-bg-main: #180d11;
+  --sp-ink: #fff1f2;
+  --sp-muted: #fda4af;
+  --sp-line: #3b1922;
+  --mobile-line: #3b1922;
+}
+
+/* --- 4. TEMA AMBER (EMAS / BRONZE) --- */
+:root[data-color-theme='amber'] {
+  --primary: #b45309;
+  --primary-foreground: #ffffff;
   --primary-soft: #fffbeb;
   --primary-border: #fde68a;
-  --primary-muted: #b45309;
-  --primary-strong: #92400e;
+  --primary-muted: #92400e;
+  --primary-strong: #78350f;
+
+  --border: #fde68a;
+  --input: #fde68a;
+  --ring: #b45309;
+  --accent: #fffbeb;
+  --accent-foreground: #78350f;
+
+  --sidebar-primary: #b45309;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #fffbeb;
+  --sidebar-accent-foreground: #78350f;
+  --sidebar-ring: #b45309;
+  --sidebar-border: #fde68a;
+
+  --sp-navy: #78350f;
+  --sp-navy-2: #b45309;
+  --sp-navy-3: #92400e;
+  --sp-navy-light: #f59e0b;
+  --sp-accent: #b45309;
+  --sp-primary-soft: #fffbeb;
+  --sp-bg-main: #faf6ee;
+  --sp-ink: #2b1f0f;
+  --sp-muted: #755938;
+  --sp-line: #fde68a;
 }
-html.dark[data-color-theme="amber"] {
-  --primary-soft: #2e2617;
-  --primary-border: #4a3d20;
+
+html.dark[data-color-theme='amber'] {
+  --primary: #fbbf24;
+  --primary-foreground: #451a03;
+  --primary-soft: rgba(251, 191, 36, 0.16);
+  --primary-border: rgba(251, 191, 36, 0.30);
   --primary-muted: #fcd34d;
   --primary-strong: #451a03;
+
+  --border: #382711;
+  --input: #382711;
+  --ring: #fbbf24;
+  --accent: rgba(251, 191, 36, 0.16);
+  --accent-foreground: #fffbeb;
+
+  --sidebar-primary: #fbbf24;
+  --sidebar-primary-foreground: #451a03;
+  --sidebar-accent: rgba(251, 191, 36, 0.16);
+  --sidebar-accent-foreground: #fffbeb;
+  --sidebar-ring: #fbbf24;
+  --sidebar-border: #2e200e;
+
+  --sp-navy: #fbbf24;
+  --sp-navy-2: #f59e0b;
+  --sp-navy-3: #d97706;
+  --sp-navy-light: #fcd34d;
+  --sp-accent: #fbbf24;
+  --sp-primary-soft: rgba(251, 191, 36, 0.16);
+  --sp-bg-main: #17120a;
+  --sp-ink: #fffbeb;
+  --sp-muted: #fcd34d;
+  --sp-line: #382711;
+  --mobile-line: #382711;
+}
+
+/* --- 5. TEMA UNGU (ROYAL PURPLE) --- */
+:root[data-color-theme='purple'] {
+  --primary: #7c3aed;
+  --primary-foreground: #ffffff;
+  --primary-soft: #f5f3ff;
+  --primary-border: #ddd6fe;
+  --primary-muted: #6d28d9;
+  --primary-strong: #4c1d95;
+
+  --border: #ddd6fe;
+  --input: #ddd6fe;
+  --ring: #7c3aed;
+  --accent: #f5f3ff;
+  --accent-foreground: #4c1d95;
+
+  --sidebar-primary: #7c3aed;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f5f3ff;
+  --sidebar-accent-foreground: #4c1d95;
+  --sidebar-ring: #7c3aed;
+  --sidebar-border: #ddd6fe;
+
+  --sp-navy: #4c1d95;
+  --sp-navy-2: #7c3aed;
+  --sp-navy-3: #6d28d9;
+  --sp-navy-light: #8b5cf6;
+  --sp-accent: #7c3aed;
+  --sp-primary-soft: #f5f3ff;
+  --sp-bg-main: #f7f5fc;
+  --sp-ink: #1f1235;
+  --sp-muted: #685382;
+  --sp-line: #ddd6fe;
+}
+
+html.dark[data-color-theme='purple'] {
+  --primary: #a78bfa;
+  --primary-foreground: #2e1065;
+  --primary-soft: rgba(167, 139, 250, 0.16);
+  --primary-border: rgba(167, 139, 250, 0.30);
+  --primary-muted: #c4b5fd;
+  --primary-strong: #2e1065;
+
+  --border: #291a45;
+  --input: #291a45;
+  --ring: #a78bfa;
+  --accent: rgba(167, 139, 250, 0.16);
+  --accent-foreground: #f5f3ff;
+
+  --sidebar-primary: #a78bfa;
+  --sidebar-primary-foreground: #2e1065;
+  --sidebar-accent: rgba(167, 139, 250, 0.16);
+  --sidebar-accent-foreground: #f5f3ff;
+  --sidebar-ring: #a78bfa;
+  --sidebar-border: #211538;
+
+  --sp-navy: #a78bfa;
+  --sp-navy-2: #8b5cf6;
+  --sp-navy-3: #7c3aed;
+  --sp-navy-light: #c4b5fd;
+  --sp-accent: #a78bfa;
+  --sp-primary-soft: rgba(167, 139, 250, 0.16);
+  --sp-bg-main: #130d1e;
+  --sp-ink: #f5f3ff;
+  --sp-muted: #c4b5fd;
+  --sp-line: #291a45;
+  --mobile-line: #291a45;
+}
+
+/* --- 6. TEMA TEAL (SAMUDRA MODERN) --- */
+:root[data-color-theme='teal'] {
+  --primary: #0d9488;
+  --primary-foreground: #ffffff;
+  --primary-soft: #f0fdfa;
+  --primary-border: #99f6e4;
+  --primary-muted: #0f766e;
+  --primary-strong: #115e59;
+
+  --border: #99f6e4;
+  --input: #99f6e4;
+  --ring: #0d9488;
+  --accent: #f0fdfa;
+  --accent-foreground: #115e59;
+
+  --sidebar-primary: #0d9488;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f0fdfa;
+  --sidebar-accent-foreground: #115e59;
+  --sidebar-ring: #0d9488;
+  --sidebar-border: #99f6e4;
+
+  --sp-navy: #115e59;
+  --sp-navy-2: #0d9488;
+  --sp-navy-3: #0f766e;
+  --sp-navy-light: #14b8a6;
+  --sp-accent: #0d9488;
+  --sp-primary-soft: #f0fdfa;
+  --sp-bg-main: #f0f7f6;
+  --sp-ink: #0f2422;
+  --sp-muted: #486a67;
+  --sp-line: #99f6e4;
+}
+
+html.dark[data-color-theme='teal'] {
+  --primary: #2dd4bf;
+  --primary-foreground: #042f2e;
+  --primary-soft: rgba(45, 212, 191, 0.16);
+  --primary-border: rgba(45, 212, 191, 0.30);
+  --primary-muted: #5eead4;
+  --primary-strong: #042f2e;
+
+  --border: #133431;
+  --input: #133431;
+  --ring: #2dd4bf;
+  --accent: rgba(45, 212, 191, 0.16);
+  --accent-foreground: #f0fdfa;
+
+  --sidebar-primary: #2dd4bf;
+  --sidebar-primary-foreground: #042f2e;
+  --sidebar-accent: rgba(45, 212, 191, 0.16);
+  --sidebar-accent-foreground: #f0fdfa;
+  --sidebar-ring: #2dd4bf;
+  --sidebar-border: #0e2725;
+
+  --sp-navy: #2dd4bf;
+  --sp-navy-2: #14b8a6;
+  --sp-navy-3: #0d9488;
+  --sp-navy-light: #5eead4;
+  --sp-accent: #2dd4bf;
+  --sp-primary-soft: rgba(45, 212, 191, 0.16);
+  --sp-bg-main: #0a1716;
+  --sp-ink: #f0fdfa;
+  --sp-muted: #5eead4;
+  --sp-line: #133431;
+  --mobile-line: #133431;
+}
+
+/* --- FONT THEMES --- */
+:root[data-font-theme='jakarta'] {
+  --font-sans: 'Plus Jakarta Sans', sans-serif;
+}
+:root[data-font-theme='system'] {
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 }

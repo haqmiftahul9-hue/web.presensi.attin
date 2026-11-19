@@ -261,14 +261,14 @@ function MobileBerandaPage() {
           Nama pegawai sendiri hanya muncul sekali, di baris `staff.name`.
           Sapaannya dipisah supaya kata "Ustadz" tidak mengulang nama. */}
       <section className="sp-page-container pt-3.5 pb-1">
-        <div className="sp-card bg-primary-soft dark:bg-slate-850 p-4 flex flex-col gap-3.5 border border-primary-soft dark:border-slate-700/80 shadow-sm rounded-2xl">
+        <div className="sp-card bg-primary-soft dark:bg-slate-850 p-4 flex flex-col gap-3.5 border border-primary-border dark:border-slate-700/80 shadow-sm rounded-2xl">
           <div className="flex items-center gap-3.5">
             <div className="relative shrink-0">
               <StaffAvatar
                 staff={staff}
                 size="w-14 h-14"
                 textClass="font-headline-sm text-headline-sm font-bold text-white"
-                ring="ring-2 ring-primary-soft"
+                ring="ring-2 ring-primary-border"
                 className="shadow-xs"
               />
               <span
@@ -325,11 +325,11 @@ function MobileBerandaPage() {
           </div>
 
           <div className="grid grid-cols-2 gap-2 pt-1 border-t border-primary-border/80">
-            <div className="flex items-center gap-2 rounded-xl bg-[#ffffff] dark:bg-slate-800 border border-primary-soft dark:border-slate-700 px-2.5 py-2 min-w-0">
+            <div className="flex items-center gap-2 rounded-xl bg-[#ffffff] dark:bg-slate-800 border border-primary-border dark:border-slate-700 px-2.5 py-2 min-w-0 shadow-2xs">
               <Icon name="badge" className="text-[15px] text-primary dark:text-indigo-400 shrink-0" />
               <span className="font-label-sm text-label-sm text-[#20243a] dark:text-slate-200 font-medium truncate">NIY {staff.niy}</span>
             </div>
-            <div className="flex items-center gap-2 rounded-xl bg-[#ffffff] dark:bg-slate-800 border border-primary-soft dark:border-slate-700 px-2.5 py-2 min-w-0">
+            <div className="flex items-center gap-2 rounded-xl bg-[#ffffff] dark:bg-slate-800 border border-primary-border dark:border-slate-700 px-2.5 py-2 min-w-0 shadow-2xs">
               <Icon name="domain" className="text-[15px] text-primary dark:text-indigo-400 shrink-0" />
               <span className="font-label-sm text-label-sm text-[#20243a] dark:text-slate-200 font-medium truncate">{unit?.nama || '-'}</span>
             </div>
@@ -491,8 +491,8 @@ function MobileBerandaPage() {
 
         {/* 5. CARD MENU KHUSUS KEPALA SEKOLAH / ADMIN UNIT (BERADA TEPAT DI ATAS MENU CEPAT) */}
         {isLeaderOrAdmin && adminQuickMenuItems.length > 0 && (
-          <section className="sp-card p-4 flex flex-col gap-3.5 sp-rise sp-rise-2 border border-primary-soft dark:border-slate-700 bg-gradient-to-br from-white to-primary-soft dark:from-slate-850 dark:to-slate-900 dark:bg-slate-850 shadow-xs">
-            <div className="flex items-center justify-between pb-2 border-b border-primary-soft dark:border-slate-700">
+          <section className="sp-card p-4 flex flex-col gap-3.5 sp-rise sp-rise-2 border border-primary-border dark:border-slate-700 bg-gradient-to-br from-white to-primary-soft dark:from-slate-850 dark:to-slate-900 dark:bg-slate-850 shadow-xs">
+            <div className="flex items-center justify-between pb-2 border-b border-primary-border/80 dark:border-slate-700">
               <div className="flex items-center gap-2.5 min-w-0">
                 <span className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-xs ${
                   isKepsek ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'

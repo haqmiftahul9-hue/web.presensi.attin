@@ -107,9 +107,12 @@ function useLoginController() {
       try { localStorage.setItem('simpres.loginAttempts', JSON.stringify(next)) } catch { /* ignore */ }
       setIsNavigating(true)
       toast.success('Login berhasil')
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('simpres:trigger-splash'))
+      }
       setTimeout(() => {
         navigate(result.path, { replace: true })
-      }, 500)
+      }, 350)
     } else {
       const count = (loginAttempts.count || 0) + 1
       const lockedUntil = count >= 5 ? Date.now() + 5 * 60 * 1000 : 0
@@ -238,7 +241,7 @@ function DesktopVisualShowcase() {
         />
 
         {/* Central Terminal Card */}
-        <div className="relative z-10 w-[235px] rounded-2xl bg-white dark:bg-slate-800/95 border border-primary-soft dark:border-slate-700 shadow-xl p-3.5 anim-simpeg-float">
+        <div className="relative z-10 w-[235px] rounded-2xl bg-white dark:bg-slate-800/95 border border-primary-border dark:border-slate-700 shadow-xl p-3.5 anim-simpeg-float">
           {/* Top Status Bar */}
           <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-100 dark:border-slate-700/80">
             <div className="flex items-center gap-1.5">

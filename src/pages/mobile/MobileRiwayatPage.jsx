@@ -456,7 +456,7 @@ function MobileRiwayatPage() {
               { label: 'Terlambat', nilai: rekap.terlambat, tone: 'text-amber-600' },
               { label: 'Izin/Cuti', nilai: rekap.izin + rekap.cuti, tone: 'text-primary' },
             ].map((item) => (
-              <div key={item.label} className="rounded-xl bg-[#ffffff] border border-primary-soft p-3 flex flex-col items-center gap-0.5 min-w-0">
+              <div key={item.label} className="rounded-xl bg-[#ffffff] border border-primary-border p-3 flex flex-col items-center gap-0.5 min-w-0 shadow-2xs">
                 <span className={`font-display-lg-mobile text-[22px] font-bold leading-none ${item.tone}`}>{item.nilai}</span>
                 <span className="font-label-sm text-[11px] text-primary-muted text-center font-medium mt-0.5">{item.label}</span>
               </div>

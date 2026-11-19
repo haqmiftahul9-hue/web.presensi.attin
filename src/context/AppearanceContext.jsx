@@ -1,10 +1,12 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react'
 
 export const COLOR_THEMES = [
-  { id: 'blue', label: 'Biru (Default)', swatch: '#323d8f' },
-  { id: 'green', label: 'Hijau', swatch: '#16a34a' },
-  { id: 'rose', label: 'Merah Muda', swatch: '#e11d48' },
-  { id: 'amber', label: 'Amber', swatch: '#d97706' },
+  { id: 'blue', label: 'Biru SimPres (Utama)', swatch: '#323d8f' },
+  { id: 'green', label: 'Hijau Emerald', swatch: '#16a34a' },
+  { id: 'rose', label: 'Merah Delima', swatch: '#e11d48' },
+  { id: 'amber', label: 'Amber Emas', swatch: '#d97706' },
+  { id: 'purple', label: 'Ungu Royal', swatch: '#7c3aed' },
+  { id: 'teal', label: 'Teal Samudra', swatch: '#0d9488' },
 ]
 
 export const FONT_THEMES = [
@@ -13,7 +15,7 @@ export const FONT_THEMES = [
   { id: 'system', label: 'System Modern', family: 'system-ui' },
 ]
 
-const STORAGE_COLOR_KEY = 'simpres.colorTheme'
+const STORAGE_COLOR_KEY = 'simpres.colorTheme.v2'
 const STORAGE_FONT_KEY = 'simpres.fontTheme'
 
 const AppearanceContext = createContext({
@@ -28,7 +30,7 @@ const AppearanceContext = createContext({
 function getInitialColor() {
   if (typeof window === 'undefined') return 'blue'
   try {
-    const v = localStorage.getItem(STORAGE_COLOR_KEY)
+    const v = localStorage.getItem(STORAGE_COLOR_KEY) || localStorage.getItem('simpres.colorTheme')
     if (COLOR_THEMES.some((t) => t.id === v)) return v
   } catch (err) {
     console.error('Failed to read color theme:', err)

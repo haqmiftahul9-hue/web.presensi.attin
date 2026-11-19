@@ -48,6 +48,12 @@ import { Toaster } from 'react-hot-toast'
 function App() {
   const [showSplash, setShowSplash] = useState(true)
 
+  useEffect(() => {
+    const handleSplash = () => setShowSplash(true)
+    window.addEventListener('simpres:trigger-splash', handleSplash)
+    return () => window.removeEventListener('simpres:trigger-splash', handleSplash)
+  }, [])
+
   return (
     <BrowserRouter>
       <AppSplash show={showSplash} onDone={() => setShowSplash(false)} />

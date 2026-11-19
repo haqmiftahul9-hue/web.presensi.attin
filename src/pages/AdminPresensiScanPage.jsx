@@ -327,7 +327,7 @@ function AdminPresensiScanPage() {
           </div>
 
           {unit && (
-            <div className="p-2.5 bg-primary-soft rounded-lg border border-primary-soft text-xs">
+            <div className="p-2.5 bg-primary-soft rounded-lg border border-primary-border text-xs">
               <span className="block text-[11px] text-primary font-medium">Unit: {unit.nama}</span>
               <span className="block text-[10px] text-primary-muted">Radius: {unit.radius_meter}m</span>
             </div>
