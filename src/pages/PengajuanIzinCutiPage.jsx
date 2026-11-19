@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import * as XLSX from 'xlsx'
 import { downloadBlob } from '../utils/download.js'
-import { useSimPres, selectLeavesEnriched, selectActiveStaff, selectCurrentUserRole, addActivityLog, selectUnitName, selectActiveUnitId, selectCanSwitchUnit, selectIsAllUnits, ALL_UNITS, selectSearchTerm } from '../store/simPresStore.jsx'
+import { useSimPres, selectLeavesEnriched, selectActiveStaff, selectCurrentUserRole, addActivityLog, selectUnitName, selectActiveUnitId, selectCanSwitchUnit, selectIsAllUnits, ALL_UNITS, selectSearchTerm, hasPermission } from '../store/simPresStore.jsx'
 import { initialsOf } from '../store/simPresStore.jsx'
 import { selectLeavesByStatus, selectPendingLeaves, selectApprovedLeaves, selectRejectedLeaves } from '../store/simPresStore.jsx'
 import LeaveRequestModal from '../components/LeaveRequestModal.jsx'
@@ -63,6 +63,7 @@ function PengajuanIzinCutiPage() {
   const currentUserRole = selectCurrentUserRole(state)
   const currentUser = state.currentUser
   const isSuperadmin = currentUserRole === 'Superadmin'
+  const canApproveLeave = isSuperadmin || hasPermission(state, currentUserRole, 'pengajuanIzinCuti', 'edit')
   const canSwitchUnit = isSuperadmin
   const userUnitId = selectActiveUnitId(state)
   // Unit terpilih (store utama) menggantikan filter unit lokal.
@@ -236,7 +237,13 @@ function PengajuanIzinCutiPage() {
   }
 
   const handleViewAttachment = (leave) => {
-    // In real app, this would open the file. For now, show detail modal with attachment tab.
+    // Buka bukti surat/lampiran yang dilampirkan. Jika lampiran berupa URL/data,
+    // buka di tab baru; selain itu tampilkan detail modal dengan tab lampiran.
+    const lampiran = leave?.lampiran
+    if (lampiran && /^(https?:|data:|blob:)/i.test(String(lampiran))) {
+      window.open(String(lampiran), '_blank', 'noopener,noreferrer')
+      return
+    }
     setDetailLeave(leave)
     setIsDetailOpen(true)
   }
@@ -521,9 +528,9 @@ function PengajuanIzinCutiPage() {
                     <th className="py-2.5 px-2.5 w-[12%]">Jenis</th>
                     <th className="py-2.5 px-2.5 w-[13%]">Periode</th>
                     <th className="py-2.5 px-2.5 text-center w-[7%]">Durasi</th>
-                    <th className="py-2.5 px-2.5 text-center w-[11%]">Lampiran</th>
-                    <th className="py-2.5 px-2.5 text-center w-[8%]">Status</th>
-                    <th className="py-2.5 px-2.5 text-right w-[10%]">Aksi</th>
+                    <th className="py-2.5 px-2.5 text-center w-[12%]">Lampiran</th>
+                    <th className="py-2.5 px-2.5 text-center w-[9%]">Status</th>
+                    <th className="py-2.5 px-2.5 text-right w-[12%]">Aksi</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/60 text-xs">
@@ -568,8 +575,8 @@ function PengajuanIzinCutiPage() {
                         </span>
                       </td>
                       <td className="py-2.5 px-2.5 text-right pr-3">
-                        {row.status === 'Menunggu' ? (
-                          <div className="flex items-center justify-end gap-2">
+                        {row.status === 'Menunggu' && canApproveLeave ? (
+                          <div className="flex flex-wrap items-center justify-end gap-1.5">
                             <button onClick={() => handleApprove(row.id)} className="h-7 w-7 rounded-md bg-emerald-600 text-white hover:bg-emerald-700 transition-colors flex items-center justify-center shadow-xs cursor-pointer flex-shrink-0" type="button" title="Setujui">
                               <span className="material-symbols-outlined text-[15px]">check</span>
                             </button>
@@ -581,7 +588,7 @@ function PengajuanIzinCutiPage() {
                             </button>
                           </div>
                         ) : (
-                          <div className="flex items-center justify-end">
+                          <div className="flex flex-wrap items-center justify-end gap-1.5">
                             <button onClick={() => handleDetail(row)} className="h-7 w-7 rounded-md bg-card hover:bg-muted text-foreground border border-border flex items-center justify-center transition-colors cursor-pointer flex-shrink-0" type="button" title="Detail">
                               <span className="material-symbols-outlined text-[16px]">visibility</span>
                             </button>

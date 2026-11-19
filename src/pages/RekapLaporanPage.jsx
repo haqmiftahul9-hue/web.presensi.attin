@@ -3429,7 +3429,13 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
                           {row.lampiran && row.lampiran !== '-' ? (
                             <button
                               type="button"
-                              onClick={() => { setSelectedLeave(row); setShowLeaveDetail(true); }}
+                              onClick={() => {
+                                if (/^(https?:|data:|blob:)/i.test(String(row.lampiran))) {
+                                  window.open(String(row.lampiran), '_blank', 'noopener,noreferrer')
+                                } else {
+                                  setSelectedLeave(row); setShowLeaveDetail(true)
+                                }
+                              }}
                               className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-secondary hover:bg-secondary/80 text-secondary-foreground border border-border/50 transition-colors text-[11px] font-medium cursor-pointer max-w-[110px] mx-auto"
                               title={row.lampiran}
                             >

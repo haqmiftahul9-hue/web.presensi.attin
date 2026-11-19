@@ -133,11 +133,11 @@ function LeaveDetailModal({ isOpen, onClose, leave }) {
                 </div>
               </div>
               <div className="flex gap-2.5">
-                <button className="flex-1 h-9 px-4 rounded-lg bg-primary text-primary-foreground font-semibold text-xs shadow-xs hover:bg-primary/90 transition-colors flex items-center justify-center gap-1.5 cursor-pointer" type="button">
+                <button onClick={() => { if (leave?.lampiran) window.open(String(leave.lampiran), '_blank', 'noopener,noreferrer') }} className="flex-1 h-9 px-4 rounded-lg bg-primary text-primary-foreground font-semibold text-xs shadow-xs hover:bg-primary/90 transition-colors flex items-center justify-center gap-1.5 cursor-pointer" type="button">
                   <span className="material-symbols-outlined text-[16px]">visibility</span>
                   <span>Lihat Lampiran</span>
                 </button>
-                <button className="flex-1 h-9 px-4 rounded-lg border border-border bg-card hover:bg-muted text-foreground font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer" type="button">
+                <button onClick={() => { if (leave?.lampiran) { const a = document.createElement('a'); a.href = String(leave.lampiran); a.download = String(leave.lampiran); document.body.appendChild(a); a.click(); a.remove() } }} className="flex-1 h-9 px-4 rounded-lg border border-border bg-card hover:bg-muted text-foreground font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer" type="button">
                   <span className="material-symbols-outlined text-[16px]">download</span>
                   <span>Unduh</span>
                 </button>
