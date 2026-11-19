@@ -135,7 +135,7 @@ export const PERMISSION_MATRIX = {
     dataGuruPegawai: [],
     cetakKartuId: [],
     presensi: ['view'],
-    rekapLaporan: ['view'],
+    rekapLaporan: [],
     rankingKehadiran: [],
     pengajuanIzinCuti: ['view', 'edit'],
     logAktivitas: [],
@@ -442,6 +442,8 @@ export const ROUTE_ROLES = {
   '/cetak-kartu-id': [ROLE_SUPERADMIN, ROLE_ADMIN_UNIT],
   '/presensi-manual': [ROLE_SUPERADMIN, ROLE_ADMIN_UNIT],
   '/edit-presensi': [ROLE_SUPERADMIN, ROLE_ADMIN_UNIT],
+  '/presensi-scan': [ROLE_SUPERADMIN, ROLE_ADMIN_UNIT, ROLE_PETUGAS_PRESENSI],
+  '/rekap-dan-laporan': [ROLE_SUPERADMIN, ROLE_ADMIN_UNIT, ROLE_PETUGAS_PRESENSI],
   // Seluruh prefix /mobile dapat diakses oleh semua role terdaftar
   '/mobile': [ROLE_GURU, ROLE_KEPALA_SEKOLAH, ROLE_ADMIN_UNIT, ROLE_SUPERADMIN, ROLE_PETUGAS_PRESENSI],
   '/mobile/persetujuan-izin': [ROLE_KEPALA_SEKOLAH, ROLE_ADMIN_UNIT, ROLE_SUPERADMIN],
@@ -474,7 +476,8 @@ export function roleBolehPath(path, role) {
 
 /** Mode aplikasi untuk role tertentu. */
 export function appModeOfRole(role) {
-  return ROLE_APP_MODE[role] || MODE_DESKTOP
+  const normRole = normalisasiRole(role)
+  return ROLE_APP_MODE[normRole] || MODE_DESKTOP
 }
 
 // Kandidat beranda per role, diurut dari yang paling relevan. Alur login
@@ -1881,10 +1884,11 @@ export function selectAppMode(state) {
   return appModeOfRole(selectCurrentUserRole(state))
 }
 
-/** Halaman beranda sesuai mode: mobile untuk Guru, desktop untuk role portal. */
+/** Halaman beranda sesuai mode: mobile untuk Guru/Kepala Sekolah/Admin Unit di mobile, desktop untuk Superadmin/Petugas. */
 export function selectAppHomePath(state) {
   const role = selectCurrentUserRole(state)
-  return ROLE_HOME_PATH[role] || ROLE_HOME_PATH[ROLE_ADMIN_UNIT]
+  const normRole = normalisasiRole(role)
+  return ROLE_HOME_PATH[normRole] || ROLE_HOME_PATH[ROLE_ADMIN_UNIT]
 }
 
 // Halaman terminal saat tak ada halaman yang boleh dibuka role ini (mis.
@@ -1908,22 +1912,34 @@ export function resolvePostLoginPath(state, user, requestedPath) {
     return ROLE_HOME_PATH[ROLE_SUPERADMIN] || '/superadmin'
   }
 
-  if (requestedPath && allowed(requestedPath)) return requestedPath
+  // Deteksi perangkat mobile secara komprehensif (lebar layar, pointer sentuh, user-agent HP, atau rute mobile)
+  const isMobileClient = typeof window !== 'undefined' && (
+    (Number.isFinite(window.innerWidth) && window.innerWidth <= 768) ||
+    String(window.location?.pathname || '').startsWith('/mobile') ||
+    (typeof navigator !== 'undefined' && /android|iphone|ipod|windows phone|blackberry|\bmobi\b/i.test(navigator.userAgent || '')) ||
+    (typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches && Number.isFinite(window.innerWidth) && window.innerWidth < 1024)
+  )
 
-  // Jika diakses dari perangkat mobile atau URL modul mobile.
-  // Hanya role dengan mode aplikasi mobile (Guru/Kepala Sekolah/Admin Unit) yang diarahkan
-  // ke /mobile/home. Role portal desktop tetap ke beranda desktop-nya.
-  const isMobileClient = typeof window !== 'undefined' && (window.innerWidth <= 768 || window.location.pathname.startsWith('/mobile'))
-  if (isMobileClient && appModeOfRole(role) === MODE_MOBILE && allowed('/mobile/home')) {
-    return '/mobile/home'
+  // Jika diakses dari perangkat mobile atau URL modul mobile:
+  // Role dengan mode aplikasi mobile (Guru, Kepala Sekolah, Admin Unit) HARUS masuk ke tampilan mobile (/mobile/home).
+  // Jangan biarkan terlempar ke rute portal desktop (seperti /dashboard) saat login di HP/mobile.
+  if (isMobileClient && appModeOfRole(normRole) === MODE_MOBILE) {
+    if (requestedPath && String(requestedPath).startsWith('/mobile') && allowed(requestedPath)) {
+      return requestedPath
+    }
+    if (allowed('/mobile/home')) {
+      return '/mobile/home'
+    }
   }
 
-  const candidates = ROLE_HOME_CANDIDATES[role] || []
+  if (requestedPath && allowed(requestedPath)) return requestedPath
+
+  const candidates = ROLE_HOME_CANDIDATES[normRole] || []
   const lolos = candidates.find(allowed)
   // Beranda role tetap dipakai kalau kebetulan boleh dibuka; kalau tidak, jatuh
   // ke halaman akses-terbuka — bukan ke path yang akan ditolak lagi.
   if (lolos) return lolos
-  return allowed(ROLE_HOME_PATH[role]) ? ROLE_HOME_PATH[role] : ACCESS_DENIED_PATH
+  return allowed(ROLE_HOME_PATH[normRole]) ? ROLE_HOME_PATH[normRole] : ACCESS_DENIED_PATH
 }
 
 /**
@@ -3424,7 +3440,7 @@ export function selectCurrentUser(state) {
 // yang selalu divalidasi terhadap role pengguna.
 
 export function selectCurrentUserRole(state) {
-  return state.currentUser?.role || ROLE_GURU
+  return normalisasiRole(state.currentUser?.role) || ROLE_GURU
 }
 
 // Role yang boleh mengganti kata sandinya sendiri dari menu pengguna.

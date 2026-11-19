@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { useSimPres, selectCurrentUser, selectCurrentUserRole, selectActiveUnitLabel, selectIsAllUnits } from '../store/simPresStore.jsx'
+import { Link } from 'react-router-dom'
+import { useSimPres, selectCurrentUser, selectCurrentUserRole, selectActiveUnitLabel, selectIsAllUnits, appModeOfRole, MODE_MOBILE } from '../store/simPresStore.jsx'
 import Header from '../components/Header.jsx'
 import StatCards from '../components-dashboard/StatCards.jsx'
 import WeeklyTrend from '../components-dashboard/WeeklyTrend.jsx'
@@ -78,6 +79,30 @@ function DashboardPage() {
             </div>
           </div>
         </div>
+
+        {/* Banner Kembali ke Mobile jika dibuka oleh user dengan basis mobile (Kepala Sekolah, Admin Unit) */}
+        {appModeOfRole(currentRole) === MODE_MOBILE && (
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 px-4 rounded-xl bg-primary/10 border border-primary/20 text-primary shadow-2xs">
+            <div className="flex items-center gap-2.5">
+              <span className="material-symbols-outlined text-[22px] shrink-0">desktop_windows</span>
+              <div className="flex flex-col">
+                <span className="text-xs sm:text-sm font-semibold">
+                  Mode Portal Desktop Penuh ({currentRole})
+                </span>
+                <span className="text-[11px] text-muted-foreground">
+                  Halaman desktop khusus {currentRole}: monitoring presensi & persetujuan izin/cuti.
+                </span>
+              </div>
+            </div>
+            <Link
+              to="/mobile/home"
+              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 transition-all shadow-2xs shrink-0"
+            >
+              <span className="material-symbols-outlined text-[16px]">smartphone</span>
+              <span>Kembali ke Tampilan Mobile</span>
+            </Link>
+          </div>
+        )}
 
         {/* Metric KPI Cards */}
         <StatCards />

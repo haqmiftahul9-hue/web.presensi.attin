@@ -36,10 +36,12 @@ globalThis.window = {
 
 const superadminAccount = initialState.adminUsers.find(u => normalisasiRole(u.role) === ROLE_SUPERADMIN)
 const adminUnitAccount = initialState.adminUsers.find(u => normalisasiRole(u.role) === ROLE_ADMIN_UNIT)
+const kepsekAccount = initialState.adminUsers.find(u => normalisasiRole(u.role) === ROLE_KEPALA_SEKOLAH)
 const guruAccount = initialState.userAccounts.find(u => normalisasiRole(u.role) === ROLE_GURU)
 
 assert.ok(superadminAccount, 'Akun superadmin harus ada')
 assert.ok(adminUnitAccount, 'Akun admin unit harus ada')
+assert.ok(kepsekAccount, 'Akun kepala sekolah harus ada')
 assert.ok(guruAccount, 'Akun guru harus ada')
 
 console.log('--- 1. Login Superadmin di Mobile ---')
@@ -63,22 +65,38 @@ const pathD = resolvePostLoginPath(initialState, superadminAccount, '/data-guru-
 assert.equal(pathD, '/data-guru-dan-pegawai', 'Superadmin membuka rute portal desktop harus diizinkan')
 console.log('✅ LULUS: Superadmin membuka rute portal desktop langsung diizinkan')
 
-console.log('\n--- 2. Login Akun User & Admin Unit di Mobile ---')
-// Skenario E: Admin Unit login di mobile -> harus masuk ke halaman mobile (/mobile/home)
+console.log('\n--- 2. Login Akun Kepala Sekolah, Admin Unit, & User di Mobile ---')
+// Skenario E1: Kepala Sekolah login di mobile tanpa requestedPath -> harus masuk ke /mobile/home
+const pathKepsekMobile = resolvePostLoginPath(initialState, kepsekAccount, null)
+assert.equal(pathKepsekMobile, '/mobile/home', 'Kepala Sekolah di mobile harus masuk ke /mobile/home')
+console.log('✅ LULUS: Kepala Sekolah login di mobile langsung masuk ke tampilan mobile (/mobile/home)')
+
+// Skenario E2: Kepala Sekolah login di mobile ketika requestedPath adalah rute desktop (/dashboard) -> HARUS tetap masuk ke /mobile/home
+const pathKepsekFromDesktop = resolvePostLoginPath(initialState, kepsekAccount, '/dashboard')
+assert.equal(pathKepsekFromDesktop, '/mobile/home', 'Kepala Sekolah di mobile walau dari /dashboard harus tetap masuk ke /mobile/home')
+console.log('✅ LULUS: Kepala Sekolah login di mobile walau requestedPath /dashboard tetap masuk ke tampilan mobile (/mobile/home)')
+
+// Skenario E3: Kepala Sekolah login di mobile dengan requestedPath rute mobile (/mobile/persetujuan-izin) -> masuk ke rute mobile tersebut
+const pathKepsekMobileSub = resolvePostLoginPath(initialState, kepsekAccount, '/mobile/persetujuan-izin')
+assert.equal(pathKepsekMobileSub, '/mobile/persetujuan-izin', 'Kepala Sekolah dengan requestedPath mobile harus diizinkan')
+console.log('✅ LULUS: Kepala Sekolah login di mobile menuju rute mobile (/mobile/persetujuan-izin) diarahkan dengan benar')
+
+// Skenario F: Admin Unit login di mobile -> harus masuk ke halaman mobile (/mobile/home)
 const pathAdminMobile = resolvePostLoginPath(initialState, adminUnitAccount, null)
 assert.equal(pathAdminMobile, '/mobile/home', 'Admin Unit di mobile harus masuk ke /mobile/home')
 console.log('✅ LULUS: Admin Unit login di mobile tetap menampilkan halaman mobile (/mobile/home)')
 
-// Skenario F: Guru/User biasa login di mobile -> harus masuk ke halaman mobile (/mobile/home)
+// Skenario G: Guru/User biasa login di mobile -> harus masuk ke halaman mobile (/mobile/home)
 const pathGuruMobile = resolvePostLoginPath(initialState, guruAccount, null)
 assert.equal(pathGuruMobile, '/mobile/home', 'User Guru di mobile harus masuk ke /mobile/home')
 console.log('✅ LULUS: User Guru login di mobile tetap menampilkan halaman mobile (/mobile/home)')
 
 console.log('\n--- 3. Verifikasi selectAppHomePath ---')
 assert.equal(selectAppHomePath({ ...initialState, currentUser: superadminAccount }), '/superadmin')
+assert.equal(selectAppHomePath({ ...initialState, currentUser: kepsekAccount }), '/mobile/home')
 assert.equal(selectAppHomePath({ ...initialState, currentUser: adminUnitAccount }), '/mobile/home')
 assert.equal(selectAppHomePath({ ...initialState, currentUser: guruAccount }), '/mobile/home')
-console.log('✅ LULUS: selectAppHomePath akurat untuk Superadmin (/superadmin), Admin Unit (/mobile/home), dan Guru (/mobile/home)')
+console.log('✅ LULUS: selectAppHomePath akurat untuk Superadmin (/superadmin), Kepala Sekolah (/mobile/home), Admin Unit (/mobile/home), dan Guru (/mobile/home)')
 
 console.log('\n================================================================================')
 console.log('🎉 SEMUA PENGUJIAN LOGIKA LOGIN SUPERADMIN DI MOBILE LULUS SEMPURNA!')

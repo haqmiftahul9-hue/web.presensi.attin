@@ -4,6 +4,8 @@ import {
   useSimPres, selectCurrentUser, selectCurrentUserRole, hasMenuPermission,
   selectCanSwitchUnit, selectActiveUnitId, selectActiveUnitLabel, selectUnitOptionsById, ALL_UNITS,
   selectCanChangeOwnPassword, performLogout, selectAppHomePath, ROLE_SUPERADMIN,
+  ROLE_ADMIN_UNIT, ROLE_PETUGAS_PRESENSI, ROLE_KEPALA_SEKOLAH, selectSelfStaff,
+  appModeOfRole, MODE_MOBILE,
 } from '../store/simPresStore.jsx'
 import ConfirmDialog from '../components/ConfirmDialog.jsx'
 
@@ -25,7 +27,7 @@ const navItems = [
   { path: '/data-guru-dan-pegawai', label: 'Data Guru/Pegawai', icon: 'badge', activePath: '/data-guru-dan-pegawai', menuKey: 'dataGuruPegawai' },
   { path: '/cetak-kartu-id', label: 'Cetak Kartu ID', icon: 'contact_page', activePath: '/cetak-kartu-id', menuKey: 'cetakKartuId' },
   { path: '/presensi', label: 'Presensi', icon: 'timer', activePath: '/presensi', menuKey: 'presensi' },
-  { path: '/rekap-dan-laporan', label: 'Rekap & Laporan', icon: 'summarize', activePath: '/rekap-dan-laporan', menuKey: 'rekapLaporan' },
+  { path: '/rekap-dan-laporan', label: 'Rekap & Laporan', icon: 'summarize', activePath: '/rekap-dan-laporan', menuKey: 'rekapLaporan', allowedRoles: [ROLE_SUPERADMIN, ROLE_ADMIN_UNIT, ROLE_PETUGAS_PRESENSI] },
   { path: '/ranking-kehadiran', label: 'Ranking Kehadiran', icon: 'leaderboard', activePath: '/ranking-kehadiran', menuKey: 'rankingKehadiran' },
   { path: '/pengajuan-izin-dan-cuti', label: 'Pengajuan Izin/Cuti', icon: 'event_available', activePath: '/pengajuan-izin-dan-cuti', menuKey: 'pengajuanIzinCuti' },
   { path: '/log-aktivitas', label: 'Log Aktivitas', icon: 'history', activePath: '/log-aktivitas', menuKey: 'logAktivitas' },
@@ -35,6 +37,7 @@ const navItems = [
 const roleMap = {
   Superadmin: { roleBg: 'bg-purple-50', roleText: 'text-purple-700', roleDot: 'bg-purple-600', unitIcon: 'account_balance' },
   'Admin Unit': { roleBg: 'bg-blue-50', roleText: 'text-secondary', roleDot: 'bg-secondary', unitIcon: 'school' },
+  'Kepala Sekolah': { roleBg: 'bg-violet-50', roleText: 'text-violet-700', roleDot: 'bg-violet-600', unitIcon: 'school' },
   Guru: { roleBg: 'bg-slate-100', roleText: 'text-slate-700', roleDot: 'bg-slate-500', unitIcon: 'school' },
   'Petugas Presensi': { roleBg: 'bg-teal-50', roleText: 'text-teal-700', roleDot: 'bg-teal-600', unitIcon: 'school' },
 }
@@ -136,9 +139,13 @@ function UserMenu() {
   const navigate = useNavigate()
   const currentUser = selectCurrentUser(state)
   const currentRole = selectCurrentUserRole(state)
+  const selfStaff = selectSelfStaff(state)
   const canChangePassword = selectCanChangeOwnPassword(state)
   const isSuperadmin = currentRole === ROLE_SUPERADMIN
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
+
+  const displayName = currentUser?.name || selfStaff?.name || (currentRole === ROLE_SUPERADMIN ? 'Superadmin' : currentRole)
+  const displayIdentifier = currentUser?.username || currentUser?.niy || currentUser?.email || selfStaff?.niy || selfStaff?.email || (currentRole === ROLE_SUPERADMIN ? 'superadmin@simpres.sch.id' : '-')
 
   const confirmLogout = () => {
     setShowLogoutConfirm(false)
@@ -146,11 +153,19 @@ function UserMenu() {
     navigate('/login', { replace: true })
   }
 
+  const goToProfile = () => {
+    if (appModeOfRole(currentRole) === MODE_MOBILE) {
+      navigate('/mobile/profil')
+    } else {
+      navigate('/data-guru-dan-pegawai')
+    }
+  }
+
   const menuItems = []
   if (!isSuperadmin) {
-    menuItems.push({ key: 'profil', label: 'Profil Saya', icon: 'account_circle', onSelect: () => navigate('/profil-saya') })
+    menuItems.push({ key: 'profil', label: 'Profil Saya', icon: 'account_circle', onSelect: goToProfile })
     if (canChangePassword) {
-      menuItems.push({ key: 'ganti-sandi', label: 'Ganti Password', icon: 'lock_reset', onSelect: () => navigate('/profil-saya?ganti-sandi=1') })
+      menuItems.push({ key: 'ganti-sandi', label: 'Ganti Password', icon: 'lock_reset', onSelect: () => dispatch({ type: 'REQUEST_PASSWORD_CHANGE' }) })
     }
   }
 
@@ -173,10 +188,10 @@ function UserMenu() {
           <>
             Apakah Anda yakin ingin keluar dari akun ini?
             <span className="mt-1.5 block font-semibold text-foreground">
-              {currentUser?.name || 'Superadmin Pusat'}
+              {displayName}
               <span className="text-muted-foreground font-normal">
                 {' '}
-                &middot; {currentUser?.email || currentUser?.username || '-'}
+                &middot; {displayIdentifier}
               </span>
             </span>
           </>
@@ -203,17 +218,39 @@ function DashboardNav({ open = false, onTutup } = {}) {
   const { state } = useSimPres()
   const currentUser = selectCurrentUser(state)
   const currentRole = selectCurrentUserRole(state)
-  const berandaPath = selectAppHomePath(state)
+  const selfStaff = selectSelfStaff(state)
+  const berandaPath = currentRole === ROLE_SUPERADMIN ? '/superadmin' : '/dashboard'
   const visibleItems = navItems
-    .filter((item) => hasMenuPermission(state, item.menuKey))
-    .map((item) => (item.path === 'BERANDA' ? { ...item, path: berandaPath, activePath: berandaPath } : item))
+    .filter((item) => {
+      if (!hasMenuPermission(state, item.menuKey)) return false
+      if (item.allowedRoles && !item.allowedRoles.includes(currentRole)) return false
+      return true
+    })
+    .map((item) => {
+      const path = item.path === 'BERANDA' ? berandaPath : item.path
+      let label = item.label
+      if (currentRole === ROLE_KEPALA_SEKOLAH) {
+        if (item.path === '/presensi') label = 'Monitoring Presensi'
+        if (item.path === '/pengajuan-izin-dan-cuti') label = 'Persetujuan Izin/Cuti'
+      }
+      return {
+        ...item,
+        path,
+        activePath: path,
+        label,
+      }
+    })
+
   const roleMap = {
-    Superadmin: { roleBg: 'bg-purple-950/80 border border-purple-800/60', roleText: 'text-purple-300', roleDot: 'bg-purple-400' },
-    'Admin Unit': { roleBg: 'bg-blue-950/80 border border-blue-800/60', roleText: 'text-blue-300', roleDot: 'bg-blue-400' },
-    Guru: { roleBg: 'bg-slate-800 border border-slate-700', roleText: 'text-slate-300', roleDot: 'bg-slate-400' },
-    'Petugas Presensi': { roleBg: 'bg-teal-950/80 border border-teal-800/60', roleText: 'text-teal-300', roleDot: 'bg-teal-400' },
+    Superadmin: { roleBg: 'bg-purple-950/80 border border-purple-800/60', roleText: 'text-purple-300', roleDot: 'bg-purple-400', icon: 'shield_person', avatarBg: 'bg-purple-700 text-white' },
+    'Admin Unit': { roleBg: 'bg-blue-950/80 border border-blue-800/60', roleText: 'text-blue-300', roleDot: 'bg-blue-400', icon: 'admin_panel_settings', avatarBg: 'bg-blue-700 text-white' },
+    'Kepala Sekolah': { roleBg: 'bg-violet-950/80 border border-violet-800/60', roleText: 'text-violet-300', roleDot: 'bg-violet-400', icon: 'school', avatarBg: 'bg-violet-700 text-white' },
+    Guru: { roleBg: 'bg-sidebar-accent border border-sidebar-border', roleText: 'text-sidebar-accent-foreground', roleDot: 'bg-sidebar-ring', icon: 'person', avatarBg: 'bg-primary text-primary-foreground' },
+    'Petugas Presensi': { roleBg: 'bg-teal-950/80 border border-teal-800/60', roleText: 'text-teal-300', roleDot: 'bg-teal-400', icon: 'qr_code_scanner', avatarBg: 'bg-teal-700 text-white' },
   }
-  const r = roleMap[currentRole] || roleMap.Guru
+  const r = roleMap[currentRole] || roleMap['Kepala Sekolah'] || roleMap.Guru
+  const displayName = currentUser?.name || selfStaff?.name || (currentRole === ROLE_SUPERADMIN ? 'Superadmin' : currentRole)
+  const displayIdentifier = currentUser?.username || currentUser?.niy || currentUser?.email || selfStaff?.niy || selfStaff?.email || (currentRole === ROLE_SUPERADMIN ? 'superadmin@simpres.sch.id' : '-')
 
   return (
     <aside
@@ -267,22 +304,35 @@ function DashboardNav({ open = false, onTutup } = {}) {
             </NavLink>
           ))}
         </nav>
+
+        {appModeOfRole(currentRole) === MODE_MOBILE && (
+          <div className="px-2.5 pt-3 pb-1 border-t border-sidebar-border/60 mt-2">
+            <NavLink
+              to="/mobile/home"
+              onClick={onTutup}
+              className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 transition-all shadow-2xs"
+            >
+              <span className="material-symbols-outlined text-[19px] shrink-0">smartphone</span>
+              <span className="truncate">Kembali ke Tampilan Mobile</span>
+            </NavLink>
+          </div>
+        )}
       </div>
 
       <div className="p-3 border-t border-sidebar-border/80 bg-sidebar">
         <div className="flex items-center gap-2.5 p-2 rounded-xl bg-sidebar-accent/50 border border-sidebar-border shadow-2xs">
-          <div className="w-9 h-9 rounded-lg bg-primary text-primary-foreground flex items-center justify-center shrink-0 font-bold text-xs shadow-2xs">
-            <span className="material-symbols-outlined text-[18px]">shield_person</span>
+          <div className={`w-9 h-9 rounded-lg ${r.avatarBg || 'bg-primary text-primary-foreground'} flex items-center justify-center shrink-0 font-bold text-xs shadow-2xs`}>
+            <span className="material-symbols-outlined text-[18px]">{r.icon || 'person'}</span>
           </div>
           <div className="flex flex-col min-w-0 flex-1">
-            <span className="text-xs font-semibold text-sidebar-foreground truncate" title={currentUser?.name || ''}>
-              {currentUser?.name || 'Superadmin'}
+            <span className="text-xs font-semibold text-sidebar-foreground truncate" title={displayName}>
+              {displayName}
             </span>
-            <span className="text-[11px] text-sidebar-foreground/60 truncate" title={currentUser?.email || ''}>
-              {currentUser?.username || currentUser?.niy || currentUser?.email || 'superadmin@simpres.sch.id'}
+            <span className="text-[11px] text-sidebar-foreground/60 truncate" title={displayIdentifier}>
+              {displayIdentifier}
             </span>
-            <span className="mt-1 self-start inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium leading-none bg-sidebar-accent text-sidebar-accent-foreground border border-sidebar-border/60">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+            <span className={`mt-1 self-start inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium leading-none ${r.roleBg} ${r.roleText}`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${r.roleDot}`} />
               {currentRole}
             </span>
           </div>
