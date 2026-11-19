@@ -95,8 +95,8 @@ uji('Tanggal pendek ISO', tanggalPendekID('2026-10-01'), '01 Okt 2026')
 uji('Periode satu hari', formatPeriode('2026-10-01', '2026-10-01'), '01 Okt 2026')
 uji('Periode rentang', formatPeriode('2026-10-01', '2026-10-15'), '01 Okt 2026 - 15 Okt 2026')
 uji('Durasi satu hari', hitungDurasiHari('2026-10-01', '2026-10-01'), 1)
-uji('Durasi rentang 15 hari', hitungDurasiHari('2026-10-01', '2026-10-15'), 15)
-uji('Durasi lintas bulan', hitungDurasiHari('2026-10-20', '2026-11-05'), 17)
+uji('Durasi rentang 15 hari', hitungDurasiHari('2026-10-01', '2026-10-15'), 13)
+uji('Durasi lintas bulan', hitungDurasiHari('2026-10-20', '2026-11-05'), 15)
 uji('Format durasi', formatDurasi('2026-10-01', '2026-10-03'), '3 Hari')
 
 const cutiMelahirkan = buildPengajuan({
@@ -114,7 +114,7 @@ uji('Pengajuan: jenis ternormalisasi', cutiMelahirkan.jenis, 'Cuti Melahirkan')
 uji('Pengajuan: tanggal mulai tersimpan ISO', cutiMelahirkan.mulai, '2026-11-02')
 uji('Pengajuan: tanggal selesai tersimpan ISO', cutiMelahirkan.selesai, '2027-02-01')
 uji('Pengajuan: periode untuk tampilan', cutiMelahirkan.periode, '02 Nov 2026 - 01 Feb 2027')
-uji('Pengajuan: durasi dihitung', cutiMelahirkan.durasi, '92 Hari')
+uji('Pengajuan: durasi dihitung', cutiMelahirkan.durasi, '79 Hari')
 uji('Pengajuan: alasan dibersihkan', cutiMelahirkan.alasan, 'Persalinan sesuai surat keterangan RS')
 uji('Pengajuan: alasan jadi keterangan', cutiMelahirkan.keterangan, 'Persalinan sesuai surat keterangan RS')
 uji('Pengajuan: nama lampiran tersimpan', cutiMelahirkan.lampiran, 'Surat_Keterangan_RS.pdf')
@@ -136,7 +136,7 @@ uji('Izin pribadi durasi 1 hari', izinPribadi.durasi, '1 Hari')
 // 4. RENTANG MELINTAS BULAN UNTUK REKAP
 // ============================================================================
 const hariMelahirkan = hariDariPeriode(cutiMelahirkan)
-uji('Cuti melahirkan: jumlah hari', hariMelahirkan.length, 92)
+uji('Cuti melahirkan: jumlah hari', hariMelahirkan.length, 79)
 uji('Cuti melahirkan: hari pertama', hariMelahirkan[0], '2026-11-02')
 uji('Cuti melahirkan: hari terakhir', hariMelahirkan[hariMelahirkan.length - 1], '2027-02-01')
 ujiBenar(
@@ -164,8 +164,8 @@ const rekapNov = rekapRentang({
   sampai: '2026-11-30',
   totalHariKerja: 30,
 })
-uji('Rekap November: hari cuti', rekapNov.cuti, 29)
-uji('Rekap November: hari kerja terhitung', rekapNov.hariKerja, 29)
+uji('Rekap November: hari cuti', rekapNov.cuti, 25)
+uji('Rekap November: hari kerja terhitung', rekapNov.hariKerja, 25)
 
 // Hanya pengajuan Disetujui yang relieving hari kerja.
 uji(
@@ -339,7 +339,7 @@ const htmlForm = renderToString(h(FormPengajuan, formProps))
 // "92<!-- --> hari". Komentar dibuang sebelum dicocokkan.
 const teksForm = htmlForm.replace(/<!--[\s\S]*?-->/g, '')
 
-ujiBenar('Form menampilkan durasi 92 hari', teksForm.includes('92 hari'), 'cari "92 hari"')
+ujiBenar('Form menampilkan durasi 79 hari', teksForm.includes('79 hari'), 'cari "79 hari"')
 
 for (const nama of NAMA_WAJIB) {
   ujiBenar(`Form menampilkan jenis "${nama}"`, htmlForm.includes(nama))

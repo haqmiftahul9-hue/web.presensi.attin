@@ -513,7 +513,7 @@ function PengajuanIzinCutiPage() {
           {/* Table Container */}
           <div className="bg-card rounded-xl border border-border shadow-xs overflow-hidden">
             <div className="sp-table-wrap">
-              <table className="w-full text-left table-fixed">
+              <table className="w-full text-left table-fixed min-w-[760px]">
                 <thead className="bg-muted border-b border-border text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
                   <tr>
                     <th className="py-2.5 px-3.5 w-[28%]">Pegawai</th>

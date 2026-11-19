@@ -290,7 +290,7 @@ export function hariDariPeriode(item) {
   // tak terbatas bila data rusak.
   let guard = 0
   while (sekarang <= akhir && guard < 400) {
-    hasil.push(isoDariDate(sekarang))
+    if (sekarang.getDay() !== 0) hasil.push(isoDariDate(sekarang))
     sekarang.setDate(sekarang.getDate() + 1)
     guard += 1
   }
