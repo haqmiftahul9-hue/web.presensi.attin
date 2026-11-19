@@ -27,8 +27,8 @@ function ChipFilter({ label, aktif, onClick }) {
       aria-pressed={aktif}
       className={`shrink-0 px-3.5 py-2 rounded-full font-label-md text-label-md transition-all ${
         aktif
-          ? 'bg-[#323d8f] text-white shadow-xs font-semibold'
-          : 'bg-[#f3f5fc] border border-[#e0e6f2] text-[#20243a] hover:bg-[#eef0fc]'
+          ? 'bg-primary text-white shadow-xs font-semibold'
+          : 'bg-[#f3f5fc] border border-primary-border text-[#20243a] hover:bg-primary-soft'
       }`}
     >
       {label}
@@ -79,20 +79,20 @@ function KartuHari({ tanggal, masuk, pulang, lateMinutes, status, metode, titikL
             sendiri — karena itu label memakai `break-words`: kalau tidak, teksnya
             keluar dari kotaknya dan menabrak kotak sebelah. */}
         <div className="grid grid-cols-3 gap-2">
-          <div className="rounded-xl bg-[#f3f5fc] border border-[#e0e6f2] px-3 py-2.5 flex flex-col gap-1 min-w-0">
-            <span className="font-label-sm text-label-sm text-[#77819a] font-medium break-words">Masuk</span>
+          <div className="rounded-xl bg-[#f3f5fc] border border-primary-border px-3 py-2.5 flex flex-col gap-1 min-w-0">
+            <span className="font-label-sm text-label-sm text-primary-muted font-medium break-words">Masuk</span>
             <span className="font-body-md-medium text-body-md-medium text-[#20243a] font-semibold tabular-nums">
               {masuk ? jamPendek(masuk) : '--:--'}
             </span>
           </div>
-          <div className="rounded-xl bg-[#f3f5fc] border border-[#e0e6f2] px-3 py-2.5 flex flex-col gap-1 min-w-0">
-            <span className="font-label-sm text-label-sm text-[#77819a] font-medium break-words">Pulang</span>
+          <div className="rounded-xl bg-[#f3f5fc] border border-primary-border px-3 py-2.5 flex flex-col gap-1 min-w-0">
+            <span className="font-label-sm text-label-sm text-primary-muted font-medium break-words">Pulang</span>
             <span className="font-body-md-medium text-body-md-medium text-[#20243a] font-semibold tabular-nums">
               {pulang ? jamPendek(pulang) : '--:--'}
             </span>
           </div>
-          <div className="rounded-xl bg-[#f3f5fc] border border-[#e0e6f2] px-3 py-2.5 flex flex-col gap-1 min-w-0">
-            <span className="font-label-sm text-label-sm text-[#77819a] font-medium break-words">Keterlambatan</span>
+          <div className="rounded-xl bg-[#f3f5fc] border border-primary-border px-3 py-2.5 flex flex-col gap-1 min-w-0">
+            <span className="font-label-sm text-label-sm text-primary-muted font-medium break-words">Keterlambatan</span>
             <span className={`font-body-md-medium text-body-md-medium font-semibold tabular-nums truncate ${lateMinutes > 0 ? 'text-amber-700' : 'text-[#20243a]'}`}>
               {lateMinutes} menit
             </span>
@@ -108,7 +108,7 @@ function KartuHari({ tanggal, masuk, pulang, lateMinutes, status, metode, titikL
             type="button"
             onClick={() => setTerbuka((v) => !v)}
             aria-expanded={terbuka}
-            className="font-label-sm text-label-sm text-[#323d8f] hover:text-[#242d6b] font-medium flex items-center gap-1 shrink-0 px-3 py-2 -mr-1.5 rounded-lg"
+            className="font-label-sm text-label-sm text-primary hover:text-primary-strong font-medium flex items-center gap-1 shrink-0 px-3 py-2 -mr-1.5 rounded-lg"
           >
             Detail presensi
             <Icon name={terbuka ? 'expand_less' : 'expand_more'} className="text-[14px]" />
@@ -169,15 +169,15 @@ function FilterPeriode({ mode, form, daftarTahun, tahunBerjalan, onUbahMode, onU
     <section className="sp-card p-4 flex flex-col gap-3.5">
       <div className="sp-card-head">
         <div className="flex items-center gap-2 min-w-0">
-          <span className="w-8 h-8 rounded-xl bg-[#323d8f]/10 border border-[#323d8f]/15 flex items-center justify-center shrink-0">
-            <Icon name="calendar_month" className="text-[#323d8f] text-[18px]" />
+          <span className="w-8 h-8 rounded-xl bg-primary/10 border border-primary/15 flex items-center justify-center shrink-0">
+            <Icon name="calendar_month" className="text-primary text-[18px]" />
           </span>
           <span className="font-headline-sm text-headline-sm text-slate-900 font-bold tracking-tight truncate">Periode Presensi</span>
         </div>
       </div>
 
       {/* Pemilih mode: Bulanan atau Rentang Tanggal. */}
-      <div className="grid grid-cols-2 gap-1.5 p-1 rounded-2xl bg-[#f3f5fc] border border-[#e0e6f2]">
+      <div className="grid grid-cols-2 gap-1.5 p-1 rounded-2xl bg-[#f3f5fc] border border-primary-border">
         {[
           { nilai: MODE_BULANAN, label: 'Bulanan', ikon: 'calendar_month' },
           { nilai: MODE_RENTANG, label: 'Rentang Tanggal', ikon: 'date_range' },
@@ -189,8 +189,8 @@ function FilterPeriode({ mode, form, daftarTahun, tahunBerjalan, onUbahMode, onU
             aria-pressed={mode === opsi.nilai}
             className={`flex items-center justify-center gap-1.5 min-h-[44px] px-3 py-2.5 rounded-xl font-label-md text-label-md transition-all ${
               mode === opsi.nilai
-                ? 'bg-[#323d8f] text-white shadow-xs font-semibold'
-                : 'text-[#77819a] hover:text-[#20243a]'
+                ? 'bg-primary text-white shadow-xs font-semibold'
+                : 'text-primary-muted hover:text-[#20243a]'
             }`}
           >
             <Icon name={opsi.ikon} className="text-[16px] shrink-0" />
@@ -254,7 +254,7 @@ function FilterPeriode({ mode, form, daftarTahun, tahunBerjalan, onUbahMode, onU
         type="button"
         onClick={onTampilkan}
         disabled={!rentangValid}
-        className="sp-btn w-full py-3 bg-[#323d8f] hover:bg-[#252e6d] text-white font-label-lg text-label-lg font-semibold flex items-center justify-center gap-2 shadow-sm rounded-xl transition-all active:scale-[0.98] disabled:opacity-40 disabled:active:scale-100"
+        className="sp-btn w-full py-3 bg-primary hover:bg-primary-strong text-white font-label-lg text-label-lg font-semibold flex items-center justify-center gap-2 shadow-sm rounded-xl transition-all active:scale-[0.98] disabled:opacity-40 disabled:active:scale-100"
       >
         <Icon name="search" className="text-[18px] shrink-0" />
         Tampilkan
@@ -440,25 +440,25 @@ function MobileRiwayatPage() {
       {/* Hero ringkas: periode aktif + ringkasan angka. Area ringkasan pakai
           permukaan soft blue agar terpisah dari filter putih di bawahnya. */}
       <section className="sp-hero sp-page-container pt-3.5 pb-3">
-        <div className="sp-card p-4 flex flex-col gap-3.5 border border-[#323d8f]/20 rounded-2xl" style={{ backgroundColor: '#eef0fc' }}>
+        <div className="sp-card p-4 flex flex-col gap-3.5 border border-primary/20 rounded-2xl" style={{ backgroundColor: 'var(--primary-soft)' }}>
           <div className="flex items-center gap-3">
             <StaffAvatar staff={staff} size="w-12 h-12" textClass="font-headline-sm text-headline-sm font-bold text-white" ring="ring-2 ring-white/60" className="shadow-xs" />
             <div className="flex flex-col min-w-0">
-              <span className="font-label-sm text-label-sm text-[#77819a] font-medium">Riwayat Kehadiran</span>
+              <span className="font-label-sm text-label-sm text-primary-muted font-medium">Riwayat Kehadiran</span>
               <h1 className="font-headline-sm text-headline-sm text-[#20243a] font-bold tracking-tight truncate">{labelPeriodeAktif}</h1>
             </div>
           </div>
 
           <div className="grid grid-cols-4 gap-2 pt-2">
             {[
-              { label: 'Hadir', nilai: rekap.hadir, tone: 'text-[#323d8f]' },
+              { label: 'Hadir', nilai: rekap.hadir, tone: 'text-primary' },
               { label: 'Tepat', nilai: rekap.tepatWaktu, tone: 'text-emerald-600' },
               { label: 'Terlambat', nilai: rekap.terlambat, tone: 'text-amber-600' },
-              { label: 'Izin/Cuti', nilai: rekap.izin + rekap.cuti, tone: 'text-[#323d8f]' },
+              { label: 'Izin/Cuti', nilai: rekap.izin + rekap.cuti, tone: 'text-primary' },
             ].map((item) => (
-              <div key={item.label} className="rounded-xl bg-[#ffffff] border border-[#dfe5f2] p-3 flex flex-col items-center gap-0.5 min-w-0">
+              <div key={item.label} className="rounded-xl bg-[#ffffff] border border-primary-soft p-3 flex flex-col items-center gap-0.5 min-w-0">
                 <span className={`font-display-lg-mobile text-[22px] font-bold leading-none ${item.tone}`}>{item.nilai}</span>
-                <span className="font-label-sm text-[11px] text-[#77819a] text-center font-medium mt-0.5">{item.label}</span>
+                <span className="font-label-sm text-[11px] text-primary-muted text-center font-medium mt-0.5">{item.label}</span>
               </div>
             ))}
           </div>

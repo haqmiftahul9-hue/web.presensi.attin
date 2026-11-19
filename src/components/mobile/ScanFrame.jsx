@@ -36,7 +36,7 @@ function ScanLine({ vertical = false }) {
 function CameraLayer({ videoRef, cameraAktif, children, rounded = 'rounded-full' }) {
   return (
     <div className={`relative w-full h-full overflow-hidden bg-primary ${rounded} flex items-center justify-center`}>
-      <div className="absolute inset-0 bg-gradient-to-br from-[#181d48] via-[#252e6d] to-[#323d8f]" />
+      <div className="absolute inset-0 bg-gradient-to-br from-primary-strong via-primary-strong to-primary" />
       <video
         ref={videoRef}
         autoPlay
@@ -57,7 +57,7 @@ function FaceFrame({ videoRef, cameraAktif, initials, captured, faceStatus = 'id
 
   return (
     <div
-      className={`relative w-56 h-56 rounded-full p-2 bg-gradient-to-b from-[#181d48] via-[#252e6d] to-[#323d8f]/40 shadow-inner flex items-center justify-center transition-all duration-300 ${
+      className={`relative w-56 h-56 rounded-full p-2 bg-gradient-to-b from-primary-strong via-primary-strong to-primary/40 shadow-inner flex items-center justify-center transition-all duration-300 ${
         focusing
           ? 'ring-2 ring-amber-400 shadow-amber-400/30'
           : isMismatch
@@ -143,7 +143,7 @@ function FaceFrame({ videoRef, cameraAktif, initials, captured, faceStatus = 'id
         </span>
       )}
       {!focusing && !isMatch && !isMismatch && faceDetected && (
-        <span className="absolute -bottom-2 inset-x-0 mx-auto w-fit px-2.5 py-0.5 rounded-full bg-[#323d8f] text-white font-label-sm text-[11px] font-medium shadow-sm flex items-center gap-1 z-10">
+        <span className="absolute -bottom-2 inset-x-0 mx-auto w-fit px-2.5 py-0.5 rounded-full bg-primary text-white font-label-sm text-[11px] font-medium shadow-sm flex items-center gap-1 z-10">
           <Icon name="face" className="text-[13px]" />
           Wajah Terdeteksi
         </span>

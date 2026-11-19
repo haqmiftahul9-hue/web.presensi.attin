@@ -26,7 +26,7 @@ const QUICK_MENU = [
     judul: 'Presensi Sekarang',
     sub: 'Wajah / barcode',
     ikon: 'scan_face',
-    kartu: 'bg-[#eef0fc] dark:bg-slate-800 text-[#323d8f] dark:text-indigo-300',
+    kartu: 'bg-primary-soft dark:bg-slate-800 text-primary dark:text-indigo-300',
     utama: true,
   },
   {
@@ -34,35 +34,35 @@ const QUICK_MENU = [
     judul: 'Riwayat Presensi',
     sub: 'Rekap harian & bulanan',
     ikon: 'calendar_month',
-    kartu: 'bg-[#eef0fc] dark:bg-slate-800 text-[#323d8f] dark:text-indigo-300',
+    kartu: 'bg-primary-soft dark:bg-slate-800 text-primary dark:text-indigo-300',
   },
   {
     to: '/mobile/izin-cuti',
     judul: 'Pengajuan Izin/Cuti',
     sub: 'Ajukan & pantau status',
     ikon: 'event_available',
-    kartu: 'bg-[#eef0fc] dark:bg-slate-800 text-[#323d8f] dark:text-indigo-300',
+    kartu: 'bg-primary-soft dark:bg-slate-800 text-primary dark:text-indigo-300',
   },
   {
     to: '/mobile/slip',
     judul: 'Slip Kehadiran',
     sub: 'Cetak bukti hadir',
     ikon: 'receipt_long',
-    kartu: 'bg-[#eef0fc] dark:bg-slate-800 text-[#323d8f] dark:text-indigo-300',
+    kartu: 'bg-primary-soft dark:bg-slate-800 text-primary dark:text-indigo-300',
   },
   {
     to: '/mobile/kartu-id',
     judul: 'Kartu ID',
     sub: 'Pratinjau & unduh kartu PVC',
     ikon: 'contact_page',
-    kartu: 'bg-[#eef0fc] dark:bg-slate-800 text-[#323d8f] dark:text-indigo-300',
+    kartu: 'bg-primary-soft dark:bg-slate-800 text-primary dark:text-indigo-300',
   },
   {
     to: '/mobile/qr',
     judul: 'QR Presensi',
     sub: 'Kode untuk scan & identifikasi',
     ikon: 'qr_code_scanner',
-    kartu: 'bg-[#eef0fc] dark:bg-slate-800 text-[#323d8f] dark:text-indigo-300',
+    kartu: 'bg-primary-soft dark:bg-slate-800 text-primary dark:text-indigo-300',
   },
 ]
 
@@ -251,7 +251,7 @@ function MobileBerandaPage() {
       : { kelas: 'bg-emerald-400 text-emerald-950 border border-emerald-300 font-bold', ikon: 'task_alt', label: 'Tepat Waktu' }
   const badgePulang = presensi.sudahPulang
     ? { kelas: 'bg-emerald-50 text-emerald-700 border border-emerald-200/80', ikon: 'task_alt', label: 'Sudah Absen' }
-    : { kelas: 'bg-[#f3f5fc] text-[#77819a] border border-[#e0e6f2]', ikon: 'hourglass_empty', label: 'Belum Presensi' }
+    : { kelas: 'bg-[#f3f5fc] text-primary-muted border border-primary-border', ikon: 'hourglass_empty', label: 'Belum Presensi' }
 
   return (
     <div className="sp-page pb-2">
@@ -261,14 +261,14 @@ function MobileBerandaPage() {
           Nama pegawai sendiri hanya muncul sekali, di baris `staff.name`.
           Sapaannya dipisah supaya kata "Ustadz" tidak mengulang nama. */}
       <section className="sp-page-container pt-3.5 pb-1">
-        <div className="sp-card bg-[#eef0fc] dark:bg-slate-850 p-4 flex flex-col gap-3.5 border border-[#d9dff5] dark:border-slate-700/80 shadow-sm rounded-2xl">
+        <div className="sp-card bg-primary-soft dark:bg-slate-850 p-4 flex flex-col gap-3.5 border border-primary-soft dark:border-slate-700/80 shadow-sm rounded-2xl">
           <div className="flex items-center gap-3.5">
             <div className="relative shrink-0">
               <StaffAvatar
                 staff={staff}
                 size="w-14 h-14"
                 textClass="font-headline-sm text-headline-sm font-bold text-white"
-                ring="ring-2 ring-[#eef0fc]"
+                ring="ring-2 ring-primary-soft"
                 className="shadow-xs"
               />
               <span
@@ -283,10 +283,10 @@ function MobileBerandaPage() {
               {roleSalutation ? (
                 <>
                   {/* Sapaan Kepala Sekolah atau Admin di masing-masing unit */}
-                  <span className="font-label-sm text-label-sm text-[#77819a] dark:text-slate-400 font-medium leading-none">
+                  <span className="font-label-sm text-label-sm text-primary-muted dark:text-slate-400 font-medium leading-none">
                     Halo,
                   </span>
-                  <span className="font-label-sm text-label-sm text-[#323d8f] dark:text-indigo-300 font-bold leading-tight mt-0.5 truncate">
+                  <span className="font-label-sm text-label-sm text-primary dark:text-indigo-300 font-bold leading-tight mt-0.5 truncate">
                     {roleSalutation}
                   </span>
                   {/* Di bawah sapaan: Nama kepala sekolah atau admin tersebut beserta gelarnya */}
@@ -300,7 +300,7 @@ function MobileBerandaPage() {
               ) : (
                 <>
                   {/* Sapaan dinamis pegawai/guru */}
-                  <span className="font-label-sm text-label-sm text-[#77819a] dark:text-slate-400 font-medium">
+                  <span className="font-label-sm text-label-sm text-primary-muted dark:text-slate-400 font-medium">
                     Halo, {getEmployeeSalutation(staff, { unit })}
                   </span>
                   {/* Nama lengkap — sudah memuat gelar, jadi gelar tidak ditulis lagi */}
@@ -324,13 +324,13 @@ function MobileBerandaPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 pt-1 border-t border-[#e0e6f2]/80">
-            <div className="flex items-center gap-2 rounded-xl bg-[#ffffff] dark:bg-slate-800 border border-[#d9dff5] dark:border-slate-700 px-2.5 py-2 min-w-0">
-              <Icon name="badge" className="text-[15px] text-[#323d8f] dark:text-indigo-400 shrink-0" />
+          <div className="grid grid-cols-2 gap-2 pt-1 border-t border-primary-border/80">
+            <div className="flex items-center gap-2 rounded-xl bg-[#ffffff] dark:bg-slate-800 border border-primary-soft dark:border-slate-700 px-2.5 py-2 min-w-0">
+              <Icon name="badge" className="text-[15px] text-primary dark:text-indigo-400 shrink-0" />
               <span className="font-label-sm text-label-sm text-[#20243a] dark:text-slate-200 font-medium truncate">NIY {staff.niy}</span>
             </div>
-            <div className="flex items-center gap-2 rounded-xl bg-[#ffffff] dark:bg-slate-800 border border-[#d9dff5] dark:border-slate-700 px-2.5 py-2 min-w-0">
-              <Icon name="domain" className="text-[15px] text-[#323d8f] dark:text-indigo-400 shrink-0" />
+            <div className="flex items-center gap-2 rounded-xl bg-[#ffffff] dark:bg-slate-800 border border-primary-soft dark:border-slate-700 px-2.5 py-2 min-w-0">
+              <Icon name="domain" className="text-[15px] text-primary dark:text-indigo-400 shrink-0" />
               <span className="font-label-sm text-label-sm text-[#20243a] dark:text-slate-200 font-medium truncate">{unit?.nama || '-'}</span>
             </div>
           </div>
@@ -338,7 +338,7 @@ function MobileBerandaPage() {
       </section>
 
       <div className="px-4 relative z-[2] flex flex-col gap-4">
-        {/* 2. KARTU UTAMA PRESENSI — focal card dengan background solid #323D8F. */}
+        {/* 2. KARTU UTAMA PRESENSI — focal card dengan background solid var(--primary). */}
         <section className="sp-hero-card sp-rise">
           <div className="relative z-[1] flex flex-col gap-3.5">
             <div className="flex items-start justify-between gap-2">
@@ -368,8 +368,8 @@ function MobileBerandaPage() {
               <span className="font-headline-sm text-headline-sm font-semibold text-blue-200/90 pb-1">{zonaWaktu}</span>
             </div>
 
-            {/* Status kehadiran: subcard dengan warna biru sedikit lebih terang (#4652A1) */}
-            <div className="flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-2xl bg-[#4652A1] border border-white/15 shadow-2xs">
+            {/* Status kehadiran: subcard dengan warna biru sedikit lebih terang (var(--primary)) */}
+            <div className="flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-2xl bg-primary border border-white/15 shadow-2xs">
               <span className="flex items-center gap-2 font-label-md text-label-md text-white font-medium min-w-0">
                 <Icon name="task_alt" className="text-[16px] shrink-0 text-emerald-300" />
                 <span className="truncate">
@@ -382,13 +382,13 @@ function MobileBerandaPage() {
               </span>
             </div>
 
-            {/* Batas jam masuk hari ini + lokasi GPS: subcard #4652A1 */}
+            {/* Batas jam masuk hari ini + lokasi GPS: subcard var(--primary) */}
             <div className="grid grid-cols-2 gap-2.5">
-              <div className="rounded-2xl bg-[#4652A1] border border-white/15 px-3.5 py-3 flex flex-col gap-1 shadow-2xs">
+              <div className="rounded-2xl bg-primary border border-white/15 px-3.5 py-3 flex flex-col gap-1 shadow-2xs">
                 <span className="font-label-sm text-label-sm text-blue-200/90 text-[11px] font-medium">Batas masuk</span>
                 <span className="font-headline-sm text-headline-sm text-white font-bold tabular-nums">{presensi.batasMasuk}</span>
               </div>
-              <div className="rounded-2xl bg-[#4652A1] border border-white/15 px-3.5 py-3 flex flex-col gap-1 shadow-2xs">
+              <div className="rounded-2xl bg-primary border border-white/15 px-3.5 py-3 flex flex-col gap-1 shadow-2xs">
                 <span className="font-label-sm text-label-sm text-blue-200/90 text-[11px] font-medium">Lokasi</span>
                 <span className="font-headline-sm text-headline-sm text-white font-bold flex items-center gap-1 truncate">
                   <Icon name="my_location" className="text-[15px] shrink-0 text-blue-200" />
@@ -397,35 +397,35 @@ function MobileBerandaPage() {
               </div>
             </div>
 
-            {/* Tombol aksi utama berwarna putih dengan teks #323D8F */}
+            {/* Tombol aksi utama berwarna putih dengan teks var(--primary) */}
             <Link
               to="/mobile/presensi"
-              className="sp-btn w-full mt-1 py-3 bg-white hover:bg-blue-50 text-[#323d8f] font-headline-sm text-sm font-bold flex items-center justify-center gap-2 rounded-xl shadow-md shadow-black/10 transition-all active:scale-[0.98]"
+              className="sp-btn w-full mt-1 py-3 bg-white hover:bg-blue-50 text-primary font-headline-sm text-sm font-bold flex items-center justify-center gap-2 rounded-xl shadow-md shadow-black/10 transition-all active:scale-[0.98]"
             >
-              <Icon name="face_retouch_natural" className="text-[18px] text-[#323d8f]" />
+              <Icon name="face_retouch_natural" className="text-[18px] text-primary" />
               <span>{presensi.sudahMasuk ? (presensi.sudahPulang ? 'Lihat Presensi Hari Ini' : 'Ambil Presensi Pulang') : 'Ambil Presensi Sekarang'}</span>
             </Link>
           </div>
         </section>
 
         {/* 4. RINGKASAN: jam masuk & jam pulang tercatat hari ini. */}
-        <section className="sp-card p-4 flex flex-col gap-3.5 sp-rise sp-rise-2 border border-[#e0e6f2] dark:border-slate-700">
+        <section className="sp-card p-4 flex flex-col gap-3.5 sp-rise sp-rise-2 border border-primary-border dark:border-slate-700">
           <div className="sp-card-head">
             <div className="flex items-center gap-2 min-w-0">
-              <span className="w-8 h-8 rounded-xl bg-[#eef0fc] dark:bg-slate-800 border border-[#323d8f]/15 dark:border-slate-700 flex items-center justify-center shrink-0 shadow-2xs">
-                <Icon name="summarize" className="text-[18px] text-[#323d8f] dark:text-indigo-400" />
+              <span className="w-8 h-8 rounded-xl bg-primary-soft dark:bg-slate-800 border border-primary/15 dark:border-slate-700 flex items-center justify-center shrink-0 shadow-2xs">
+                <Icon name="summarize" className="text-[18px] text-primary dark:text-indigo-400" />
               </span>
               <span className="font-headline-sm text-headline-sm text-[#20243a] dark:text-white font-bold tracking-tight truncate">Ringkasan Presensi</span>
             </div>
-            <Link to="/mobile/riwayat" className="font-label-sm text-label-sm text-[#323d8f] dark:text-indigo-400 hover:text-[#283273] dark:hover:text-indigo-300 font-semibold flex items-center gap-0.5 shrink-0 py-1">
+            <Link to="/mobile/riwayat" className="font-label-sm text-label-sm text-primary dark:text-indigo-400 hover:text-primary-strong dark:hover:text-indigo-300 font-semibold flex items-center gap-0.5 shrink-0 py-1">
               Riwayat
               <Icon name="chevron_right" className="text-[14px]" />
             </Link>
           </div>
 
           <div className="grid grid-cols-2 gap-2.5">
-            <div className="rounded-2xl bg-[#f3f5fc] dark:bg-slate-800/80 border border-[#e0e6f2] dark:border-slate-700 p-3.5 flex flex-col gap-1.5 min-w-0">
-              <span className="font-label-sm text-label-sm text-[#77819a] dark:text-slate-400 font-medium flex items-center gap-1.5">
+            <div className="rounded-2xl bg-[#f3f5fc] dark:bg-slate-800/80 border border-primary-border dark:border-slate-700 p-3.5 flex flex-col gap-1.5 min-w-0">
+              <span className="font-label-sm text-label-sm text-primary-muted dark:text-slate-400 font-medium flex items-center gap-1.5">
                 <span className="w-5 h-5 rounded-md bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
                   <Icon name="login" className="text-[13px] shrink-0" />
                 </span>
@@ -434,13 +434,13 @@ function MobileBerandaPage() {
               <span className="font-display-lg-mobile text-[22px] leading-none font-bold text-[#20243a] dark:text-white tabular-nums">
                 {jamMasukTerpakai}
               </span>
-              <span className="font-label-sm text-label-sm text-[#77819a] dark:text-slate-400 leading-snug">
+              <span className="font-label-sm text-label-sm text-primary-muted dark:text-slate-400 leading-snug">
                 {presensi.sudahMasuk ? `${statusMasukRingkas(presensi)} ${zonaWaktu}` : `Batas ${presensi.batasMasuk} ${zonaWaktu}`}
               </span>
             </div>
-            <div className="rounded-2xl bg-[#f3f5fc] dark:bg-slate-800/80 border border-[#e0e6f2] dark:border-slate-700 p-3.5 flex flex-col gap-1.5 min-w-0">
-              <span className="font-label-sm text-label-sm text-[#77819a] dark:text-slate-400 font-medium flex items-center gap-1.5">
-                <span className="w-5 h-5 rounded-md bg-[#eef0fc] text-[#323d8f] flex items-center justify-center">
+            <div className="rounded-2xl bg-[#f3f5fc] dark:bg-slate-800/80 border border-primary-border dark:border-slate-700 p-3.5 flex flex-col gap-1.5 min-w-0">
+              <span className="font-label-sm text-label-sm text-primary-muted dark:text-slate-400 font-medium flex items-center gap-1.5">
+                <span className="w-5 h-5 rounded-md bg-primary-soft text-primary flex items-center justify-center">
                   <Icon name="logout" className="text-[13px] shrink-0" />
                 </span>
                 Jam Pulang
@@ -448,7 +448,7 @@ function MobileBerandaPage() {
               <span className="font-display-lg-mobile text-[22px] leading-none font-bold text-[#20243a] dark:text-white tabular-nums">
                 {jamPulangTerpakai}
               </span>
-              <span className="font-label-sm text-label-sm text-[#77819a] dark:text-slate-400 leading-snug">
+              <span className="font-label-sm text-label-sm text-primary-muted dark:text-slate-400 leading-snug">
                 {presensi.sudahPulang
                   ? `Absen ${zonaWaktu}`
                   : rules.pulangBebas
@@ -458,9 +458,9 @@ function MobileBerandaPage() {
             </div>
           </div>
 
-          <div className="flex items-center justify-between gap-2.5 px-3.5 py-3 rounded-2xl bg-[#f3f5fc] dark:bg-slate-800/80 border border-[#e0e6f2] dark:border-slate-700">
-            <span className="flex items-center gap-1.5 font-label-sm text-label-sm text-[#77819a] dark:text-slate-400 min-w-0 font-medium">
-              <Icon name={badgePulang.ikon} className="text-[14px] shrink-0 text-[#77819a] dark:text-slate-400" />
+          <div className="flex items-center justify-between gap-2.5 px-3.5 py-3 rounded-2xl bg-[#f3f5fc] dark:bg-slate-800/80 border border-primary-border dark:border-slate-700">
+            <span className="flex items-center gap-1.5 font-label-sm text-label-sm text-primary-muted dark:text-slate-400 min-w-0 font-medium">
+              <Icon name={badgePulang.ikon} className="text-[14px] shrink-0 text-primary-muted dark:text-slate-400" />
               <span className="truncate">
                 {presensi.sudahPulang
                   ? 'Absen pulang tercatat'
@@ -491,8 +491,8 @@ function MobileBerandaPage() {
 
         {/* 5. CARD MENU KHUSUS KEPALA SEKOLAH / ADMIN UNIT (BERADA TEPAT DI ATAS MENU CEPAT) */}
         {isLeaderOrAdmin && adminQuickMenuItems.length > 0 && (
-          <section className="sp-card p-4 flex flex-col gap-3.5 sp-rise sp-rise-2 border border-[#dce3f5] dark:border-slate-700 bg-gradient-to-br from-white to-[#f4f7fd] dark:from-slate-850 dark:to-slate-900 dark:bg-slate-850 shadow-xs">
-            <div className="flex items-center justify-between pb-2 border-b border-[#e2e8f5] dark:border-slate-700">
+          <section className="sp-card p-4 flex flex-col gap-3.5 sp-rise sp-rise-2 border border-primary-soft dark:border-slate-700 bg-gradient-to-br from-white to-primary-soft dark:from-slate-850 dark:to-slate-900 dark:bg-slate-850 shadow-xs">
+            <div className="flex items-center justify-between pb-2 border-b border-primary-soft dark:border-slate-700">
               <div className="flex items-center gap-2.5 min-w-0">
                 <span className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-xs ${
                   isKepsek ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
@@ -500,10 +500,10 @@ function MobileBerandaPage() {
                   <Icon name={isKepsek ? 'school' : 'admin_panel_settings'} className="text-[20px]" />
                 </span>
                 <div className="flex flex-col min-w-0">
-                  <span className="font-headline-sm text-sm font-bold text-[#1f253d] dark:text-white truncate">
+                  <span className="font-headline-sm text-sm font-bold text-primary-strong dark:text-white truncate">
                     {isKepsek ? 'Menu Manajemen Kepala Sekolah' : isAdminUnit ? 'Menu Operasional Admin Unit' : 'Fitur Khusus Pimpinan & Admin'}
                   </span>
-                  <span className="text-[11px] text-[#5e6987] dark:text-slate-400 truncate">
+                  <span className="text-[11px] text-primary-muted dark:text-slate-400 truncate">
                     Khusus Penugasan Unit {unit?.nama || 'Sekolah'}
                   </span>
                 </div>

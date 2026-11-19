@@ -122,7 +122,7 @@ export default function MobileAdminPresensiManualPage() {
         <div className="flex items-center gap-2 mb-2">
           <Link
             to="/mobile/home"
-            className="w-8 h-8 rounded-xl bg-white border border-[#e0e6f2] flex items-center justify-center text-[#323d8f] shadow-2xs active:scale-95"
+            className="w-8 h-8 rounded-xl bg-white border border-primary-border flex items-center justify-center text-primary shadow-2xs active:scale-95"
           >
             <Icon name="arrow_back" className="text-[18px]" />
           </Link>
@@ -130,7 +130,7 @@ export default function MobileAdminPresensiManualPage() {
             <h1 className="font-headline-sm text-headline-sm text-[#20243a] font-bold tracking-tight truncate">
               Input Presensi Manual
             </h1>
-            <span className="font-label-sm text-label-sm text-[#77819a] truncate">
+            <span className="font-label-sm text-label-sm text-primary-muted truncate">
               Catat presensi staf yang berhalangan menggunakan HP
             </span>
           </div>
@@ -138,7 +138,7 @@ export default function MobileAdminPresensiManualPage() {
       </section>
 
       <div className="px-4">
-        <form onSubmit={handleSubmit} className="rounded-2xl bg-white border border-[#e0e6f2] p-4 shadow-sm flex flex-col gap-4">
+        <form onSubmit={handleSubmit} className="rounded-2xl bg-white border border-primary-border p-4 shadow-sm flex flex-col gap-4">
           {pesan && (
             <div
               className={`p-3 rounded-xl border text-xs font-medium flex items-center gap-2 ${
@@ -160,7 +160,7 @@ export default function MobileAdminPresensiManualPage() {
             <select
               value={selectedStaffId}
               onChange={(e) => setSelectedStaffId(e.target.value)}
-              className="w-full h-10 px-3 rounded-xl bg-[#f8fafc] border border-[#e0e6f2] text-xs text-[#20243a] focus:outline-none focus:border-[#323d8f] focus:ring-2 focus:ring-[#323d8f]/20 shadow-2xs"
+              className="w-full h-10 px-3 rounded-xl bg-[#f8fafc] border border-primary-border text-xs text-[#20243a] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 shadow-2xs"
               required
             >
               <option value="">-- Pilih Pegawai --</option>
@@ -179,7 +179,7 @@ export default function MobileAdminPresensiManualPage() {
               type="date"
               value={tanggal}
               onChange={(e) => setTanggal(e.target.value)}
-              className="w-full h-10 px-3 rounded-xl bg-[#f8fafc] border border-[#e0e6f2] text-xs text-[#20243a] focus:outline-none focus:border-[#323d8f] shadow-2xs"
+              className="w-full h-10 px-3 rounded-xl bg-[#f8fafc] border border-primary-border text-xs text-[#20243a] focus:outline-none focus:border-primary shadow-2xs"
             />
           </div>
 
@@ -189,7 +189,7 @@ export default function MobileAdminPresensiManualPage() {
             <select
               value={statusKehadiran}
               onChange={(e) => setStatusKehadiran(e.target.value)}
-              className="w-full h-10 px-3 rounded-xl bg-[#f8fafc] border border-[#e0e6f2] text-xs text-[#20243a] focus:outline-none focus:border-[#323d8f] shadow-2xs"
+              className="w-full h-10 px-3 rounded-xl bg-[#f8fafc] border border-primary-border text-xs text-[#20243a] focus:outline-none focus:border-primary shadow-2xs"
             >
               <option value="Hadir">Hadir (Tepat Waktu)</option>
               <option value="Terlambat">Hadir Terlambat</option>
@@ -209,7 +209,7 @@ export default function MobileAdminPresensiManualPage() {
                 placeholder="07:15"
                 value={jamMasuk}
                 onChange={(e) => setJamMasuk(e.target.value)}
-                className="w-full h-10 px-3 rounded-xl bg-[#f8fafc] border border-[#e0e6f2] text-xs text-[#20243a] focus:outline-none focus:border-[#323d8f] shadow-2xs"
+                className="w-full h-10 px-3 rounded-xl bg-[#f8fafc] border border-primary-border text-xs text-[#20243a] focus:outline-none focus:border-primary shadow-2xs"
               />
             </div>
             <div className="flex flex-col gap-1.5">
@@ -219,7 +219,7 @@ export default function MobileAdminPresensiManualPage() {
                 placeholder="16:00 (opsional)"
                 value={jamPulang}
                 onChange={(e) => setJamPulang(e.target.value)}
-                className="w-full h-10 px-3 rounded-xl bg-[#f8fafc] border border-[#e0e6f2] text-xs text-[#20243a] focus:outline-none focus:border-[#323d8f] shadow-2xs"
+                className="w-full h-10 px-3 rounded-xl bg-[#f8fafc] border border-primary-border text-xs text-[#20243a] focus:outline-none focus:border-primary shadow-2xs"
               />
             </div>
           </div>
@@ -232,7 +232,7 @@ export default function MobileAdminPresensiManualPage() {
               placeholder="Contoh: Terkendala sinyal GPS / handphone rusak"
               value={keterangan}
               onChange={(e) => setKeterangan(e.target.value)}
-              className="w-full p-2.5 rounded-xl bg-[#f8fafc] border border-[#e0e6f2] text-xs text-[#20243a] focus:outline-none focus:border-[#323d8f] shadow-2xs resize-none"
+              className="w-full p-2.5 rounded-xl bg-[#f8fafc] border border-primary-border text-xs text-[#20243a] focus:outline-none focus:border-primary shadow-2xs resize-none"
             />
           </div>
 
@@ -240,7 +240,7 @@ export default function MobileAdminPresensiManualPage() {
           <button
             type="submit"
             disabled={busy}
-            className="w-full mt-2 py-3 rounded-xl bg-[#323d8f] hover:bg-[#283273] text-white font-label-md text-xs font-bold flex items-center justify-center gap-2 shadow-md active:scale-98 transition-all"
+            className="w-full mt-2 py-3 rounded-xl bg-primary hover:bg-primary-strong text-white font-label-md text-xs font-bold flex items-center justify-center gap-2 shadow-md active:scale-98 transition-all"
           >
             <Icon name="save" className="text-[18px]" />
             <span>{busy ? 'Menyimpan…' : 'Simpan Presensi Manual'}</span>

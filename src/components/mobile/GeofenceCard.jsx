@@ -29,7 +29,7 @@ function GeofenceCard({ geofence, namaTitik, koordinatTeks }) {
     // `gap-3.5` (14px) adalah jarak antar blok: badge status → radar →
     // baris koordinat. Baris koordinat memakai `border-t` + `pt-3`, jadi
     // jaraknya ke divider (12px) sama dengan jarak teks di bawahnya.
-    <section className="sp-card p-4 flex flex-col gap-3.5 border border-[#e0e6f2]">
+    <section className="sp-card p-4 flex flex-col gap-3.5 border border-primary-border">
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <div
           className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border min-w-0 ${
@@ -65,7 +65,7 @@ function GeofenceCard({ geofence, namaTitik, koordinatTeks }) {
 
       <div className="flex items-center gap-3">
         <svg viewBox="0 0 100 100" className="w-[92px] h-[92px] shrink-0" role="img" aria-label="Radar lokasi">
-          <circle cx="50" cy="50" r="46" fill="#eef2f8" />
+          <circle cx="50" cy="50" r="46" fill="var(--primary-soft)" />
           <circle cx="50" cy="50" r="30" fill="none" stroke={warna} strokeOpacity="0.18" strokeWidth="1" />
           <circle cx="50" cy="50" r="46" fill="none" stroke={warna} strokeOpacity="0.45" strokeWidth="1.5" strokeDasharray="4 4" />
           <line x1="50" y1="50" x2={50 + dx} y2={50 + dy} stroke={warna} strokeOpacity="0.6" strokeWidth="1" strokeDasharray="2 2" />
@@ -73,7 +73,7 @@ function GeofenceCard({ geofence, namaTitik, koordinatTeks }) {
           <circle cx="50" cy="50" r="4" fill={warna} />
           <circle cx="50" cy="50" r="8" fill={warna} fillOpacity="0.18" className={aktif ? 'animate-pulse' : ''} />
           {/* Titik perangkat pengguna. */}
-          <circle cx={50 + dx} cy={50 + dy} r="5" fill="#ffffff" stroke="#323d8f" strokeWidth="2.5" />
+          <circle cx={50 + dx} cy={50 + dy} r="5" fill="#ffffff" stroke="var(--primary)" strokeWidth="2.5" />
         </svg>
 
         <div className="flex flex-col gap-1.5 min-w-0 flex-1">

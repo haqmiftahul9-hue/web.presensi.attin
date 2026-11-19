@@ -21,9 +21,9 @@ import {
       navy di sisi kanan tanpa ada garis yang bertabrakan.
    2. Mobile (< lg): Mengadaptasi penuh UI/UX kartu "referensi halaman login 2.jpg":
       - Header banner atas dengan lengkungan organik bernuansa warna SIMPEG
-        (Royal Navy #323D8F) memuat logo resmi SIMPEG dan judul.
+        (Royal Navy var(--primary)) memuat logo resmi SIMPEG dan judul.
       - Kartu putih rounded-t-[32px] yang bertumpuk (-mt-4) memuat kolom input
-        bergaya soft pill (#F3F5FC), tombol pill rounded-full solid #323D8F,
+        bergaya soft pill (#F3F5FC), tombol pill rounded-full solid var(--primary),
         serta atribusi developer di bagian bawah.
    3. Bebas AI Slop, tipografi presisi, ramah jempol (min-h 48px, text-base iOS).
    4. Business logic auth, lockout 5 menit, dan session store utuh 100%.
@@ -208,7 +208,7 @@ function DesktopVisualShowcase() {
     <div className="relative w-full h-full flex flex-col justify-between p-8 xl:p-10 select-none">
       {/* 1. Header Identitas: Logo Diperbesar & Teks SIMPEG Murni */}
       <div className="relative z-20 flex items-center gap-3.5">
-        <div className="w-16 h-16 rounded-2xl bg-white border border-[#E0E6F2] dark:border-white/20 p-2 shadow-md flex items-center justify-center shrink-0">
+        <div className="w-16 h-16 rounded-2xl bg-white border border-primary-border dark:border-white/20 p-2 shadow-md flex items-center justify-center shrink-0">
           <img
             src="/icons/logo-simpeg.png"
             alt="Logo SIMPEG"
@@ -216,10 +216,10 @@ function DesktopVisualShowcase() {
           />
         </div>
         <div className="min-w-0">
-          <h2 className="text-2xl sm:text-[28px] font-black tracking-tight text-[#323D8F] dark:text-white leading-none">
+          <h2 className="text-2xl sm:text-[28px] font-black tracking-tight text-primary dark:text-white leading-none">
             SIMPEG
           </h2>
-          <p className="text-[10.5px] sm:text-[11px] font-medium text-[#77819A] dark:text-slate-300 leading-snug mt-1 max-w-[170px]">
+          <p className="text-[10.5px] sm:text-[11px] font-medium text-primary-muted dark:text-slate-300 leading-snug mt-1 max-w-[170px]">
             Sistem Informasi<br />Kepegawaian &amp; Presensi
           </p>
         </div>
@@ -229,16 +229,16 @@ function DesktopVisualShowcase() {
       <div className="relative z-10 flex items-center justify-center my-auto py-5">
         {/* Soft Organic Background Blob */}
         <div
-          className="absolute w-[290px] h-[250px] rounded-[44px] -rotate-2 pointer-events-none bg-gradient-to-br from-[#EEF0FC] via-[#E3E7FA] to-[#D8DFF8] dark:from-indigo-950/60 dark:via-slate-800/60 dark:to-indigo-900/40"
+          className="absolute w-[290px] h-[250px] rounded-[44px] -rotate-2 pointer-events-none bg-gradient-to-br from-primary-soft via-primary-soft to-primary-soft dark:from-indigo-950/60 dark:via-slate-800/60 dark:to-indigo-900/40"
         />
 
         {/* Ambient Floating Particle */}
         <div
-          className="absolute -top-2 left-6 w-9 h-9 rounded-full anim-simpeg-drift bg-white/85 dark:bg-slate-800/90 border border-[#E0E6F2]/90 dark:border-slate-700 shadow-md"
+          className="absolute -top-2 left-6 w-9 h-9 rounded-full anim-simpeg-drift bg-white/85 dark:bg-slate-800/90 border border-primary-border/90 dark:border-slate-700 shadow-md"
         />
 
         {/* Central Terminal Card */}
-        <div className="relative z-10 w-[235px] rounded-2xl bg-white dark:bg-slate-800/95 border border-[#DCE3F5] dark:border-slate-700 shadow-xl p-3.5 anim-simpeg-float">
+        <div className="relative z-10 w-[235px] rounded-2xl bg-white dark:bg-slate-800/95 border border-primary-soft dark:border-slate-700 shadow-xl p-3.5 anim-simpeg-float">
           {/* Top Status Bar */}
           <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-100 dark:border-slate-700/80">
             <div className="flex items-center gap-1.5">
@@ -246,28 +246,28 @@ function DesktopVisualShowcase() {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
               </span>
-              <span className="text-[10px] font-bold text-[#323D8F] dark:text-indigo-300">Terminal Presensi</span>
+              <span className="text-[10px] font-bold text-primary dark:text-indigo-300">Terminal Presensi</span>
             </div>
-            <span className="text-[9px] font-semibold text-[#77819A] dark:text-slate-400">Aktif</span>
+            <span className="text-[9px] font-semibold text-primary-muted dark:text-slate-400">Aktif</span>
           </div>
 
           {/* Biometric Viewfinder Area */}
           <div className="relative w-full h-[120px] rounded-xl bg-slate-900 overflow-hidden flex items-center justify-center border border-slate-800">
             {/* Viewfinder Target Frame */}
-              <div className="absolute inset-2.5 border border-[#323D8F]/30 rounded-lg pointer-events-none">
-                <div className="absolute -top-0.5 -left-0.5 w-2.5 h-2.5 border-t-2 border-l-2 border-[#323D8F]" />
-                <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 border-t-2 border-r-2 border-[#323D8F]" />
-                <div className="absolute -bottom-0.5 -left-0.5 w-2.5 h-2.5 border-b-2 border-l-2 border-[#323D8F]" />
-                <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 border-b-2 border-r-2 border-[#323D8F]" />
+              <div className="absolute inset-2.5 border border-primary/30 rounded-lg pointer-events-none">
+                <div className="absolute -top-0.5 -left-0.5 w-2.5 h-2.5 border-t-2 border-l-2 border-primary" />
+                <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 border-t-2 border-r-2 border-primary" />
+                <div className="absolute -bottom-0.5 -left-0.5 w-2.5 h-2.5 border-b-2 border-l-2 border-primary" />
+                <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 border-b-2 border-r-2 border-primary" />
             </div>
 
             {/* Scanning Beam */}
-            <div className="absolute left-2.5 right-2.5 top-2.5 h-[2px] bg-gradient-to-r from-transparent via-[#323D8F] to-transparent anim-simpeg-scan shadow-[0_0_8px_#323D8F]" />
+            <div className="absolute left-2.5 right-2.5 top-2.5 h-[2px] bg-gradient-to-r from-transparent via-primary to-transparent anim-simpeg-scan shadow-[0_0_8px_var(--primary)]" />
 
             {/* Silhouette & Biometric Face Landmarks */}
             <div className="relative flex flex-col items-center">
-              <div className="w-12 h-12 rounded-full border border-[#323D8F]/40 bg-[#323D8F]/25 flex items-center justify-center">
-                <span className="material-symbols-outlined text-[#323D8F] text-[24px]">
+              <div className="w-12 h-12 rounded-full border border-primary/40 bg-primary/25 flex items-center justify-center">
+                <span className="material-symbols-outlined text-primary text-[24px]">
                   face
                 </span>
               </div>
@@ -281,8 +281,8 @@ function DesktopVisualShowcase() {
           {/* Bottom Card Summary */}
           <div className="mt-2.5 pt-2 flex items-center justify-between">
             <div>
-              <p className="text-[8.5px] font-medium text-[#77819A] dark:text-slate-400">Jam Masuk Kerja</p>
-              <p className="text-xs font-bold text-[#323D8F] dark:text-indigo-300">07:10 WIB</p>
+              <p className="text-[8.5px] font-medium text-primary-muted dark:text-slate-400">Jam Masuk Kerja</p>
+              <p className="text-xs font-bold text-primary dark:text-indigo-300">07:10 WIB</p>
             </div>
             <span className="px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-[9px] font-bold border border-emerald-200 dark:border-emerald-800">
               Tepat Waktu
@@ -291,9 +291,9 @@ function DesktopVisualShowcase() {
         </div>
 
         {/* Floating Unit Integration Badge */}
-        <div className="absolute -bottom-2 left-6 z-20 bg-white dark:bg-slate-800 border border-[#E0E6F2] dark:border-slate-700 shadow-md rounded-xl px-3 py-1.5 flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-[#323D8F] dark:bg-indigo-400" />
-          <span className="text-[10px] font-bold text-[#323D8F] dark:text-indigo-300">
+        <div className="absolute -bottom-2 left-6 z-20 bg-white dark:bg-slate-800 border border-primary-border dark:border-slate-700 shadow-md rounded-xl px-3 py-1.5 flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-primary dark:bg-indigo-400" />
+          <span className="text-[10px] font-bold text-primary dark:text-indigo-300">
             Portal Terintegrasi Presensi Pegawai
           </span>
         </div>
@@ -303,7 +303,7 @@ function DesktopVisualShowcase() {
 }
 
 /* -------------------------------------------------------------------------- */
-/*  FORM LOGIN DESKTOP (SISI KANAN — SOLID BLUE #323D8F)                      */
+/*  FORM LOGIN DESKTOP (SISI KANAN — SOLID BLUE var(--primary))                      */
 /* -------------------------------------------------------------------------- */
 function DesktopLoginForm({
   isAuthenticating,
@@ -363,10 +363,10 @@ function DesktopLoginForm({
               aria-invalid={Boolean(fieldErrors.identifier)}
               className={[
                 'w-full h-11 px-3.5 rounded-xl text-sm text-white placeholder-white/45',
-                'bg-[#262F6F] border transition-all duration-200 outline-none',
+                'bg-primary-strong border transition-all duration-200 outline-none',
                 fieldErrors.identifier
                   ? 'border-red-400 focus:border-red-400 focus:ring-1 focus:ring-red-400'
-                  : 'border-white/20 focus:border-white focus:ring-2 focus:ring-white/25 focus:bg-[#1E2557]',
+                  : 'border-white/20 focus:border-white focus:ring-2 focus:ring-white/25 focus:bg-primary-strong',
               ].join(' ')}
             />
           </div>
@@ -403,10 +403,10 @@ function DesktopLoginForm({
               aria-invalid={Boolean(fieldErrors.password)}
               className={[
                 'w-full h-11 pl-3.5 pr-10 rounded-xl text-sm text-white placeholder-white/45',
-                'bg-[#262F6F] border transition-all duration-200 outline-none',
+                'bg-primary-strong border transition-all duration-200 outline-none',
                 fieldErrors.password
                   ? 'border-red-400 focus:border-red-400 focus:ring-1 focus:ring-red-400'
-                  : 'border-white/20 focus:border-white focus:ring-2 focus:ring-white/25 focus:bg-[#1E2557]',
+                  : 'border-white/20 focus:border-white focus:ring-2 focus:ring-white/25 focus:bg-primary-strong',
               ].join(' ')}
             />
             <button
@@ -436,7 +436,7 @@ function DesktopLoginForm({
               checked={remember}
               onChange={(e) => setRemember(e.target.checked)}
               disabled={isAuthenticating}
-              className="w-3.5 h-3.5 rounded border-white/30 bg-[#262F6F] text-[#323D8F] accent-white cursor-pointer"
+              className="w-3.5 h-3.5 rounded border-white/30 bg-primary-strong text-primary accent-white cursor-pointer"
             />
             <span>Ingat saya</span>
           </label>
@@ -478,14 +478,14 @@ function DesktopLoginForm({
           </div>
         )}
 
-        {/* Tombol Aksi Masuk Utama (Putih Kontras Tinggi, Teks Navy #323D8F) */}
+        {/* Tombol Aksi Masuk Utama (Putih Kontras Tinggi, Teks Navy var(--primary)) */}
         <div className="pt-2">
           <button
             type="submit"
             disabled={isAuthenticating || isNavigating || lockRemaining > 0}
             className={[
               'w-full h-11 sm:h-12 rounded-xl font-bold text-xs sm:text-sm',
-              'bg-white text-[#323D8F] hover:bg-[#EEF0FC] active:scale-[0.98]',
+              'bg-white text-primary hover:bg-primary-soft active:scale-[0.98]',
               'shadow-md shadow-black/20 transition-all duration-200',
               'flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed',
             ].join(' ')}
@@ -551,7 +551,7 @@ function MobileLoginForm({
         <h2 className="text-xl sm:text-2xl font-black text-[#20243A] dark:text-white tracking-tight">
           Masuk ke Akun
         </h2>
-        <p className="text-xs text-[#77819A] dark:text-slate-400 mt-1 leading-normal">
+        <p className="text-xs text-primary-muted dark:text-slate-400 mt-1 leading-normal">
           Gunakan username atau NIY dan kata sandi Anda.
         </p>
       </div>
@@ -581,11 +581,11 @@ function MobileLoginForm({
               disabled={isAuthenticating}
               aria-invalid={Boolean(fieldErrors.identifier)}
               className={[
-                'w-full h-12 px-4 rounded-xl text-base text-[#20243A] dark:text-slate-100 placeholder-[#77819A] dark:placeholder-slate-400',
+                'w-full h-12 px-4 rounded-xl text-base text-[#20243A] dark:text-slate-100 placeholder-[var(--primary-muted)] dark:placeholder-slate-400',
                 'bg-[#F3F5FC] dark:bg-slate-800 border transition-all duration-200 outline-none',
                 fieldErrors.identifier
                   ? 'border-red-400 focus:border-red-400 focus:ring-2 focus:ring-red-100 dark:focus:ring-red-950'
-                  : 'border-[#E0E6F2] dark:border-slate-700 focus:border-[#323D8F] dark:focus:border-indigo-400 focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-[#323D8F]/15',
+                  : 'border-primary-border dark:border-slate-700 focus:border-primary dark:focus:border-indigo-400 focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-primary/15',
               ].join(' ')}
             />
           </div>
@@ -621,17 +621,17 @@ function MobileLoginForm({
               disabled={isAuthenticating}
               aria-invalid={Boolean(fieldErrors.password)}
               className={[
-                'w-full h-12 pl-4 pr-11 rounded-xl text-base text-[#20243A] dark:text-slate-100 placeholder-[#77819A] dark:placeholder-slate-400',
+                'w-full h-12 pl-4 pr-11 rounded-xl text-base text-[#20243A] dark:text-slate-100 placeholder-[var(--primary-muted)] dark:placeholder-slate-400',
                 'bg-[#F3F5FC] dark:bg-slate-800 border transition-all duration-200 outline-none',
                 fieldErrors.password
                   ? 'border-red-400 focus:border-red-400 focus:ring-2 focus:ring-red-100 dark:focus:ring-red-950'
-                  : 'border-[#E0E6F2] dark:border-slate-700 focus:border-[#323D8F] dark:focus:border-indigo-400 focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-[#323D8F]/15',
+                  : 'border-primary-border dark:border-slate-700 focus:border-primary dark:focus:border-indigo-400 focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-primary/15',
               ].join(' ')}
             />
             <button
               type="button"
               onClick={toggleShowPassword}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#323D8F] transition-colors p-1"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-primary transition-colors p-1"
               aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
               disabled={isAuthenticating}
             >
@@ -649,13 +649,13 @@ function MobileLoginForm({
 
         {/* Baris Ingat Saya & Lupa Password */}
         <div className="flex items-center justify-between pt-0.5">
-          <label className="flex items-center gap-2 cursor-pointer select-none text-xs text-[#77819A] dark:text-slate-400">
+          <label className="flex items-center gap-2 cursor-pointer select-none text-xs text-primary-muted dark:text-slate-400">
             <input
               type="checkbox"
               checked={remember}
               onChange={(e) => setRemember(e.target.checked)}
               disabled={isAuthenticating}
-              className="w-4 h-4 rounded border-[#D5DCF7] dark:border-slate-600 text-[#323D8F] accent-[#323D8F] cursor-pointer"
+              className="w-4 h-4 rounded border-primary-border dark:border-slate-600 text-primary accent-[var(--primary)] cursor-pointer"
             />
             <span className="font-medium">Ingat saya</span>
           </label>
@@ -663,7 +663,7 @@ function MobileLoginForm({
           <button
             type="button"
             onClick={() => setForgotMsg((v) => !v)}
-            className="text-xs font-semibold text-[#323D8F] dark:text-indigo-400 hover:text-[#283273] dark:hover:text-indigo-300 underline-offset-2 hover:underline transition-colors cursor-pointer"
+            className="text-xs font-semibold text-primary dark:text-indigo-400 hover:text-primary-strong dark:hover:text-indigo-300 underline-offset-2 hover:underline transition-colors cursor-pointer"
           >
             Lupa kata sandi?
           </button>
@@ -671,8 +671,8 @@ function MobileLoginForm({
 
         {/* Banner Info Lupa Password */}
         {forgotMsg && (
-          <div className="p-3 rounded-xl bg-[#EEF0FC] dark:bg-slate-800 border border-[#D5DCF7] dark:border-slate-700 text-[#323D8F] dark:text-indigo-300 text-xs leading-relaxed flex items-start gap-2 animate-fade-in">
-            <span className="material-symbols-outlined text-[16px] text-[#323D8F] dark:text-indigo-400 shrink-0 mt-0.5">info</span>
+          <div className="p-3 rounded-xl bg-primary-soft dark:bg-slate-800 border border-primary-border dark:border-slate-700 text-primary dark:text-indigo-300 text-xs leading-relaxed flex items-start gap-2 animate-fade-in">
+            <span className="material-symbols-outlined text-[16px] text-primary dark:text-indigo-400 shrink-0 mt-0.5">info</span>
             <p className="text-[11px]">
               Silakan hubungi administrator Tata Usaha (TU) unit sekolah atau HRD untuk melakukan reset kata sandi akun Anda.
             </p>
@@ -697,15 +697,15 @@ function MobileLoginForm({
           </div>
         )}
 
-        {/* Tombol Aksi Masuk Sesuai Referensi 2: Rounded Pill Button Solid #323D8F */}
+        {/* Tombol Aksi Masuk Sesuai Referensi 2: Rounded Pill Button Solid var(--primary) */}
         <div className="pt-2">
           <button
             type="submit"
             disabled={isAuthenticating || isNavigating || lockRemaining > 0}
             className={[
               'w-full h-12 rounded-full font-bold text-sm text-white',
-              'bg-[#323D8F] hover:bg-[#283273] dark:bg-indigo-600 dark:hover:bg-indigo-500 active:scale-[0.98]',
-              'shadow-lg shadow-[#323D8F]/25 dark:shadow-indigo-900/40 transition-all duration-200',
+              'bg-primary hover:bg-primary-strong dark:bg-indigo-600 dark:hover:bg-indigo-500 active:scale-[0.98]',
+              'shadow-lg shadow-[var(--primary)]/25 dark:shadow-indigo-900/40 transition-all duration-200',
               'flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed',
             ].join(' ')}
           >
@@ -731,7 +731,7 @@ function MobileLoginForm({
 
       {/* Footer Bawah: Atribusi Developer */}
       <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 text-center transition-colors">
-        <p className="text-xs text-[#77819A] dark:text-slate-400 font-medium tracking-wide">
+        <p className="text-xs text-primary-muted dark:text-slate-400 font-medium tracking-wide">
           Developer:{' '}
           <span className="font-bold text-[#20243A] dark:text-slate-200">Miftahul haq, S.Pd</span>
         </p>
@@ -748,9 +748,9 @@ function LoginPage() {
 
   return (
     <div
-      className="relative min-h-screen h-[100dvh] w-full overflow-y-auto overflow-x-hidden flex items-center justify-center p-4 sm:p-6 lg:p-8 selection:bg-[#323D8F] selection:text-white sp-login-root transition-colors duration-300"
+      className="relative min-h-screen h-[100dvh] w-full overflow-y-auto overflow-x-hidden flex items-center justify-center p-4 sm:p-6 lg:p-8 selection:bg-primary selection:text-white sp-login-root transition-colors duration-300"
       style={{
-        background: 'radial-gradient(ellipse at center, #323D8F 0%, #252D6A 60%, #161B3D 100%)',
+        background: 'radial-gradient(ellipse at center, var(--primary) 0%, var(--primary-strong) 60%, #161B3D 100%)',
       }}
     >
       <LoginStyles />
@@ -773,7 +773,7 @@ function LoginPage() {
           'border border-white/15 anim-simpeg-appear',
         ].join(' ')}
         style={{
-          background: '#323D8F',
+          background: 'var(--primary)',
         }}
       >
         {/* SVG Lengkungan Kurva Organik Putih di Panel Kiri */}
@@ -814,13 +814,13 @@ function LoginPage() {
       <div className="flex lg:hidden flex-col items-center justify-center w-full max-w-[380px] sm:max-w-[400px] mx-auto anim-simpeg-appear my-auto">
         {/* Card Container Sesuai Referensi 2 */}
         <div className="w-full rounded-[36px] overflow-hidden shadow-2xl bg-white dark:bg-[#182035] border border-slate-100 dark:border-slate-800 flex flex-col transition-colors">
-          {/* Header Banner Atas dengan Lengkungan Organik & Warna SIMPEG (#323D8F) */}
-          <div className="relative bg-[#323D8F] dark:bg-[#1f2654] pt-7 pb-9 px-6 text-center overflow-hidden transition-colors">
+          {/* Header Banner Atas dengan Lengkungan Organik & Warna SIMPEG (var(--primary)) */}
+          <div className="relative bg-primary dark:bg-primary-strong pt-7 pb-9 px-6 text-center overflow-hidden transition-colors">
             {/* Latar Belakang Lengkungan Organik Abstrak Sesuai Referensi 2 */}
             <div className="absolute -top-10 -left-10 w-36 h-36 rounded-full bg-white/10 blur-xl pointer-events-none" />
-            <div className="absolute -bottom-8 -right-8 w-32 h-32 rounded-full bg-[#323D8F]/60 blur-lg pointer-events-none" />
+            <div className="absolute -bottom-8 -right-8 w-32 h-32 rounded-full bg-primary/60 blur-lg pointer-events-none" />
             <div className="absolute top-2 right-4 w-20 h-20 rounded-full bg-white/5 pointer-events-none" />
-            <div className="absolute -bottom-6 left-1/4 w-24 h-24 rounded-full bg-[#EEF0FC]/10 pointer-events-none" />
+            <div className="absolute -bottom-6 left-1/4 w-24 h-24 rounded-full bg-primary-soft/10 pointer-events-none" />
 
             {/* Logo Resmi SIMPEG & Judul Utama */}
             <div className="relative z-10 flex flex-col items-center">

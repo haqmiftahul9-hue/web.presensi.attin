@@ -140,7 +140,7 @@ function MobileLayout() {
                       </span>
                       <span
                         className={`font-label-sm text-[10px] sm:text-[11px] font-bold ${
-                          isActive ? 'text-[#323d8f] dark:text-indigo-400' : 'text-[#77819a] dark:text-slate-400'
+                          isActive ? 'text-primary dark:text-indigo-400' : 'text-primary-muted dark:text-slate-400'
                         }`}
                       >
                         {item.label}
@@ -151,7 +151,7 @@ function MobileLayout() {
                       <span className="relative flex items-center justify-center">
                         <Icon
                           name={item.icon}
-                          className={`text-[21px] ${isActive ? 'text-white' : 'text-[#77819a] dark:text-slate-400'}`}
+                          className={`text-[21px] ${isActive ? 'text-white' : 'text-primary-muted dark:text-slate-400'}`}
                         />
                         {Boolean(item.badge && item.badge > 0) && (
                           <span className="absolute -top-1.5 -right-2 bg-rose-500 text-white text-[9px] font-bold min-w-[15px] h-[15px] px-1 rounded-full flex items-center justify-center shadow-xs">
@@ -161,7 +161,7 @@ function MobileLayout() {
                       </span>
                       <span
                         className={`font-label-sm text-[10.5px] sm:text-[11.5px] leading-tight truncate max-w-full px-0.5 ${
-                          isActive ? 'text-white font-semibold' : 'text-[#77819a] dark:text-slate-400'
+                          isActive ? 'text-white font-semibold' : 'text-primary-muted dark:text-slate-400'
                         }`}
                       >
                         {item.label}

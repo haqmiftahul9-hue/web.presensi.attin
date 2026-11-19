@@ -55,8 +55,8 @@ function checkFrontal(landmarks) {
   const distRightJaw = Math.abs(jawRight.x - noseTip.x)
   const jawRatio = distLeftJaw / Math.max(1, distRightJaw)
 
-  // Wajah tegak menghadap ke depan: deviasi hidung < 0.16 dan jaw seimbang
-  return noseOffset < 0.16 && jawRatio >= 0.65 && jawRatio <= 1.55
+  // Wajah tegak menghadap ke depan: deviasi hidung < 0.15 dan jaw seimbang
+  return noseOffset < 0.15 && jawRatio >= 0.50 && jawRatio <= 2.00
 }
 
 /**
@@ -84,8 +84,8 @@ function checkSideTurn(landmarks) {
   const jawRatio = distLeftJaw / Math.max(1, distRightJaw)
 
   // Menoleh samping kiri atau samping kanan
-  const turnedLeft = noseOffset < -0.15 || jawRatio < 0.55
-  const turnedRight = noseOffset > 0.15 || jawRatio > 1.80
+  const turnedLeft = noseOffset < -0.15 || jawRatio < 0.45
+  const turnedRight = noseOffset > 0.15 || jawRatio > 2.10
 
   return turnedLeft || turnedRight
 }
@@ -132,9 +132,9 @@ export function FaceEnrollmentModal({
   const blinkPhaseRef = useRef('open') // 'open' -> 'closed' -> 'opened'
   const lastFrontalSnapshotRef = useRef(null)
 
-  // Ambang batas EAR kedipan mata
-  const EAR_OPEN_THRESHOLD = 0.26
-  const EAR_CLOSED_THRESHOLD = 0.21
+   // Ambang batas EAR kedipan mata
+  const EAR_OPEN_THRESHOLD = 0.24
+  const EAR_CLOSED_THRESHOLD = 0.20
 
   // Hubungkan stream kamera ke elemen video
   const attachStreamToVideo = useCallback((videoEl, streamToAttach) => {
@@ -300,7 +300,7 @@ export function FaceEnrollmentModal({
       if (video && video.readyState >= 2 && !processing && !isDetecting && cameraStage === 'ready') {
         isDetecting = true
         try {
-          const result = await detectSingleFaceAndDescriptor(video, { inputSize: 224, scoreThreshold: 0.45 })
+          const result = await detectSingleFaceAndDescriptor(video, { inputSize: 320, scoreThreshold: 0.4 })
           if (!isCancelled) {
             if (result.detected) {
               setFaceDetected(true)
@@ -309,9 +309,9 @@ export function FaceEnrollmentModal({
               const landmarks = result.landmarks
               if (landmarks && landmarks.length >= 68) {
                 // ---- TAHAP 1: Wajah Menghadap Depan ----
-                if (livenessStep === 1) {
-                  const isFrontal = checkFrontal(landmarks)
-                  if (isFrontal) {
+                 if (livenessStep === 1) {
+                   const isFrontal = checkFrontal(landmarks)
+                   if (isFrontal) {
                     frontalCountRef.current += 1
                     // Simpan descriptor dan snapshot terbaik saat posisi depan
                     if (result.descriptor) {
@@ -417,7 +417,7 @@ export function FaceEnrollmentModal({
 
       // Jika belum ada descriptor tersimpan dari tahap 1, ekstrak dari video saat ini
       if (!descriptor) {
-        const detection = await detectSingleFaceAndDescriptor(video, { inputSize: 224, scoreThreshold: 0.45 })
+        const detection = await detectSingleFaceAndDescriptor(video, { inputSize: 320, scoreThreshold: 0.4 })
         if (detection?.detected && detection?.descriptor) {
           descriptor = detection.descriptor
         }
@@ -455,7 +455,7 @@ export function FaceEnrollmentModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-sp-fade">
       <div className="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl flex flex-col max-h-[92vh] border border-slate-100">
         {/* Header Modal */}
-        <div className="p-4 bg-gradient-to-r from-[#181d48] to-[#323d8f] text-white flex items-center justify-between">
+        <div className="p-4 bg-gradient-to-r from-primary-strong to-primary text-white flex items-center justify-between">
           <div className="flex items-center gap-2 min-w-0">
             <span className="w-8 h-8 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
               <Icon name="scan_face" className="text-white text-[18px]" />
@@ -484,7 +484,7 @@ export function FaceEnrollmentModal({
               <button
                 type="button"
                 onClick={() => setModelLoading(true)}
-                className="sp-btn px-4 py-2 bg-[#323d8f] text-white font-label-md text-sm rounded-xl mt-2 cursor-pointer"
+                className="sp-btn px-4 py-2 bg-primary text-white font-label-md text-sm rounded-xl mt-2 cursor-pointer"
               >
                 Coba Lagi
               </button>
@@ -527,7 +527,7 @@ export function FaceEnrollmentModal({
                   livenessStep > 1
                     ? 'bg-emerald-500 text-white border-emerald-500'
                     : livenessStep === 1
-                      ? 'bg-[#323d8f] text-white border-[#323d8f] shadow-xs'
+                      ? 'bg-primary text-white border-primary shadow-xs'
                       : 'bg-slate-100 text-slate-400 border-slate-200'
                 }`}>
                   1. Hadap Depan {livenessStep > 1 && '✓'}
@@ -536,7 +536,7 @@ export function FaceEnrollmentModal({
                   livenessStep > 2
                     ? 'bg-emerald-500 text-white border-emerald-500'
                     : livenessStep === 2
-                      ? 'bg-[#323d8f] text-white border-[#323d8f] shadow-xs'
+                      ? 'bg-primary text-white border-primary shadow-xs'
                       : 'bg-slate-100 text-slate-400 border-slate-200'
                 }`}>
                   2. Hadap Samping {livenessStep > 2 && '✓'}
@@ -545,7 +545,7 @@ export function FaceEnrollmentModal({
                   livenessPassed
                     ? 'bg-emerald-500 text-white border-emerald-500'
                     : livenessStep === 3
-                      ? 'bg-[#323d8f] text-white border-[#323d8f] shadow-xs'
+                      ? 'bg-primary text-white border-primary shadow-xs'
                       : 'bg-slate-100 text-slate-400 border-slate-200'
                 }`}>
                   3. Berkedip {livenessPassed && '✓'}
@@ -553,7 +553,7 @@ export function FaceEnrollmentModal({
               </div>
 
               {/* Bingkai Kamera Wajah Instan */}
-              <div className="relative w-52 h-52 rounded-full p-2 bg-gradient-to-b from-[#181d48] to-[#323d8f] shadow-inner flex items-center justify-center">
+              <div className="relative w-52 h-52 rounded-full p-2 bg-gradient-to-b from-primary-strong to-primary shadow-inner flex items-center justify-center">
                 <div className={`relative w-full h-full rounded-full overflow-hidden flex items-center justify-center bg-slate-900 ring-2 transition-all duration-300 ${
                   cameraStage === 'focusing'
                     ? 'ring-amber-400 shadow-amber-400/40'
@@ -638,7 +638,7 @@ export function FaceEnrollmentModal({
                       : livenessPassed
                         ? 'bg-emerald-600 ring-2 ring-emerald-300/60'
                         : faceDetected
-                          ? 'bg-[#323d8f] ring-2 ring-[#323d8f]/40'
+                          ? 'bg-primary ring-2 ring-primary/40'
                           : 'bg-amber-600'
                 }`}>
                   <Icon
@@ -716,7 +716,7 @@ export function FaceEnrollmentModal({
                     (!stream && !localStream && !cameraAktif) ||
                     !livenessPassed
                   }
-                  className={`sp-btn w-full py-3 bg-gradient-to-r from-[#252e6d] to-[#323d8f] hover:from-[#181d48] hover:to-[#252e6d] text-white font-headline-sm text-sm rounded-xl flex items-center justify-center gap-2 shadow-md disabled:opacity-50 active:scale-[0.99] transition-all cursor-pointer ${
+                  className={`sp-btn w-full py-3 bg-gradient-to-r from-primary-strong to-primary hover:from-primary-strong hover:to-primary-strong text-white font-headline-sm text-sm rounded-xl flex items-center justify-center gap-2 shadow-md disabled:opacity-50 active:scale-[0.99] transition-all cursor-pointer ${
                     livenessPassed ? 'from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 shadow-emerald-500/30' : ''
                   }`}
                 >
