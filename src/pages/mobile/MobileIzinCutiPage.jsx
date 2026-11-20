@@ -1,5 +1,7 @@
 import { useMemo, useRef, useState } from 'react'
 import Icon from '../../components/Icon.jsx'
+import DocumentViewerModal from '../../components/DocumentViewerModal.jsx'
+import { uploadLeaveAttachment } from '../../services/leaveAttachmentService.js'
 import {
   useSimPresOptional, selectSelfStaff, selectSelfLeaves, selectUnitById, addActivityLog,
 } from '../../store/simPresStore.jsx'
@@ -225,6 +227,7 @@ function MobileIzinCutiPage() {
   const [pesan, setPesan] = useState('')
   const [galat, setGalat] = useState('')
   const [mengirim, setMengirim] = useState(false)
+  const [selectedLeaveDoc, setSelectedLeaveDoc] = useState(null)
   const inputLampiran = useRef(null)
 
   const durasi = hitungDurasiHari(mulai, selesai)
@@ -277,7 +280,7 @@ function MobileIzinCutiPage() {
     setGalat(berkas && berkas.size > MAKS_LAMPIRAN ? 'Ukuran lampiran maksimal 5 MB.' : '')
   }
 
-  function kirim(event) {
+  async function kirim(event) {
     event.preventDefault()
     const pesanValidasi = validasi()
     if (pesanValidasi) {
@@ -287,17 +290,53 @@ function MobileIzinCutiPage() {
     setMengirim(true)
     setGalat('')
 
+    let fileMeta = {
+      lampiran: lampiran?.name || '',
+      lampiranUrl: '',
+      lampiranNama: lampiran?.name || '',
+      lampiranUkuran: lampiran?.size ?? null,
+      lampiranTipe: lampiran?.type || '',
+    }
+
+    if (lampiran) {
+      const uploadRes = await uploadLeaveAttachment(lampiran, {
+        staffId: staff.id,
+        unitId: staff.unitId,
+      })
+      if (!uploadRes.success && uploadRes.error) {
+        setGalat(uploadRes.error)
+        setMengirim(false)
+        return
+      }
+      fileMeta = {
+        lampiran: uploadRes.fileName || lampiran.name,
+        lampiranUrl: uploadRes.url || '',
+        lampiranNama: uploadRes.fileName || lampiran.name,
+        lampiranUkuran: uploadRes.fileSize || lampiran.size,
+        lampiranTipe: uploadRes.fileType || lampiran.type,
+      }
+    }
+
     const idBaru = state.leaves.length ? Math.max(...state.leaves.map((l) => l.id)) + 1 : 1
-    const pengajuan = buildPengajuan({
+    const basePengajuan = buildPengajuan({
       id: idBaru,
       staffId: staff.id,
       jenis,
       mulai,
       selesai,
       alasan,
-      lampiran: lampiran?.name || '',
-      lampiranUkuran: lampiran?.size ?? null,
+      lampiran: fileMeta.lampiranNama || fileMeta.lampiran,
+      lampiranUkuran: fileMeta.lampiranUkuran,
     })
+
+    const pengajuan = {
+      ...basePengajuan,
+      ...fileMeta,
+      lampiran_url: fileMeta.lampiranUrl,
+      lampiran_nama: fileMeta.lampiranNama,
+      lampiran_tipe: fileMeta.lampiranTipe,
+      lampiran_ukuran: fileMeta.lampiranUkuran,
+    }
 
     dispatch({ type: 'ADD_LEAVE', payload: pengajuan })
     addActivityLog(
@@ -462,12 +501,28 @@ function MobileIzinCutiPage() {
                     {(item.keterangan || item.alasan) && (
                       <p className="font-body-sm text-body-sm text-on-surface-variant leading-snug">{item.keterangan || item.alasan}</p>
                     )}
-                    {item.lampiran && (
-                      <p className="flex items-center gap-1.5 font-label-sm text-label-sm text-on-surface-variant">
-                        <Icon name="attach_file" className="text-[15px] shrink-0" />
-                        <span className="truncate">{item.lampiran}</span>
-                        {item.lampiranUkuran ? <span className="shrink-0">• {ukuranBerkas(item.lampiranUkuran)}</span> : null}
-                      </p>
+                    {(item.lampiran || item.lampiranUrl || item.lampiran_url) && (
+                      <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-card border border-slate-200/80 dark:border-primary-border flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <Icon name="attach_file" className="text-[17px] text-primary shrink-0" />
+                          <div className="min-w-0">
+                            <span className="font-semibold text-foreground text-xs block truncate">
+                              {item.lampiranNama || item.lampiran_nama || item.lampiran}
+                            </span>
+                            <span className="text-[10.5px] text-muted-foreground block">
+                              {item.lampiranUkuran ? ukuranBerkas(item.lampiranUkuran) : 'Surat Bukti Lampiran'}
+                            </span>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedLeaveDoc(item)}
+                          className="px-2.5 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary font-semibold text-xs flex items-center gap-1 shrink-0 transition-colors cursor-pointer"
+                        >
+                          <Icon name="visibility" className="text-[14px]" />
+                          <span>Lihat Surat</span>
+                        </button>
+                      </div>
                     )}
                   </li>
                 )
@@ -484,6 +539,13 @@ function MobileIzinCutiPage() {
           )}
         </section>
       </div>
+
+      {/* Modal Pratinjau Surat Izin untuk Guru/Pegawai */}
+      <DocumentViewerModal
+        isOpen={Boolean(selectedLeaveDoc)}
+        onClose={() => setSelectedLeaveDoc(null)}
+        leave={selectedLeaveDoc}
+      />
     </div>
   )
 }

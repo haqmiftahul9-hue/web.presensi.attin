@@ -3,6 +3,12 @@ import {
   SEMUA_JENIS, WARNA_STATUS_PORTAL, WARNA_TITIK_STATUS, LABEL_STATUS_PANJANG,
   isLeavePending,
 } from '../data/jenisIzinCuti.js'
+import {
+  resolveDocumentUrl,
+  isImageDocument,
+  isPdfDocument,
+  formatDocumentSize,
+} from '../services/leaveAttachmentService.js'
 
 function LeaveDetailModal({ isOpen, onClose, leave, canApprove = false, onApprove, onReject }) {
   const [activeTab, setActiveTab] = useState('detail')
@@ -230,30 +236,65 @@ function LeaveDetailModal({ isOpen, onClose, leave, canApprove = false, onApprov
 
           {activeTab === 'lampiran' && (
             <div className="space-y-4 pt-1">
-              {leave.lampiran ? (
-                <>
-                  <div className="p-4 bg-muted/40 rounded-xl border border-border/60">
-                    <div className="flex items-center gap-3">
-                      <div className="w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0 text-primary">
-                        <span className="material-symbols-outlined text-[24px]">description</span>
+              {(leave.lampiran || leave.lampiranUrl || leave.lampiran_url) ? (
+                (() => {
+                  const fileName = leave.lampiranNama || leave.lampiran_nama || leave.lampiran || 'dokumen_lampiran.pdf'
+                  const fileSize = leave.lampiranUkuran || leave.lampiran_ukuran || null
+                  const docUrl = resolveDocumentUrl(leave)
+                  const isImage = isImageDocument(docUrl) || isImageDocument(fileName)
+
+                  return (
+                    <div className="space-y-3">
+                      <div className="p-3.5 bg-muted/40 rounded-xl border border-border/60 flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0 text-primary">
+                            <span className="material-symbols-outlined text-[22px]">description</span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <span className="text-xs font-bold text-foreground truncate block">{fileName}</span>
+                            <span className="text-[11px] text-muted-foreground">
+                              {fileSize ? formatDocumentSize(fileSize) : 'Dokumen Bukti Surat Izin / Cuti'}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button
+                            onClick={() => window.open(docUrl, '_blank', 'noopener,noreferrer')}
+                            className="h-8 px-3 rounded-lg bg-primary text-primary-foreground font-semibold text-xs shadow-xs hover:bg-primary/90 transition-colors flex items-center gap-1.5 cursor-pointer"
+                            type="button"
+                          >
+                            <span className="material-symbols-outlined text-[15px]">open_in_new</span>
+                            <span>Buka Tab Baru</span>
+                          </button>
+                          <button
+                            onClick={() => {
+                              const a = document.createElement('a')
+                              a.href = docUrl
+                              a.download = fileName
+                              document.body.appendChild(a)
+                              a.click()
+                              a.remove()
+                            }}
+                            className="h-8 px-3 rounded-lg border border-border bg-card hover:bg-muted text-foreground font-semibold text-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+                            type="button"
+                          >
+                            <span className="material-symbols-outlined text-[15px]">download</span>
+                            <span>Unduh</span>
+                          </button>
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <span className="text-xs font-bold text-foreground truncate block">{leave.lampiran}</span>
-                        <span className="text-[11px] text-muted-foreground">Dokumen Bukti / Berkas Pendukung</span>
+
+                      {/* Frame Pratinjau Dokumen Inline */}
+                      <div className="p-3 bg-slate-900/10 dark:bg-black/30 rounded-xl border border-border/70 flex flex-col items-center justify-center min-h-[220px] max-h-[360px] overflow-auto">
+                        <img
+                          src={docUrl}
+                          alt={`Pratinjau ${fileName}`}
+                          className="max-h-[340px] max-w-full object-contain rounded-lg border border-border shadow-xs"
+                        />
                       </div>
                     </div>
-                  </div>
-                  <div className="flex gap-2.5">
-                    <button onClick={() => { if (leave?.lampiran) window.open(String(leave.lampiran), '_blank', 'noopener,noreferrer') }} className="flex-1 h-9 px-4 rounded-lg bg-primary text-primary-foreground font-semibold text-xs shadow-xs hover:bg-primary/90 transition-colors flex items-center justify-center gap-1.5 cursor-pointer" type="button">
-                      <span className="material-symbols-outlined text-[16px]">visibility</span>
-                      <span>Lihat Lampiran</span>
-                    </button>
-                    <button onClick={() => { if (leave?.lampiran) { const a = document.createElement('a'); a.href = String(leave.lampiran); a.download = String(leave.lampiran); document.body.appendChild(a); a.click(); a.remove() } }} className="flex-1 h-9 px-4 rounded-lg border border-border bg-card hover:bg-muted text-foreground font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer" type="button">
-                      <span className="material-symbols-outlined text-[16px]">download</span>
-                      <span>Unduh</span>
-                    </button>
-                  </div>
-                </>
+                  )
+                })()
               ) : (
                 <div className="p-8 text-center text-muted-foreground text-xs bg-muted/20 rounded-xl border border-dashed border-border">
                   <span className="material-symbols-outlined text-[28px] text-muted-foreground/60 mb-1 block">attachment_off</span>

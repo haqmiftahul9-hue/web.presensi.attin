@@ -6,6 +6,7 @@ import { initialsOf } from '../store/simPresStore.jsx'
 import { selectLeavesByStatus, selectPendingLeaves, selectApprovedLeaves, selectRejectedLeaves } from '../store/simPresStore.jsx'
 import LeaveRequestModal from '../components/LeaveRequestModal.jsx'
 import LeaveDetailModal from '../components/LeaveDetailModal.jsx'
+import DocumentViewerModal from '../components/DocumentViewerModal.jsx'
 import {
   JENIS_UTAMA, SEMUA_JENIS, kelompokIzinCuti,
   WARNA_STATUS_PORTAL, WARNA_TITIK_STATUS, hitungSisaKuota,
@@ -47,6 +48,7 @@ function PengajuanIzinCutiPage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [detailLeave, setDetailLeave] = useState(null)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
+  const [viewerLeave, setViewerLeave] = useState(null)
   
   // State untuk Approval Modal Superadmin
   const [approvalModal, setApprovalModal] = useState({
@@ -314,13 +316,7 @@ function PengajuanIzinCutiPage() {
   }
 
   const handleViewAttachment = (leave) => {
-    const lampiran = leave?.lampiran
-    if (lampiran && /^(https?:|data:|blob:)/i.test(String(lampiran))) {
-      window.open(String(lampiran), '_blank', 'noopener,noreferrer')
-      return
-    }
-    setDetailLeave(leave)
-    setIsDetailOpen(true)
+    setViewerLeave(leave)
   }
 
   const handleExportExcel = () => {
@@ -1177,6 +1173,13 @@ function PengajuanIzinCutiPage() {
         onSave={handleSaveLeave}
         staffList={staffList}
         units={state.units}
+      />
+
+      {/* Modal Pratinjau Dokumen Lampiran Resmi */}
+      <DocumentViewerModal
+        isOpen={Boolean(viewerLeave)}
+        onClose={() => setViewerLeave(null)}
+        leave={viewerLeave}
       />
     </>
   )

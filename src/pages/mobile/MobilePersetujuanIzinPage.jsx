@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Icon from '../../components/Icon.jsx'
+import DocumentViewerModal from '../../components/DocumentViewerModal.jsx'
+import { formatDocumentSize } from '../../services/leaveAttachmentService.js'
 import {
   useSimPresOptional, selectLeavesEnriched, selectSelfStaff,
   addActivityLog, hasPermission, selectCurrentUserRole, ROLE_SUPERADMIN,
@@ -24,6 +26,7 @@ function MobilePersetujuanIzinPage() {
   const state = ctx?.state ?? null
   const dispatch = ctx?.dispatch ?? null
   const [pesan, setPesan] = useState('')
+  const [selectedDocument, setSelectedDocument] = useState(null)
 
   const selfStaff = state ? selectSelfStaff(state) : null
   const userUnitId = selfStaff?.unitId || state?.currentUser?.unitId
@@ -181,6 +184,33 @@ function MobilePersetujuanIzinPage() {
                 {(item.keterangan || item.alasan) && (
                   <p className="font-body-sm text-body-sm text-on-surface-variant leading-snug">{item.keterangan || item.alasan}</p>
                 )}
+
+                {/* Bukti Lampiran Surat Izin / Cuti */}
+                {(item.lampiran || item.lampiranUrl || item.lampiran_url) && (
+                  <div className="p-2.5 rounded-xl bg-primary/5 dark:bg-card border border-primary/20 dark:border-primary-border flex items-center justify-between gap-2.5">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                        <Icon name="description" className="text-[18px]" />
+                      </div>
+                      <div className="min-w-0">
+                        <span className="font-semibold text-foreground text-xs block truncate">
+                          {item.lampiranNama || item.lampiran_nama || item.lampiran}
+                        </span>
+                        <span className="text-[10.5px] text-muted-foreground block">
+                          {item.lampiranUkuran ? formatDocumentSize(item.lampiranUkuran) : 'Dokumen Bukti Resmi'}
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedDocument(item)}
+                      className="px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-strong text-white font-label-sm text-xs font-semibold flex items-center gap-1 shadow-2xs active:scale-95 transition-all shrink-0 cursor-pointer"
+                    >
+                      <Icon name="visibility" className="text-[14px]" />
+                      <span>Lihat Bukti</span>
+                    </button>
+                  </div>
+                )}
                 
                 {/* Info status 2 tahap */}
                 <div className="p-2.5 rounded-xl bg-muted/40 border border-border/60 text-xs flex items-center justify-between">
@@ -219,6 +249,13 @@ function MobilePersetujuanIzinPage() {
           </div>
         )}
       </div>
+
+      {/* Modal Pratinjau Surat Izin untuk Kepala Sekolah & Superadmin */}
+      <DocumentViewerModal
+        isOpen={Boolean(selectedDocument)}
+        onClose={() => setSelectedDocument(null)}
+        leave={selectedDocument}
+      />
     </div>
   )
 }

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { JENIS_FORM, buildPengajuan, aturanLampiran } from '../data/jenisIzinCuti.js'
+import { uploadLeaveAttachment } from '../services/leaveAttachmentService.js'
 
 // Pilihan jenis reading from the centralized list — the same list as the
 // mobile teacher form. Previously the options here were different names again
@@ -131,23 +132,50 @@ function LeaveRequestModal({ isOpen, onClose, onSave, staffList, units }) {
     return !Object.values(newErrors).some(e => e)
   }
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (validateAll()) {
-      // Bentuk baris pengajuan memakai pembentuk yang sama dengan form mobile,
-      // supaya jenis, tanggal ISO, durasi, dan keterangan tidak pernah hilang.
-      // (Versi lama memakai jenis.split(' ')[0] — "Cuti Bersalin/Melahirkan"
-      // tersimpan jadi "Cuti", dan keterangan ikut hilang.)
-      onSave(
-        buildPengajuan({
+      let fileMeta = {
+        lampiran: lampiran?.name || '',
+        lampiranUrl: '',
+        lampiranNama: lampiran?.name || '',
+        lampiranUkuran: lampiran?.size ?? null,
+        lampiranTipe: lampiran?.type || '',
+      }
+
+      if (lampiran) {
+        const uploadRes = await uploadLeaveAttachment(lampiran, {
           staffId: Number(selectedStaffId),
-          jenis,
-          mulai: tanggalMulai,
-          selesai: tanggalSelesai,
-          alasan: keterangan,
-          lampiran: lampiran?.name || '',
-          lampiranUkuran: lampiran?.size ?? null,
-        }),
-      )
+          unitId: selectedStaff?.unitId,
+        })
+        if (uploadRes.success) {
+          fileMeta = {
+            lampiran: uploadRes.fileName || lampiran.name,
+            lampiranUrl: uploadRes.url || '',
+            lampiranNama: uploadRes.fileName || lampiran.name,
+            lampiranUkuran: uploadRes.fileSize || lampiran.size,
+            lampiranTipe: uploadRes.fileType || lampiran.type,
+          }
+        }
+      }
+
+      const basePengajuan = buildPengajuan({
+        staffId: Number(selectedStaffId),
+        jenis,
+        mulai: tanggalMulai,
+        selesai: tanggalSelesai,
+        alasan: keterangan,
+        lampiran: fileMeta.lampiranNama || fileMeta.lampiran,
+        lampiranUkuran: fileMeta.lampiranUkuran,
+      })
+
+      onSave({
+        ...basePengajuan,
+        ...fileMeta,
+        lampiran_url: fileMeta.lampiranUrl,
+        lampiran_nama: fileMeta.lampiranNama,
+        lampiran_tipe: fileMeta.lampiranTipe,
+        lampiran_ukuran: fileMeta.lampiranUkuran,
+      })
       onClose()
     }
   }

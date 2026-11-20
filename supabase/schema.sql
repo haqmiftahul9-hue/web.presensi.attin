@@ -72,6 +72,8 @@ END $$;
 DO $$ BEGIN
   CREATE TYPE public.leave_status AS ENUM (
     'Menunggu',
+    'Menunggu Kepsek',
+    'Menunggu Superadmin',
     'Disetujui',
     'Ditolak'
   );
@@ -305,7 +307,14 @@ CREATE TABLE IF NOT EXISTS public.leaves (
   periode VARCHAR(100) NOT NULL, -- Format display, misal: "16-18 Sep 2026"
   alasan TEXT NOT NULL,
   lampiran_url TEXT,
+  lampiran_nama TEXT,
+  lampiran_tipe VARCHAR(100),
+  lampiran_ukuran INTEGER,
   status public.leave_status NOT NULL DEFAULT 'Menunggu',
+  tahap_approval INTEGER NOT NULL DEFAULT 1,
+  approval_kepsek JSONB DEFAULT '{"status": "Menunggu", "approverName": null, "approverRole": "Kepala Sekolah", "tanggal": null, "catatan": null}'::jsonb,
+  approval_superadmin JSONB DEFAULT '{"status": "Menunggu", "approverName": null, "approverRole": "Superadmin", "tanggal": null, "catatan": null}'::jsonb,
+  rejected_stage VARCHAR(50),
   catatan_penolakan TEXT,
   approved_by UUID REFERENCES public.users(id) ON DELETE SET NULL,
   approved_at TIMESTAMPTZ,
@@ -313,10 +322,21 @@ CREATE TABLE IF NOT EXISTS public.leaves (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- Kolom tambahan idempotent jika tabel leaves sudah ada sebelumnya di Supabase
+ALTER TABLE public.leaves ADD COLUMN IF NOT EXISTS lampiran_nama TEXT;
+ALTER TABLE public.leaves ADD COLUMN IF NOT EXISTS lampiran_tipe VARCHAR(100);
+ALTER TABLE public.leaves ADD COLUMN IF NOT EXISTS lampiran_ukuran INTEGER;
+ALTER TABLE public.leaves ADD COLUMN IF NOT EXISTS tahap_approval INTEGER NOT NULL DEFAULT 1;
+ALTER TABLE public.leaves ADD COLUMN IF NOT EXISTS approval_kepsek JSONB DEFAULT '{"status": "Menunggu", "approverName": null, "approverRole": "Kepala Sekolah", "tanggal": null, "catatan": null}'::jsonb;
+ALTER TABLE public.leaves ADD COLUMN IF NOT EXISTS approval_superadmin JSONB DEFAULT '{"status": "Menunggu", "approverName": null, "approverRole": "Superadmin", "tanggal": null, "catatan": null}'::jsonb;
+ALTER TABLE public.leaves ADD COLUMN IF NOT EXISTS rejected_stage VARCHAR(50);
+
 CREATE INDEX IF NOT EXISTS idx_leaves_staff_id ON public.leaves(staff_id);
 CREATE INDEX IF NOT EXISTS idx_leaves_unit_id ON public.leaves(unit_id);
 CREATE INDEX IF NOT EXISTS idx_leaves_status ON public.leaves(status);
+CREATE INDEX IF NOT EXISTS idx_leaves_tahap_approval ON public.leaves(tahap_approval);
 CREATE INDEX IF NOT EXISTS idx_leaves_tanggal_mulai ON public.leaves(tanggal_mulai);
+CREATE INDEX IF NOT EXISTS idx_leaves_lampiran_url ON public.leaves(lampiran_url) WHERE lampiran_url IS NOT NULL;
 
 DROP TRIGGER IF EXISTS set_leaves_updated_at ON public.leaves;
 CREATE TRIGGER set_leaves_updated_at
@@ -706,7 +726,7 @@ VALUES
   ('avatars', 'avatars', true),
   ('unit-logos', 'unit-logos', true),
   ('face-snapshots', 'face-snapshots', true),
-  ('leave-attachments', 'leave-attachments', false),
+  ('leave-attachments', 'leave-attachments', true),
   -- Bucket per unit sekolah untuk bukti foto presensi scan wajah datang & pulang
   ('presensi-tk', 'presensi-tk', true),
   ('presensi-sd', 'presensi-sd', true),
@@ -715,12 +735,17 @@ VALUES
   ('presensi-yayasan', 'presensi-yayasan', true)
 ON CONFLICT (id) DO UPDATE SET public = EXCLUDED.public;
 
--- Atur batas ukuran file (1MB max per foto terkompresi) dan format MIME WebP/JPEG
+-- Atur batas ukuran file (1MB max per foto terkompresi, 5MB max untuk lampiran berkas izin/cuti)
 DO $$ BEGIN
   UPDATE storage.buckets 
   SET file_size_limit = 1048576,
       allowed_mime_types = ARRAY['image/webp', 'image/jpeg', 'image/png']
   WHERE id IN ('presensi-tk', 'presensi-sd', 'presensi-smp', 'presensi-sma', 'presensi-yayasan', 'face-snapshots');
+
+  UPDATE storage.buckets 
+  SET file_size_limit = 5242880,
+      allowed_mime_types = ARRAY['application/pdf', 'image/jpeg', 'image/png', 'image/webp']
+  WHERE id = 'leave-attachments';
 EXCEPTION
   WHEN undefined_column THEN null;
 END $$;
@@ -739,8 +764,11 @@ DROP POLICY IF EXISTS "Public Read Presensi Photos" ON storage.objects;
 DROP POLICY IF EXISTS "Auth Upload Presensi Photos" ON storage.objects;
 DROP POLICY IF EXISTS "Anon Upload Presensi Photos" ON storage.objects;
 DROP POLICY IF EXISTS "Admin Delete Presensi Photos" ON storage.objects;
+DROP POLICY IF EXISTS "Public Read Leave Attachments" ON storage.objects;
 DROP POLICY IF EXISTS "Auth Upload Leave Attachments" ON storage.objects;
+DROP POLICY IF EXISTS "Anon Upload Leave Attachments" ON storage.objects;
 DROP POLICY IF EXISTS "Auth Read Leave Attachments" ON storage.objects;
+DROP POLICY IF EXISTS "Admin Delete Leave Attachments" ON storage.objects;
 
 -- Buat ulang policy storage
 CREATE POLICY "Public Read Avatars" ON storage.objects
@@ -784,11 +812,21 @@ FOR DELETE USING (
   AND public.get_current_user_role() = 'Superadmin'
 );
 
+-- Policy untuk surat bukti pengajuan izin/cuti:
+CREATE POLICY "Public Read Leave Attachments" ON storage.objects
+FOR SELECT USING (bucket_id = 'leave-attachments');
+
 CREATE POLICY "Auth Upload Leave Attachments" ON storage.objects
 FOR INSERT WITH CHECK (bucket_id = 'leave-attachments' AND auth.role() = 'authenticated');
 
-CREATE POLICY "Auth Read Leave Attachments" ON storage.objects
-FOR SELECT USING (bucket_id = 'leave-attachments' AND auth.role() = 'authenticated');
+CREATE POLICY "Anon Upload Leave Attachments" ON storage.objects
+FOR INSERT WITH CHECK (bucket_id = 'leave-attachments' AND auth.role() = 'anon');
+
+CREATE POLICY "Admin Delete Leave Attachments" ON storage.objects
+FOR DELETE USING (
+  bucket_id = 'leave-attachments'
+  AND public.get_current_user_role() IN ('Superadmin', 'Admin Unit')
+);
 
 -- ------------------------------------------------------------------------------
 -- 17. SEED DATA AWAL (INITIAL DATA SET)
