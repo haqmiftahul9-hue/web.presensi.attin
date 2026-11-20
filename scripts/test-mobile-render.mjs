@@ -16,10 +16,7 @@
 // Jalankan: node scripts/test-mobile-render.mjs
 // ============================================================================
 
-import { createServer } from 'vite'
-import { renderToString } from 'react-dom/server'
-import { createElement as h } from 'react'
-import { MemoryRouter } from 'react-router-dom'
+import { createTestServer, loadRender } from './_test-server.mjs'
 
 // ============================================================================
 // HARNESS
@@ -39,13 +36,8 @@ function pasangSesi(niy = NIY_GURU) {
 
 pasangSesi()
 
-const server = await createServer({
-  configFile: false,
-  root: process.cwd(),
-  logLevel: 'silent',
-  server: { middlewareMode: true },
-  appType: 'custom',
-})
+const server = await createTestServer()
+const { renderToString, createElement: h, MemoryRouter } = await loadRender(server)
 
 const muat = (p) => server.ssrLoadModule(p)
 const store = await muat('/src/store/simPresStore.jsx')
@@ -161,7 +153,7 @@ for (const path of ['/mobile/home', '/mobile/presensi', '/mobile/profil']) {
 // memastikan cabang kosong itu benar-benar dirender dengan teks yang diminta dan
 // selalu punya jalan keluar.
 const { EmptyState } = await (async () => {
-  const s2 = await createServer({ configFile: false, root: process.cwd(), logLevel: 'silent', server: { middlewareMode: true }, appType: 'custom' })
+  const s2 = await createTestServer()
   const m = await s2.ssrLoadModule('/src/components/mobile/Feedback.jsx')
   await s2.close()
   return m

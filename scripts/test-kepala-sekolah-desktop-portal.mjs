@@ -1,11 +1,8 @@
 import assert from 'node:assert/strict'
-import { createServer } from 'vite'
+import { createTestServer } from './_test-server.mjs'
 
 async function run() {
-  const server = await createServer({
-    server: { middlewareMode: true },
-    appType: 'custom',
-  })
+  const server = await createTestServer()
 
   try {
     const storeModule = await server.ssrLoadModule('/src/store/simPresStore.jsx')

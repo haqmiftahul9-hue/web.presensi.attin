@@ -14,10 +14,7 @@
 
 import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { join, sep } from 'node:path'
-import { createServer } from 'vite'
-import { renderToString } from 'react-dom/server'
-import { createElement as h } from 'react'
-import { MemoryRouter } from 'react-router-dom'
+import { createTestServer, loadRender } from './_test-server.mjs'
 
 const walk = (d) => readdirSync(d, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? walk(join(d, e.name)) : [join(d, e.name)]))
 
@@ -201,13 +198,8 @@ globalThis.window = {
   removeEventListener() {},
 }
 
-const server = await createServer({
-  configFile: false,
-  root: process.cwd(),
-  logLevel: 'silent',
-  server: { middlewareMode: true },
-  appType: 'custom',
-})
+const server = await createTestServer()
+const { renderToString, createElement: h, MemoryRouter } = await loadRender(server)
 const muat = (p) => server.ssrLoadModule(p)
 const { SimPresProvider } = await muat('/src/store/simPresStore.jsx')
 const MobileLayout = (await muat('/src/components/mobile/MobileLayout.jsx')).default
@@ -317,17 +309,21 @@ const hitung = (needle) => (needle ? htmlBeranda.split(needle).length - 1 : 0)
 
 /** Hitung kemunculan sebagai TEKS yang terlihat, bukan atribut. */
 function hitungTeks(needle) {
-  const tanpaAtribut = htmlBeranda.replace(/\s(?:alt|title)="[^"]*"/g, '')
+  const tanpaAtribut = htmlBeranda
+  .replace(/\s(?:alt|title)="[^"]*"/g, '')
+  .replace(/&#x27;/g, "'")
+  .replace(/&amp;/g, '&')
+  .replace(/&quot;/g, '"')
   return tanpaAtribut.split(needle).length - 1
 }
 
 uji('Nama lengkap tampil tepat 1x sebagai teks', hitungTeks(namaLengkap), 1)
 uji('Nama depan tidak bocor ke teks lain', hitungTeks(namaTanpaGelar(namaLengkap).split(' ')[0]), 1)
 uji('Kata sapaan tampil tepat 1x', hitungTeks(sapaanPegawai), 1)
-uji('Sapaan "Halo," hanya satu kali', hitungTeks('Halo,'), 1)
+uji('Salam pembuka tampil tepat 1x', hitungTeks("Assalamu'alaikum"), 1)
 uji('NIY tampil tepat 1x', hitungTeks(staffBeranda.niy), 1)
 uji('Unit tampil tepat 1x', hitungTeks(unitBeranda?.nama), 1)
-uji('Jabatan dihapus dari ringkasan profil dashboard', hitungTeks(staffBeranda.role), 0)
+uji('Jabatan tampil tepat 1x di ringkasan profil dashboard', hitungTeks(staffBeranda.role), 1)
 uji('Foto pegawai hanya satu', (htmlBeranda.match(/<img/g) || []).length, 1)
 
 // Kartu identitas kedua harus benar-benar tidak ada.

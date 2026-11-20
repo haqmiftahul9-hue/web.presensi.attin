@@ -2,10 +2,7 @@
 // UJI SAPAAN & NAMA BERGELAR UNTUK KEPALA SEKOLAH & ADMIN UNIT DI MOBILE
 // ============================================================================
 
-import { createServer } from 'vite'
-import { renderToString } from 'react-dom/server'
-import { createElement as h } from 'react'
-import { MemoryRouter } from 'react-router-dom'
+import { createTestServer, loadRender } from './_test-server.mjs'
 import {
   getUnitShortName,
   getLeaderRoleGreeting,
@@ -39,16 +36,19 @@ assert('formatNamaGelar without duplicate', formatNamaGelar({ name: 'Drs. H. Ahm
 assert('formatNamaGelar append gelar', formatNamaGelar({ name: 'Ahmad Fauzi', gelar: 'M.Pd' }) === 'Ahmad Fauzi, M.Pd')
 
 console.log('\n--- 2. Testing SSR Render Beranda Mobile for Kepsek & Admin ---')
-const server = await createServer({
-  configFile: false,
-  root: process.cwd(),
-  logLevel: 'silent',
-  server: { middlewareMode: true },
-  appType: 'custom',
-})
+const server = await createTestServer()
+const { renderToString, createElement: h, MemoryRouter } = await loadRender(server)
 const { SimPresProvider } = await server.ssrLoadModule('/src/store/simPresStore.jsx')
 const Beranda = (await server.ssrLoadModule('/src/pages/mobile/MobileBerandaPage.jsx')).default
 await server.close()
+
+// React menyisipkan komentar pemisah antar-teks dan meng-escape tanda kutip
+// menjadi &#x27;, jadi keduanya dibuang/dibuka sebelum kalimat dicocokkan.
+const teksBersih = (html) => html
+  .replace(/<!--[\s\S]*?-->/g, '')
+  .replace(/&#x27;/g, "'")
+  .replace(/&amp;/g, '&')
+  .replace(/&quot;/g, '"')
 
 function pasangSesiUser(userObj) {
   const isi = new Map([['simpres.auth.session', JSON.stringify({ v: 1, user: userObj })]])
@@ -63,9 +63,9 @@ function pasangSesiUser(userObj) {
 // Test A: Kepala Sekolah SDIT
 pasangSesiUser({ username: 'kepalasd', niy: '019001013', role: 'Kepala Sekolah', unitId: 'sd' })
 let html = renderToString(h(MemoryRouter, null, h(SimPresProvider, null, h(Beranda))))
-let text = html.replace(/<!--[\s\S]*?-->/g, '')
+let text = teksBersih(html)
 
-assert('Beranda Kepsek SDIT: Terdapat sapaan Halo,', text.includes('Halo,'))
+assert('Beranda Kepsek SDIT: Terdapat salam pembuka', text.includes("Assalamu'alaikum"))
 assert('Beranda Kepsek SDIT: Terdapat sapaan Kepala Sekolah SDIT', text.includes('Kepala Sekolah SDIT'))
 assert('Beranda Kepsek SDIT: Di bawah sapaan terdapat nama kepala sekolah beserta gelar (Drs. H. Ahmad Fauzi, M.Pd)', text.includes('Drs. H. Ahmad Fauzi, M.Pd'))
 assert('Beranda Kepsek SDIT: Terdapat badge peran Kepala Sekolah', text.includes('Kepala Sekolah'))
@@ -73,9 +73,9 @@ assert('Beranda Kepsek SDIT: Terdapat badge peran Kepala Sekolah', text.includes
 // Test B: Admin Unit SDIT
 pasangSesiUser({ username: 'adminsd1', niy: '019001008', role: 'Admin Unit', unitId: 'sd' })
 html = renderToString(h(MemoryRouter, null, h(SimPresProvider, null, h(Beranda))))
-text = html.replace(/<!--[\s\S]*?-->/g, '')
+text = teksBersih(html)
 
-assert('Beranda Admin SDIT: Terdapat sapaan Halo,', text.includes('Halo,'))
+assert('Beranda Admin SDIT: Terdapat salam pembuka', text.includes("Assalamu'alaikum"))
 assert('Beranda Admin SDIT: Terdapat sapaan Admin SDIT', text.includes('Admin SDIT'))
 assert('Beranda Admin SDIT: Di bawah sapaan terdapat nama admin beserta gelar (Fajar Pratama, S.Kom)', text.includes('Fajar Pratama, S.Kom'))
 assert('Beranda Admin SDIT: Terdapat badge peran Admin Unit', text.includes('Admin Unit'))
@@ -83,7 +83,7 @@ assert('Beranda Admin SDIT: Terdapat badge peran Admin Unit', text.includes('Adm
 // Test C: Kepala Sekolah SMPIT
 pasangSesiUser({ username: 'kepalasmp', niy: '019001014', role: 'Kepala Sekolah', unitId: 'smp' })
 html = renderToString(h(MemoryRouter, null, h(SimPresProvider, null, h(Beranda))))
-text = html.replace(/<!--[\s\S]*?-->/g, '')
+text = teksBersih(html)
 
 assert('Beranda Kepsek SMPIT: Terdapat sapaan Kepala Sekolah SMPIT', text.includes('Kepala Sekolah SMPIT'))
 assert('Beranda Kepsek SMPIT: Terdapat nama Dra. Hj. Nurhasanah, M.Pd', text.includes('Dra. Hj. Nurhasanah, M.Pd'))
@@ -91,9 +91,9 @@ assert('Beranda Kepsek SMPIT: Terdapat nama Dra. Hj. Nurhasanah, M.Pd', text.inc
 // Test D: Guru biasa tetap memakai sapaan santun (Ustadz/Ustadzah/Umi)
 pasangSesiUser({ username: '049005069', niy: '049005069', role: 'Guru', unitId: 'smp' })
 html = renderToString(h(MemoryRouter, null, h(SimPresProvider, null, h(Beranda))))
-text = html.replace(/<!--[\s\S]*?-->/g, '')
+text = teksBersih(html)
 
-assert('Beranda Guru: Menampilkan sapaan santun Halo, Ustadz', text.includes('Halo, Ustadz'))
+assert('Beranda Guru: Menampilkan sapaan santun Assalamu\'alaikum Ustadz', text.includes("Assalamu'alaikum Ustadz"))
 assert('Beranda Guru: Menampilkan nama lengkap Erianto, S.Ag, M.Pd.I', text.includes('Erianto, S.Ag, M.Pd.I'))
 
 console.log('\n============================================================')

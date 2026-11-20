@@ -117,6 +117,15 @@ export default function MobileAdminScanPage() {
         setPesan(`Presensi masuk ${staff.name} berhasil dicatat pukul ${jam}.`)
         setPesanTipe('success')
       } else {
+        // Absen pulang hanya sah kalau presensi masuk hari ini sudah tercatat
+        // (aturan yang sama dipakai store). Tanpa pengecekan ini, store
+        // menolak aksi ini tanpa efek, tapi layar tetap menampilkan
+        // "berhasil dicatat" — padahal tidak ada yang tersimpan.
+        if (!staff.masuk) {
+          setPesan(`Presensi masuk ${staff.name} belum tercatat hari ini. Catat presensi masuk terlebih dahulu sebelum presensi pulang.`)
+          setPesanTipe('error')
+          return
+        }
         try {
           await syncAttendanceToSupabase({
             staff,

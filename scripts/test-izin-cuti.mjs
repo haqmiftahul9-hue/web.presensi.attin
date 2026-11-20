@@ -13,10 +13,7 @@
 // ============================================================================
 
 import { readFileSync } from 'node:fs'
-import { createServer } from 'vite'
-import { renderToString } from 'react-dom/server'
-import { createElement as h } from 'react'
-import { MemoryRouter } from 'react-router-dom'
+import { createTestServer, loadRender } from './_test-server.mjs'
 import {
   JENIS_UTAMA, JENIS_FORM, SEMUA_JENIS, jenisIzinCuti, kelompokIzinCuti,
   aturanLampiran, normalisasiJenis, ikonJenis, warnaJenis,
@@ -188,13 +185,8 @@ function pasangSesi(niy) {
 }
 pasangSesi('049001054') // Wisna Yunita, S.Pd — guru SD
 
-const server = await createServer({
-  configFile: false,
-  root: process.cwd(),
-  logLevel: 'silent',
-  server: { middlewareMode: true },
-  appType: 'custom',
-})
+const server = await createTestServer()
+const { renderToString, createElement: h, MemoryRouter } = await loadRender(server)
 const store = await server.ssrLoadModule('/src/store/simPresStore.jsx')
 const {
   SimPresProvider, useSimPres, simPresReducer, addActivityLog,

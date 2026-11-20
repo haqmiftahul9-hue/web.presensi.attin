@@ -15,15 +15,9 @@
 // Jalankan: node scripts/test-teacher-auth.mjs
 // ============================================================================
 
-import { createServer } from 'vite'
+import { createTestServer } from './_test-server.mjs'
 
-const server = await createServer({
-  configFile: false,
-  root: process.cwd(),
-  logLevel: 'silent',
-  server: { middlewareMode: true },
-  appType: 'custom',
-})
+const server = await createTestServer()
 
 const store = await server.ssrLoadModule('/src/store/simPresStore.jsx')
 const seed = await server.ssrLoadModule('/src/data/seed.js')

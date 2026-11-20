@@ -879,8 +879,52 @@ export const initialState = {
   selectedUnitId: ALL_UNITS,
 }
 
+/**
+ * Gabung satu baris riwayat presensi untuk (pegawai, tanggal) yang sama.
+ *
+ * Aturan: satu pegawai hanya punya SATU baris riwayat per tanggal. Presensi
+ * kedua pada hari yang sama — misalnya pegawai sudah absen dengan wajah lalu
+ * discan lagi di kiosk, atau tombol ditekan dua kali — memperbarui baris yang
+ * sudah ada, bukan menambah baris kembar. Tanpa ini, Riwayat mobile menampilkan
+ * dua kartu untuk hari yang sama.
+ *
+ * Nilai baru yang kosong (null/undefined) tidak menimpa nilai lama: foto
+ * wajah yang sudah tersimpan tidak hilang hanya karena presensi berikutnya
+ * tidak membawa foto.
+ */
+function gabungAttendanceRow(lama, baru) {
+  const hasil = { ...lama, ...baru }
+  for (const [kunci, nilai] of Object.entries(baru)) {
+    if (nilai === null || nilai === undefined) {
+      hasil[kunci] = lama?.[kunci] ?? null
+    }
+  }
+  return hasil
+}
+
+/** Satu baris riwayat per pegawai per tanggal; baris terbaru di depan. */
+function upsertAttendanceRow(list, entry) {
+  const rows = Array.isArray(list) ? list : []
+  if (!entry) return rows
+  const index = rows.findIndex((h) => h.staffId === entry.staffId && h.date === entry.date)
+  if (index === -1) return [entry, ...rows]
+  const gabung = gabungAttendanceRow(rows[index], entry)
+  return [gabung, ...rows.filter((_, i) => i !== index)]
+}
+
 // Reducer diekspor agar aturan reduksi bisa diuji tanpa merender provider.
 export function simPresReducer(state, action) {
+  const next = reducerDasar(state, action)
+  // Riwayat presensi selalu ditulis ke storage begitu berubah. Dulu hanya
+  // sebagian aksi yang menulisnya, sehingga presensi hari ini hilang dari
+  // Riwayat/Slip setelah aplikasi dimuat ulang.
+  if (next !== state && next.attendanceHistory !== state.attendanceHistory) {
+    writePersistedItem(PERSISTED_ATTENDANCE_HISTORY_KEY, next.attendanceHistory)
+  }
+  return next
+}
+
+function reducerDasar(state, action) {
   switch (action.type) {
     case 'UPDATE_LEAVE_STATUS': {
       const nextLeaves = state.leaves.map((l) => {
@@ -1224,7 +1268,7 @@ export function simPresReducer(state, action) {
           },
           ...state.logs,
         ],
-        attendanceHistory: historyEntryUpdate ? [historyEntryUpdate, ...state.attendanceHistory] : state.attendanceHistory,
+        attendanceHistory: upsertAttendanceRow(state.attendanceHistory, historyEntryUpdate),
       }
     case 'ADD_ATTENDANCE':
       // Presensi baru = pegawai baru pada sumber data staff.
@@ -1321,6 +1365,10 @@ logs: [
           : s,
       )
       writePersistedItem(PERSISTED_STAFF_KEY, nextStaffCheckIn)
+      // Riwayat persensi ikut ditulis ke storage (oleh pembungkus reducer):
+      // kalau tidak, baris hari ini hilang dari Riwayat/Slip setelah aplikasi
+      // dimuat ulang.
+      const nextHistory = upsertAttendanceRow(state.attendanceHistory, historyEntryCheckIn)
       return {
         ...state,
         staff: nextStaffCheckIn,
@@ -1337,7 +1385,7 @@ logs: [
           },
           ...state.logs,
         ],
-        attendanceHistory: historyEntryCheckIn ? [historyEntryCheckIn, ...state.attendanceHistory] : state.attendanceHistory,
+        attendanceHistory: nextHistory,
       }
     }
     case 'CHECK_OUT': {
@@ -1363,6 +1411,18 @@ logs: [
           : s,
       )
       writePersistedItem(PERSISTED_STAFF_KEY, nextStaffCheckOut)
+      // Riwayat harian sudah punya baris untuk hari ini (dibuat saat presensi
+      // masuk), jadi pulang cukup memperbarui baris itu, bukan baris baru.
+      const nextHistory = state.attendanceHistory.map((h) =>
+        h.staffId === staffOut.id && h.date === tanggalPulang
+          ? {
+              ...h,
+              pulang: action.payload.pulang,
+              faceSnapshotPulangUrl: action.payload.faceSnapshotPulangUrl || h.faceSnapshotPulangUrl || null,
+              faceConfidencePulang: action.payload.faceConfidence || h.faceConfidencePulang || null,
+            }
+          : h,
+      )
       return {
         ...state,
         staff: nextStaffCheckOut,
@@ -1379,18 +1439,7 @@ logs: [
           },
           ...state.logs,
         ],
-        // Riwayat harian sudah punya baris untuk hari ini (dibuat saat presensi
-        // masuk), jadi pulang cukup ditambahkan ke baris itu, bukan baris baru.
-        attendanceHistory: state.attendanceHistory.map((h) =>
-          h.staffId === staffOut.id && h.date === tanggalPulang
-            ? {
-                ...h,
-                pulang: action.payload.pulang,
-                faceSnapshotPulangUrl: action.payload.faceSnapshotPulangUrl || h.faceSnapshotPulangUrl || null,
-                faceConfidencePulang: action.payload.faceConfidence || h.faceConfidencePulang || null,
-              }
-            : h,
-        ),
+        attendanceHistory: nextHistory,
       }
     }
     case 'ADD_LOG':
@@ -1645,7 +1694,9 @@ logs: [
         unitId: action.payload.unitId,
         createdAt: action.payload.createdAt || new Date().toISOString(),
       }
-      const next = [entry, ...(state.attendanceHistory || [])]
+      // Satu baris per pegawai per tanggal: pencatatan ulang untuk hari yang
+      // sama memperbarui baris yang ada, bukan menambah baris kembar.
+      const next = upsertAttendanceRow(state.attendanceHistory, entry)
       writePersistedItem(PERSISTED_ATTENDANCE_HISTORY_KEY, next)
       return { ...state, attendanceHistory: next }
     }

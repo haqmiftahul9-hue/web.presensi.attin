@@ -11,9 +11,9 @@ import {
   jamMenitDariDate, cekJendelaPresensi,
 } from '../../data/presensiMobile.js'
 import {
-  getEmployeeSalutation,
-  getUnitShortName,
   getLeaderDisplayName,
+  getLeaderRoleGreeting,
+  getSalamGreeting,
 } from '../../data/sapaanPegawai.js'
 import { loadAnnouncements, subscribeAnnouncements } from '../../services/announcementService.js'
 import StaffAvatar from '../../components/mobile/StaffAvatar.jsx'
@@ -172,12 +172,12 @@ function MobileBerandaPage() {
     return null
   }, [isSuperadmin, isKepsek, isAdminUnit, isPetugas])
 
-  // Sapaan peran / jabatan khusus (Kepala Sekolah atau Admin Unit per unit sekolah)
+  // Jabatan khas untuk Kepala Sekolah / Admin Unit per unit sekolah,
+  // mis. "Kepala Sekolah SDIT" dan "Admin SDIT".
   const roleSalutation = useMemo(() => {
-    if (isKepsek) return getUnitShortName(unit) || ''
-    if (isAdminUnit) return `Admin ${getUnitShortName(unit)}`
-    return null
-  }, [isKepsek, isAdminUnit, unit])
+    if (!isKepsek && !isAdminUnit) return null
+    return getLeaderRoleGreeting(currentRole, unit) || null
+  }, [isKepsek, isAdminUnit, currentRole, unit])
 
   // Nama kepala sekolah atau admin tersebut beserta gelarnya
   const leaderDisplayName = useMemo(() => {
@@ -284,10 +284,7 @@ function MobileBerandaPage() {
                  <>
                    {/* Sapaan Assalamu'alaikum sesuai gender / unit TK */}
                    <span className="font-label-sm text-label-sm text-primary-muted dark:text-slate-400 font-medium leading-none">
-                     Assalamu'alaikum {(() => {
-                       const s = getEmployeeSalutation(staff, { unit })
-                       return s === 'Umi' ? 'Ummi' : s
-                     })()}
+                     {getSalamGreeting(staff, { unit })}
                    </span>
                    {/* Nama kepala sekolah atau admin tersebut beserta gelarnya */}
                    <span
@@ -298,17 +295,14 @@ function MobileBerandaPage() {
                    </span>
                    {/* Jabatan */}
                    <span className="font-label-sm text-label-sm text-primary-muted dark:text-slate-400 font-medium leading-tight truncate mt-0.5">
-                     {staff?.role || roleSalutation}
+                     {roleSalutation || staff?.role}
                    </span>
                  </>
                ) : (
                  <>
                    {/* Sapaan Assalamu'alaikum sesuai gender / unit TK */}
                    <span className="font-label-sm text-label-sm text-primary-muted dark:text-slate-400 font-medium">
-                     Assalamu'alaikum {(() => {
-                       const s = getEmployeeSalutation(staff, { unit })
-                       return s === 'Umi' ? 'Ummi' : s
-                     })()}
+                     {getSalamGreeting(staff, { unit })}
                    </span>
                    {/* Nama lengkap */}
                    <span

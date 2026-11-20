@@ -11,10 +11,7 @@
 
 import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { join, sep } from 'node:path'
-import { createServer } from 'vite'
-import { renderToString } from 'react-dom/server'
-import { createElement as h } from 'react'
-import { MemoryRouter } from 'react-router-dom'
+import { createTestServer, loadRender } from './_test-server.mjs'
 import {
   getEmployeeGreeting,
   getEmployeeSalutation,
@@ -157,7 +154,7 @@ const PEMAKAI = [
   'src/components/StaffTable.jsx',
   'src/data/employeeCard.js',
 ]
-const tanpaFungsi = PEMAKAI.filter((file) => !/getEmployeeGreeting|getEmployeeSalutation|getEmployeeFormalName/.test(readFileSync(file, 'utf8')))
+const tanpaFungsi = PEMAKAI.filter((file) => !/getEmployeeGreeting|getEmployeeSalutation|getEmployeeFormalName|getSalamGreeting/.test(readFileSync(file, 'utf8')))
 ujiBenar('Semua halaman memakai fungsi sapaan terpusat', tanpaFungsi.length === 0, tanpaFungsi.join(' | '))
 
 // Fungsi lama sapaan() harus hilang supaya tidak ada dua sumber kebenaran.
@@ -168,13 +165,7 @@ ujiBenar('presensiMobile mengekspor ulang modul terpusat', /from '\.\/sapaanPega
 // ============================================================================
 // 6. SEMUA PEGAWAI HASIL SEED PUNYA SAPAAN
 // ============================================================================
-const server = await createServer({
-  configFile: false,
-  root: process.cwd(),
-  logLevel: 'silent',
-  server: { middlewareMode: true },
-  appType: 'custom',
-})
+const server = await createTestServer()
 const { STAFF, UNITS, buildFullStaff } = await server.ssrLoadModule('/src/data/seed.js')
 await server.close()
 
@@ -234,13 +225,8 @@ function pasangSesi(niy) {
 }
 pasangSesi(erianto.niy)
 
-const server2 = await createServer({
-  configFile: false,
-  root: process.cwd(),
-  logLevel: 'silent',
-  server: { middlewareMode: true },
-  appType: 'custom',
-})
+const server2 = await createTestServer()
+const { renderToString, createElement: h, MemoryRouter } = await loadRender(server2)
 const { SimPresProvider } = await server2.ssrLoadModule('/src/store/simPresStore.jsx')
 const Beranda = (await server2.ssrLoadModule('/src/pages/mobile/MobileBerandaPage.jsx')).default
 const Profil = (await server2.ssrLoadModule('/src/pages/mobile/MobileProfilPage.jsx')).default
@@ -250,13 +236,17 @@ await server2.close()
 
 const namaDepan = namaTanpaGelar(erianto.name)
 const htmlBeranda = renderToString(h(MemoryRouter, null, h(SimPresProvider, null, h(Beranda))))
-// React menyisipkan komentar pemisah antar-teks ("Halo,<!-- --> Ustadz"),
+// React menyisipkan komentar pemisah antar-teks ("Assalamu'alaikum<!-- --> Ustadz"),
 // jadi komentar dibuang sebelum kalimat dicocokkan.
-const teksBeranda = htmlBeranda.replace(/<!--[\s\S]*?-->/g, '')
-// Beranda memisahkan kata sapaan dari nama ("Halo, Ustadz" + nama lengkap),
-// supaya nama pegawai tidak muncul dua kali. Karena itu sapaannya dicek
-// sebagai kata tersendiri, bukan sebagai gabungan dengan nama.
-ujiBenar('Beranda menampilkan kata sapaan', teksBeranda.includes('Halo, Ustadz'))
+const teksBeranda = htmlBeranda
+  .replace(/<!--[\s\S]*?-->/g, '')
+  .replace(/&#x27;/g, "'")
+  .replace(/&amp;/g, '&')
+  .replace(/&quot;/g, '"')
+// Beranda memisahkan kata sapaan dari nama ("Assalamu'alaikum Ustadz" + nama
+// lengkap), supaya nama pegawai tidak muncul dua kali. Karena itu sapaannya
+// dicek sebagai kata tersendiri, bukan sebagai gabungan dengan nama.
+ujiBenar('Beranda menampilkan kata sapaan', teksBeranda.includes("Assalamu'alaikum Ustadz"))
 ujiBenar('Beranda menampilkan nama lengkap', teksBeranda.includes(erianto.name))
 ujiBenar('Beranda tidak lagi menampilkan Bapak/Ibu', !/(^|[^A-Za-z])(Bapak|Bu|Ibu)([^A-Za-z]|$)/.test(htmlBeranda))
 

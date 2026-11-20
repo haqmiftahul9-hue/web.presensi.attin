@@ -24,6 +24,25 @@ export const SAPAAN_TK = 'Umi'
 export const SAPAAN_LAKI = 'Ustadz'
 export const SAPAAN_PEREMPUAN = 'Ustadzah'
 
+// Bentuk salam pada baris pembuka Beranda ("Assalamu'alaikum ...").
+export const SAPAAN_SALAM = "Assalamu'alaikum"
+
+// Di baris salam, sapaan unit TK ditulis "Ummi". Bentuk ini hanya untuk
+// kalimat pembuka; nama resmi di dokumen tetap memakai sapaan baku.
+export const SAPAAN_TK_SALAM = 'Ummi'
+
+/**
+ * Baris pembuka Beranda: salam + kata sapaan, mis. "Assalamu'alaikum Ustadz".
+ *
+ * Bila gender/unit tidak memberi sapaan, hanya salam yang ditampilkan — nama
+ * tetap tampil tanpa sapaan, tidak pernah ditebak.
+ */
+export function getSalamGreeting(staff, { unit } = {}) {
+  const sapaan = getEmployeeSalutation(staff, unit)
+  const kata = sapaan === SAPAAN_TK ? SAPAAN_TK_SALAM : sapaan
+  return kata ? `${SAPAAN_SALAM} ${kata}` : SAPAAN_SALAM
+}
+
 /**
 * Unit TKIT adalah satu-satunya unit yang memakai "Umi" untuk semua pegawai,
  * apa pun gendernya — di lingkungan PAUD itu memang lazim. Id unit inilah

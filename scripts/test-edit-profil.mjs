@@ -13,10 +13,7 @@
 // Jalankan: node scripts/test-edit-profil.mjs
 // ============================================================================
 
-import { createServer } from 'vite'
-import { renderToString } from 'react-dom/server'
-import { createElement as h } from 'react'
-import { MemoryRouter } from 'react-router-dom'
+import { createTestServer, loadRender } from './_test-server.mjs'
 import {
   FIELD_PROFIL, FIELD_TERKUNCI, FIELD_FOTO, KUNCI_BOLEH_EDIT,
   ambilPerubahanProfil, ringkasPerubahanProfil, validasiProfil,
@@ -167,13 +164,8 @@ globalThis.window = {
   btoa: (s) => Buffer.from(s, 'binary').toString('base64'),
 }
 
-const server = await createServer({
-  configFile: false,
-  root: process.cwd(),
-  logLevel: 'silent',
-  server: { middlewareMode: true },
-  appType: 'custom',
-})
+const server = await createTestServer()
+const { renderToString, createElement: h, MemoryRouter } = await loadRender(server)
 const store = await server.ssrLoadModule('/src/store/simPresStore.jsx')
 const {
   SimPresProvider, useSimPres, simPresReducer,

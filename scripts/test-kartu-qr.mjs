@@ -15,10 +15,7 @@
 // ============================================================================
 
 import { readFileSync } from 'node:fs'
-import { createServer } from 'vite'
-import { renderToString } from 'react-dom/server'
-import { createElement as h } from 'react'
-import { MemoryRouter } from 'react-router-dom'
+import { createTestServer, loadRender } from './_test-server.mjs'
 import {
   employeeQrPayload, employeeQrInfo, cardQrValue, cardBarcodeValue,
   CARD_QR_PREFIX, CARD_QR_PREFIX_LABEL, CARD_SIZE_MM, PRINT_LAYOUTS, printLayoutByValue,
@@ -107,13 +104,8 @@ function pasangSesi(niy) {
 }
 pasangSesi('049005069')
 
-const server = await createServer({
-  configFile: false,
-  root: process.cwd(),
-  logLevel: 'silent',
-  server: { middlewareMode: true },
-  appType: 'custom',
-})
+const server = await createTestServer()
+const { renderToString, createElement: h, MemoryRouter } = await loadRender(server)
 const store = await server.ssrLoadModule('/src/store/simPresStore.jsx')
 const { SimPresProvider, useSimPres, selectSelfStaff, selectCardRows } = store
 const KartuId = (await server.ssrLoadModule('/src/pages/mobile/MobileKartuIdPage.jsx')).default

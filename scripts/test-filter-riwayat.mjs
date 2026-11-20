@@ -11,7 +11,7 @@
 // Jalankan: node scripts/test-filter-riwayat.mjs
 // ============================================================================
 
-import { createServer } from 'vite'
+import { createTestServer } from './_test-server.mjs'
 import {
   filterRiwayatPeriode, rekapRentang, rentangDariPeriode, labelPeriode,
   tanggalIDKeISO, isoKeTanggalID, tanggalLengkapISO, hitungRentangHari,
@@ -197,13 +197,7 @@ uji('Halaman rentang kosong: rekap hadir 0', tanpaData.rekap.hadir, 0)
 uji('Halaman rentang kosong: persen 0', tanpaData.rekap.persen, 0)
 
 // ===== 6. DATA MILIK SENDIRI SAJA (melalui store) ==========================
-const server = await createServer({
-  configFile: false,
-  root: process.cwd(),
-  logLevel: 'silent',
-  server: { middlewareMode: true },
-  appType: 'custom',
-})
+const server = await createTestServer()
 let store
 try {
   store = await server.ssrLoadModule('/src/store/simPresStore.jsx')

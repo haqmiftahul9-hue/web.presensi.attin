@@ -13,7 +13,7 @@
 
 import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { join, sep } from 'node:path'
-import { createServer } from 'vite'
+import { createTestServer } from './_test-server.mjs'
 import { calculateAttendanceStatus } from '../src/data/jamKerja.js'
 
 let lulus = 0
@@ -113,13 +113,7 @@ for (const [file, teks] of WAJIB_JAM_KERJA) {
 
 // ===== 2. UJI PERILAKU STORE (dimuat lewat Vite) =============================
 
-const server = await createServer({
-  configFile: false,
-  root: process.cwd(),
-  logLevel: 'silent',
-  server: { middlewareMode: true },
-  appType: 'custom',
-})
+const server = await createTestServer()
 let store
 try {
   store = await server.ssrLoadModule('/src/store/simPresStore.jsx')

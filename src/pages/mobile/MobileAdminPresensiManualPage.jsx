@@ -5,8 +5,22 @@ import {
   useSimPresOptional, selectScopedStaff, selectSelfStaff, addActivityLog,
   selectCurrentUserRole, ROLE_SUPERADMIN,
 } from '../../store/simPresStore.jsx'
-import { jamMenitDariDate } from '../../data/presensiMobile.js'
+import { jamMenitDariDate, isoHariIni } from '../../data/presensiMobile.js'
+import { buildPengajuan } from '../../data/jenisIzinCuti.js'
+import { jamKerjaRules, calculateAttendanceStatus } from '../../data/jamKerja.js'
 import { LoadingState } from '../../components/mobile/Feedback.jsx'
+
+/**
+ * Status kehadiran di form ini dipetakan ke jenis pengajuan yang dipakai
+ * modul izin/cuti. Pakai daftar terpusat, bukan string bebas, supaya hari
+ * izin/cuti ini ikut terhitung di Riwayat, Slip, dan Rekap.
+ */
+const JENIS_DARI_STATUS = {
+  'Izin': 'Izin Pribadi',
+  'Sakit': 'Cuti Sakit',
+  'Cuti': 'Cuti Tahunan',
+  'Dinas Luar': 'Izin Dinas',
+}
 
 export default function MobileAdminPresensiManualPage() {
   const ctx = useSimPresOptional()
@@ -61,34 +75,77 @@ export default function MobileAdminPresensiManualPage() {
 
     setBusy(true)
     try {
-      const updates = {
-        id: staff.id,
-        masuk: jamMasuk || staff.masuk || '07:15',
-        pulang: jamPulang || staff.pulang || null,
-        method: 'Manual (Admin Mobile)',
-      }
+      const hariIni = isoHariIni()
+      const jenisIzin = JENIS_DARI_STATUS[statusKehadiran] || null
+      const jamMasukTerpakai = jamMasuk || staff.masuk || '07:15'
+      const jamPulangTerpakai = jamPulang || staff.pulang || null
 
-      if (statusKehadiran === 'Terlambat') {
-        updates.lateMinutes = 15
-      } else if (statusKehadiran === 'Izin' || statusKehadiran === 'Sakit' || statusKehadiran === 'Cuti') {
-        // Tambahkan ke leaves
+      // 1. Status izin/cuti/sakit/dinas dicatat sebagai pengajuan yang sudah
+      //    disetujui admin, dengan tanggal mulai & selesai yang benar. Tanpa
+      //    kedua field itu, hari tersebut tidak terbaca sebagai izin di
+      //    Riwayat, Slip, dan Rekap.
+      if (jenisIzin) {
+        const pengajuan = buildPengajuan({
+          id: Date.now(),
+          staffId: staff.id,
+          jenis: jenisIzin,
+          mulai: tanggal,
+          selesai: tanggal,
+          alasan: keterangan || `Input manual oleh admin: ${statusKehadiran}`,
+        })
         dispatch({
           type: 'ADD_LEAVE',
           payload: {
-            id: Date.now(),
-            staffId: staff.id,
-            jenis: statusKehadiran,
-            tanggalMulai: tanggal,
-            tanggalSelesai: tanggal,
-            durasi: '1 hari',
-            alasan: keterangan || `Input manual oleh admin: ${statusKehadiran}`,
+            ...pengajuan,
             status: 'Disetujui',
-            createdAt: new Date().toISOString(),
+            tahapApproval: 3,
           },
         })
       }
 
-      dispatch({ type: 'UPDATE_STAFF', payload: updates })
+      // 2. Baris riwayat presensi untuk tanggal yang dipilih. Tanpa ini,
+      //    catatan manual tidak pernah muncul di Riwayat pegawai maupun Rekap.
+      const rules = jamKerjaRules(new Date(tanggal), staff.unitId, state.settings)
+      const hasil = calculateAttendanceStatus(new Date(tanggal), jenisIzin ? null : jamMasukTerpakai)
+      dispatch({
+        type: 'ADD_ATTENDANCE_HISTORY',
+        payload: {
+          id: `manual-mobile-${staff.id}-${tanggal}`,
+          staffId: staff.id,
+          unitId: staff.unitId,
+          name: staff.name,
+          niy: staff.niy,
+          role: staff.role,
+          date: tanggal,
+          tanggal,
+          hari: rules.hari,
+          jamKerja: rules.jamKerja,
+          jamMasuk: rules.jamMasuk,
+          jamPulang: rules.jamPulang,
+          masuk: jenisIzin ? null : jamMasukTerpakai,
+          pulang: jenisIzin ? null : jamPulangTerpakai,
+          method: 'Manual (Admin Mobile)',
+          lateMinutes: jenisIzin ? 0 : hasil.lateMinutes,
+          status: jenisIzin ? statusKehadiran : hasil.status,
+          source: 'manual_mobile',
+        },
+      })
+
+      // 3. Jam masuk/pulang pada data pegawai hanya relevan untuk HARI INI.
+      //    Untuk tanggal lain, menulisi kolom itu membuat presensi hari ini
+      //    milik pegawai ikut berubah.
+      if (tanggal === hariIni && !jenisIzin) {
+        dispatch({
+          type: 'UPDATE_STAFF',
+          payload: {
+            id: staff.id,
+            masuk: jamMasukTerpakai,
+            pulang: jamPulangTerpakai,
+            method: 'Manual (Admin Mobile)',
+            ...(statusKehadiran === 'Terlambat' ? { lateMinutes: 15 } : {}),
+          },
+        })
+      }
 
       addActivityLog(
         dispatch,
