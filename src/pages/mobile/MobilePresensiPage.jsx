@@ -19,7 +19,7 @@ import { ErrorState, LoadingState } from '../../components/mobile/Feedback.jsx'
 import { FaceEnrollmentModal } from '../../components/mobile/FaceEnrollmentModal.jsx'
 import {
   getRegisteredFaceData,
-  getRegisteredFaceDataFromSupabase,
+  getRegisteredFaceForVerification,
   detectSingleFaceAndDescriptor,
   compareFaceDescriptors,
   loadFaceApiModels,
@@ -246,15 +246,11 @@ function MobilePresensiPage() {
     if (!staff) return
     let mounted = true
     const sync = async () => {
-      // Coba Supabase async terlebih dahulu
-      const supabaseData = await getRegisteredFaceDataFromSupabase(staff)
+      // Sumber data biometrik: Supabase (otoritatif, lintas perangkat) dengan
+      // fallback ke localStorage/store.
+      const supabaseData = await getRegisteredFaceForVerification(staff)
       if (!mounted) return
-      if (supabaseData) {
-        setRegisteredFace(supabaseData)
-      } else {
-        // Fallback ke localStorage / store
-        setRegisteredFace(getRegisteredFaceData(staff))
-      }
+      setRegisteredFace(supabaseData || getRegisteredFaceData(staff))
     }
     sync()
     return () => { mounted = false }
@@ -452,12 +448,15 @@ function MobilePresensiPage() {
       }
     }
 
-    const kecocokan = faceConfidence || (96 + ((Number(staff.id) || 1) * 3) % 4)
+    // Catatan penting: skor kecocokan HANYA boleh berasal dari perbandingan
+    // descriptor yang benar-benar dijalankan terhadap kamera. Tidak ada nilai
+    // cadangan sintetis di sini — bila kamera atau AI tidak dapat dipakai,
+    // validasi wajib gagal, bukan lolos tanpa pemeriksaan wajah.
     return {
-      ok: true,
+      ok: false,
       icon: 'face',
       judul: 'Validasi Wajah',
-      detail: `Wajah cocok ${kecocokan}% dengan data biometrik ${staff.niy}${kamera.aktif ? ' • live camera' : ' • biometrik terdaftar'}`,
+      detail: 'Wajah belum dicocokkan. Arahkan wajah ke kamera lalu tekan tombol presensi.',
     }
   }
 
@@ -469,16 +468,16 @@ function MobilePresensiPage() {
 
     let hasilBiometri = validasiBiometri()
 
-    // Jika mode Face Recognition, kamera aktif, dan wajah terdaftar: jalankan pencocokan real-time dengan Face-api
+    // Jika mode Face Recognition: wajib ada descriptor terdaftar DAN kamera
+    // aktif, lalu deskriptor wajah live dibandingkan dengan data biometrik.
     if (mode === 'face') {
-      // Coba ambil descriptor dari Supabase dulu, fallback ke store/localStorage
-      let curRegistered = registeredFace
-      if (!curRegistered?.descriptor) {
-        try {
-          curRegistered = await getRegisteredFaceDataFromSupabase(staff)
-        } catch {
-          // diabaikan
-        }
+      // Sumber descriptor: Supabase (otoritatif, lintas perangkat) dengan
+      // fallback ke localStorage/store.
+      let curRegistered = null
+      try {
+        curRegistered = await getRegisteredFaceForVerification(staff)
+      } catch {
+        // diabaikan: dilanjutkan ke fallback lokal
       }
       if (!curRegistered?.descriptor) {
         curRegistered = getRegisteredFaceData(staff)
@@ -491,89 +490,103 @@ function MobilePresensiPage() {
         return
       }
 
-      if (kamera.aktif && kamera.videoRef?.current) {
-        setStatusPenutup('jalan')
-        setPesanPenutup('Mencocokkan wajah dengan AI Face-api.js...')
-        try {
-          const det = await detectSingleFaceAndDescriptor(kamera.videoRef.current, { inputSize: 320, scoreThreshold: 0.4 })
-          if (det.detected && det.descriptor) {
-            const comp = await compareFaceDescriptors(det.descriptor, curRegistered.descriptor)
-            // Retry 1x dengan threshold sedikit lebih longgar jika gagal (pencahayaan buruk)
-            let finalComp = comp
-            if (!comp.match) {
-              const retry = await compareFaceDescriptors(det.descriptor, curRegistered.descriptor, 0.62)
-              if (retry.match) finalComp = retry
+      const video = kamera.videoRef?.current
+      if (!kamera.aktif || !video) {
+        // Tanpa kamera tidak ada dasar untuk menyatakan wajah cocok, jadi
+        // validasi biometrik gagal (tidak boleh lolos diam-diam).
+        setStatusPenutup('gagal')
+        setPesanPenutup('Kamera tidak aktif sehingga wajah tidak dapat diverifikasi. Aktifkan kamera, atau pilih mode QR / Barcode.')
+        return
+      }
+
+      setStatusPenutup('jalan')
+      setPesanPenutup('Mencocokkan wajah dengan AI Face-api.js...')
+      try {
+        const det = await detectSingleFaceAndDescriptor(video, { inputSize: 320, scoreThreshold: 0.4 })
+        if (det.detected && det.descriptor) {
+          const comp = await compareFaceDescriptors(det.descriptor, curRegistered.descriptor)
+          // Retry 1x dengan threshold sedikit lebih longgar jika gagal (pencahayaan buruk)
+          let finalComp = comp
+          if (!comp.match) {
+            const retry = await compareFaceDescriptors(det.descriptor, curRegistered.descriptor, 0.62)
+            if (retry.match) finalComp = retry
+          }
+          if (finalComp.match) {
+            setFaceStatus('matched')
+            setFaceConfidence(finalComp.confidence)
+            hasilBiometri = {
+              ok: true,
+              icon: 'face',
+              judul: 'Validasi Wajah',
+              detail: `Wajah cocok ${finalComp.confidence}% dengan data biometrik ${staff.niy} (${staff.name})`,
             }
-            if (finalComp.match) {
-              setFaceStatus('matched')
-              setFaceConfidence(finalComp.confidence)
-              hasilBiometri = {
-                ok: true,
-                icon: 'face',
-                judul: 'Validasi Wajah',
-                detail: `Wajah cocok ${finalComp.confidence}% dengan data biometrik ${staff.niy} (${staff.name})`,
-              }
-              // Upload foto bukti presensi datang: crop wajah → kompres WebP (< 30KB) → Supabase Storage bucket per unit
-              // Berjalan di latar belakang (tidak menghambat UX presensi)
-              uploadAttendanceFacePhoto({
-                staff,
-                unitId: unit?.id || staff.unitId,
-                type: 'masuk',
-                imageSource: kamera.videoRef.current,
-                detectionBox: det.box,
-                date: saatPresensi,
+            // Upload foto bukti presensi datang: crop wajah → kompres WebP (< 30KB) → Supabase Storage bucket per unit
+            // Berjalan di latar belakang (tidak menghambat UX presensi)
+            uploadAttendanceFacePhoto({
+              staff,
+              unitId: unit?.id || staff.unitId,
+              type: 'masuk',
+              imageSource: video,
+              detectionBox: det.box,
+              date: saatPresensi,
+            })
+              .then((uploadRes) => {
+                if (uploadRes?.url) {
+                  console.info('[FaceRec] Foto bukti presensi masuk terupload ke unit bucket:', uploadRes.bucket, uploadRes.url)
+                  // Sinkronisasi baris ke tabel attendance Supabase
+                  syncAttendanceToSupabase({
+                    staff,
+                    unitId: unit?.id || staff.unitId,
+                    tanggal: saatPresensi,
+                    jamMasuk: jamDetik(saatPresensi),
+                    presensiId: (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : `${staff.id}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+                    status: hasilWaktu.lateMinutes > 0 ? 'Terlambat' : 'Tepat Waktu',
+                    lateMinutes: hasilWaktu.lateMinutes || 0,
+                    method: 'Face Recognition',
+                    faceSnapshotUrl: uploadRes.url,
+                    faceConfidence: finalComp.confidence,
+                    photoBucket: uploadRes.bucket,
+                    coordinates: {
+                      latitude: geofence.coords?.latitude,
+                      longitude: geofence.coords?.longitude,
+                      distance: geofence.jarak,
+                      outsideRadius: !geofence.dalamRadius,
+                    },
+                  })
+                }
               })
-                .then((uploadRes) => {
-                  if (uploadRes?.url) {
-                    console.info('[FaceRec] Foto bukti presensi masuk terupload ke unit bucket:', uploadRes.bucket, uploadRes.url)
-                    // Sinkronisasi baris ke tabel attendance Supabase
-                    syncAttendanceToSupabase({
-                      staff,
-                      unitId: unit?.id || staff.unitId,
-                      tanggal: saatPresensi,
-                      jamMasuk: jamDetik(saatPresensi),
-                      presensiId: (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : `${staff.id}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-                      status: hasilWaktu.lateMinutes > 0 ? 'Terlambat' : 'Tepat Waktu',
-                      lateMinutes: hasilWaktu.lateMinutes || 0,
-                      method: 'Face Recognition',
-                      faceSnapshotUrl: uploadRes.url,
-                      faceConfidence: comp.confidence,
-                      photoBucket: uploadRes.bucket,
-                      coordinates: {
-                        latitude: geofence.coords?.latitude,
-                        longitude: geofence.coords?.longitude,
-                        distance: geofence.jarak,
-                        outsideRadius: !geofence.dalamRadius,
-                      },
-                    })
-                  }
-                })
-                .catch((err) => {
-                  console.warn('[FaceRec] Upload foto bukti presensi masuk gagal (non-fatal):', err)
-                })
-            } else {
-              setFaceStatus('mismatched')
-              setFaceConfidence(comp.confidence)
-              hasilBiometri = {
-                ok: false,
-                icon: 'face',
-                judul: 'Akses Ditolak/Wajah Tidak Cocok',
-                detail: `Wajah di depan kamera tidak cocok dengan pemilik akun (${staff.name} - NIY ${staff.niy}). Jarak Euclidean ${comp.distance}.`,
-              }
-            }
+              .catch((err) => {
+                console.warn('[FaceRec] Upload foto bukti presensi masuk gagal (non-fatal):', err)
+              })
           } else {
+            setFaceStatus('mismatched')
+            setFaceConfidence(comp.confidence)
             hasilBiometri = {
               ok: false,
               icon: 'face',
-              judul: 'Validasi Wajah',
-              detail: 'Tidak ada wajah terdeteksi dalam kamera. Posisikan wajah tepat di depan kamera.',
+              judul: 'Akses Ditolak/Wajah Tidak Cocok',
+              detail: `Wajah di depan kamera tidak cocok dengan pemilik akun (${staff.name} - NIY ${staff.niy}). Jarak Euclidean ${comp.distance}.`,
             }
           }
-        } catch (err) {
-          console.warn('Deteksi real-time error:', err)
+        } else {
+          setFaceStatus('idle')
+          hasilBiometri = {
+            ok: false,
+            icon: 'face',
+            judul: 'Validasi Wajah',
+            detail: 'Tidak ada wajah terdeteksi dalam kamera. Posisikan wajah tepat di depan kamera.',
+          }
         }
-      } else if (hasilBiometri.ok) {
-        setFaceStatus('matched')
+      } catch (err) {
+        // Error inferensi bukan berarti wajah cocok — validasi wajib gagal.
+        console.warn('Deteksi real-time error:', err)
+        setFaceStatus('idle')
+        hasilBiometri = {
+          ok: false,
+          icon: 'face',
+          judul: 'Validasi Wajah',
+          detail: `Pencocokan wajah gagal: ${err?.message || 'terjadi kesalahan pada modul AI pengenalan wajah'}.`,
+        }
       }
     }
 
@@ -680,6 +693,74 @@ function MobilePresensiPage() {
       setSheetTerbuka(true)
       return
     }
+
+    // Absen pulang pada mode wajah juga wajib mencocokkan wajah dengan data
+    // biometrik terdaftar — sama seperti absen masuk. Tanpa ini, metode
+    // "Face Recognition" pada catatan pulang tidak memiliki dasar.
+    let faceBoxPulang = null
+    let faceConfidencePulang = null
+    if (mode === 'face') {
+      let curRegistered = null
+      try {
+        curRegistered = await getRegisteredFaceForVerification(staff)
+      } catch {
+        // diabaikan: dilanjutkan ke fallback lokal
+      }
+      if (!curRegistered?.descriptor) {
+        curRegistered = getRegisteredFaceData(staff)
+      }
+
+      if (!curRegistered?.descriptor) {
+        setStatusPenutup('gagal')
+        setPesanPenutup('Wajah belum terdaftar, sehingga absen pulang tidak dapat diverifikasi.')
+        setSheetTerbuka(true)
+        return
+      }
+
+      const videoPulang = kamera.videoRef?.current
+      if (!kamera.aktif || !videoPulang) {
+        setStatusPenutup('gagal')
+        setPesanPenutup('Kamera tidak aktif sehingga wajah tidak dapat diverifikasi. Aktifkan kamera, atau pilih mode QR / Barcode.')
+        setSheetTerbuka(true)
+        return
+      }
+
+      try {
+        const det = await detectSingleFaceAndDescriptor(videoPulang, { inputSize: 320, scoreThreshold: 0.4 })
+        if (!det.detected || !det.descriptor) {
+          setFaceStatus('idle')
+          setStatusPenutup('gagal')
+          setPesanPenutup('Tidak ada wajah terdeteksi dalam kamera. Absen pulang tidak disimpan.')
+          setSheetTerbuka(true)
+          return
+        }
+        const comp = await compareFaceDescriptors(det.descriptor, curRegistered.descriptor)
+        let finalComp = comp
+        if (!comp.match) {
+          const retry = await compareFaceDescriptors(det.descriptor, curRegistered.descriptor, 0.62)
+          if (retry.match) finalComp = retry
+        }
+        if (!finalComp.match) {
+          setFaceStatus('mismatched')
+          setFaceConfidence(comp.confidence)
+          setStatusPenutup('gagal')
+          setPesanPenutup(`Akses Ditolak/Wajah Tidak Cocok — wajah di depan kamera tidak cocok dengan ${staff.name} (NIY ${staff.niy}). Absen pulang tidak disimpan.`)
+          setSheetTerbuka(true)
+          return
+        }
+        setFaceStatus('matched')
+        setFaceConfidence(finalComp.confidence)
+        faceBoxPulang = det.box
+        faceConfidencePulang = finalComp.confidence
+      } catch (err) {
+        console.warn('[FaceRec] Verifikasi wajah (pulang) gagal:', err)
+        setStatusPenutup('gagal')
+        setPesanPenutup(`Pencocokan wajah gagal: ${err?.message || 'terjadi kesalahan pada modul AI pengenalan wajah'}.`)
+        setSheetTerbuka(true)
+        return
+      }
+    }
+
     setStatusPenutup('berhasil')
     setPesanPenutup(`Absen pulang tersimpan pukul ${jamDetik(saatPresensi)} ${zonaWaktu}.`)
 
@@ -699,7 +780,7 @@ function MobilePresensiPage() {
           unitId: unit?.id || staff.unitId,
           type: 'pulang',
           imageSource: kamera.videoRef.current,
-          detectionBox: null,
+          detectionBox: faceBoxPulang,
           date: saatPresensi,
         })
 
@@ -713,6 +794,7 @@ function MobilePresensiPage() {
             presensiId,
             method: 'Face Recognition',
             faceSnapshotPulangUrl: uploadRes.url,
+            faceConfidence: faceConfidencePulang,
             photoBucket: uploadRes.bucket,
             coordinates,
           })
@@ -725,6 +807,7 @@ function MobilePresensiPage() {
             jamPulang: jamDetik(saatPresensi),
             presensiId,
             method: 'Face Recognition',
+            faceConfidence: faceConfidencePulang,
             coordinates,
           })
         }
@@ -738,6 +821,7 @@ function MobilePresensiPage() {
           jamPulang: jamDetik(saatPresensi),
           presensiId,
           method: 'Face Recognition',
+          faceConfidence: faceConfidencePulang,
           coordinates,
         })
       }

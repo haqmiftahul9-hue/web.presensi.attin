@@ -153,15 +153,29 @@ export async function detectSingleFaceAndDescriptor(inputElement, options = {}) 
 }
 
 /**
+ * Jarak Euclidean dua vektor descriptor (L2).
+ * Dihitung langsung agar perbandingan tetap bisa dipakai walau modul
+ * face-api belum/sudah gagal dimuat, dan agar bisa diuji di Node.
+ *
+ * @param {Array<number>|Float32Array} a
+ * @param {Array<number>|Float32Array} b
+ */
+export function faceEuclideanDistance(a, b) {
+  let sum = 0
+  for (let i = 0; i < a.length; i += 1) {
+    const diff = a[i] - b[i]
+    sum += diff * diff
+  }
+  return Math.sqrt(sum)
+}
+
+/**
  * Membandingkan descriptor wajah yang terdeteksi dengan descriptor yang sudah terdaftar.
  * @param {Array<number>|Float32Array} currentDescriptor
  * @param {Array<number>|Float32Array} registeredDescriptor
  * @param {number} threshold - default 0.55
  */
 export async function compareFaceDescriptors(currentDescriptor, registeredDescriptor, threshold = FACE_MATCH_THRESHOLD) {
-  const faceapi = await getFaceApi()
-  if (!faceapi) throw new Error('Face-api tidak tersedia')
-
   if (!currentDescriptor || !registeredDescriptor) {
     return {
       match: false,
@@ -183,7 +197,7 @@ export async function compareFaceDescriptors(currentDescriptor, registeredDescri
     }
   }
 
-  const distance = faceapi.euclideanDistance(d1, d2)
+  const distance = faceEuclideanDistance(d1, d2)
   const match = distance <= threshold
 
   // Hitung persentase kecocokan (0 - 100%)
@@ -203,17 +217,118 @@ export async function compareFaceDescriptors(currentDescriptor, registeredDescri
 }
 
 /**
- * Mengambil tangkapan snapshot foto dari elemen video kamera sebagai Data URL (JPEG).
+ * Deteksi wajah + landmark TANPA menjalankan face recognition net.
+ *
+ * Loop liveness (pendaftaran 3 langkah) memakai fungsi ini. Menjalankan
+ * descriptor net (6,4 MB) di setiap frame membuat frame rate turun drastis
+ * di ponsel sehingga kedip mata (yang hanya berlangsung ~100 ms) sering
+ * terlewat. Landmark net saja jauh lebih ringan dan cukup untuk mengukur
+ * orientasi kepala (yaw) serta keterbukaan mata (EAR).
+ *
+ * @param {HTMLVideoElement|HTMLImageElement|HTMLCanvasElement} inputElement
+ * @param {object} options
  */
-export function captureVideoFrame(videoElement, quality = 0.88) {
+export async function detectSingleFaceWithLandmarks(inputElement, options = {}) {
+  const faceapi = await getFaceApi()
+  if (!faceapi) throw new Error('Face-api tidak tersedia pada lingkungan ini')
+
+  if (!modelsLoaded) {
+    await loadFaceApiModels()
+  }
+
+  const {
+    inputSize = 320,
+    scoreThreshold = 0.5,
+  } = options
+
+  const detectorOptions = new faceapi.TinyFaceDetectorOptions({
+    inputSize,
+    scoreThreshold,
+  })
+
+  const detection = await faceapi
+    .detectSingleFace(inputElement, detectorOptions)
+    .withFaceLandmarks()
+
+  if (!detection) {
+    return {
+      detected: false,
+      descriptor: null,
+      box: null,
+      landmarks: null,
+      score: 0,
+    }
+  }
+
+  const box = detection.detection.box
+  return {
+    detected: true,
+    score: detection.detection.score,
+    box: {
+      x: box.x,
+      y: box.y,
+      width: box.width,
+      height: box.height,
+    },
+    landmarks: detection.landmarks?.positions || detection.landmarks,
+  }
+}
+
+/**
+ * Gabungkan beberapa descriptor wajah menjadi satu vektor acuan yang lebih
+ * stabil. Averaging beberapa capture frontal mengurangi noise inferensi dan
+ * membuat pencocokan saat presensi lebih andal.
+ *
+ * @param {Array<Array<number>|Float32Array>} descriptors
+ * @returns {number[]|null}
+ */
+export function averageFaceDescriptors(descriptors) {
+  const valid = (descriptors || []).filter(
+    (d) => d && (Array.isArray(d) || ArrayBuffer.isView(d)) && d.length === 128,
+  )
+  if (!valid.length) return null
+
+  const hasil = new Array(128).fill(0)
+  for (const d of valid) {
+    for (let i = 0; i < 128; i += 1) hasil[i] += d[i]
+  }
+  return hasil.map((v) => v / valid.length)
+}
+
+/**
+ * Mengambil tangkapan snapshot foto dari elemen video kamera sebagai Data URL (JPEG).
+ *
+ * @param {HTMLVideoElement} videoElement
+ * @param {number} quality - kualitas JPEG (0..1)
+ * @param {object} [options]
+ * @param {boolean} [options.mirror=false] - balik gambar secara horizontal agar
+ *        sama dengan tampilan cermin pada viewfinder kamera depan.
+ * @param {number} [options.maxDimension] - sisi terpanjang hasil (piksel).
+ *       null/0 berarti tanpa resize.
+ */
+export function captureVideoFrame(videoElement, quality = 0.88, options = {}) {
   if (!videoElement) return null
+  const { mirror = false, maxDimension = 0 } = options
+
+  const sourceWidth = videoElement.videoWidth || 640
+  const sourceHeight = videoElement.videoHeight || 480
+
+  let scale = 1
+  if (maxDimension > 0) {
+    scale = Math.min(1, maxDimension / Math.max(sourceWidth, sourceHeight))
+  }
   const canvas = document.createElement('canvas')
-  canvas.width = videoElement.videoWidth || 640
-  canvas.height = videoElement.videoHeight || 480
+  canvas.width = Math.max(1, Math.round(sourceWidth * scale))
+  canvas.height = Math.max(1, Math.round(sourceHeight * scale))
   const ctx = canvas.getContext('2d')
   if (!ctx) return null
 
-  // Jika kamera depan, gambar secara mirror agar sesuai tampilan cermin viewfinder
+  if (mirror) {
+    // Balik secara horizontal: stream kamera depan tidak dicerminkan secara
+    // native, sedangkan penggunaLOBAL memandangi layar cermin.
+    ctx.translate(canvas.width, 0)
+    ctx.scale(-1, 1)
+  }
   ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height)
   return canvas.toDataURL('image/jpeg', quality)
 }
@@ -230,24 +345,24 @@ const STORAGE_PREFIX = 'attin_face_reg_'
  * Mengembalikan object { niy, staffId, name, descriptor, photo, registeredAt }
  * atau null jika belum terdaftar.
  *
+ * Pencarian memakai staff_id; bila baris tidak ditemukan (mis. data pegawai
+ * diimpor ulang sehingga id berubah) dicoba lagi memakai NIY yang merupakan
+ * kunci bisnis yang stabil.
+ *
  * @param {object} staff - objek staff dengan .id dan .niy
  * @returns {Promise<object|null>}
  */
 export async function getRegisteredFaceDataFromSupabase(staff) {
   if (!staff || !isSupabaseConfigured || !supabase) return null
-  try {
-    const { data, error } = await supabase
-      .from('staff_faces')
-      .select('staff_id, niy, name, descriptor, photo_url, registered_at')
-      .eq('staff_id', staff.id)
-      .maybeSingle()
 
-    if (error || !data) return null
+  const kolom = 'staff_id, niy, name, descriptor, photo_url, registered_at'
+
+  const bentukkan = (data) => {
+    if (!data) return null
     const descriptor = Array.isArray(data.descriptor)
       ? data.descriptor
-      : Object.values(data.descriptor)
+      : Object.values(data.descriptor || {})
     if (!descriptor || descriptor.length !== 128) return null
-
     return {
       niy: data.niy,
       staffId: data.staff_id,
@@ -256,10 +371,58 @@ export async function getRegisteredFaceDataFromSupabase(staff) {
       photo: data.photo_url || null,
       registeredAt: data.registered_at || null,
     }
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('staff_faces')
+      .select(kolom)
+      .eq('staff_id', staff.id)
+      .maybeSingle()
+
+    if (!error && data) {
+      const hasil = bentukkan(data)
+      if (hasil) return hasil
+    }
+
+    // Fallback: cari berdasarkan NIY (kunci bisnis yang tidak berubah).
+    if (staff.niy) {
+      const { data: byNiy, error: errNiy } = await supabase
+        .from('staff_faces')
+        .select(kolom)
+        .eq('niy', staff.niy)
+        .maybeSingle()
+
+      if (!errNiy && byNiy) {
+        const hasil = bentukkan(byNiy)
+        if (hasil) return hasil
+      }
+    }
+
+    return null
   } catch (err) {
     console.warn('[FaceRec] Gagal membaca face descriptor dari Supabase:', err)
     return null
   }
+}
+
+/**
+ * Pemuat unified untuk data biometrik wajah yang dipakai saat scan presensi.
+ * Urutan sumber: Supabase (otoritatif, lintas perangkat) -> localStorage/store.
+ *
+ * @param {object} staff
+ * @returns {Promise<object|null>} record { descriptor, photo, ... } atau null
+ */
+export async function getRegisteredFaceForVerification(staff) {
+  if (!staff) return null
+
+  const dariSupabase = await getRegisteredFaceDataFromSupabase(staff)
+  if (dariSupabase?.descriptor) return dariSupabase
+
+  const lokal = getRegisteredFaceData(staff)
+  if (lokal?.descriptor) return lokal
+
+  return null
 }
 
 /**
@@ -289,24 +452,36 @@ export async function saveRegisteredFaceDataToSupabase({ staff, descriptor, phot
   // 1. Simpan ke Supabase DB (utama)
   if (isSupabaseConfigured && supabase) {
     try {
-      const { error } = await supabase.from('staff_faces').upsert(
-        {
-          staff_id: staff.id,
-          niy: staff.niy,
-          name: staff.name,
-          descriptor: descriptorArr,
-          photo_url: photo || null,
-        },
-        { onConflict: 'staff_id' },
-      )
+      const payload = {
+        staff_id: staff.id,
+        niy: staff.niy,
+        name: staff.name,
+        descriptor: descriptorArr,
+        photo_url: photo || null,
+      }
+
+      const { error } = await supabase.from('staff_faces').upsert(payload, {
+        onConflict: 'staff_id',
+      })
+
       if (error) {
-        console.warn('[FaceRec] Upsert Supabase gagal:', error.message)
-        throw new Error(error.message || 'Gagal menyimpan wajah ke Supabase')
+        // Upsert berdasarkan staff_id bisa gagal bila baris lama tersimpan
+        // dengan staff_id berbeda namun NIY sama. Coba perbarui via NIY.
+        console.warn('[FaceRec] Upsert Supabase gagal, mencoba pembaruan via NIY:', error.message)
+        const { error: errNiy } = await supabase
+          .from('staff_faces')
+          .update(payload)
+          .eq('niy', staff.niy)
+
+        if (errNiy) {
+          console.warn('[FaceRec] Upsert & pembaruan via NIY sama-sama gagal:', errNiy.message)
+          throw new Error(error.message || 'Gagal menyimpan wajah ke Supabase')
+        }
       }
-} catch (err) {
-        console.warn('[FaceRec] Error upsert Supabase:', err)
-        throw err instanceof Error ? err : new Error(String(err))
-      }
+    } catch (err) {
+      console.warn('[FaceRec] Error upsert Supabase:', err)
+      throw err instanceof Error ? err : new Error(String(err))
+    }
   }
 
   // 2. Selalu simpan ke localStorage sebagai cache offline

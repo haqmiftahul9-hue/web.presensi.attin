@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useSimPres } from '../store/simPresStore.jsx'
 import { cardQrValue, CARD_QR_PREFIX, initialsForCard } from '../data/employeeCard.js'
 import { jamDetik } from '../data/presensiMobile.js'
@@ -8,6 +8,14 @@ import {
   uploadAttendanceFacePhoto,
   syncAttendanceToSupabase,
 } from '../services/attendancePhotoService.js'
+import {
+  loadFaceApiModels,
+  isFaceApiLoaded,
+  detectSingleFaceAndDescriptor,
+  compareFaceDescriptors,
+  getRegisteredFaceForVerification,
+  getRegisteredFaceData,
+} from '../services/faceRecognitionService.js'
 
 function resolveStaff(state, code) {
   const trimmed = String(code || '').trim().toUpperCase()
@@ -32,6 +40,20 @@ function AdminPresensiScanPage() {
   const [facing, setFacing] = useState('environment')
   const [verifikasiMode, setVerifikasiMode] = useState('qr') // 'qr' | 'face'
   const [facePhotoUrl, setFacePhotoUrl] = useState(null)
+  const [modelSiap, setModelSiap] = useState(() => isFaceApiLoaded())
+  const [faceConfidence, setFaceConfidence] = useState(null)
+
+  // Preload model Face-api di latar belakang supaya mode "Wajah" bisa dipakai
+  // tanpa menunggu saat operator memindai kartu.
+  useEffect(() => {
+    let aktif = true
+    if (!isFaceApiLoaded()) {
+      loadFaceApiModels()
+        .then(() => { if (aktif) setModelSiap(true) })
+        .catch((err) => console.warn('[AdminKiosk] Gagal memuat model Face-api:', err))
+    }
+    return () => { aktif = false }
+  }, [])
 
   const unitId = state?.currentUser?.unitId || 'sd'
   const unit = state?.units?.find((u) => u.id === unitId) || null
@@ -106,6 +128,70 @@ function AdminPresensiScanPage() {
         return
       }
 
+      // Verifikasi biometrik: pada mode "Wajah" WAJIB ada pencocokan
+      // descriptor wajah dengan data biometrik terdaftar. Tanpa itu, mode
+      // tersebut hanya mencatat foto tanpa memverifikasi siapa yang memindai.
+      let faceBox = null
+      let confidence = null
+
+      if (verifikasiMode === 'face') {
+        let terdaftar = null
+        try {
+          terdaftar = await getRegisteredFaceForVerification(staff)
+        } catch {
+          // diabaikan: dilanjutkan ke fallback lokal
+        }
+        if (!terdaftar?.descriptor) {
+          terdaftar = getRegisteredFaceData(staff)
+        }
+
+        if (!terdaftar?.descriptor) {
+          setPesan(`Wajah ${staff.name} (NIY ${staff.niy}) belum terdaftar, sehingga verifikasi biometrik tidak dapat dilakukan.`)
+          setBusy(false)
+          return
+        }
+
+        const video = kamera.videoRef?.current
+        if (!video) {
+          setPesan('Kamera tidak aktif sehingga wajah tidak dapat diverifikasi.')
+          setBusy(false)
+          return
+        }
+
+        let det = null
+        try {
+          det = await detectSingleFaceAndDescriptor(video, { inputSize: 320, scoreThreshold: 0.4 })
+        } catch (err) {
+          console.warn('[AdminKiosk] Deteksi wajah gagal:', err)
+          setPesan(`Pencocokan wajah gagal: ${err?.message || 'terjadi kesalahan pada modul AI pengenalan wajah'}.`)
+          setBusy(false)
+          return
+        }
+
+        if (!det?.detected || !det?.descriptor) {
+          setPesan('Tidak ada wajah terdeteksi di depan kamera. Presensi tidak disimpan.')
+          setBusy(false)
+          return
+        }
+
+        const comp = await compareFaceDescriptors(det.descriptor, terdaftar.descriptor)
+        let finalComp = comp
+        if (!comp.match) {
+          const retry = await compareFaceDescriptors(det.descriptor, terdaftar.descriptor, 0.62)
+          if (retry.match) finalComp = retry
+        }
+
+        if (!finalComp.match) {
+          setPesan(`Akses Ditolak/Wajah Tidak Cocok — wajah di depan kamera bukan ${staff.name} (NIY ${staff.niy}). Jarak Euclidean ${comp.distance}. Presensi tidak disimpan.`)
+          setBusy(false)
+          return
+        }
+
+        faceBox = det.box
+        confidence = finalComp.confidence
+        setFaceConfidence(confidence)
+      }
+
       // Upload foto bukti wajah jika mode face dan kamera aktif
       let fotoUrl = null
       let bucketName = null
@@ -115,7 +201,7 @@ function AdminPresensiScanPage() {
           unitId: staff.unitId || unitId,
           type: tipe,
           imageSource: kamera.videoRef.current,
-          detectionBox: null,
+          detectionBox: faceBox,
           date: saat,
         })
         if (uploadRes?.url) {
@@ -138,6 +224,7 @@ function AdminPresensiScanPage() {
           method: verifikasiMode === 'face' ? 'Face Recognition' : 'QR Code (Admin Kios)',
           faceSnapshotUrl: fotoUrl,
           faceSnapshotMasukUrl: fotoUrl,
+          faceConfidence: confidence,
           photoBucket: bucketName,
           coordinates: {
             latitude: unit?.latitude,
@@ -157,6 +244,7 @@ function AdminPresensiScanPage() {
           presensiId,
           method: verifikasiMode === 'face' ? 'Face Recognition' : 'QR Code (Admin Kios)',
           faceSnapshotPulangUrl: fotoUrl,
+          faceConfidence: confidence,
           photoBucket: bucketName,
           coordinates: {
             latitude: unit?.latitude,
@@ -270,6 +358,17 @@ function AdminPresensiScanPage() {
         {verifikasiMode === 'face' && facePhotoUrl && (
           <p className="text-[11px] text-emerald-700 bg-emerald-50 px-2 py-1 rounded border border-emerald-200">
             Foto bukti presensi tercatat
+            {faceConfidence ? ` (kecocokan wajah ${faceConfidence}%)` : ''}
+          </p>
+        )}
+        {verifikasiMode === 'face' && !modelSiap && (
+          <p className="text-[11px] text-amber-700 bg-amber-50 px-2 py-1 rounded border border-amber-200">
+            Memuat model pengenalan wajah... verifikasi biometrik belum bisa dilakukan.
+          </p>
+        )}
+        {verifikasiMode === 'face' && modelSiap && (
+          <p className="text-[11px] text-muted-foreground">
+            Wajah wajib cocok dengan biometrik terdaftar pegawai sebelum presensi disimpan.
           </p>
         )}
       </div>

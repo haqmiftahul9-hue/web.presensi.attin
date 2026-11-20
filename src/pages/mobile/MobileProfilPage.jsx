@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import Icon from '../../components/Icon.jsx'
 import { useNavigate } from 'react-router-dom'
 import { ThemeToggle } from '../../components/ui/ThemeToggle.jsx'
@@ -14,7 +14,7 @@ import { getEmployeeGreeting, getEmployeeFormalName, getUnitShortName, getLeader
 import StaffAvatar from '../../components/mobile/StaffAvatar.jsx'
 import { FormEditProfil } from '../../components/mobile/FormEditProfil.jsx'
 import { ErrorState, LoadingState } from '../../components/mobile/Feedback.jsx'
-import { getRegisteredFaceData } from '../../services/faceRecognitionService.js'
+import { getRegisteredFaceData, getRegisteredFaceForVerification } from '../../services/faceRecognitionService.js'
 import { bacaFoto, MAKS_FOTO_BYTES } from '../../data/profilGuru.js'
 import { uploadStaffPhoto, deleteStaffPhoto } from '../../services/photoStorageService.js'
 
@@ -119,7 +119,23 @@ function MobileProfilPage() {
   const [sedangKeluar, setSedangKeluar] = useState(false)
   const [uploadingFoto, setUploadingFoto] = useState(false)
   const fileInputRef = useRef(null)
-  const registeredFace = staff ? getRegisteredFaceData(staff) : null
+  // Status pendaftaran wajah diambil dari sumber yang sama dengan halaman
+  // presensi (Supabase -> localStorage/store), supaya tidak menampilkan
+  // "belum terdaftar" padahal wajah sudah terdaftar di perangkat lain.
+  const [registeredFace, setRegisteredFace] = useState(() => (staff ? getRegisteredFaceData(staff) : null))
+
+  useEffect(() => {
+    if (!staff) return undefined
+    let aktif = true
+    getRegisteredFaceForVerification(staff)
+      .then((data) => {
+        if (aktif) setRegisteredFace(data || getRegisteredFaceData(staff))
+      })
+      .catch(() => {
+        if (aktif) setRegisteredFace(getRegisteredFaceData(staff))
+      })
+    return () => { aktif = false }
+  }, [staff])
 
   if (!state) {
     return (

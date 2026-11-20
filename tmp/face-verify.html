@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <title>Verifikasi Pipeline Face Recognition</title>
+  </head>
+  <body>
+    <div id="app">memuat…</div>
+    <script type="module">
+      import * as faceapi from '@vladmandic/face-api'
+      import * as svc from '/src/services/faceRecognitionService.js'
+      import * as live from '/src/services/faceLivenessService.js'
+
+      window.__faceapi = faceapi
+      window.__svc = svc
+      window.__live = live
+      window.__ready = true
+      document.getElementById('app').textContent = 'siap'
+    </script>
+  </body>
+</html>

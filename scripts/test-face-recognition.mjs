@@ -9,11 +9,14 @@
 // ============================================================================
 
 import assert from 'node:assert'
+import { readFileSync } from 'node:fs'
 import {
   saveRegisteredFaceData,
   getRegisteredFaceData,
   deleteRegisteredFaceData,
   compareFaceDescriptors,
+  averageFaceDescriptors,
+  faceEuclideanDistance,
   FACE_MATCH_THRESHOLD,
 } from '../src/services/faceRecognitionService.js'
 
@@ -96,6 +99,59 @@ const deleted = deleteRegisteredFaceData(staffA)
 uji('Pembersihan data pendaftaran wajah berhasil', deleted === true)
 const afterDelete = getRegisteredFaceData(staffA)
 uji('Data pendaftaran wajah telah terhapus dari storage', afterDelete === null)
+
+// Uji 6: Pencocokan descriptor sungguhan (tidak dimock).
+// Vektor acuan + vektor "wajah sama" (selisih kecil) harus dianggap cocok;
+// vektor "wajah orang lain" harus ditolak.
+const acuan = new Array(128).fill(0).map((_, i) => Math.sin(i * 0.05))
+const wajahSama = acuan.map((v) => v + 0.02)
+const wajahLain = new Array(128).fill(0).map((_, i) => Math.cos(i * 0.31))
+
+const cocok = await compareFaceDescriptors(wajahSama, acuan)
+uji('Wajah yang sama terdeteksi cocok', cocok.match === true, `distance=${cocok.distance}`)
+uji('Skor kecocokan wajah sama di atas 70%', cocok.confidence >= 70, `confidence=${cocok.confidence}`)
+
+const tidakCocok = await compareFaceDescriptors(wajahLain, acuan)
+uji('Wajah berbeda terdeteksi tidak cocok', tidakCocok.match === false, `distance=${tidakCocok.distance}`)
+uji('Jarak wajah berbeda melewati ambang threshold', tidakCocok.distance > FACE_MATCH_THRESHOLD)
+
+// Uji 7: Vektor tidak valid tidak boleh dianggap cocok
+const salahUkuran = await compareFaceDescriptors(new Array(64).fill(0.1), acuan)
+uji('Descriptor berukuran salah ditolak', salahUkuran.match === false)
+uji('Descriptor null ditolak', (await compareFaceDescriptors(null, acuan)).match === false)
+
+// Uji 8: Rata-rata descriptor menjadi vektor acuan yang stabil
+const rata = averageFaceDescriptors([acuan, acuan.map((v) => v + 0.04)])
+uji('Rata-rata descriptor menghasilkan 128 dimensi', rata && rata.length === 128)
+const jarakRataKeAcuan = faceEuclideanDistance(new Float32Array(rata), new Float32Array(acuan))
+const jarakAwalKeAcuan = faceEuclideanDistance(new Float32Array(acuan.map((v) => v + 0.04)), new Float32Array(acuan))
+uji('Vektor rata-rata lebih dekat ke acuan daripada satu sampel', jarakRataKeAcuan < jarakAwalKeAcuan,
+  `rata=${jarakRataKeAcuan.toFixed(4)} satu=${jarakAwalKeAcuan.toFixed(4)}`)
+const cocokRata = await compareFaceDescriptors(wajahSama, rata)
+uji('Vektor rata-rata tetap dipakai sebagai acuan pencocokan', cocokRata.match === true)
+
+// Uji 9: Penjaga integritas alur scan di halaman presensi & kios admin.
+// Wajah yang TIDAK cocok harus ditolak dengan pesan yang jelas, dan tidak boleh
+// ada nilai kecocokan sintetis yang membuat presensi lolos tanpa verifikasi.
+const sumberPresensi = readFileSync(new URL('../src/pages/mobile/MobilePresensiPage.jsx', import.meta.url), 'utf8')
+const sumberKios = readFileSync(new URL('../src/pages/AdminPresensiScanPage.jsx', import.meta.url), 'utf8')
+const sumberEnrollment = readFileSync(new URL('../src/components/mobile/FaceEnrollmentModal.jsx', import.meta.url), 'utf8')
+
+uji('Halaman presensi menampilkan pesan "Akses Ditolak/Wajah Tidak Cocok"', sumberPresensi.includes('Akses Ditolak/Wajah Tidak Cocok'))
+uji('Kios admin menampilkan pesan "Akses Ditolak/Wajah Tidak Cocok"', sumberKios.includes('Akses Ditolak/Wajah Tidak Cocok'))
+uji('Tidak ada skor kecocokan sintetis di halaman presensi',
+  !/\(96 \+ \(\(Number\(staff\.id\)/.test(sumberPresensi))
+uji('Kios admin membandingkan descriptor wajah terdaftar',
+  sumberKios.includes('compareFaceDescriptors'))
+uji('Absen pulang juga memverifikasi wajah',
+  sumberPresensi.includes('Verifikasi wajah (pulang) gagal'))
+uji('Modal pendaftaran memakai 3 tahap liveness (depan, samping, berkedip)',
+  sumberEnrollment.includes('AMBAH') === false
+    && sumberEnrollment.includes('analyzeFacePose')
+    && sumberEnrollment.includes('hitungEAR')
+    && sumberEnrollment.includes('createBlinkTracker'))
+uji('Modal pendaftaran tidak lagi memakai ambang mutlak pixel untuk pose',
+  !sumberEnrollment.includes('eyeDist <= 10'))
 
 console.log('='.repeat(80))
 console.log(`Total: ${lulus + gagal}  |  Lulus: ${lulus}  |  Gagal: ${gagal}`)

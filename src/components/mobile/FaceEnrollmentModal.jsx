@@ -3,91 +3,85 @@ import Icon from '../Icon.jsx'
 import {
   loadFaceApiModels,
   isFaceApiLoaded,
+  detectSingleFaceWithLandmarks,
   detectSingleFaceAndDescriptor,
   captureVideoFrame,
   saveRegisteredFaceDataToSupabase,
   saveRegisteredFaceData,
+  averageFaceDescriptors,
 } from '../../services/faceRecognitionService.js'
+import {
+  analyzeFacePose,
+  hitungEAR,
+  createBlinkTracker,
+} from '../../services/faceLivenessService.js'
 
-// --- Helper Geometri Biometrik Wajah 68 Landmark ---
-function dist(p1, p2) {
-  return Math.hypot(p1.x - p2.x, p1.y - p2.y)
-}
+/**
+ * Berapa frame berturut-turut pose/gerakan tertentu harus bertahan sebelum
+ * dianggap sah. Dengan tiga frame, satu frame noise (mis. berkedip sesaat
+ * saat menoleh) tidak menggagalkan langkah.
+ */
+const FRAME_KEBERHASILAN = 3
+const FRAME_KEBERHASILAN_SAMPING = 2
+const MAKS_DESCRIPTOR = 8
 
-function avg(nums) {
-  return nums.reduce((a, b) => a + b, 0) / Math.max(1, nums.length)
-}
+/**
+ * Indikator kemiringan kepala (yaw). Jarum bergerak kiri/kanan mengikuti arah
+ * menoleh; area hijau di tengah = menghadap depan, area amber di sisi = sudah
+ * menoleh ke samping. Visual ini menggantikan instruksi teks agar pengguna
+ * tahu seberapa jauh wajah harus dimiringkan.
+ */
+function PoseGauge({ pose, aktif }) {
+  const gauge = Math.max(-1.5, Math.min(1.5, pose?.gauge || 0))
+  const posisi = 50 + (gauge / 1.5) * 50
+  const diSamping = pose?.side
+  const diDepan = pose?.frontal
 
-function computeEyeEAR(eye) {
-  const A = dist(eye[1], eye[5])
-  const B = dist(eye[2], eye[4])
-  const C = dist(eye[0], eye[3])
-  return C > 0 ? (A + B) / (2.0 * C) : 0.3
-}
-
-function calculateEAR(landmarks) {
-  const leftEye = [36, 37, 38, 39, 40, 41].map((i) => landmarks[i])
-  const rightEye = [42, 43, 44, 45, 46, 47].map((i) => landmarks[i])
-  return (computeEyeEAR(leftEye) + computeEyeEAR(rightEye)) / 2
+  return (
+    <div className="w-full flex flex-col gap-1.5">
+      <div className="relative h-2.5 w-full rounded-full overflow-hidden bg-slate-200/80 border border-slate-300/60">
+        <div className="absolute inset-y-0 left-0 w-[28%] bg-status-warning/45" />
+        <div className="absolute inset-y-0 right-0 w-[28%] bg-status-warning/45" />
+        <div className="absolute inset-y-0 left-[28%] right-[28%] bg-status-success/45" />
+        <div
+          className={`absolute top-0 bottom-0 w-1 rounded-full transition-all duration-150 ${
+            diSamping ? 'bg-status-warning' : diDepan ? 'bg-status-success' : 'bg-slate-500'
+          }`}
+          style={{ left: `calc(${posisi}% - 2px)` }}
+        />
+      </div>
+      <div className="flex justify-between font-label-sm text-[10px] text-slate-500">
+        <span className={aktif && pose?.arah === 'kiri' ? 'text-status-warning-text font-bold' : ''}>Samping kiri</span>
+        <span className={aktif && diDepan ? 'text-status-success-text font-bold' : ''}>Depan</span>
+        <span className={aktif && pose?.arah === 'kanan' ? 'text-status-warning-text font-bold' : ''}>Samping kanan</span>
+      </div>
+    </div>
+  )
 }
 
 /**
- * Langkah 1/3: Deteksi Wajah Menghadap Depan (Frontal).
- * Hidung berada tepat di tengah-tengah kedua mata dan simetris terhadap pipi kiri & kanan.
+ * Indikator keterbukaan mata untuk langkah kedip.
  */
-function checkFrontal(landmarks) {
-  if (!landmarks || landmarks.length < 68) return false
-  const leftEyePts = [36, 37, 38, 39, 40, 41].map((i) => landmarks[i])
-  const rightEyePts = [42, 43, 44, 45, 46, 47].map((i) => landmarks[i])
-  const noseTip = landmarks[30]
-  const jawLeft = landmarks[0]
-  const jawRight = landmarks[16]
-
-  const leftCenterX = avg(leftEyePts.map((p) => p.x))
-  const rightCenterX = avg(rightEyePts.map((p) => p.x))
-  const eyeDist = Math.abs(rightCenterX - leftCenterX)
-  if (eyeDist <= 10) return false
-
-  const eyeMidX = (leftCenterX + rightCenterX) / 2
-  const noseOffset = Math.abs(noseTip.x - eyeMidX) / eyeDist
-
-  const distLeftJaw = Math.abs(noseTip.x - jawLeft.x)
-  const distRightJaw = Math.abs(jawRight.x - noseTip.x)
-  const jawRatio = distLeftJaw / Math.max(1, distRightJaw)
-
-  // Wajah tegak menghadap ke depan: deviasi hidung < 0.15 dan jaw seimbang
-  return noseOffset < 0.15 && jawRatio >= 0.50 && jawRatio <= 2.00
-}
-
-/**
- * Langkah 2/3: Deteksi Wajah Menghadap Samping (Head Yaw / Turn).
- * Pengguna menolehkan wajah ke samping kiri atau kanan (rasio hidung bergeser signifikan).
- */
-function checkSideTurn(landmarks) {
-  if (!landmarks || landmarks.length < 68) return false
-  const leftEyePts = [36, 37, 38, 39, 40, 41].map((i) => landmarks[i])
-  const rightEyePts = [42, 43, 44, 45, 46, 47].map((i) => landmarks[i])
-  const noseTip = landmarks[30]
-  const jawLeft = landmarks[0]
-  const jawRight = landmarks[16]
-
-  const leftCenterX = avg(leftEyePts.map((p) => p.x))
-  const rightCenterX = avg(rightEyePts.map((p) => p.x))
-  const eyeDist = Math.abs(rightCenterX - leftCenterX)
-  if (eyeDist <= 10) return false
-
-  const eyeMidX = (leftCenterX + rightCenterX) / 2
-  const noseOffset = (noseTip.x - eyeMidX) / eyeDist
-
-  const distLeftJaw = Math.abs(noseTip.x - jawLeft.x)
-  const distRightJaw = Math.abs(jawRight.x - noseTip.x)
-  const jawRatio = distLeftJaw / Math.max(1, distRightJaw)
-
-  // Menoleh samping kiri atau samping kanan
-  const turnedLeft = noseOffset < -0.15 || jawRatio < 0.45
-  const turnedRight = noseOffset > 0.15 || jawRatio > 2.10
-
-  return turnedLeft || turnedRight
+function EyeIndicator({ blink, siap }) {
+  const tertutup = blink?.phase === 'terkedip'
+  const ratio = blink?.ratio
+  return (
+    <div className="flex items-center justify-center gap-2">
+      <span className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-150 ${
+        tertutup ? 'bg-status-warning/20' : 'bg-status-success/20'
+      }`}>
+        <Icon name="visibility" className={`text-[16px] ${tertutup ? 'text-status-warning-text' : 'text-status-success-text'}`} />
+      </span>
+      <span className="font-label-sm text-[11px] text-slate-600">
+        {!siap
+          ? 'Menyiapkan pemantau kedip...'
+          : tertutup
+            ? 'Mata terdeteksi tertutup...'
+            : 'Mata terbuka - silakan berkedip'}
+        {ratio ? ` (${Math.round(ratio * 100)}%)` : ''}
+      </span>
+    </div>
+  )
 }
 
 /**
@@ -123,18 +117,20 @@ export function FaceEnrollmentModal({
   const [livenessStep, setLivenessStep] = useState(1) // 1: Depan, 2: Samping, 3: Berkedip, 4: Selesai
   const [livenessPassed, setLivenessPassed] = useState(false)
   const [livenessInstruction, setLivenessInstruction] = useState('Langkah 1/3: Silakan hadap wajah tegak ke depan.')
+  const [poseInfo, setPoseInfo] = useState(null)
+  const [blinkInfo, setBlinkInfo] = useState(null)
 
   // Refs untuk loop dan timeout
   const rafRef = useRef(null)
   const focusTimeoutRef = useRef(null)
   const frontalCountRef = useRef(0)
   const sideCountRef = useRef(0)
-  const blinkPhaseRef = useRef('open') // 'open' -> 'closed' -> 'opened'
-  const lastFrontalSnapshotRef = useRef(null)
-
-   // Ambang batas EAR kedipan mata
-  const EAR_OPEN_THRESHOLD = 0.24
-  const EAR_CLOSED_THRESHOLD = 0.20
+  // Kumpulan descriptor menghadap depan -> dirata-ratakan menjadi vektor acuan
+  const frontalDescriptorsRef = useRef([])
+  // Foto bukti diambil satu kali, saat wajah sedang menghadap depan
+  const photoRef = useRef(null)
+  // Tracker kedip mata dengan baseline EAR dinamis
+  const blinkTrackerRef = useRef(createBlinkTracker())
 
   // Hubungkan stream kamera ke elemen video
   const attachStreamToVideo = useCallback((videoEl, streamToAttach) => {
@@ -191,8 +187,11 @@ export function FaceEnrollmentModal({
     setLivenessInstruction('Langkah 1/3: Silakan hadap wajah tegak ke depan.')
     frontalCountRef.current = 0
     sideCountRef.current = 0
-    blinkPhaseRef.current = 'open'
-    lastFrontalSnapshotRef.current = null
+    frontalDescriptorsRef.current = []
+    photoRef.current = null
+    blinkTrackerRef.current = createBlinkTracker()
+    setPoseInfo(null)
+    setBlinkInfo(null)
 
     // Panggil getUserMedia langsung seketika
     const startCameraImmediately = async () => {
@@ -300,7 +299,15 @@ export function FaceEnrollmentModal({
       if (video && video.readyState >= 2 && !processing && !isDetecting && cameraStage === 'ready') {
         isDetecting = true
         try {
-          const result = await detectSingleFaceAndDescriptor(video, { inputSize: 320, scoreThreshold: 0.4 })
+          // Tahap 1 butuh descriptor (data acuan biometrik) sehingga memakai
+          // jalur lengkap. Tahap 2 & 3 cukup landmark — jauh lebih ringan dan
+          // menjaga frame rate tinggi supaya kedip mata (~100 ms) tidak
+          // terlewat di ponsel.
+          const butuhDescriptor = livenessStep === 1
+          const result = butuhDescriptor
+            ? await detectSingleFaceAndDescriptor(video, { inputSize: 320, scoreThreshold: 0.4 })
+            : await detectSingleFaceWithLandmarks(video, { inputSize: 320, scoreThreshold: 0.4 })
+
           if (!isCancelled) {
             if (result.detected) {
               setFaceDetected(true)
@@ -308,55 +315,66 @@ export function FaceEnrollmentModal({
 
               const landmarks = result.landmarks
               if (landmarks && landmarks.length >= 68) {
-                // ---- TAHAP 1: Wajah Menghadap Depan ----
-                 if (livenessStep === 1) {
-                   const isFrontal = checkFrontal(landmarks)
-                   if (isFrontal) {
-                    frontalCountRef.current += 1
-                    // Simpan descriptor dan snapshot terbaik saat posisi depan
-                    if (result.descriptor) {
-                      lastFrontalSnapshotRef.current = {
-                        descriptor: result.descriptor,
-                        photo: captureVideoFrame(video),
+                const pose = analyzeFacePose(landmarks)
+
+                if (pose.valid) {
+                  setPoseInfo(pose)
+
+                  // ---- TAHAP 1: Wajah Menghadap Depan ----
+                  if (livenessStep === 1) {
+                    if (pose.frontal) {
+                      frontalCountRef.current += 1
+                      if (result.descriptor && frontalDescriptorsRef.current.length < MAKS_DESCRIPTOR) {
+                        frontalDescriptorsRef.current.push(result.descriptor)
                       }
-                    }
-                    if (frontalCountRef.current >= 3) {
-                      setLivenessStep(2)
+                      if (frontalCountRef.current >= FRAME_KEBERHASILAN) {
+                        // Wajah sedang menghadap depan pada frame ini, aman
+                        // untuk mengambil foto bukti tanpa perlu me-reset.
+                        if (!photoRef.current) {
+                          photoRef.current = captureVideoFrame(video, 0.85, { mirror: true, maxDimension: 480 })
+                        }
+                        frontalCountRef.current = 0
+                        sideCountRef.current = 0
+                        setLivenessStep(2)
+                        setLivenessInstruction('Langkah 2/3: Silakan tolehkan wajah ke samping (kiri atau kanan).')
+                      }
+                    } else {
                       frontalCountRef.current = 0
-                      setLivenessInstruction('Langkah 2/3: Silakan tolehkan wajah ke samping (kiri/kanan).')
+                      setLivenessInstruction(
+                        pose.side
+                          ? 'Langkah 1/3: Wajah terlalu miring. Hadap lurus ke kamera ya.'
+                          : 'Langkah 1/3: Silakan hadap wajah tegak ke depan.',
+                      )
                     }
-                  } else {
-                    frontalCountRef.current = 0
-                    setLivenessInstruction('Langkah 1/3: Silakan hadap wajah tegak ke depan.')
                   }
-                }
 
-                // ---- TAHAP 2: Wajah Menghadap Samping ----
-                else if (livenessStep === 2) {
-                  const isSide = checkSideTurn(landmarks)
-                  if (isSide) {
-                    sideCountRef.current += 1
-                    if (sideCountRef.current >= 2) {
-                      setLivenessStep(3)
-                      sideCountRef.current = 0
-                      blinkPhaseRef.current = 'open'
-                      setLivenessInstruction('Langkah 3/3: Hadap depan kembali dan silakan berkedip sekali.')
+                  // ---- TAHAP 2: Wajah Menghadap Samping ----
+                  else if (livenessStep === 2) {
+                    if (pose.side) {
+                      sideCountRef.current += 1
+                      if (sideCountRef.current >= FRAME_KEBERHASILAN_SAMPING) {
+                        sideCountRef.current = 0
+                        frontalCountRef.current = 0
+                        blinkTrackerRef.current = createBlinkTracker()
+                        setBlinkInfo(null)
+                        setLivenessStep(3)
+                        setLivenessInstruction('Langkah 3/3: Hadap depan kembali lalu berkedipkan mata sekali.')
+                      }
+                    } else {
+                      setLivenessInstruction(
+                        pose.frontal
+                          ? 'Langkah 2/3: Terlalu lurus. Tolehkan sedikit ke kiri atau kanan.'
+                          : 'Langkah 2/3: Silakan tolehkan wajah ke samping (kiri atau kanan).',
+                      )
                     }
-                  } else {
-                    setLivenessInstruction('Langkah 2/3: Silakan tolehkan wajah ke samping (kiri atau kanan).')
                   }
-                }
 
-                // ---- TAHAP 3: Berkedip ----
-                else if (livenessStep === 3) {
-                  const ear = calculateEAR(landmarks)
-                  if (blinkPhaseRef.current === 'open') {
-                    if (ear < EAR_CLOSED_THRESHOLD) {
-                      blinkPhaseRef.current = 'closed'
-                    }
-                  } else if (blinkPhaseRef.current === 'closed') {
-                    if (ear > EAR_OPEN_THRESHOLD) {
-                      blinkPhaseRef.current = 'opened'
+                  // ---- TAHAP 3: Berkedip ----
+                  else if (livenessStep === 3) {
+                    const ear = hitungEAR(landmarks)
+                    const status = blinkTrackerRef.current.update(ear)
+                    setBlinkInfo(status)
+                    if (status.blinked) {
                       setLivenessPassed(true)
                       setLivenessStep(4)
                       setLivenessInstruction('Verifikasi 3/3 selesai! Wajah terverifikasi asli.')
@@ -392,6 +410,20 @@ export function FaceEnrollmentModal({
     }
   }, [terbuka, cameraStage, modelLoading, cameraAktif, stream, localStream, processing, successData, livenessStep, livenessPassed])
 
+  // Mulai ulang seluruh rangkaian verifikasi (mis. pengguna salah posisi)
+  const ulangiVerifikasi = useCallback(() => {
+    frontalCountRef.current = 0
+    sideCountRef.current = 0
+    frontalDescriptorsRef.current = []
+    photoRef.current = null
+    blinkTrackerRef.current = createBlinkTracker()
+    setPoseInfo(null)
+    setBlinkInfo(null)
+    setLivenessStep(1)
+    setLivenessPassed(false)
+    setLivenessInstruction('Langkah 1/3: Silakan hadap wajah tegak ke depan.')
+  }, [])
+
   // Proses pendaftaran dari video kamera setelah verifikasi 3 tahap lulus
   const ambilDanDaftarkan = useCallback(async () => {
     const video = modalVideoRef.current
@@ -411,15 +443,17 @@ export function FaceEnrollmentModal({
     setStatusMessage('Mengekstrak vektor biometrik wajah...')
 
     try {
-      // Ambil snapshot foto saat ini atau gunakan snapshot frontal yang optimal
-      const photo = captureVideoFrame(video) || lastFrontalSnapshotRef.current?.photo
-      let descriptor = lastFrontalSnapshotRef.current?.descriptor
+      // Vektor acuan = rata-rata beberapa capture menghadap depan. Rata-rata
+      // ini membuat pencocokan saat presensi lebih andal daripada satu frame.
+      let descriptor = averageFaceDescriptors(frontalDescriptorsRef.current)
+      const photo = photoRef.current || captureVideoFrame(video, 0.85, { mirror: true, maxDimension: 480 })
 
-      // Jika belum ada descriptor tersimpan dari tahap 1, ekstrak dari video saat ini
+      // Cadangan: bila somehow belum ada descriptor (mis. frame frontal
+      // terlewat), ekstrak langsung dari video saat ini.
       if (!descriptor) {
         const detection = await detectSingleFaceAndDescriptor(video, { inputSize: 320, scoreThreshold: 0.4 })
         if (detection?.detected && detection?.descriptor) {
-          descriptor = detection.descriptor
+          descriptor = Array.from(detection.descriptor)
         }
       }
 
@@ -569,7 +603,7 @@ export function FaceEnrollmentModal({
                     playsInline
                     muted
                     onPlaying={handleVideoPlaying}
-                    className="absolute inset-0 h-full w-full object-cover"
+                    className="absolute inset-0 h-full w-full object-cover -scale-x-100"
                   />
 
                   {(!stream && !localStream) && (
@@ -676,7 +710,7 @@ export function FaceEnrollmentModal({
               </div>
 
               {/* Status & Petunjuk Interaktif */}
-              <div className="mt-2 text-center flex flex-col gap-1 w-full">
+              <div className="mt-2 text-center flex flex-col gap-2 w-full">
                 <span className={`font-body-sm-medium text-xs font-semibold leading-snug ${
                   cameraStage === 'focusing'
                     ? 'text-status-warning-text'
@@ -699,9 +733,32 @@ export function FaceEnrollmentModal({
                       : livenessStep === 1
                         ? 'Posisikan wajah tepat di tengah oval menghadap lurus ke kamera.'
                         : livenessStep === 2
-                          ? 'Tolehkan wajah Anda sedikit ke arah samping (kiri atau kanan).'
+                          ? 'Tolehkan wajah Anda ke samping (kiri atau kanan) sampai jarum di gauge bergerak ke area amber.'
                           : 'Tatap kamera dan berkedipkan mata Anda sekali.'}
                 </span>
+
+                {/* Indikator kemiringan kepala: bantu pengguna pada langkah "hadap samping". */}
+                {cameraStage === 'ready' && !modelLoading && !livenessPassed && livenessStep <= 2 && (
+                  <div className="w-full max-w-[280px] mx-auto">
+                    <PoseGauge pose={poseInfo} aktif />
+                  </div>
+                )}
+
+                {/* Indikator keterbukaan mata: bantu pengguna pada langkah "berkedip". */}
+                {cameraStage === 'ready' && !modelLoading && !livenessPassed && livenessStep === 3 && (
+                  <EyeIndicator blink={blinkInfo} siap={Boolean(blinkInfo?.siap)} />
+                )}
+
+                {/* Tombol mulai ulang verification */}
+                {cameraStage === 'ready' && !modelLoading && !livenessPassed && livenessStep > 1 && (
+                  <button
+                    type="button"
+                    onClick={ulangiVerifikasi}
+                    className="self-center px-3 py-2 rounded-xl border border-slate-200 bg-white font-label-sm text-[11px] font-semibold text-slate-600 hover:text-primary hover:border-primary/40 active:scale-[0.98] transition-all cursor-pointer"
+                  >
+                    Ulangi dari awal
+                  </button>
+                )}
               </div>
 
               {/* Tombol Aksi */}
