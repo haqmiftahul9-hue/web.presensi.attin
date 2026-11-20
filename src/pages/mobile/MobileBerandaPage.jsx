@@ -10,6 +10,7 @@ import {
   tanggalPanjang, jamDetik, jamPendek,
   jamMenitDariDate, cekJendelaPresensi,
 } from '../../data/presensiMobile.js'
+import { isLeavePending } from '../../data/jenisIzinCuti.js'
 import {
   getLeaderDisplayName,
   getLeaderRoleGreeting,
@@ -102,7 +103,7 @@ function MobileBerandaPage() {
   }, [])
 
   const izin = useMemo(() => (state ? selectSelfLeaves(state) : []), [state])
-  const menungguIzin = izin.filter((l) => l.status === 'Menunggu').length
+  const menungguIzin = izin.filter((l) => isLeavePending(l.status)).length
 
   if (!state) {
     return (
@@ -155,7 +156,7 @@ function MobileBerandaPage() {
   // Pengajuan izin staf yang menunggu persetujuan
   const pendingLeavesUnit = useMemo(() => {
     if (!state || !canApproveLeaves) return []
-    let list = selectLeavesEnriched(state).filter((l) => l.status === 'Menunggu')
+    let list = selectLeavesEnriched(state).filter((l) => isLeavePending(l.status))
     if (!isSuperadmin && staff?.unitId) {
       list = list.filter((l) => l.unitId === staff.unitId)
     }

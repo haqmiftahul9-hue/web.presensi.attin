@@ -1,9 +1,11 @@
 import { useMemo, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import Icon from '../../components/Icon.jsx'
 import DocumentViewerModal from '../../components/DocumentViewerModal.jsx'
 import { uploadLeaveAttachment } from '../../services/leaveAttachmentService.js'
 import {
   useSimPresOptional, selectSelfStaff, selectSelfLeaves, selectUnitById, addActivityLog,
+  selectCurrentUserRole, ROLE_SUPERADMIN, ROLE_KEPALA_SEKOLAH,
 } from '../../store/simPresStore.jsx'
 import { isoHariIni } from '../../data/presensiMobile.js'
 import { getEmployeeGreeting } from '../../data/sapaanPegawai.js'
@@ -218,6 +220,10 @@ function MobileIzinCutiPage() {
   const unit = staff ? selectUnitById(state, staff.unitId) : null
   const daftar = useMemo(() => (state ? selectSelfLeaves(state) : []), [state])
 
+  const currentRole = state ? selectCurrentUserRole(state) : ''
+  const isSuperadmin = currentRole === ROLE_SUPERADMIN
+  const isKepsek = currentRole === ROLE_KEPALA_SEKOLAH
+
   const [formTerbuka, setFormTerbuka] = useState(false)
   const [jenis, setJenis] = useState('Cuti Tahunan')
   const [mulai, setMulai] = useState(() => isoHariIni())
@@ -250,6 +256,31 @@ function MobileIzinCutiPage() {
   }
 
   if (!staff) {
+    if (isSuperadmin) {
+      return (
+        <div className="sp-page sp-page-container py-6 flex flex-col gap-4">
+          <div className="sp-card p-6 flex flex-col items-center text-center gap-3.5 border border-primary/20">
+            <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-2xs">
+              <Icon name="verified_user" className="text-[32px]" />
+            </div>
+            <div>
+              <h2 className="font-headline-sm text-headline-sm font-bold text-foreground">Portal Persetujuan Superadmin</h2>
+              <p className="text-xs text-muted-foreground mt-1.5 max-w-xs leading-relaxed">
+                Sebagai Superadmin Yayasan, Anda memiliki wewenang meninjau dan menyetujui seluruh permohonan izin/cuti pegawai dari seluruh unit sekolah.
+              </p>
+            </div>
+            <Link
+              to="/mobile/persetujuan-izin"
+              className="mt-2 w-full max-w-xs py-3 rounded-xl bg-primary hover:bg-primary-strong text-white font-semibold text-xs flex items-center justify-center gap-2 shadow-xs transition-all active:scale-95"
+            >
+              <Icon name="task_alt" className="text-[18px]" />
+              <span>Buka Persetujuan Izin Pegawai</span>
+            </Link>
+          </div>
+        </div>
+      )
+    }
+
     return (
       <div className="sp-page-container py-6">
         <ErrorState
@@ -393,6 +424,28 @@ function MobileIzinCutiPage() {
       </section>
 
       <div className="px-4 relative z-[2] flex flex-col gap-4 pb-2">
+        {(isSuperadmin || isKepsek) && (
+          <Link
+            to="/mobile/persetujuan-izin"
+            className="p-3.5 rounded-2xl bg-primary/10 hover:bg-primary/20 border border-primary/25 flex items-center justify-between gap-2.5 transition-all shadow-xs"
+          >
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center text-white shrink-0">
+                <Icon name="task_alt" className="text-[20px]" />
+              </div>
+              <div className="min-w-0">
+                <span className="font-semibold text-xs text-foreground block truncate">
+                  Persetujuan Izin &amp; Cuti Pegawai
+                </span>
+                <span className="text-[11px] text-muted-foreground block truncate">
+                  {isSuperadmin ? 'Verifikasi seluruh pengajuan unit sekolah' : 'Verifikasi pengajuan staf unit Anda'}
+                </span>
+              </div>
+            </div>
+            <Icon name="chevron_right" className="text-[20px] text-primary shrink-0" />
+          </Link>
+        )}
+
         {!formTerbuka && (
           <button
             type="button"
