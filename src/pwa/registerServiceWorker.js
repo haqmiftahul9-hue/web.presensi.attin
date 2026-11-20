@@ -1,13 +1,73 @@
 /**
- * Registrasi service worker (PWA).
+ * Registrasi Service Worker (PWA) dengan mekanisme Auto-Update Cerdas.
  *
- * Didaftarkan juga saat pengembangan: service worker menyela modul sumber Vite
- * (/src, /@vite, /node_modules) sehingga HMR tetap berjalan normal, dan
- * navigasi memakai network-first sehingga tidak ada halaman basi.
- *
- * Dashboard admin tidak berubah: shell SPA-nya sama, dan service worker hanya
- * menambah cache — tidak pernah menahan permintaan secara paksa.
+ * Menjamin setiap kali ada pembaruan kode di server/hosting, seluruh pengguna
+ * baik di web peramban seluler maupun aplikasi pintasan PWA yang sudah terpasang
+ * di Home Screen (Android/iOS/Desktop) otomatis mendapatkan pembaruan terkini
+ * tanpa perlu menghapus data situs dari Chrome atau memasang ulang pintasan.
  */
+
+const CURRENT_VERSION = typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : '1.0.0'
+
+let isCheckingVersion = false
+let isReloading = false
+
+async function checkServerVersion(reg) {
+  if (isCheckingVersion || isReloading) return
+  if (typeof navigator !== 'undefined' && !navigator.onLine) return
+
+  isCheckingVersion = true
+  try {
+    const res = await fetch(`/version.json?_t=${Date.now()}`, {
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        Pragma: 'no-cache',
+      },
+    })
+    if (!res.ok) return
+    const data = await res.json()
+    if (data?.version && CURRENT_VERSION !== 'dev' && data.version !== CURRENT_VERSION) {
+      console.log(`[SimPres PWA] Versi baru server terdeteksi (${data.version} vs running ${CURRENT_VERSION}). Memperbarui aplikasi...`)
+      isReloading = true
+
+      // Trigger pembaruan service worker
+      if (reg) {
+        try {
+          await reg.update()
+        } catch {
+          /* ignore */
+        }
+        if (reg.waiting) {
+          reg.waiting.postMessage('skipWaiting')
+        }
+      }
+      if (typeof navigator !== 'undefined' && navigator.serviceWorker?.controller) {
+        navigator.serviceWorker.controller.postMessage('skipWaiting')
+      }
+
+      // Bersihkan caches browser jika didukung
+      if (typeof window !== 'undefined' && 'caches' in window) {
+        try {
+          const keys = await window.caches.keys()
+          await Promise.all(keys.map((k) => window.caches.delete(k)))
+        } catch {
+          /* ignore */
+        }
+      }
+
+      // Jeda singkat agar pembersihan tuntas lalu muat ulang halaman
+      setTimeout(() => {
+        window.location.reload()
+      }, 350)
+    }
+  } catch {
+    /* offline atau kendala jaringan */
+  } finally {
+    isCheckingVersion = false
+  }
+}
+
 export function registerServiceWorker() {
   if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return
   if (!window.isSecureContext) return
@@ -27,12 +87,56 @@ export function registerServiceWorker() {
     navigator.serviceWorker
       .register('/sw.js', { scope: '/' })
       .then((reg) => {
-        // Periksa pembaruan secara berkala agar perubahan sistem cepat sampai ke perangkat terpasang.
-        const cekPembaruan = () => reg.update().catch(() => undefined)
-        cekPembaruan()
-        setInterval(cekPembaruan, 60 * 1000)
+        // 1. Cek pembaruan segera setelah aplikasi dimuat
+        checkServerVersion(reg)
+        reg.update().catch(() => undefined)
 
-        // Saat service worker baru aktif, muat ulang halaman sekali agar tampilan terbaru.
+        // 2. Setiap kali tab atau aplikasi PWA dibuka kembali dari layar utama (home screen)
+        // Ini adalah kunci utama agar pintasan mobile selalu menampilkan update terbaru!
+        document.addEventListener('visibilitychange', () => {
+          if (document.visibilityState === 'visible') {
+            reg.update().catch(() => undefined)
+            checkServerVersion(reg)
+          }
+        })
+
+        // 3. Saat window mendapatkan fokus kembali
+        window.addEventListener('focus', () => {
+          reg.update().catch(() => undefined)
+          checkServerVersion(reg)
+        })
+
+        // 4. Saat perangkat kembali tersambung online
+        window.addEventListener('online', () => {
+          reg.update().catch(() => undefined)
+          checkServerVersion(reg)
+        })
+
+        // 5. Polling berkala setiap 60 detik jika aplikasi tetap terbuka
+        setInterval(() => {
+          if (document.visibilityState === 'visible') {
+            reg.update().catch(() => undefined)
+            checkServerVersion(reg)
+          }
+        }, 60 * 1000)
+
+        // 6. Tangani siklus pembaruan Service Worker
+        reg.addEventListener('updatefound', () => {
+          const newWorker = reg.installing
+          if (!newWorker) return
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              console.log('[SimPres PWA] Service Worker versi baru telah diinstal, mengaktifkan...')
+              newWorker.postMessage('skipWaiting')
+            }
+          })
+        })
+
+        if (reg.waiting) {
+          reg.waiting.postMessage('skipWaiting')
+        }
+
+        // 7. Saat worker baru mengambil alih kendali, reload halaman otomatis
         let refreshing = false
         navigator.serviceWorker.addEventListener('controllerchange', () => {
           if (refreshing) return

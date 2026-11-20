@@ -10,6 +10,11 @@
   <link rel="manifest" href="/manifest.webmanifest" />
   <meta name="color-scheme" content="light dark" />
   <meta name="theme-color" content="#323d8f" />
+
+  <!-- Cache-Control agar peramban mobile dan WebAPK tidak menahan index.html usang -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
   <script>
     try {
       var t = localStorage.getItem("simpres.theme") || (localStorage.getItem("simpres.darkMode") === "1" ? "dark" : (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));

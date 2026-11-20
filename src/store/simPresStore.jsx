@@ -746,8 +746,14 @@ export function normalizeLeaveApprovals(leave) {
 
 function getInitialLeaves() {
   const saved = readPersistedItem(PERSISTED_LEAVES_KEY, null)
-  const raw = Array.isArray(saved) && saved.length > 0 ? saved : LEAVES
-  return raw.map(normalizeLeaveApprovals)
+  if (!saved || !Array.isArray(saved) || saved.length === 0) {
+    return LEAVES.map(normalizeLeaveApprovals)
+  }
+  // Gabungkan seed leaves baru yang belum ada di saved agar pembaruan data sistem tidak tertutup oleh cache lama
+  const savedIds = new Set(saved.map((s) => s.id))
+  const newSeeds = LEAVES.filter((l) => !savedIds.has(l.id))
+  const combined = [...saved, ...newSeeds]
+  return combined.map(normalizeLeaveApprovals)
 }
 
 const initialStaff = getInitialStaff()

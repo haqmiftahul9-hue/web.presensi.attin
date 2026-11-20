@@ -1,4 +1,5 @@
-const CACHE_NAME = "simpres-attin-v5";
+const SW_VERSION = "5.1.0";
+const CACHE_NAME = "simpres-attin-v" + SW_VERSION;
 const OFFLINE_URL = "/offline.html";
 
 self.addEventListener("install", (event) => {
@@ -16,7 +17,10 @@ self.addEventListener("activate", (event) => {
       Promise.all(
         cacheNames
           .filter((name) => name !== CACHE_NAME)
-          .map((name) => caches.delete(name))
+          .map((name) => {
+            console.log("[SW] Menghapus cache usang:", name);
+            return caches.delete(name);
+          })
       )
     )
   );
@@ -39,12 +43,33 @@ self.addEventListener("fetch", (event) => {
   const { request } = event;
   const isNavigation = request.mode === "navigate";
 
+  // version.json dan sw.js tidak boleh di-cache oleh Service Worker sama sekali
+  if (url.pathname === "/version.json" || url.pathname === "/sw.js") {
+    event.respondWith(
+      fetch(request, {
+        cache: "no-store",
+        headers: {
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+          "Pragma": "no-cache",
+        },
+      }).catch(() => caches.match(request))
+    );
+    return;
+  }
+
   // Strategi Network-First untuk navigasi halaman (HTML).
   // Menjamin pengguna selalu mendapatkan index.html terbaru beserta referensi hash aset Vite terbaru setelah deploy.
+  // Gunakan cache: "no-cache" agar tidak tertahan oleh HTTP disk cache peramban mobile.
   // Jika offline atau jaringan terputus, baru fallback ke cache / offline.html.
   if (isNavigation) {
     event.respondWith(
-      fetch(request)
+      fetch(request, {
+        cache: "no-cache",
+        headers: {
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+          "Pragma": "no-cache",
+        },
+      })
         .then((response) => {
           if (response && response.status === 200) {
             const copy = response.clone();
@@ -140,7 +165,12 @@ self.addEventListener("message", (event) => {
   if (event.data === "skipWaiting") {
     self.skipWaiting();
   }
+  if (event.data === "clearAllCaches") {
+    event.waitUntil(
+      caches.keys().then((keys) => Promise.all(keys.map((k) => caches.delete(k))))
+    );
+  }
   if (event.data === "getSubscription") {
-    event.ports[0].postMessage(self.registration.pushManager.getSubscription());
+    event.ports[0]?.postMessage(self.registration.pushManager.getSubscription());
   }
 });
