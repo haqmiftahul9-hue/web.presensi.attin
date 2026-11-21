@@ -15,6 +15,7 @@ import {
 import {
   isLeavePending, isLeaveApproved, isLeaveRejected,
 } from '../data/jenisIzinCuti.js'
+import { getPeriodeInfo } from '../utils/periodFormatter.js'
 
 // Konversi jam <-> menit sekarang milik modul jam kerja. Alias di bawah hanya
 // menjaga nama lama yang masih dipakai halaman lain.
@@ -2945,7 +2946,7 @@ export function selectRekapTableData(state, unitId = null, period = 'Bulanan', t
   })
 }
 
-export function selectRekapReportData(state, unitId = null, period = 'Bulanan', tanggal = new Date()) {
+export function selectRekapReportData(state, unitId = null, period = 'Bulanan', tanggal = new Date(), periodeOpsi = {}) {
   let staff = selectActiveStaff(state)
   const effUnit = resolveUnitFilter(state, unitId)
   if (effUnit) {
@@ -2999,7 +3000,7 @@ export function selectRekapReportData(state, unitId = null, period = 'Bulanan', 
       name: s.name,
       niy: s.niy,
       unit: unit?.nama || '-',
-      periode: getPeriodLabel(period),
+      periode: getPeriodeInfo({ jenis: period, tanggal, ...periodeOpsi }).ringkas,
       totalHariKerja: daysInPeriod,
       // Jam Kerja menggantikan kolom shift: hari + rentang jam kerja global.
       hari: rules.hari,
@@ -3017,16 +3018,6 @@ export function selectRekapReportData(state, unitId = null, period = 'Bulanan', 
       statusType,
     }
   })
-}
-
-function getPeriodLabel(period) {
-  switch (period) {
-    case 'Harian': return 'Hari Ini'
-    case 'Mingguan': return 'Minggu Ini'
-    case 'Bulanan': return 'Bulan Ini'
-    case 'Tahunan': return 'Tahun Ini'
-    default: return period
-  }
 }
 
 export function selectRekapSummary(state, unitId = null, period = 'Bulanan', tanggal = new Date()) {

@@ -9,6 +9,8 @@ import * as XLSX from 'xlsx'
 import { jsPDF } from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import { downloadBlob } from '../utils/download.js'
+import { getPeriodeInfo } from '../utils/periodFormatter.js'
+import { getBarisTandaTangan } from '../utils/laporanSignature.js'
 
 const statusStyles = {
   good: 'bg-emerald-50 text-emerald-700 border border-emerald-200/80',
@@ -27,35 +29,30 @@ const avatarStyles = [
 ]
 
 const periods = ['Harian', 'Mingguan', 'Bulanan', 'Tahunan']
-const periodLabels = { Harian: 'Hari Ini', Mingguan: 'Minggu Ini', Bulanan: 'Bulan Ini', Tahunan: 'Tahun Ini' }
 const unitOptions = ['all', 'tk', 'sd', 'smp', 'sma']
 const unitLabels = { all: 'Semua Unit', tk: 'TKIT Attin Sumbar', sd: 'SDIT Attin Sumbar', smp: 'SMPIT Attin Sumbar', sma: 'SMAIT Attin Sumbar' }
+
+// Judul laporan resmi. Dipakai identik pada Cetak Langsung, PDF dan Excel
+// agar konsisten antar format.
+const JUDUL_LAPORAN = {
+  presensi: 'REKAP PRESENSI GURU DAN PEGAWAI',
+  cuti: 'REKAP IZIN / CUTI GURU DAN PEGAWAI',
+}
+
+// Garis pembatas kop surat pada Excel. SheetJS versi komunitas tidak mendukung
+// penulisan border sel, jadi garis resmi digambar memakai karakter garis ganda.
+const GARIS_GANDA = '═'
+
+function barisGarisGanda(totalWidth) {
+  const panjang = Math.max(24, Math.floor((totalWidth || 120) * 0.92))
+  return GARIS_GANDA.repeat(panjang)
+}
 
 // Ringkasan aturan jam kerja global untuk dicetak pada laporan PDF/Excel.
 // Ini menggantikan informasi shift yang pernah muncul di laporan.
 const ringkasanJamKerja = daftarJamKerja()
   .map((h) => `${h.hari} ${h.jamKerja}`)
   .join('; ')
-
-function getMonthYearLabel(period, customMonth = null, customYear = null) {
-  const now = new Date()
-  const month = customMonth ?? now.getMonth()
-  const year = customYear ?? now.getFullYear()
-  const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
-  
-  switch (period) {
-    case 'Harian':
-      return `Harian_${now.getDate()}_${monthNames[month]}_${year}`
-    case 'Mingguan':
-      return `Mingguan_Minggu_${monthNames[month]}_${year}`
-    case 'Bulanan':
-      return `Bulanan_${monthNames[month]}_${year}`
-    case 'Tahunan':
-      return `Tahunan_${year}`
-    default:
-      return period
-  }
-}
 
 function getLogoForUnit(unitKeyOrLabel, yayasanInfo = null) {
   if (!yayasanInfo) return null
@@ -98,8 +95,124 @@ function getUnitInfo(unitLabel, yayasanInfo = null) {
   return { nama: y.nama, unit: 'Seluruh Unit Sekolah', alamat: y.alamat, kontak: y.kontak, email: y.email }
 }
 
-function exportPresensiToExcel(data, unitLabel, periodLabel, yayasanInfo = null, signatory = null, options = {}) {
-  console.log('[exportPresensiToExcel] Starting export', { dataLength: data?.length, unitLabel, periodLabel, options })
+// Indeks baris (0-based) baris garis pembatas kop surat pada sheet Excel.
+const BARIS_GARIS_PEMBATAS = 3
+
+/**
+ * Kop surat sheet Excel.
+ * Baris index ke-3 dikosongkan di sini dan diisi karakter garis ganda sebagai
+ * garis pembatas resmi antara kop surat dan judul laporan.
+ */
+function buildKopExcel({ judul, periodeHeader, yayasanNama, unitTitle, alamat, kontak, email }) {
+  return [
+    [yayasanNama.toUpperCase()],
+    [unitTitle],
+    [`Alamat: ${alamat} | Telp/WA: ${kontak} | Email: ${email}`],
+    [], // baris garis pembatas (diisi terpisah)
+    [judul],
+    [periodeHeader],
+    [],
+  ]
+}
+
+/**
+ * Baris tanda tangan Excel dalam susunan 2 kolom sejajar (kiri & kanan):
+ *   Baris 1 : (kiri kosong)                    | Pariaman, [Tanggal Cetak]
+ *   Baris 2 : Mengetahui,                      | Dikerjakan oleh,
+ *   Baris 3 : ruang kosong untuk tanda tangan  | ruang kosong
+ *   Baris 4 : jabatan kiri                     | jabatan kanan
+ *             nama kiri                        | nama kanan
+ */
+function buildSignRowsExcel({ totalCols, widths, barisTandaTangan, tanggalCetak, startRow }) {
+  const empty = () => Array(totalCols).fill('')
+  const halfIdx = Math.max(1, Math.ceil(totalCols / 2))
+  const lebarBlokKiri = (widths || []).slice(0, halfIdx).reduce((a, b) => a + (b?.wch || 10), 0)
+  const lebarBlokKanan = (widths || []).slice(halfIdx).reduce((a, b) => a + (b?.wch || 10), 0)
+  const centerKiri = (teks) => ' '.repeat(Math.max(0, Math.floor((lebarBlokKiri - (teks || '').length) / 2))) + (teks || '')
+  const centerKanan = (teks) => ' '.repeat(Math.max(0, Math.floor((lebarBlokKanan - (teks || '').length) / 2))) + (teks || '')
+
+  const rows = []
+  const merges = []
+
+  const push = (row) => {
+    rows.push(row)
+    const r = startRow + rows.length - 1
+    merges.push({ s: { r, c: 0 }, e: { r, c: halfIdx - 1 } })
+    merges.push({ s: { r, c: halfIdx }, e: { r, c: totalCols - 1 } })
+  }
+
+  // Jarak lega antara garis bawah tabel dan baris tempat & tanggal rekap.
+  push(empty())
+  push(empty())
+  push(empty())
+
+  // Baris 1 - tempat & tanggal rekap (hanya kolom kanan)
+  const barisTempat = empty()
+  barisTempat[halfIdx] = centerKanan(`Pariaman, ${tanggalCetak}`)
+  push(barisTempat)
+
+  // Baris 2 - keterangan jabatan atas (harus pada baris yang sama)
+  const barisJabatanAtas = empty()
+  barisJabatanAtas[0] = centerKiri('Mengetahui,')
+  barisJabatanAtas[halfIdx] = centerKanan('Dikerjakan oleh,')
+  push(barisJabatanAtas)
+
+  // Baris 3 - ruang kosong untuk tanda tangan
+  push(empty())
+  push(empty())
+  push(empty())
+
+  // Baris 4 - identitas penandatangan
+  const barisJabatan = empty()
+  barisJabatan[0] = centerKiri(barisTandaTangan.jabatan.kiri)
+  barisJabatan[halfIdx] = centerKanan(barisTandaTangan.jabatan.kanan)
+  push(barisJabatan)
+
+  const barisNama = empty()
+  barisNama[0] = centerKiri(barisTandaTangan.nama.kiri)
+  barisNama[halfIdx] = centerKanan(barisTandaTangan.nama.kanan)
+  push(barisNama)
+
+  return { rows, merges }
+}
+
+/**
+ * Blok tanda tangan HTML untuk Cetak Langsung (window.print).
+ * Susunan 2 kolom sejajar (kiri & kanan) dengan 4 baris:
+ *   1. Tempat & tanggal   2. Keterangan jabatan atas
+ *   3. Ruang tanda tangan 4. Identitas penandatangan
+ */
+function buildBlokTandaTanganHtml(baris, tanggalCetak) {
+  return `
+    <div class="signature-block">
+      <div class="signature-row">
+        <div class="signature-cell"></div>
+        <div class="signature-cell">Pariaman, ${tanggalCetak}</div>
+      </div>
+      <div class="signature-row">
+        <div class="signature-cell signature-jabatan">${baris.baris2.kiri}</div>
+        <div class="signature-cell signature-jabatan">${baris.baris2.kanan}</div>
+      </div>
+      <div class="signature-row">
+        <div class="signature-cell signature-space"></div>
+        <div class="signature-cell signature-space"></div>
+      </div>
+      <div class="signature-row">
+        <div class="signature-cell">
+          <div class="signature-jabatan">${baris.jabatan.kiri}</div>
+          <div class="signature-nama">${baris.nama.kiri}</div>
+        </div>
+        <div class="signature-cell">
+          <div class="signature-jabatan">${baris.jabatan.kanan}</div>
+          <div class="signature-nama">${baris.nama.kanan}</div>
+        </div>
+      </div>
+    </div>
+  `
+}
+
+function exportPresensiToExcel(data, unitLabel, periode, yayasanInfo = null, signatory = null, options = {}) {
+  console.log('[exportPresensiToExcel] Starting export', { dataLength: data?.length, unitLabel, periode, options })
   if (!data || !data.length) {
     console.error('[exportPresensiToExcel] No data provided')
     return
@@ -109,43 +222,62 @@ function exportPresensiToExcel(data, unitLabel, periodLabel, yayasanInfo = null,
     const y = yayasanInfo || { nama: 'Yayasan Islam Attin Indonesia', alamat: 'Jl. Raya Cendekia No. 45, Jakarta Selatan', kontak: '+62 811-9876-5432', email: 'sekretariat@attinsumbar.sch.id' }
     const s = signatory || {}
     const info = getUnitInfo(unitLabel, y)
-    
+
+    // Formatter periode terpusat: header & kolom tabel selalu spesifik.
+    const periodeInfo = periode || getPeriodeInfo({ jenis: options?.period || 'Bulanan' })
+    const periodLabel = periodeInfo.slug
+    const periodeHeader = periodeInfo.header
+
     // Deteksi periode: Harian, Mingguan, Bulanan, Tahunan
     const period = options?.period || data[0]?.periodType || (
       periodLabel.toLowerCase().includes('harian') ? 'Harian' :
       periodLabel.toLowerCase().includes('mingguan') ? 'Mingguan' :
       periodLabel.toLowerCase().includes('tahunan') ? 'Tahunan' : 'Bulanan'
     )
-    
+
     const printDate = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
     const unitTitle = info.unit ? info.unit.toUpperCase() : unitLabel.replace(/_/g, ' ').toUpperCase()
-    
-    const buildSignRows = (totalCols) => {
-      const pad = Math.max(0, totalCols - 2)
-      const emptyRow = Array(totalCols).fill('')
-      const kepsek = s.kepalaSekolah || { nama: '', jabatan: 'Kepala Sekolah / Ketua Yayasan' }
-      const petugas = s.petugasPresensi || { nama: '', jabatan: 'Petugas Presensi' }
-      return [
-        emptyRow,
-        ['', ...Array(pad - 1).fill(''), `Pariaman, ${printDate}`],
-        ['Mengetahui,', ...Array(pad).fill(''), 'Dikerjakan oleh,'],
-        [kepsek.jabatan || 'Kepala Sekolah', ...Array(pad).fill(''), petugas.jabatan || 'Petugas Presensi'],
-        emptyRow,
-        emptyRow,
-        [kepsek.nama ? `(${kepsek.nama})` : '(________________________)', ...Array(pad).fill(''), petugas.nama ? `(${petugas.nama})` : '(________________________)'],
+
+    const barisTandaTangan = getBarisTandaTangan('presensi', s)
+
+    // Baris tanda tangan + merge untuksheet Excel.
+    const buildSignRows = (totalCols, widths, startRow) => {
+      const { rows, merges } = buildSignRowsExcel({
+        totalCols,
+        widths,
+        barisTandaTangan,
+        tanggalCetak: printDate,
+        startRow,
+      })
+      return { rows, merges }
+    }
+
+    // Kop surat standar (dengan baris garis pembatas ganda).
+    const buildKop = (judul = JUDUL_LAPORAN.presensi) => buildKopExcel({
+      judul,
+      periodeHeader,
+      yayasanNama: y.nama,
+      unitTitle,
+      alamat: info.alamat,
+      kontak: info.kontak,
+      email: info.email || 'sekretariat@attinsumbar.sch.id',
+    })
+
+    // Pasang garis pembatas ganda pada baris kop surat + merge.
+    const terapkanGarisPembatas = (ws, totalCols, widths, merges = []) => {
+      const lebar = (widths || []).reduce((a, b) => a + (b?.wch || 10), 0)
+      const ref = XLSX.utils.encode_cell({ r: BARIS_GARIS_PEMBATAS, c: 0 })
+      if (!ws[ref]) ws[ref] = { t: 's', v: barisGarisGanda(lebar) }
+      else ws[ref].v = barisGarisGanda(lebar)
+      ws['!merges'] = [
+        ...(ws['!merges'] || []),
+        { s: { r: BARIS_GARIS_PEMBATAS, c: 0 }, e: { r: BARIS_GARIS_PEMBATAS, c: Math.max(0, totalCols - 1) } },
+        ...merges,
       ]
     }
 
     if (period === 'Harian') {
-      const kopRows = [
-        [y.nama.toUpperCase()],
-        [unitTitle],
-        [`Alamat: ${info.alamat} | Telp/WA: ${info.kontak} | Email: ${info.email || 'sekretariat@attinsumbar.sch.id'}`],
-        [],
-        ['REKAP LAPORAN PRESENSI HARIAN PEGAWAI'],
-        [`Hari & Tanggal: ${data[0]?.hari || 'Hari Ini'}, ${data[0]?.tanggal || printDate}`],
-        [],
-      ]
+      const kopRows = buildKop()
       
       const header = [
         'No',
@@ -217,11 +349,7 @@ function exportPresensiToExcel(data, unitLabel, periodLabel, yayasanInfo = null,
         '',
       ]
       
-      const signRows = buildSignRows(header.length)
-      const wsData = [...kopRows, header, ...rows, summaryRow, ...signRows]
-      const ws = XLSX.utils.aoa_to_sheet(wsData)
-      
-      ws['!cols'] = [
+      const cols = [
         { wch: 5 },   // No
         { wch: 32 },  // Nama
         { wch: 16 },  // NIY
@@ -237,22 +365,22 @@ function exportPresensiToExcel(data, unitLabel, periodLabel, yayasanInfo = null,
         { wch: 18 },  // Metode
         { wch: 28 },  // Lokasi
       ]
-      
+
+      const startRow = kopRows.length + 1 + rows.length + 1
+      const { rows: signRows, merges } = buildSignRows(header.length, cols, startRow)
+      const wsData = [...kopRows, header, ...rows, summaryRow, ...signRows]
+      const ws = XLSX.utils.aoa_to_sheet(wsData)
+
+      ws['!cols'] = cols
+      terapkanGarisPembatas(ws, header.length, cols, merges)
+
       XLSX.utils.book_append_sheet(wb, ws, 'Rekap Presensi Harian')
     } else if (period === 'Bulanan') {
       const daysCount = 30
       const dayNames = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab']
       
       // Sheet 1: Matriks Presensi Bulanan (menampilkan seluruh tanggal 1..30 beserta waktu datang dan pulang)
-      const kopRowsMatrix = [
-        [y.nama.toUpperCase()],
-        [unitTitle],
-        [`Alamat: ${info.alamat} | Telp/WA: ${info.kontak} | Email: ${info.email || 'sekretariat@attinsumbar.sch.id'}`],
-        [],
-        ['MATRIKS PRESENSI BULANAN PEGAWAI (WAKTU DATANG & PULANG)'],
-        [`Periode: ${periodLabel.replace(/_/g, ' ')}`],
-        [],
-      ]
+      const kopRowsMatrix = buildKop('MATRIKS PRESENSI BULANAN GURU DAN PEGAWAI (WAKTU DATANG & PULANG)')
       
       const dateHeaders = []
       const daySubHeaders = []
@@ -319,10 +447,7 @@ function exportPresensiToExcel(data, unitLabel, periodLabel, yayasanInfo = null,
         ]
       })
       
-      const signRowsMatrix = buildSignRows(headerMatrix1.length)
-      const wsMatrix = XLSX.utils.aoa_to_sheet([...kopRowsMatrix, headerMatrix1, headerMatrix2, ...matrixRows, ...signRowsMatrix])
-      
-      wsMatrix['!cols'] = [
+      const colsMatrix = [
         { wch: 5 },   // No
         { wch: 32 },  // Nama
         { wch: 15 },  // NIY
@@ -338,18 +463,17 @@ function exportPresensiToExcel(data, unitLabel, periodLabel, yayasanInfo = null,
         { wch: 10 },  // Alpha
         { wch: 14 },  // % Kehadiran
       ]
+
+      const startRowMatrix = kopRowsMatrix.length + 2 + matrixRows.length
+      const { rows: signRowsMatrix, merges: mergesMatrix } = buildSignRows(headerMatrix1.length, colsMatrix, startRowMatrix)
+      const wsMatrix = XLSX.utils.aoa_to_sheet([...kopRowsMatrix, headerMatrix1, headerMatrix2, ...matrixRows, ...signRowsMatrix])
+
+      wsMatrix['!cols'] = colsMatrix
+      terapkanGarisPembatas(wsMatrix, headerMatrix1.length, colsMatrix, mergesMatrix)
       XLSX.utils.book_append_sheet(wb, wsMatrix, 'Matriks Presensi Bulanan')
-      
+
       // Sheet 2: Ringkasan Rekapitulasi Bulanan
-      const kopRowsSummary = [
-        [y.nama.toUpperCase()],
-        [unitTitle],
-        [`Alamat: ${info.alamat} | Telp/WA: ${info.kontak} | Email: ${info.email || 'sekretariat@attinsumbar.sch.id'}`],
-        [],
-        ['REKAPITULASI LAPORAN PRESENSI BULANAN PEGAWAI'],
-        [`Periode: ${periodLabel.replace(/_/g, ' ')}`],
-        [],
-      ]
+      const kopRowsSummary = buildKop()
       
       const summaryHeader = [
         'No', 'Nama Pegawai', 'NIY', 'Jabatan / Peran', 'Unit Sekolah', 'Periode Rekap', 'Total Hari Kerja', 'Hadir', 'Tepat Waktu', 'Terlambat', 'Keterlambatan (menit)', 'Izin/Sakit', 'Alpha', 'Persentase Kehadiran', 'Predikat Disiplin'
@@ -373,23 +497,19 @@ function exportPresensiToExcel(data, unitLabel, periodLabel, yayasanInfo = null,
         row.kategoriDisiplin || (row.persentaseKehadiran >= 90 ? 'Sangat Baik' : row.persentaseKehadiran >= 80 ? 'Baik' : 'Perlu Pembinaan')
       ])
       
-      const signRowsSummary = buildSignRows(summaryHeader.length)
-      const wsSummary = XLSX.utils.aoa_to_sheet([...kopRowsSummary, summaryHeader, ...summaryRows, ...signRowsSummary])
-      wsSummary['!cols'] = [
+      const colsSummary = [
         { wch: 5 }, { wch: 32 }, { wch: 15 }, { wch: 22 }, { wch: 20 }, { wch: 18 }, { wch: 24 },
         { wch: 15 }, { wch: 10 }, { wch: 12 }, { wch: 12 }, { wch: 18 }, { wch: 12 }, { wch: 10 }, { wch: 18 }, { wch: 18 }
       ]
+
+      const startRowSummary = kopRowsSummary.length + 1 + summaryRows.length
+      const { rows: signRowsSummary, merges: mergesSummary } = buildSignRows(summaryHeader.length, colsSummary, startRowSummary)
+      const wsSummary = XLSX.utils.aoa_to_sheet([...kopRowsSummary, summaryHeader, ...summaryRows, ...signRowsSummary])
+      wsSummary['!cols'] = colsSummary
+      terapkanGarisPembatas(wsSummary, summaryHeader.length, colsSummary, mergesSummary)
       XLSX.utils.book_append_sheet(wb, wsSummary, 'Ringkasan Rekap Bulanan')
     } else if (period === 'Mingguan') {
-      const kopRows = [
-        [y.nama.toUpperCase()],
-        [unitTitle],
-        [`Alamat: ${info.alamat} | Telp/WA: ${info.kontak} | Email: ${info.email || 'sekretariat@attinsumbar.sch.id'}`],
-        [],
-        ['REKAP LAPORAN PRESENSI MINGGUAN PEGAWAI (WAKTU DATANG & PULANG)'],
-        [`Periode: ${periodLabel.replace(/_/g, ' ')}`],
-        [],
-      ]
+      const kopRows = buildKop('REKAP PRESENSI MINGGUAN GURU DAN PEGAWAI (WAKTU DATANG & PULANG)')
       
       const header = [
         'No', 'Nama Pegawai', 'NIY', 'Jabatan / Peran', 'Unit Sekolah',
@@ -425,25 +545,21 @@ function exportPresensiToExcel(data, unitLabel, periodLabel, yayasanInfo = null,
         ]
       })
       
-      const signRows = buildSignRows(header.length)
-      const ws = XLSX.utils.aoa_to_sheet([...kopRows, header, ...rows, ...signRows])
-      ws['!cols'] = [
+      const colsMingguan = [
         { wch: 5 }, { wch: 32 }, { wch: 15 }, { wch: 22 }, { wch: 20 },
         { wch: 22 }, { wch: 22 }, { wch: 22 }, { wch: 22 }, { wch: 22 }, { wch: 22 },
         { wch: 15 }, { wch: 10 }, { wch: 12 }, { wch: 12 }, { wch: 16 }, { wch: 12 }, { wch: 10 }, { wch: 14 }
       ]
+
+      const startRowMingguan = kopRows.length + 1 + rows.length
+      const { rows: signRows, merges: mergesMingguan } = buildSignRows(header.length, colsMingguan, startRowMingguan)
+      const ws = XLSX.utils.aoa_to_sheet([...kopRows, header, ...rows, ...signRows])
+      ws['!cols'] = colsMingguan
+      terapkanGarisPembatas(ws, header.length, colsMingguan, mergesMingguan)
       XLSX.utils.book_append_sheet(wb, ws, 'Rekap Mingguan')
     } else {
       // Tahunan atau kustom
-      const kopRows = [
-        [y.nama.toUpperCase()],
-        [unitTitle],
-        [`Alamat: ${info.alamat} | Telp/WA: ${info.kontak} | Email: ${info.email || 'sekretariat@attinsumbar.sch.id'}`],
-        [],
-        ['REKAP LAPORAN PRESENSI TAHUNAN PEGAWAI'],
-        [`Periode: ${periodLabel.replace(/_/g, ' ')}`],
-        [],
-      ]
+      const kopRows = buildKop('REKAP PRESENSI TAHUNAN GURU DAN PEGAWAI')
       
       const header = [
         'No', 'Nama Pegawai', 'NIY', 'Jabatan / Peran', 'Unit Sekolah',
@@ -472,16 +588,20 @@ function exportPresensiToExcel(data, unitLabel, periodLabel, yayasanInfo = null,
         ]
       })
       
-      const signRows = buildSignRows(header.length)
-      const ws = XLSX.utils.aoa_to_sheet([...kopRows, header, ...rows, ...signRows])
-      ws['!cols'] = [
+      const colsTahunan = [
         { wch: 5 }, { wch: 32 }, { wch: 15 }, { wch: 22 }, { wch: 20 },
         ...Array(12).fill({ wch: 15 }),
         { wch: 15 }, { wch: 12 }, { wch: 14 }, { wch: 16 }, { wch: 14 }, { wch: 12 }, { wch: 16 }, { wch: 18 }
       ]
+
+      const startRowTahunan = kopRows.length + 1 + rows.length
+      const { rows: signRows, merges: mergesTahunan } = buildSignRows(header.length, colsTahunan, startRowTahunan)
+      const ws = XLSX.utils.aoa_to_sheet([...kopRows, header, ...rows, ...signRows])
+      ws['!cols'] = colsTahunan
+      terapkanGarisPembatas(ws, header.length, colsTahunan, mergesTahunan)
       XLSX.utils.book_append_sheet(wb, ws, 'Rekap Tahunan')
     }
-    
+
     const fileName = `Rekap_Presensi_${unitLabel}_${periodLabel}.xlsx`
     console.log('[exportPresensiToExcel] Writing file:', fileName)
     const out = XLSX.write(wb, { bookType: 'xlsx', type: 'array' })
@@ -493,8 +613,8 @@ function exportPresensiToExcel(data, unitLabel, periodLabel, yayasanInfo = null,
   }
 }
 
-function exportCutiToExcel(data, unitLabel, periodLabel, yayasanInfo = null, signatory = null, options = {}) {
-  console.log('[exportCutiToExcel] Starting export', { dataLength: data?.length, unitLabel, periodLabel })
+function exportCutiToExcel(data, unitLabel, periode, yayasanInfo = null, signatory = null, options = {}) {
+  console.log('[exportCutiToExcel] Starting export', { dataLength: data?.length, unitLabel, periode })
   if (!data || !data.length) {
     console.error('[exportCutiToExcel] No data provided')
     return
@@ -506,22 +626,27 @@ function exportCutiToExcel(data, unitLabel, periodLabel, yayasanInfo = null, sig
     const info = getUnitInfo(unitLabel, y)
     const printDate = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
     const unitTitle = info.unit ? info.unit.toUpperCase() : unitLabel.replace(/_/g, ' ').toUpperCase()
-    
-    const infoRows = [
-      [y.nama.toUpperCase()],
-      [unitTitle],
-      [`Alamat: ${info.alamat} | Telp/WA: ${info.kontak} | Email: ${info.email || 'sekretariat@attinsumbar.sch.id'}`],
-      [],
-      ['REKAP LAPORAN PERIZINAN & CUTI GURU / PEGAWAI'],
-      [`Periode: ${periodLabel.replace(/_/g, ' ')} | Tanggal Ekspor: ${printDate}`],
-      [],
-    ]
-    
+
+    // Formatter periode terpusat: header & kolom tabel selalu spesifik.
+    const periodeInfo = periode || getPeriodeInfo({ jenis: options?.period || 'Bulanan' })
+    const periodLabel = periodeInfo.slug
+    const periodeHeader = periodeInfo.header
+
+    const infoRows = buildKopExcel({
+      judul: JUDUL_LAPORAN.cuti,
+      periodeHeader: `${periodeHeader} | Tanggal Ekspor: ${printDate}`,
+      yayasanNama: y.nama,
+      unitTitle,
+      alamat: info.alamat,
+      kontak: info.kontak,
+      email: info.email || 'sekretariat@attinsumbar.sch.id',
+    })
+
     const header = [
       'No', 'Nama Pegawai', 'NIY', 'Unit Sekolah', 'Jenis Izin/Cuti',
       'Tanggal Mulai', 'Tanggal Selesai', 'Durasi / Lama', 'Status Persetujuan', 'Berkas Lampiran / Keterangan'
     ]
-    
+
     const rows = data.map((row, i) => [
       i + 1,
       row.name,
@@ -534,33 +659,19 @@ function exportCutiToExcel(data, unitLabel, periodLabel, yayasanInfo = null, sig
       row.status,
       row.lampiran || '-'
     ])
-    
+
     const disetujuiCount = data.filter(r => r.status === 'Disetujui').length
     const menungguCount = data.filter(r => r.status === 'Menunggu').length
     const ditolakCount = data.filter(r => r.status === 'Ditolak').length
-    
+
     const summaryRow = [
       'TOTAL PENGAJUAN:', data.length, '', '', '',
       `DISETUJUI: ${disetujuiCount}`, `MENUNGGU: ${menungguCount}`, `DITOLAK: ${ditolakCount}`, '', ''
     ]
-    
-    const ketuaYayasan = s.ketuaYayasan || { nama: '', jabatan: 'Ketua Yayasan' }
-    const adminTU = s.adminTU?.kepalaTU || s.adminTU?.operatorSistem || { nama: '', jabatan: 'Admin Tata Usaha' }
-    
-    const signRows = [
-      [],
-      ['', '', '', '', '', '', '', '', `Padang / Jakarta, ${printDate}`],
-      ['Mengetahui,', '', '', '', '', '', '', '', 'Disiapkan oleh,'],
-      [ketuaYayasan.jabatan || 'Ketua Yayasan', '', '', '', '', '', '', '', adminTU.jabatan || 'Admin Tata Usaha'],
-      [],
-      [],
-      [ketuaYayasan.nama ? `(${ketuaYayasan.nama})` : '(________________________)', '', '', '', '', '', '', '', adminTU.nama ? `(${adminTU.nama})` : '(________________________)'],
-    ]
-    
-    const wsData = [...infoRows, header, ...rows, summaryRow, ...signRows]
-    const ws = XLSX.utils.aoa_to_sheet(wsData)
-    
-    ws['!cols'] = [
+
+    const barisTandaTangan = getBarisTandaTangan('cuti', s)
+
+    const cols = [
       { wch: 5 },   // No
       { wch: 32 },  // Nama
       { wch: 16 },  // NIY
@@ -572,7 +683,29 @@ function exportCutiToExcel(data, unitLabel, periodLabel, yayasanInfo = null, sig
       { wch: 20 },  // Status
       { wch: 30 },  // Lampiran / Keterangan
     ]
-    
+
+    const startRow = infoRows.length + 1 + rows.length + 1
+    const { rows: signRows, merges } = buildSignRowsExcel({
+      totalCols: header.length,
+      widths: cols,
+      barisTandaTangan,
+      tanggalCetak: printDate,
+      startRow,
+    })
+
+    const wsData = [...infoRows, header, ...rows, summaryRow, ...signRows]
+    const ws = XLSX.utils.aoa_to_sheet(wsData)
+
+    ws['!cols'] = cols
+
+    // Garis pembatas kop surat (garis bawah ganda resmi).
+    const lebar = cols.reduce((a, b) => a + b.wch, 0)
+    ws[XLSX.utils.encode_cell({ r: BARIS_GARIS_PEMBATAS, c: 0 })] = { t: 's', v: barisGarisGanda(lebar) }
+    ws['!merges'] = [
+      { s: { r: BARIS_GARIS_PEMBATAS, c: 0 }, e: { r: BARIS_GARIS_PEMBATAS, c: header.length - 1 } },
+      ...merges,
+    ]
+
     XLSX.utils.book_append_sheet(wb, ws, 'Rekap Cuti Izin')
     
     const fileName = `Rekap_Cuti_Izin_${unitLabel}_${periodLabel}.xlsx`
@@ -583,105 +716,6 @@ function exportCutiToExcel(data, unitLabel, periodLabel, yayasanInfo = null, sig
   } catch (e) {
     console.error('[exportCutiToExcel] Error:', e)
     throw e
-  }
-}
-
-function getPeriodDisplayLabel(period) {
-  const labels = { Harian: 'Harian (Hari Ini)', Mingguan: 'Mingguan (Minggu Ini)', Bulanan: 'Bulanan (Bulan Ini)', Tahunan: 'Tahunan (Tahun Ini)' }
-  return labels[period] || period
-}
-
-function getCurrentDateString() {
-  const now = new Date()
-  const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
-  return `${now.getDate()} ${monthNames[now.getMonth()]} ${now.getFullYear()}`
-}
-
-function drawHeader(doc, unitLabel, title) {
-  const info = getUnitInfo(unitLabel)
-  let y = 15
-  
-  // Logo placeholder (kotak)
-  doc.setDrawColor(0, 102, 204)
-  doc.setLineWidth(0.5)
-  doc.rect(14, y, 20, 20)
-  doc.setFontSize(8)
-  doc.setTextColor(0, 102, 204)
-  doc.text('LOGO', 20, y + 11, { align: 'center' })
-  
-  // Kop surat
-  doc.setTextColor(0)
-  doc.setFontSize(14)
-  doc.setFont('helvetica', 'bold')
-  doc.text(info.nama, 40, y + 6)
-  doc.setFontSize(10)
-  doc.setFont('helvetica', 'normal')
-  doc.text(info.unit, 40, y + 12)
-  doc.setFontSize(8)
-  doc.text(info.alamat, 40, y + 17)
-  doc.text(info.kontak, 40, y + 22)
-  
-  // Garis pemisah
-  y += 28
-  doc.setDrawColor(0, 102, 204)
-  doc.setLineWidth(1)
-  doc.line(14, y, 283, y)
-  y += 2
-  doc.setDrawColor(180)
-  doc.setLineWidth(0.3)
-  doc.line(14, y, 283, y)
-  
-  // Judul
-  y += 8
-  doc.setFontSize(14)
-  doc.setFont('helvetica', 'bold')
-  doc.setTextColor(0)
-  doc.text(title, 148, y, { align: 'center' })
-  
-  return y + 6
-}
-
-function drawFooter(doc, unitLabel) {
-  const pageCount = doc.getNumberOfPages()
-  const info = getUnitInfo(unitLabel)
-  
-  for (let i = 1; i <= pageCount; i++) {
-    doc.setPage(i)
-    const y = doc.internal.pageSize.height - 50
-    
-    // Garis pemisah
-    doc.setDrawColor(180)
-    doc.setLineWidth(0.3)
-    doc.line(14, y - 5, 283, y - 5)
-    
-    // Tempat, tanggal
-    doc.setFontSize(9)
-    doc.setFont('helvetica', 'normal')
-    doc.setTextColor(100)
-    doc.text(`Jakarta, ${getCurrentDateString()}`, 200, y)
-    
-    // Mengetahui / Disiapkan
-    doc.setFontSize(9)
-    doc.setTextColor(0)
-    doc.setFont('helvetica', 'bold')
-    doc.text('Mengetahui,', 200, y + 10)
-    doc.text('Disiapkan oleh,', 14, y + 10)
-    
-    // Ruang tanda tangan
-    doc.setFont('helvetica', 'normal')
-    doc.text('\n\n\n', 200, y + 15)
-    doc.text('\n\n\n', 14, y + 15)
-    
-    // Nama
-    doc.setFont('helvetica', 'bold')
-    doc.text('Ketua Yayasan', 200, y + 35)
-    doc.text('Staff Administrasi', 14, y + 35)
-    
-    // Halaman
-    doc.setFontSize(8)
-    doc.setFont('helvetica', 'normal')
-    doc.setTextColor(150)
-    doc.text(`Halaman ${i} dari ${pageCount}`, 148, doc.internal.pageSize.height - 10, { align: 'center' })
   }
 }
 
@@ -752,105 +786,141 @@ function drawKopSurat(doc, unitLabel, yayasanInfo = null) {
   doc.text(info.alamat, 43, y + 18)
   doc.text(`Telp/WA: ${info.kontak} • Email: ${info.email || 'sekretariat@attinsumbar.sch.id'}`, 43, y + 23)
 
-  // Garis pemisah bawah kop (Kop Resmi Ganda)
-  y += 28
-  doc.setDrawColor(0, 51, 102)
-  doc.setLineWidth(1.2)
+  // Garis pembatas bawah kop surat (garis bawah ganda resmi).
+  // Memisahkan kop surat dengan judul laporan.
+  y += 29
+  doc.setDrawColor(0)
+  doc.setLineWidth(0.7)
   doc.line(15, y, pageWidth - 15, y)
-  y += 1.8
-  doc.setDrawColor(203, 213, 225)
-  doc.setLineWidth(0.4)
+  y += 1.6
+  doc.setLineWidth(0.3)
   doc.line(15, y, pageWidth - 15, y)
 
-  return y + 8
+  // Jarak proporsional sebelum judul laporan.
+  return y + 9
 }
 
-function drawFooterSignature(doc, unitLabel) {
-  const pageHeight = doc.internal.pageSize.height
+/**
+ * Blok tanda tangan PDF dengan susunan 2 kolom sejajar (kiri & kanan):
+ *   Baris 1 : (kiri kosong)                    | Pariaman, [Tanggal Cetak]
+ *   Baris 2 : Mengetahui,                      | Dikerjakan oleh,
+ *   Baris 3 : ruang tanda tangan               | ruang tanda tangan
+ *   Baris 4 : jabatan kiri                     | jabatan kanan
+ *             nama kiri                        | nama kanan
+ *
+ * `startY` adalah posisi vertikal (mm) tepat di bawah garis bawah tabel.
+ */
+function drawBlokTandaTangan(doc, startY, signatory = null, reportType = 'presensi') {
   const pageWidth = doc.internal.pageSize.width
-  let y = pageHeight - 60
+  const marginKiri = 15
+  const gapKolom = 20
+  const lebarKolom = (pageWidth - marginKiri * 2 - gapKolom) / 2
+  const centerKiri = marginKiri + lebarKolom / 2
+  const centerKanan = marginKiri + lebarKolom + gapKolom + lebarKolom / 2
 
-  // Garis pemisah atas footer
-  doc.setDrawColor(180)
-  doc.setLineWidth(0.3)
-  doc.line(15, y - 5, pageWidth - 15, y - 5)
+  const baris = getBarisTandaTangan(reportType, signatory)
+  const printDate = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
 
-  // Tempat, tanggal
+  let y = startY
+
+  // Baris 1 - tempat & tanggal rekap (tepat di atas kolom tanda tangan kanan)
   doc.setFontSize(10)
   doc.setFont('helvetica', 'normal')
   doc.setTextColor(80)
-  doc.text(`Pariaman, ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}`, pageWidth - 15, y, { align: 'right' })
+  doc.text(`Pariaman, ${printDate}`, centerKanan, y, { align: 'center' })
 
-  // Mengetahui dan Disiapkan
-  y += 14
+  // Baris 2 - keterangan jabatan atas (kiri & kanan pada baris yang sama)
+  y += 8
   doc.setTextColor(0)
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(10)
-  doc.text('Mengetahui,', pageWidth - 15, y, { align: 'right' })
-  doc.text('Diperiksa oleh,', 15, y)
+  doc.text(baris.baris2.kiri, centerKiri, y, { align: 'center' })
+  doc.text(baris.baris2.kanan, centerKanan, y, { align: 'center' })
 
-  // Ruang tanda tangan (kosong)
-  y += 25
-  doc.setFont('helvetica', 'normal')
-  doc.setFontSize(10)
-  doc.text('_________________________', pageWidth - 15, y, { align: 'right' })
-  doc.text('_________________________', 15, y)
+  // Baris 3 - ruang kosong untuk tanda tangan (tinggi sama kiri & kanan)
+  y += 21
 
-  // Nama jabatan
-  y += 7
+  // Baris 4 - identitas penandatangan
   doc.setFont('helvetica', 'bold')
-  doc.text('Kepala Sekolah / Ketua Yayasan', pageWidth - 15, y, { align: 'right' })
-  doc.text('Petugas Presensi', 15, y)
+  doc.setFontSize(10)
+  doc.setTextColor(0)
+  doc.text(baris.jabatan.kiri, centerKiri, y, { align: 'center' })
+  doc.text(baris.jabatan.kanan, centerKanan, y, { align: 'center' })
 
-  y += 12
+  y += 5.5
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(9)
-  doc.setTextColor(120)
-  doc.text('(________________________)', pageWidth - 15, y, { align: 'right' })
-  doc.text('(________________________)', 15, y)
+  doc.setTextColor(110)
+  doc.text(baris.nama.kiri, centerKiri, y, { align: 'center' })
+  doc.text(baris.nama.kanan, centerKanan, y, { align: 'center' })
 }
 
-function exportPresensiToPDF(data, unitLabel, periodLabel, yayasanInfo = null, signatory = null, options = {}) {
+/**
+ * Menempatkan blok tanda tangan tepat di bawah tabel. Bila ruang tersisa
+ * tidak cukup, blok dipindahkan ke halaman baru agar tidak terpotong.
+ */
+function tempatkanBlokTandaTangan(doc, signatory, reportType, yFallback) {
+  const pageHeight = doc.internal.pageSize.height
+  const tinggiBlok = 42
+  const tableEnd = doc.lastAutoTable?.finalY ?? yFallback
+  let y = tableEnd + 9 // ~32px jarak dari garis bawah tabel
+
+  if (y + tinggiBlok > pageHeight - 18) {
+    doc.addPage()
+    y = 22
+  }
+
+  drawBlokTandaTangan(doc, y, signatory, reportType)
+}
+
+function exportPresensiToPDF(data, unitLabel, periode, yayasanInfo = null, signatory = null, options = {}) {
   const doc = new jsPDF('portrait', 'mm', 'a4')
   const pageWidth = doc.internal.pageSize.width
   const centerX = pageWidth / 2
-  
+
   // KOP Surat dengan logo unit
   let y = drawKopSurat(doc, unitLabel, yayasanInfo)
-  
+
+  // Formatter periode terpusat: header laporan selalu menampilkan waktu spesifik.
+  const periodeInfo = periode || getPeriodeInfo({ jenis: options?.period || 'Bulanan' })
+  const periodLabel = periodeInfo.slug
+  const periodeHeader = periodeInfo.header
+
   const periodType = options?.period || data[0]?.periodType || (
     periodLabel.toLowerCase().includes('harian') ? 'Harian' :
     periodLabel.toLowerCase().includes('mingguan') ? 'Mingguan' :
     periodLabel.toLowerCase().includes('tahunan') ? 'Tahunan' : 'Bulanan'
   )
-  
+
   // Judul Laporan
   doc.setFontSize(14)
   doc.setFont('helvetica', 'bold')
   doc.setTextColor(0, 51, 102)
-  doc.text(`REKAP LAPORAN PRESENSI ${periodType.toUpperCase()} PEGAWAI`, centerX, y, { align: 'center' })
+  doc.text(JUDUL_LAPORAN.presensi, centerX, y, { align: 'center' })
   y += 5
-  
+
+  // Sub-judul periode (waktu spesifik hasil formatter terpusat)
+  doc.setFontSize(11)
+  doc.setFont('helvetica', 'bold')
+  doc.setTextColor(30, 41, 59)
+  doc.text(periodeHeader, centerX, y, { align: 'center' })
+  y += 4
+
   // Garis bawah judul
   doc.setDrawColor(0, 51, 102)
   doc.setLineWidth(0.5)
   doc.line(centerX - 55, y, centerX + 55, y)
   y += 7
-  
+
   // Info Laporan Box
   const infoBoxY = y
   const infoBoxHeight = 24
   doc.setDrawColor(203, 213, 225)
   doc.setFillColor(248, 250, 252)
   doc.roundedRect(15, infoBoxY, pageWidth - 30, infoBoxHeight, 2, 2, 'FD')
-  
-  let periodDisplay = periodLabel
-  if (periodLabel.startsWith('Custom_')) {
-    periodDisplay = periodLabel.replace('Custom_', '').replace(/_sd_/, ' s.d. ').replace(/_/g, ' ')
-  } else {
-    periodDisplay = periodLabel.replace(/_/g, ' ').replace(/Bulanan\s+(\w+)\s+(\d+)/, 'Bulan $1 $2').replace(/Tahunan\s+(\d+)/, 'Tahun $1')
-  }
-  
+
+  const periodDisplay = periodeHeader
+
   const unitDisplay = unitLabel.replace(/_/g, ' ')
   const printDate = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
   
@@ -1057,122 +1127,54 @@ function exportPresensiToPDF(data, unitLabel, periodLabel, yayasanInfo = null, s
     }
   })
   
-  const totalPages = doc.getNumberOfPages()
-  doc.setPage(totalPages)
-  const pageHeight = doc.internal.pageSize.height
-  const footerY = pageHeight - 60
-  drawFooterSignatureAt(doc, unitLabel, footerY, signatory, 'presensi')
-  
+  // Blok tanda tangan: tepat di bawah tabel dengan jarak lega, tidak terpotong.
+  tempatkanBlokTandaTangan(doc, signatory, 'presensi', y)
+
   const fileName = `Rekap_Presensi_${unitLabel.replace(/\s+/g, '_')}_${periodLabel}.pdf`
   downloadBlob(doc.output('blob'), fileName)
 }
 
-// Helper function to draw footer at specific Y position (from top)
-function drawFooterSignatureAt(doc, unitLabel, startY, signatory = null, reportType = 'presensi') {
-  const pageWidth = doc.internal.pageSize.width
-  let y = startY
-
-  if (reportType === 'presensi') {
-    // ===== REKAP PRESENSI =====
-    // Mengetahui: Kepala Sekolah
-    // Dikerjakan oleh: Petugas Presensi
-    const kepalaSekolah = signatory?.kepalaSekolah || { nama: '', jabatan: 'Kepala Sekolah' }
-    const petugasPresensi = signatory?.petugasPresensi || { nama: '', jabatan: 'Petugas Presensi' }
-
-    // Tempat, tanggal (di atas kolom tanda tangan petugas presensi)
-    doc.setFontSize(10)
-    doc.setFont('helvetica', 'normal')
-    doc.setTextColor(80)
-    doc.text(`Pariaman, ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}`, pageWidth - 15, y, { align: 'right' })
-
-    // Mengetahui dan Dikerjakan oleh
-    y += 12
-    doc.setTextColor(0)
-    doc.setFont('helvetica', 'bold')
-    doc.setFontSize(10)
-    doc.text('Mengetahui,', 15, y)
-    doc.text('Dikerjakan oleh,', pageWidth - 15, y, { align: 'right' })
-
-    // Ruang tanda tangan (tanpa garis)
-    y += 28
-
-    // Nama jabatan
-    doc.setFont('helvetica', 'bold')
-    doc.text(kepalaSekolah.jabatan || 'Kepala Sekolah', 15, y)
-    doc.text(petugasPresensi.jabatan || 'Petugas Presensi', pageWidth - 15, y, { align: 'right' })
-
-    // Nama (if available)
-    y += 10
-    doc.setFont('helvetica', 'normal')
-    doc.setFontSize(9)
-    doc.setTextColor(120)
-    doc.text(kepalaSekolah.nama ? `(${kepalaSekolah.nama})` : '(________________________)', 15, y)
-    doc.text(petugasPresensi.nama ? `(${petugasPresensi.nama})` : '(________________________)', pageWidth - 15, y, { align: 'right' })
-  } else {
-    // ===== REKAP CUTI/IZIN =====
-    const ketuaYayasan = signatory?.ketuaYayasan || { nama: '', jabatan: 'Ketua Yayasan' }
-    const adminTU = signatory?.adminTU?.kepalaTU || signatory?.adminTU?.operatorSistem || { nama: '', jabatan: 'Admin TU' }
-
-    doc.setFontSize(10)
-    doc.setFont('helvetica', 'normal')
-    doc.setTextColor(80)
-    doc.text(`Pariaman, ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}`, pageWidth - 15, y, { align: 'right' })
-
-    y += 12
-    doc.setTextColor(0)
-    doc.setFont('helvetica', 'bold')
-    doc.setFontSize(10)
-    doc.text('Mengetahui,', 15, y)
-    doc.text('Disiapkan oleh,', pageWidth - 15, y, { align: 'right' })
-
-    y += 28
-    doc.setFont('helvetica', 'bold')
-    doc.text(ketuaYayasan.jabatan || 'Ketua Yayasan', 15, y)
-    doc.text(adminTU.jabatan || 'Admin TU', pageWidth - 15, y, { align: 'right' })
-
-    y += 10
-    doc.setFont('helvetica', 'normal')
-    doc.setFontSize(9)
-    doc.setTextColor(120)
-    doc.text(ketuaYayasan.nama ? `(${ketuaYayasan.nama})` : '(________________________)', 15, y)
-    doc.text(adminTU.nama ? `(${adminTU.nama})` : '(________________________)', pageWidth - 15, y, { align: 'right' })
-  }
-}
-
-function exportCutiToPDF(data, unitLabel, periodLabel, yayasanInfo = null, signatory = null) {
+function exportCutiToPDF(data, unitLabel, periode, yayasanInfo = null, signatory = null) {
   const doc = new jsPDF('portrait', 'mm', 'a4')
   const pageWidth = doc.internal.pageSize.width
   const centerX = pageWidth / 2
-  
+
   // KOP Surat
   let y = drawKopSurat(doc, unitLabel, yayasanInfo)
-  
+
+  // Formatter periode terpusat: header laporan selalu menampilkan waktu spesifik.
+  const periodeInfo = periode || getPeriodeInfo({ jenis: 'Bulanan' })
+  const periodLabel = periodeInfo.slug
+  const periodeHeader = periodeInfo.header
+
   // Judul Laporan
-  doc.setFontSize(16)
+  doc.setFontSize(14)
   doc.setFont('helvetica', 'bold')
   doc.setTextColor(0, 51, 102)
-  doc.text('REKAP LAPORAN CUTI DAN IZIN PEGAWAI', centerX, y, { align: 'center' })
-  y += 6
-  
+  doc.text(JUDUL_LAPORAN.cuti, centerX, y, { align: 'center' })
+  y += 5
+
+  // Sub-judul periode (waktu spesifik hasil formatter terpusat)
+  doc.setFontSize(11)
+  doc.setFont('helvetica', 'bold')
+  doc.setTextColor(30, 41, 59)
+  doc.text(periodeHeader, centerX, y, { align: 'center' })
+  y += 4
+
   // Garis bawah judul
   doc.setDrawColor(0, 51, 102)
   doc.setLineWidth(0.5)
   doc.line(centerX - 60, y, centerX + 60, y)
   y += 10
-  
+
   // Info Laporan - dalam kotak
   const infoBoxY = y
   const infoBoxHeight = 22
   doc.setDrawColor(0, 51, 102)
   doc.setLineWidth(0.3)
   doc.rect(15, infoBoxY, pageWidth - 30, infoBoxHeight)
-  
-  let periodDisplay = periodLabel
-  if (periodLabel.startsWith('Custom_')) {
-    periodDisplay = periodLabel.replace('Custom_', '').replace(/_sd_/, ' s.d. ').replace(/_/g, ' ')
-  } else {
-    periodDisplay = periodLabel.replace(/_/g, ' ').replace(/Bulanan\s+(\w+)\s+(\d+)/, 'Bulan $1 $2').replace(/Tahunan\s+(\d+)/, 'Tahun $1')
-  }
+
+  const periodDisplay = periodeHeader
   
   const unitDisplay = unitLabel.replace(/_/g, ' ')
   const printDate = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
@@ -1226,9 +1228,9 @@ function exportCutiToPDF(data, unitLabel, periodLabel, yayasanInfo = null, signa
     columns,
     body: rows,
     startY: y,
-    styles: { fontSize: 8, cellPadding: 3, font: 'helvetica', lineColor: [200, 200, 200], lineWidth: 0.1 },
-    headStyles: { fillColor: [0, 100, 0], textColor: 255, fontStyle: 'bold', halign: 'center', fontSize: 8, cellPadding: 4 },
-    alternateRowStyles: { fillColor: [235, 248, 235] },
+    styles: { fontSize: 8, cellPadding: 3, font: 'helvetica', lineColor: [215, 222, 232], lineWidth: 0.1 },
+    headStyles: { fillColor: [0, 51, 102], textColor: 255, fontStyle: 'bold', halign: 'center', fontSize: 8, cellPadding: 3.5 },
+    alternateRowStyles: { fillColor: [248, 250, 252] },
     columnStyles: {
       no: { cellWidth: 10, halign: 'center' },
       name: { cellWidth: 38 },
@@ -1252,13 +1254,9 @@ function exportCutiToPDF(data, unitLabel, periodLabel, yayasanInfo = null, signa
     }
   })
   
-  // Footer signature - at bottom of last page
-  const totalPages = doc.getNumberOfPages()
-  doc.setPage(totalPages)
-  const pageHeight = doc.internal.pageSize.height
-  const footerY = pageHeight - 65
-  drawFooterSignatureAt(doc, unitLabel, footerY, signatory, 'cuti')
-  
+  // Blok tanda tangan: tepat di bawah tabel dengan jarak lega, tidak terpotong.
+  tempatkanBlokTandaTangan(doc, signatory, 'cuti', y)
+
   const fileName = `Rekap_Cuti_Izin_${unitLabel.replace(/\s+/g, '_')}_${periodLabel}.pdf`
   downloadBlob(doc.output('blob'), fileName)
 }
@@ -1442,6 +1440,11 @@ function RekapLaporanPage() {
   const [activePeriod, setActivePeriod] = useState('Bulanan')
   const [mainCustomStart, setMainCustomStart] = useState('')
   const [mainCustomEnd, setMainCustomEnd] = useState('')
+  // Pilihan periode spesifik: tanggal untuk Harian, bulan untuk Bulanan,
+  // tahun untuk Tahunan. Kosong = memakai preset (Hari Ini / Bulan Ini / Tahun Ini).
+  const [activeDate, setActiveDate] = useState('')
+  const [activeMonth, setActiveMonth] = useState('')
+  const [activeYear, setActiveYear] = useState('')
   // Unit berasal dari unit terpilih di store (role-aware), bukan state lokal.
   const selectedUnit = selectActiveUnitId(state)
   const canSwitchUnit = selectCanSwitchUnit(state)
@@ -1461,7 +1464,10 @@ function RekapLaporanPage() {
     unit: 'all',
     format: 'pdf',
     customStartDate: '',
-    customEndDate: ''
+    customEndDate: '',
+    periodDate: '',
+    periodMonth: '',
+    periodYear: '',
   })
   const [exportPresensiConfig, setExportPresensiConfig] = useState({ period: 'Bulanan', unit: 'all', format: 'excel' })
   const [exportCutiConfig, setExportCutiConfig] = useState({ period: 'Bulanan', unit: 'all', format: 'excel' })
@@ -1673,17 +1679,14 @@ function RekapLaporanPage() {
     }
   }
 
-  // Format date for display
-  const getCurrentDateString = () => {
-    const now = new Date()
-    const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
-    return `${now.getDate()} ${monthNames[now.getMonth()]} ${now.getFullYear()}`
-  }
-
-  const getPeriodDisplayLabel = (period) => {
-    const labels = { Harian: 'Harian (Hari Ini)', Mingguan: 'Mingguan (Minggu Ini)', Bulanan: 'Bulanan (Bulan Ini)', Tahunan: 'Tahunan (Tahun Ini)' }
-    return labels[period] || period
-  }
+  const getPeriodDisplayLabel = (period, opsi = {}) => getPeriodeInfo({
+    jenis: period,
+    tanggal: opsi.tanggal ?? activeDate ?? null,
+    bulan: opsi.bulan ?? activeMonth ?? null,
+    tahun: opsi.tahun ?? activeYear ?? null,
+    customStart: opsi.customStart ?? mainCustomStart ?? null,
+    customEnd: opsi.customEnd ?? mainCustomEnd ?? null,
+  }).header
 
   const handleSort = (key) => {
     setSortConfig(prev => ({
@@ -1695,27 +1698,39 @@ function RekapLaporanPage() {
   const selectedUnitObj = state.units.find(u => u.id === selectedUnit)
   const unitLabel = selectedUnit === ALL_UNITS ? `Semua Unit (${state.units.length} Unit)` : selectedUnitObj?.nama || 'Semua Unit'
 
-  const getPeriodLabel = (period) => {
-    if (period === 'custom') {
-      if (mainCustomStart && mainCustomEnd) {
-        const s = new Date(mainCustomStart)
-        const e = new Date(mainCustomEnd)
-        const mn = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des']
-        return `${s.getDate()} ${mn[s.getMonth()]} - ${e.getDate()} ${mn[e.getMonth()]}`
-      }
-      return 'Custom Tanggal'
-    }
-    switch (period) {
-      case 'Harian': return 'Hari Ini'
-      case 'Mingguan': return 'Minggu Ini'
-      case 'Bulanan': return 'Bulan Ini'
-      case 'Tahunan': return 'Tahun Ini'
-      default: return period
-    }
-  }
+  /**
+   * Membangun informasi periode lengkap (header + ringkas + slug) memakai
+   * formatter terpusat. Semua laporan (UI, Print, PDF, Excel) memakai nilai
+   * yang sama sehingga keterangan periode selalu konsisten.
+   */
+  const bangunPeriode = (period, customStart = null, customEnd = null, override = {}) => getPeriodeInfo({
+    jenis: period,
+    tanggal: override.tanggal ?? activeDate ?? null,
+    bulan: override.bulan ?? activeMonth ?? null,
+    tahun: override.tahun ?? activeYear ?? null,
+    customStart: customStart ?? mainCustomStart ?? null,
+    customEnd: customEnd ?? mainCustomEnd ?? null,
+  })
+
+  // Label periode aktif (khusus untuk tampilan web).
+  const periodeAktif = useMemo(
+    () => getPeriodeInfo({
+      jenis: activePeriod,
+      tanggal: activeDate || null,
+      bulan: activeMonth || null,
+      tahun: activeYear || null,
+      customStart: mainCustomStart || null,
+      customEnd: mainCustomEnd || null,
+    }),
+    [activePeriod, activeDate, activeMonth, activeYear, mainCustomStart, mainCustomEnd]
+  )
 
   const getExportPresensiData = (period, unit) => {
-    return selectRekapReportData(state, unit === 'all' ? null : unit, period)
+    const periode = bangunPeriode(period)
+    return selectRekapReportData(state, unit === 'all' ? null : unit, period, periode.tanggal || new Date(), {
+      bulan: periode.bulan,
+      tahun: periode.tahun,
+    })
   }
 
   const getExportCutiData = (period, unit) => {
@@ -1747,18 +1762,18 @@ function RekapLaporanPage() {
     try {
       const data = getExportPresensiData(exportPresensiConfig.period, exportPresensiConfig.unit)
       const unitLabel = exportPresensiConfig.unit === 'all' ? 'Semua_Unit' : (state.units.find(u => u.id === exportPresensiConfig.unit)?.nama || 'Semma_Unit').replace(/\s+/g, '_')
-      const periodLabel = getMonthYearLabel(exportPresensiConfig.period)
-      
+      const periode = bangunPeriode(exportPresensiConfig.period)
+
       // Get yayasan info and signatory from global settings
       const yayasanInfo = getYayasanInfo()
       const signatory = exportPresensiConfig.unit === 'all' ? getSignatoryAllUnits() : getSignatory(exportPresensiConfig.unit)
-      
+
       if (exportPresensiConfig.format === 'pdf') {
-        exportPresensiToPDF(data, unitLabel, periodLabel, yayasanInfo, signatory)
+        exportPresensiToPDF(data, unitLabel, periode, yayasanInfo, signatory, { period: exportPresensiConfig.period })
       } else {
-        exportPresensiToExcel(data, unitLabel, periodLabel, yayasanInfo, signatory)
+        exportPresensiToExcel(data, unitLabel, periode, yayasanInfo, signatory, { period: exportPresensiConfig.period })
       }
-      
+
       setShowPresensiExport(false)
       showNotification(`Rekap Presensi (${exportPresensiConfig.format.toUpperCase()}) berhasil diekspor: ${data.length} pegawai`, 'success')
     } catch (e) {
@@ -1774,18 +1789,18 @@ function RekapLaporanPage() {
     try {
       const data = getExportCutiData(exportCutiConfig.period, exportCutiConfig.unit)
       const unitLabel = exportCutiConfig.unit === 'all' ? 'Semua_Unit' : (state.units.find(u => u.id === exportCutiConfig.unit)?.nama || 'Semua_Unit').replace(/\s+/g, '_')
-      const periodLabel = getMonthYearLabel(exportCutiConfig.period)
-      
+      const periode = bangunPeriode(exportCutiConfig.period)
+
       // Get yayasan info and signatory from global settings
       const yayasanInfo = getYayasanInfo()
       const signatory = exportCutiConfig.unit === 'all' ? getSignatoryAllUnits() : getSignatory(exportCutiConfig.unit)
-      
+
       if (exportCutiConfig.format === 'pdf') {
-        exportCutiToPDF(data, unitLabel, periodLabel, yayasanInfo, signatory)
+        exportCutiToPDF(data, unitLabel, periode, yayasanInfo, signatory)
       } else {
-        exportCutiToExcel(data, unitLabel, periodLabel, yayasanInfo, signatory)
+        exportCutiToExcel(data, unitLabel, periode, yayasanInfo, signatory)
       }
-      
+
       setShowCutiExport(false)
       showNotification(`Rekap Cuti/Izin (${exportCutiConfig.format.toUpperCase()}) berhasil diekspor: ${data.length} record`, 'success')
     } catch (e) {
@@ -1796,48 +1811,6 @@ function RekapLaporanPage() {
     }
   }
 
-const getMonthYearLabel = (period, customStartDate = null, customEndDate = null) => {
-  const now = new Date()
-  const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
-  
-  if (period === 'custom' && customStartDate && customEndDate) {
-    const start = new Date(customStartDate)
-    const end = new Date(customEndDate)
-    const startStr = `${start.getDate()} ${monthNames[start.getMonth()]} ${start.getFullYear()}`
-    const endStr = `${end.getDate()} ${monthNames[end.getMonth()]} ${end.getFullYear()}`
-    return `Custom_${startStr}_sd_${endStr}`.replace(/\s+/g, '_')
-  }
-  
-  const month = now.getMonth()
-  const year = now.getFullYear()
-  
-  switch (period) {
-    case 'Harian':
-      return `Harian_${now.getDate()}_${monthNames[month]}_${year}`
-    case 'Mingguan':
-      return `Mingguan_Minggu_${monthNames[month]}_${year}`
-    case 'Bulanan':
-      return `Bulanan_${monthNames[month]}_${year}`
-    case 'Tahunan':
-      return `Tahunan_${year}`
-    default:
-      return period
-  }
-}
-
-const getPeriodLabelForPrint = (period, customStartDate = null, customEndDate = null) => {
-  if (period === 'custom' && customStartDate && customEndDate) {
-    const start = new Date(customStartDate)
-    const end = new Date(customEndDate)
-    const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
-    const startStr = `${start.getDate()} ${monthNames[start.getMonth()]} ${start.getFullYear()}`
-    const endStr = `${end.getDate()} ${monthNames[end.getMonth()]} ${end.getFullYear()}`
-    return `Rentang Tanggal: ${startStr} s.d. ${endStr}`
-  }
-  const labels = { Harian: 'Harian (Hari Ini)', Mingguan: 'Mingguan (Minggu Ini)', Bulanan: 'Bulanan (Bulan Ini)', Tahunan: 'Tahunan (Tahun Ini)' }
-  return labels[period] || period
-}
-
 const filterByDateRange = (dateStr, startDate, endDate) => {
   if (!dateStr || !startDate || !endDate) return true
   const date = new Date(dateStr)
@@ -1847,7 +1820,17 @@ const filterByDateRange = (dateStr, startDate, endDate) => {
   return date >= start && date <= end
 }
 
-const getReportData = (reportType, period, unit, customStartDate = null, customEndDate = null) => {
+const getReportData = (reportType, period, unit, customStartDate = null, customEndDate = null, opsiPeriode = {}) => {
+  // Keterangan periode pada kolom "Periode Rekap" memakai formatter terpusat.
+  const periodeInfo = getPeriodeInfo({
+    jenis: period,
+    tanggal: opsiPeriode.tanggal ?? activeDate ?? null,
+    bulan: opsiPeriode.bulan ?? activeMonth ?? null,
+    tahun: opsiPeriode.tahun ?? activeYear ?? null,
+    customStart: customStartDate ?? mainCustomStart ?? null,
+    customEnd: customEndDate ?? mainCustomEnd ?? null,
+  })
+
   if (reportType === 'presensi') {
     let staff = state.staff.filter((s) => s.status === 'Aktif')
     if (unit && unit !== 'all') {
@@ -2010,13 +1993,7 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
         effPersen = ((monthHadir / 22) * 100).toFixed(1)
       }
 
-      let periodLabel = getPeriodLabel(period)
-      if (period === 'custom' && customStartDate && customEndDate) {
-        const start = new Date(customStartDate)
-        const end = new Date(customEndDate)
-        const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
-        periodLabel = `${start.getDate()} ${monthNames[start.getMonth()]} ${start.getFullYear()} - ${end.getDate()} ${monthNames[end.getMonth()]} ${end.getFullYear()}`
-      }
+      const periodLabel = periodeInfo.ringkas
 
       const pFloat = parseFloat(effPersen)
       const kategoriDisiplin = pFloat >= 95 ? 'Sangat Baik' : pFloat >= 85 ? 'Baik' : pFloat >= 75 ? 'Cukup' : 'Perlu Pembinaan'
@@ -2089,7 +2066,13 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
 
   const reportData = activePeriod === 'custom' && mainCustomStart && mainCustomEnd
     ? getReportData('presensi', 'custom', selectedUnit === ALL_UNITS ? 'all' : selectedUnit, mainCustomStart, mainCustomEnd)
-    : (activePeriod === 'custom' ? [] : selectRekapReportData(state, selectedUnit, activePeriod))
+    : (activePeriod === 'custom' ? [] : selectRekapReportData(
+      state,
+      selectedUnit,
+      activePeriod,
+      periodeAktif.tanggal || undefined,
+      { bulan: periodeAktif.bulan, tahun: periodeAktif.tahun }
+    ))
 
   const filteredData = useMemo(() => {
     let data = (reportData || []).filter((row) =>
@@ -2113,40 +2096,52 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
   const handleReportAction = (action) => {
     setIsExporting(true)
     try {
-      const { reportType, period, unit, format, customStartDate, customEndDate } = reportSettings
-      
+      const { reportType, period, unit, format, customStartDate, customEndDate, periodDate, periodMonth, periodYear } = reportSettings
+
       // Validasi: Periode harus dipilih
       if (!period) {
         showNotification('Silakan pilih periode laporan', 'error')
         setIsExporting(false)
         return
       }
-      
+
       // Validasi: Custom date range perlu tanggal mulai dan selesai
       if (period === 'custom' && (!customStartDate || !customEndDate)) {
         showNotification('Silakan isi tanggal mulai dan tanggal selesai untuk periode custom', 'error')
         setIsExporting(false)
         return
       }
-      
-      const data = getReportData(reportType, period, unit, customStartDate, customEndDate)
-      
+
+      // Formatter periode terpusat: satu sumber untuk UI, Print, PDF & Excel.
+      const periode = bangunPeriode(period, customStartDate, customEndDate, {
+        tanggal: periodDate || null,
+        bulan: periodMonth || null,
+        tahun: periodYear || null,
+      })
+
+      const data = getReportData(reportType, period, unit, customStartDate, customEndDate, {
+        tanggal: periode.tanggal,
+        bulan: periode.bulan,
+        tahun: periode.tahun,
+      })
+
       // Validasi: Data tidak boleh kosong
       if (!data || data.length === 0) {
         showNotification('Tidak ada data untuk laporan ini', 'error')
         setIsExporting(false)
         return
       }
-      
+
       const unitLabel = unit === 'all' ? 'Semua_Unit' : (state.units.find(u => u.id === unit)?.nama || 'Semua_Unit').replace(/\s+/g, '_')
-      const periodLabel = getMonthYearLabel(period, customStartDate, customEndDate)
-      
+
       // Get yayasan info and signatory from global settings
       const yayasanInfo = getYayasanInfo()
       const signatory = unit === 'all' ? getSignatoryAllUnits() : getSignatory(unit)
-      
+
       const reportTitle = reportType === 'presensi' ? 'Rekap Presensi' : 'Rekap Cuti/Izin'
-      
+      const judulLaporan = JUDUL_LAPORAN[reportType]
+      const barisTandaTangan = getBarisTandaTangan(reportType, signatory)
+
       if (action === 'print') {
         const printWindow = window.open('', '_blank', 'width=1000,height=800')
         if (!printWindow) {
@@ -2156,7 +2151,7 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
         }
 
         const unitDisplay = unit === 'all' ? 'Semua Unit' : (state.units.find(u => u.id === unit)?.nama || 'Semua Unit')
-        const periodDisplay = getPeriodLabelForPrint(period, customStartDate, customEndDate)
+        const periodDisplay = periode.header
         const now = new Date()
         const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
         const dateStr = `${now.getDate()} ${monthNames[now.getMonth()]} ${now.getFullYear()}`
@@ -2208,24 +2203,7 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
               </tbody>
             </table>
           `
-          // Footer for presensi: Kepala Sekolah & Petugas Presensi
-          const kepalaSekolah = signatory.kepalaSekolah || { nama: '', jabatan: 'Kepala Sekolah' }
-          const petugasPresensi = signatory.petugasPresensi || { nama: '', jabatan: 'Petugas Presensi' }
-          footerHtml = `
-            <div style="text-align: right; margin: 16px 0 24px; font-size: 10.5px;">Pariaman, ${dateStr}</div>
-            <div class="footer">
-              <div>
-                <div class="footer-title">Mengetahui,</div>
-                <div style="margin-top: 60px;">${kepalaSekolah.jabatan}</div>
-                <div style="margin-top: 4px; color: #888;">${kepalaSekolah.nama ? `(${kepalaSekolah.nama})` : '(________________________)'}</div>
-              </div>
-              <div>
-                <div class="footer-title">Dikerjakan oleh,</div>
-                <div style="margin-top: 60px;">${petugasPresensi.jabatan}</div>
-                <div style="margin-top: 4px; color: #888;">${petugasPresensi.nama ? `(${petugasPresensi.nama})` : '(________________________)'}</div>
-              </div>
-            </div>
-          `
+          footerHtml = buildBlokTandaTanganHtml(barisTandaTangan, dateStr)
         } else {
           tableHtml = `
             <table>
@@ -2259,23 +2237,7 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
               </tbody>
             </table>
           `
-          // Footer for cuti: Ketua Yayasan & Admin/TU
-          const ketuaYayasan = signatory.ketuaYayasan || { nama: '', jabatan: 'Ketua Yayasan' }
-          const adminTU = signatory.adminTU?.kepalaTU || signatory.adminTU?.operatorSistem || { nama: '', jabatan: 'Admin TU' }
-          footerHtml = `
-            <div class="footer">
-              <div>
-                <div class="footer-title">Mengetahui,</div>
-                <div>${ketuaYayasan.jabatan}</div>
-                <div style="margin-top: 10px; color: #888;">${ketuaYayasan.nama ? `(${ketuaYayasan.nama})` : '(________________________)'}</div>
-              </div>
-              <div>
-                <div class="footer-title">Disiapkan oleh,</div>
-                <div>${adminTU.jabatan}</div>
-                <div style="margin-top: 10px; color: #888;">${adminTU.nama ? `(${adminTU.nama})` : '(________________________)'}</div>
-              </div>
-            </div>
-          `
+          footerHtml = buildBlokTandaTanganHtml(barisTandaTangan, dateStr)
         }
 
         const html = `
@@ -2286,24 +2248,28 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
             <style>
               * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
               body { padding: 20px; font-size: 11px; color: #1e293b; }
-              .header { margin-bottom: 20px; border-bottom: 3px double var(--primary-strong); padding-bottom: 14px; display: flex; align-items: center; justify-content: center; gap: 16px; }
-              .logo-box { width: 62px; height: 62px; border: 2px solid var(--primary-strong); border-radius: 6px; display: flex; align-items: center; justify-content: center; color: var(--primary-strong); font-weight: bold; font-size: 12px; }
+              .header { margin-bottom: 18px; padding-bottom: 14px; border-bottom: 3px double #000; display: flex; align-items: center; justify-content: center; gap: 16px; }
+              .logo-box { width: 62px; height: 62px; border: 2px solid #003366; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #003366; font-weight: bold; font-size: 12px; }
               .logo-img { max-height: 62px; max-width: 62px; object-fit: contain; }
               .header-text { text-align: center; }
-              .org-name { font-size: 15px; font-weight: bold; color: var(--primary-strong); letter-spacing: 0.5px; }
+              .org-name { font-size: 15px; font-weight: bold; color: #003366; letter-spacing: 0.5px; }
               .unit-name { font-size: 13px; font-weight: bold; color: #1e293b; margin-top: 2px; }
               .address { font-size: 9.5px; color: #64748b; margin-top: 3px; }
-              .title { font-size: 14px; font-weight: bold; margin: 18px 0 10px; text-align: center; text-transform: uppercase; color: var(--primary-strong); }
+              .title { font-size: 14px; font-weight: bold; margin: 0 0 4px; text-align: center; text-transform: uppercase; color: #003366; }
+              .subtitle { font-size: 11.5px; font-weight: bold; margin: 0 0 10px; text-align: center; color: #1e293b; }
               .info-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 10.5px; }
               .info-label { font-weight: bold; color: #334155; }
               table { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 9.5px; }
               th, td { border: 1px solid #cbd5e1; padding: 6px 4px; text-align: center; }
-              th { background: var(--primary-strong); color: white; font-weight: bold; }
+              th { background: #003366; color: white; font-weight: bold; }
               tr:nth-child(even) td { background: #f8fafc; }
               td:first-child, td:nth-child(2), td:nth-child(3), td:nth-child(4) { text-align: left; padding-left: 8px; }
-              .footer { margin-top: 40px; display: flex; justify-content: space-between; font-size: 10.5px; }
-              .footer div { text-align: center; width: 45%; }
-                            .footer-title { font-weight: bold; }
+              .signature-block { margin-top: 32px; break-inside: avoid; page-break-inside: avoid; }
+              .signature-row { display: grid; grid-template-columns: 1fr 1fr; column-gap: 24px; }
+              .signature-cell { text-align: center; font-size: 10.5px; }
+              .signature-jabatan { font-weight: bold; }
+              .signature-nama { margin-top: 4px; color: #1e293b; font-weight: 500; }
+              .signature-space { height: 65px; }
               @media print {
                 body { padding: 0; }
                 .no-print { display: none; }
@@ -2320,7 +2286,8 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
                 <div class="address">${yayasanInfo.alamat} • Telp/WA: ${yayasanInfo.kontak} • Email: ${yayasanInfo.email}</div>
               </div>
             </div>
-            <div class="title">${reportTitle.toUpperCase()} PEGAWAI</div>
+            <div class="title">${judulLaporan}</div>
+            <div class="subtitle">${periodDisplay}</div>
             <div class="info-row"><span class="info-label">Unit Laporan:</span> <span>${unitDisplay}</span></div>
             <div class="info-row"><span class="info-label">Periode Laporan:</span> <span>${periodDisplay}</span></div>
             <div class="info-row"><span class="info-label">Tanggal Cetak:</span> <span>${dateStr}</span></div>
@@ -2341,15 +2308,15 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
       } else {
         if (format === 'pdf') {
           if (reportType === 'presensi') {
-            exportPresensiToPDF(data, unitLabel, periodLabel, yayasanInfo, signatory, { period })
+            exportPresensiToPDF(data, unitLabel, periode, yayasanInfo, signatory, { period })
           } else {
-            exportCutiToPDF(data, unitLabel, periodLabel, yayasanInfo, signatory)
+            exportCutiToPDF(data, unitLabel, periode, yayasanInfo, signatory)
           }
         } else {
           if (reportType === 'presensi') {
-            exportPresensiToExcel(data, unitLabel, periodLabel, yayasanInfo, signatory, { period })
+            exportPresensiToExcel(data, unitLabel, periode, yayasanInfo, signatory, { period })
           } else {
-            exportCutiToExcel(data, unitLabel, periodLabel, yayasanInfo, signatory)
+            exportCutiToExcel(data, unitLabel, periode, yayasanInfo, signatory)
           }
         }
         showNotification(`${reportTitle} (${format.toUpperCase()}) berhasil diekspor: ${data.length} ${reportType === 'presensi' ? 'pegawai' : 'record'}`, 'success')
@@ -2369,40 +2336,46 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
     try {
       const period = activePeriod
       const unit = selectedUnit
-      
+
       // Get custom dates from reportSettings if period is custom, fallback to main filter custom dates
       const customStartDate = (period === 'custom' && (reportSettings.customStartDate || mainCustomStart)) ? (reportSettings.customStartDate || mainCustomStart) : null
       const customEndDate = (period === 'custom' && (reportSettings.customEndDate || mainCustomEnd)) ? (reportSettings.customEndDate || mainCustomEnd) : null
-      
-      const data = getReportData(reportType, period, unit, customStartDate, customEndDate)
-      
+
+      // Formatter periode terpusat (header & kolom tabel selalu spesifik).
+      const periode = bangunPeriode(period, customStartDate, customEndDate)
+
+      const data = getReportData(reportType, period, unit, customStartDate, customEndDate, {
+        tanggal: periode.tanggal,
+        bulan: periode.bulan,
+        tahun: periode.tahun,
+      })
+
       if (!data || data.length === 0) {
         showNotification('Tidak ada data untuk laporan ini', 'error')
         setIsExporting(false)
         return
       }
-      
+
       const unitLabel = unit === 'all' ? 'Semua_Unit' : (state.units.find(u => u.id === unit)?.nama || 'Semua_Unit').replace(/\s+/g, '_')
-      const periodLabel = getMonthYearLabel(period, customStartDate, customEndDate)
-      
+
       // Get yayasan info and signatory from global settings
       const yayasanInfo = getYayasanInfo()
       const signatory = unit === 'all' ? getSignatoryAllUnits() : getSignatory(unit)
-      
+
       if (reportType === 'presensi') {
         if (format === 'pdf') {
-          exportPresensiToPDF(data, unitLabel, periodLabel, yayasanInfo, signatory, { period })
+          exportPresensiToPDF(data, unitLabel, periode, yayasanInfo, signatory, { period })
         } else {
-          exportPresensiToExcel(data, unitLabel, periodLabel, yayasanInfo, signatory, { period })
+          exportPresensiToExcel(data, unitLabel, periode, yayasanInfo, signatory, { period })
         }
       } else {
         if (format === 'pdf') {
-          exportCutiToPDF(data, unitLabel, periodLabel, yayasanInfo, signatory)
+          exportCutiToPDF(data, unitLabel, periode, yayasanInfo, signatory)
         } else {
-          exportCutiToExcel(data, unitLabel, periodLabel, yayasanInfo, signatory)
+          exportCutiToExcel(data, unitLabel, periode, yayasanInfo, signatory)
         }
       }
-      
+
       showNotification(`Rekap ${reportType === 'presensi' ? 'Presensi' : 'Cuti/Izin'} (${format.toUpperCase()}) berhasil diekspor: ${data.length} ${reportType === 'presensi' ? 'pegawai' : 'record'}`, 'success')
     } catch (e) {
       console.error('Direct download failed:', e)
@@ -2410,208 +2383,6 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
     } finally {
       setIsExporting(false)
     }
-  }
-
-  const handlePrintReport = () => {
-    const { reportType, period, unit } = reportSettings
-    const data = getReportData(reportType, period, unit)
-    const unitLabel = unit === 'all' ? 'Semua_Unit' : (state.units.find(u => u.id === unit)?.nama || 'Semua_Unit').replace(/\s+/g, '_')
-    const periodLabel = getMonthYearLabel(period)
-    
-    const printWindow = window.open('', '_blank', 'width=1000,height=800')
-    if (!printWindow) {
-      showNotification('Popup diblokir oleh browser. Izinkan popup untuk mencetak.', 'error')
-      return
-    }
-
-    const unitDisplay = unit === 'all' ? 'Semua Unit' : (state.units.find(u => u.id === unit)?.nama || 'Semua Unit')
-    const periodDisplay = getPeriodLabelForPrint(period)
-    const now = new Date()
-    const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
-    const dateStr = `${now.getDate()} ${monthNames[now.getMonth()]} ${now.getFullYear()}`
-
-    const reportTitle = reportType === 'presensi' ? 'Rekap Presensi' : 'Rekap Cuti/Izin'
-    
-    // Get yayasan info and signatory from global settings
-    const yayasanInfo = getYayasanInfo()
-    const signatory = unit === 'all' ? getSignatoryAllUnits() : getSignatory(unit)
-    const logoUrl = getLogoForUnit(unit, yayasanInfo)
-
-    let tableHtml = ''
-    let footerHtml = ''
-    
-    if (reportType === 'presensi') {
-      tableHtml = `
-        <table>
-          <thead>
-            <tr>
-              <th style="width: 24px;">No</th>
-              <th style="width: 150px;">Nama Pegawai</th>
-              <th style="width: 84px;">NIY</th>
-              <th style="width: 110px;">Unit</th>
-              <th style="width: 84px;">Periode Rekap</th>
-              <th style="width: 110px;">Jam Kerja</th>
-              <th style="width: 44px;">Hari Kerja</th>
-              <th style="width: 40px;">Hadir</th>
-              <th style="width: 48px;">Tepat</th>
-              <th style="width: 52px;">Terlambat</th>
-              <th style="width: 44px;">Telat (mnt)</th>
-              <th style="width: 52px;">Izin/Sakit</th>
-              <th style="width: 40px;">Alpha</th>
-              <th style="width: 88px;">% Kehadiran</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${data.map((row, i) => `
-              <tr>
-                <td>${i + 1}</td>
-                <td>${row.name}</td>
-                <td>${row.niy}</td>
-                <td>${row.unit}</td>
-                <td>${row.periode}</td>
-                <td>${row.jamKerja || '-'}</td>
-                <td>${row.totalHariKerja}</td>
-                <td>${row.hadir}</td>
-                <td>${row.tepatWaktu}</td>
-                <td>${row.terlambat}</td>
-                <td>${row.totalLateMinutes ?? 0}</td>
-                <td>${row.izinSakit}</td>
-                <td>${row.alpha}</td>
-                <td>${row.persentaseKehadiran}%</td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      `
-      // Footer for presensi: Kepala Sekolah & Petugas Presensi
-      const kepalaSekolah = signatory.kepalaSekolah || { nama: '', jabatan: 'Kepala Sekolah' }
-      const petugasPresensi = signatory.petugasPresensi || { nama: '', jabatan: 'Petugas Presensi' }
-      footerHtml = `
-        <div style="text-align: right; margin: 16px 0 24px; font-size: 10.5px;">Pariaman, ${dateStr}</div>
-        <div class="footer">
-          <div>
-            <div class="footer-title">Mengetahui,</div>
-            <div style="margin-top: 60px;">${kepalaSekolah.jabatan}</div>
-            <div style="margin-top: 4px; color: #888;">${kepalaSekolah.nama ? `(${kepalaSekolah.nama})` : '(________________________)'}</div>
-          </div>
-          <div>
-            <div class="footer-title">Dikerjakan oleh,</div>
-            <div style="margin-top: 60px;">${petugasPresensi.jabatan}</div>
-            <div style="margin-top: 4px; color: #888;">${petugasPresensi.nama ? `(${petugasPresensi.nama})` : '(________________________)'}</div>
-          </div>
-        </div>
-      `
-    } else {
-      tableHtml = `
-        <table>
-          <thead>
-            <tr>
-              <th style="width: 30px;">No</th>
-              <th style="width: 160px;">Nama Pegawai</th>
-              <th style="width: 90px;">NIY</th>
-              <th style="width: 120px;">Unit</th>
-              <th style="width: 140px;">Jenis Izin/Cuti</th>
-              <th style="width: 90px;">Tanggal Mulai</th>
-              <th style="width: 90px;">Tanggal Selesai</th>
-              <th style="width: 70px;">Lama Cuti</th>
-              <th style="width: 100px;">Status Persetujuan</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${data.map((row, i) => `
-              <tr>
-                <td>${i + 1}</td>
-                <td>${row.name}</td>
-                <td>${row.niy}</td>
-                <td>${row.unit}</td>
-                <td>${row.jenis}</td>
-                <td>${row.tanggalMulai}</td>
-                <td>${row.tanggalSelesai}</td>
-                <td>${row.durasi}</td>
-                <td>${row.status}</td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      `
-      // Footer for cuti: Ketua Yayasan & Admin/TU
-      const ketuaYayasan = signatory.ketuaYayasan || { nama: '', jabatan: 'Ketua Yayasan' }
-      const adminTU = signatory.adminTU?.kepalaTU || signatory.adminTU?.operatorSistem || { nama: '', jabatan: 'Admin TU' }
-      footerHtml = `
-        <div class="footer">
-          <div>
-            <div class="footer-title">Mengetahui,</div>
-            <div>${ketuaYayasan.jabatan}</div>
-            <div style="margin-top: 10px; color: #888;">${ketuaYayasan.nama ? `(${ketuaYayasan.nama})` : '(________________________)'}</div>
-          </div>
-          <div>
-            <div class="footer-title">Disiapkan oleh,</div>
-            <div>${adminTU.jabatan}</div>
-            <div style="margin-top: 10px; color: #888;">${adminTU.nama ? `(${adminTU.nama})` : '(________________________)'}</div>
-          </div>
-        </div>
-      `
-    }
-
-    const html = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>${reportTitle}</title>
-        <style>
-          * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
-          body { padding: 20px; font-size: 11px; color: #1e293b; }
-          .header { margin-bottom: 20px; border-bottom: 3px double var(--primary-strong); padding-bottom: 14px; display: flex; align-items: center; justify-content: center; gap: 16px; }
-          .logo-box { width: 62px; height: 62px; border: 2px solid var(--primary-strong); border-radius: 6px; display: flex; align-items: center; justify-content: center; color: var(--primary-strong); font-weight: bold; font-size: 12px; }
-          .logo-img { max-height: 62px; max-width: 62px; object-fit: contain; }
-          .header-text { text-align: center; }
-          .org-name { font-size: 15px; font-weight: bold; color: var(--primary-strong); letter-spacing: 0.5px; }
-          .unit-name { font-size: 13px; font-weight: bold; color: #1e293b; margin-top: 2px; }
-          .address { font-size: 9.5px; color: #64748b; margin-top: 3px; }
-          .title { font-size: 14px; font-weight: bold; margin: 18px 0 10px; text-align: center; text-transform: uppercase; color: var(--primary-strong); }
-          .info-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 10.5px; }
-          .info-label { font-weight: bold; color: #334155; }
-          table { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 9.5px; }
-          th, td { border: 1px solid #cbd5e1; padding: 6px 4px; text-align: center; }
-          th { background: var(--primary-strong); color: white; font-weight: bold; }
-          tr:nth-child(even) td { background: #f8fafc; }
-          td:first-child, td:nth-child(2), td:nth-child(3), td:nth-child(4) { text-align: left; padding-left: 8px; }
-          .footer { margin-top: 40px; display: flex; justify-content: space-between; font-size: 10.5px; }
-          .footer div { text-align: center; width: 45%; }
-                    .footer-title { font-weight: bold; }
-          @media print {
-            body { padding: 0; }
-            .no-print { display: none; }
-          }
-          @page { margin: 12mm; size: portrait; }
-        </style>
-      </head>
-      <body>
-        <div class="header">
-          ${logoUrl ? `<img src="${logoUrl}" alt="Logo Unit" class="logo-img" />` : `<div class="logo-box">ATTIN</div>`}
-          <div class="header-text">
-            <div class="org-name">${yayasanInfo.nama.toUpperCase()}</div>
-            <div class="unit-name">${unitDisplay.toUpperCase()}</div>
-            <div class="address">${yayasanInfo.alamat} • Telp/WA: ${yayasanInfo.kontak} • Email: ${yayasanInfo.email}</div>
-          </div>
-        </div>
-        <div class="title">${reportTitle.toUpperCase()} PEGAWAI</div>
-        <div class="info-row"><span class="info-label">Unit Laporan:</span> <span>${unitDisplay}</span></div>
-        <div class="info-row"><span class="info-label">Periode Laporan:</span> <span>${periodDisplay}</span></div>
-        <div class="info-row"><span class="info-label">Tanggal Cetak:</span> <span>${dateStr}</span></div>
-        ${tableHtml}
-        ${footerHtml}
-        <script>
-          window.onload = function() {
-            window.print();
-          }
-        </script>
-      </body>
-      </html>
-    `
-
-    printWindow.document.write(html)
-    printWindow.document.close()
   }
 
   return (
@@ -2656,7 +2427,37 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
                     {periods.map(p => <option key={p} value={p}>{getPeriodDisplayLabel(p)}</option>)}
                     <option value="custom">Rentang Tanggal Custom</option>
                   </select>
+                  <p className="mt-1.5 text-[11px] text-muted-foreground">
+                    Periode terpilih: {getPeriodDisplayLabel(reportSettings.period, {
+                      tanggal: reportSettings.periodDate || null,
+                      bulan: reportSettings.periodMonth || null,
+                      tahun: reportSettings.periodYear || null,
+                      customStart: reportSettings.customStartDate || null,
+                      customEnd: reportSettings.customEndDate || null,
+                    })}
+                  </p>
                 </div>
+                {reportSettings.period === 'Harian' && (
+                  <div>
+                    <label className="block text-xs font-semibold text-muted-foreground mb-1.5">Tanggal Laporan</label>
+                    <input type="date" value={reportSettings.periodDate} onChange={(e) => setReportSettings(prev => ({...prev, periodDate: e.target.value}))} className="w-full h-9 px-3 bg-card border border-input rounded-lg text-xs text-foreground focus:ring-1 focus:ring-ring" />
+                    <p className="mt-1.5 text-[11px] text-muted-foreground">Kosongkan untuk memakai preset &quot;Hari Ini&quot;.</p>
+                  </div>
+                )}
+                {reportSettings.period === 'Bulanan' && (
+                  <div>
+                    <label className="block text-xs font-semibold text-muted-foreground mb-1.5">Bulan Laporan</label>
+                    <input type="month" value={reportSettings.periodMonth} onChange={(e) => setReportSettings(prev => ({...prev, periodMonth: e.target.value}))} className="w-full h-9 px-3 bg-card border border-input rounded-lg text-xs text-foreground focus:ring-1 focus:ring-ring" />
+                    <p className="mt-1.5 text-[11px] text-muted-foreground">Kosongkan untuk memakai preset &quot;Bulan Ini&quot;.</p>
+                  </div>
+                )}
+                {reportSettings.period === 'Tahunan' && (
+                  <div>
+                    <label className="block text-xs font-semibold text-muted-foreground mb-1.5">Tahun Laporan</label>
+                    <input type="number" min="2020" max="2100" step="1" value={reportSettings.periodYear} onChange={(e) => setReportSettings(prev => ({...prev, periodYear: e.target.value}))} placeholder="Tahun Ini" className="w-full h-9 px-3 bg-card border border-input rounded-lg text-xs text-foreground focus:ring-1 focus:ring-ring" />
+                    <p className="mt-1.5 text-[11px] text-muted-foreground">Kosongkan untuk memakai preset &quot;Tahun Ini&quot;.</p>
+                  </div>
+                )}
                 {reportSettings.period === 'custom' && (
                   <div className="grid grid-cols-2 gap-3">
                     <div>
@@ -2793,7 +2594,7 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
                </div>
              <div className="relative flex items-center bg-card border border-border rounded-lg px-3 py-1.5 text-xs font-medium text-foreground shadow-2xs">
                <span className="material-symbols-outlined text-[16px] text-muted-foreground mr-1.5">calendar_today</span>
-               <span>{getPeriodLabel(activePeriod)}</span>
+               <span>{periodeAktif.header}</span>
              </div>
             {canSwitchUnit ? (
               <div className="relative" onMouseLeave={() => setShowUnitDropdown(false)}>
@@ -2846,7 +2647,10 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
                   unit: selectedUnit === ALL_UNITS ? 'all' : selectedUnit,
                   format: 'excel',
                   customStartDate: mainCustomStart,
-                  customEndDate: mainCustomEnd
+                  customEndDate: mainCustomEnd,
+                  periodDate: activeDate,
+                  periodMonth: activeMonth,
+                  periodYear: activeYear,
                 })
                 setShowReportSettings(true)
               }}
@@ -2865,7 +2669,10 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
                   unit: selectedUnit === ALL_UNITS ? 'all' : selectedUnit,
                   format: 'excel',
                   customStartDate: mainCustomStart,
-                  customEndDate: mainCustomEnd
+                  customEndDate: mainCustomEnd,
+                  periodDate: activeDate,
+                  periodMonth: activeMonth,
+                  periodYear: activeYear,
                 })
                 setShowReportSettings(true)
               }}
@@ -2884,7 +2691,10 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
                   unit: selectedUnit === ALL_UNITS ? 'all' : selectedUnit,
                   format: 'print',
                   customStartDate: mainCustomStart,
-                  customEndDate: mainCustomEnd
+                  customEndDate: mainCustomEnd,
+                  periodDate: activeDate,
+                  periodMonth: activeMonth,
+                  periodYear: activeYear,
                 }))
                 setShowReportSettings(true)
               }}
@@ -2903,6 +2713,39 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
                <input type="date" value={mainCustomEnd} onChange={(e) => setMainCustomEnd(e.target.value)} className="h-8 px-2 bg-card border border-border rounded-lg text-xs" />
              </div>
             )}
+           {activePeriod === 'Harian' && (
+             <div className="flex items-center gap-2 flex-wrap">
+               <span className="text-xs text-muted-foreground">Pilih Tanggal</span>
+               <input type="date" value={activeDate} onChange={(e) => setActiveDate(e.target.value)} className="h-8 px-2 bg-card border border-border rounded-lg text-xs" />
+               {activeDate && (
+                 <button onClick={() => setActiveDate('')} className="h-8 px-2.5 rounded-lg bg-muted border border-border text-xs font-medium text-foreground hover:bg-border transition-colors cursor-pointer" type="button">
+                   Hari Ini
+                 </button>
+               )}
+             </div>
+           )}
+           {activePeriod === 'Bulanan' && (
+             <div className="flex items-center gap-2 flex-wrap">
+               <span className="text-xs text-muted-foreground">Pilih Bulan</span>
+               <input type="month" value={activeMonth} onChange={(e) => setActiveMonth(e.target.value)} className="h-8 px-2 bg-card border border-border rounded-lg text-xs" />
+               {activeMonth && (
+                 <button onClick={() => setActiveMonth('')} className="h-8 px-2.5 rounded-lg bg-muted border border-border text-xs font-medium text-foreground hover:bg-border transition-colors cursor-pointer" type="button">
+                   Bulan Ini
+                 </button>
+               )}
+             </div>
+           )}
+           {activePeriod === 'Tahunan' && (
+             <div className="flex items-center gap-2 flex-wrap">
+               <span className="text-xs text-muted-foreground">Pilih Tahun</span>
+               <input type="number" min="2020" max="2100" step="1" value={activeYear} onChange={(e) => setActiveYear(e.target.value)} placeholder="Tahun Ini" className="h-8 w-28 px-2 bg-card border border-border rounded-lg text-xs" />
+               {activeYear && (
+                 <button onClick={() => setActiveYear('')} className="h-8 px-2.5 rounded-lg bg-muted border border-border text-xs font-medium text-foreground hover:bg-border transition-colors cursor-pointer" type="button">
+                   Tahun Ini
+                 </button>
+               )}
+             </div>
+           )}
            </div>
            <div className="bg-card rounded-xl border border-border p-5 shadow-xs flex flex-col gap-6">
            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
@@ -2911,7 +2754,7 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
                 <h2 className="text-base font-bold text-foreground">Tren Kehadiran & Kepatuhan Jam Kerja</h2>
                 <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 text-xs font-semibold">{kepatuhanChart.kepatuhan}% Rata-rata</span>
               </div>
-              <span className="text-xs text-muted-foreground">Periode {getPeriodLabel(activePeriod)} ({unitLabel})</span>
+              <span className="text-xs text-muted-foreground">Periode {periodeAktif.header} ({unitLabel})</span>
             </div>
             <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
               <div className="flex items-center gap-1.5">
@@ -3045,8 +2888,8 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
         <div className="bg-card rounded-xl border border-border shadow-xs overflow-hidden">
           <div className="p-4 sm:p-5 border-b border-border flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="flex flex-col">
-              <h3 className="text-sm font-bold text-foreground">Laporan Rekap Kehadiran Pegawai</h3>
-              <span className="text-xs text-muted-foreground">Menampilkan {paginatedData.length} dari {filteredData.length} pegawai • Periode {getPeriodLabel(activePeriod)}</span>
+              <h3 className="text-sm font-bold text-foreground">Laporan Rekap Kehadiran Guru dan Pegawai</h3>
+              <span className="text-xs text-muted-foreground">Menampilkan {paginatedData.length} dari {filteredData.length} pegawai • Periode {periodeAktif.header}</span>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               <div className="relative w-full sm:w-64">
@@ -3087,7 +2930,7 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
                     <th className="py-3 px-3.5" scope="col" style={{ width: '120px', minWidth: '100px' }}>
                       <button onClick={() => handleSort('unit')} className="flex items-center gap-1 hover:text-foreground transition-colors whitespace-nowrap cursor-pointer">Unit {sortConfig.key === 'unit' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</button>
                     </th>
-                    <th className="py-3 px-3.5 text-center hidden sm:table-cell" scope="col" style={{ width: '90px' }}>Periode</th>
+                    <th className="py-3 px-3.5 text-center hidden sm:table-cell" scope="col" style={{ width: '110px' }}>Periode Rekap</th>
                     <th className="py-3 px-3.5 text-center hidden md:table-cell" scope="col" style={{ width: '70px' }}>
                       <button onClick={() => handleSort('totalHariKerja')} className="flex items-center justify-center gap-1 hover:text-foreground transition-colors whitespace-nowrap cursor-pointer">Hari Kerja {sortConfig.key === 'totalHariKerja' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</button>
                     </th>
@@ -3162,7 +3005,7 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
             
             <div className="hidden lg:block bg-muted/30 px-4 py-2 text-right border-t border-border">
               <span className="text-[11px] text-muted-foreground">
-                Kolom tersembunyi di mobile: Periode, Hari Kerja, Tepat Waktu, Izin/Sakit, Alpha
+                Kolom tersembunyi di mobile: Periode Rekap, Hari Kerja, Tepat Waktu, Izin/Sakit, Alpha
               </span>
             </div>
           </div>
