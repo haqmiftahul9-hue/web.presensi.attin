@@ -20,17 +20,22 @@ function DocumentViewerModal({ isOpen, onClose, leave }) {
 
   if (!isOpen || !leave) return null
 
-  const fileName = leave.lampiranNama || leave.lampiran_nama || leave.lampiran || 'surat_keterangan.pdf'
+  const fileName = leave.lampiranNama || leave.lampiran_nama || leave.lampiran || 'surat_pengajuan_izin.pdf'
   const fileSize = leave.lampiranUkuran || leave.lampiran_ukuran || null
   const documentUrl = resolveDocumentUrl(leave)
-  const isImage = isImageDocument(documentUrl) || isImageDocument(fileName)
-  const isPdf = isPdfDocument(documentUrl) || isPdfDocument(fileName)
+  const isSvg = documentUrl.startsWith('data:image/svg+xml') || documentUrl.endsWith('.svg')
+  const isPdf = !isSvg && (isPdfDocument(documentUrl) || (isPdfDocument(fileName) && !documentUrl.startsWith('data:image/')))
+  const isImage = isSvg || isImageDocument(documentUrl) || isImageDocument(fileName)
 
   const handleDownload = () => {
     try {
+      const isSvgData = documentUrl.startsWith('data:image/svg+xml')
+      const downloadName = isSvgData && !fileName.toLowerCase().endsWith('.svg')
+        ? `${fileName.replace(/\.[a-z0-9]+$/i, '')}_surat_bukti.svg`
+        : fileName
       const a = document.createElement('a')
       a.href = documentUrl
-      a.download = fileName
+      a.download = downloadName
       document.body.appendChild(a)
       a.click()
       a.remove()
@@ -136,7 +141,13 @@ function DocumentViewerModal({ isOpen, onClose, leave }) {
         </div>
 
         {/* Content Viewer Body */}
-        <div className="flex-1 overflow-auto p-4 flex items-center justify-center bg-slate-900/10 dark:bg-black/30 min-h-[300px] sm:min-h-[460px]">
+        <div className="flex-1 overflow-auto p-4 flex items-center justify-center bg-slate-900/10 dark:bg-black/30 min-h-[300px] sm:min-h-[460px] relative">
+          {loading && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-background/50 backdrop-blur-2xs z-10">
+              <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin"></div>
+              <span className="text-xs text-muted-foreground font-medium">Memuat pratinjau dokumen…</span>
+            </div>
+          )}
           {isImage ? (
             <div className="relative max-w-full max-h-full flex items-center justify-center overflow-auto p-2">
               <img
@@ -145,7 +156,7 @@ function DocumentViewerModal({ isOpen, onClose, leave }) {
                 onLoad={() => setLoading(false)}
                 onError={() => setLoading(false)}
                 style={{ transform: `scale(${zoom})`, transformOrigin: 'center center' }}
-                className="max-w-full max-h-[65vh] object-contain rounded-lg shadow-md border border-border/60 transition-transform duration-150"
+                className="max-w-full max-h-[65vh] object-contain rounded-lg shadow-md border border-border/60 transition-transform duration-150 bg-white"
               />
             </div>
           ) : isPdf && !documentUrl.startsWith('data:image/') ? (
@@ -164,8 +175,9 @@ function DocumentViewerModal({ isOpen, onClose, leave }) {
                 src={documentUrl}
                 alt={`Lampiran ${fileName}`}
                 onLoad={() => setLoading(false)}
+                onError={() => setLoading(false)}
                 style={{ transform: `scale(${zoom})`, transformOrigin: 'center center' }}
-                className="max-w-full max-h-[65vh] object-contain rounded-lg shadow-md border border-border/60 transition-transform duration-150"
+                className="max-w-full max-h-[65vh] object-contain rounded-lg shadow-md border border-border/60 transition-transform duration-150 bg-white"
               />
             </div>
           )}

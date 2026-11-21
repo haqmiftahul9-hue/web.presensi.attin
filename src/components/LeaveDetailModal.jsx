@@ -9,6 +9,7 @@ import {
   isPdfDocument,
   formatDocumentSize,
 } from '../services/leaveAttachmentService.js'
+import { useSimPresOptional, selectCurrentUserRole, ROLE_SUPERADMIN } from '../store/simPresStore.jsx'
 
 function LeaveDetailModal({ isOpen, onClose, leave, canApprove = false, onApprove, onReject }) {
   const [activeTab, setActiveTab] = useState('detail')
@@ -26,6 +27,13 @@ function LeaveDetailModal({ isOpen, onClose, leave, canApprove = false, onApprov
   const kepsekStatus = leave.approvalKepsek?.status || (leave.status === 'Disetujui' ? 'Disetujui' : leave.status === 'Menunggu Superadmin' ? 'Disetujui' : 'Menunggu')
   const superadminStatus = leave.approvalSuperadmin?.status || (leave.status === 'Disetujui' ? 'Disetujui' : 'Menunggu')
 
+  const ctx = useSimPresOptional()
+  const currentRole = ctx?.state ? selectCurrentUserRole(ctx.state) : ''
+  const isSuperadmin = currentRole === ROLE_SUPERADMIN
+  const isKepsekApproved = kepsekStatus === 'Disetujui' || leave.status === 'Menunggu Superadmin'
+  const isPending = isLeavePending(leave.status)
+  const canActOnLeave = isSuperadmin ? isPending : (isPending && !isKepsekApproved)
+
   const formatWaktu = (iso) => {
     if (!iso || iso === '-') return '-'
     try {
@@ -36,8 +44,6 @@ function LeaveDetailModal({ isOpen, onClose, leave, canApprove = false, onApprov
       return iso
     }
   }
-
-  const isPending = isLeavePending(leave.status)
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs" onClick={onClose}>
@@ -289,7 +295,7 @@ function LeaveDetailModal({ isOpen, onClose, leave, canApprove = false, onApprov
                         <img
                           src={docUrl}
                           alt={`Pratinjau ${fileName}`}
-                          className="max-h-[340px] max-w-full object-contain rounded-lg border border-border shadow-xs"
+                          className="max-h-[340px] max-w-full object-contain rounded-lg border border-border shadow-xs bg-white"
                         />
                       </div>
                     </div>
@@ -308,14 +314,20 @@ function LeaveDetailModal({ isOpen, onClose, leave, canApprove = false, onApprov
         {/* Footer Actions */}
         <div className="px-6 py-3.5 bg-muted/30 border-t border-border flex items-center justify-between gap-2.5">
           <div>
-            {canApprove && isPending && (
+            {canApprove && canActOnLeave && (
               <span className="text-xs text-muted-foreground hidden sm:inline">
-                Tindakan persetujuan Superadmin:
+                {isSuperadmin ? 'Tindakan persetujuan Superadmin:' : 'Tindakan persetujuan Kepala Sekolah:'}
+              </span>
+            )}
+            {!isSuperadmin && isKepsekApproved && isPending && (
+              <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium inline-flex items-center gap-1">
+                <span className="material-symbols-outlined text-[15px]">check_circle</span>
+                Telah disetujui Kepala Sekolah (Tahap 1) • Menunggu Superadmin
               </span>
             )}
           </div>
           <div className="flex items-center gap-2">
-            {canApprove && isPending && onReject && (
+            {canApprove && canActOnLeave && onReject && (
               <button
                 onClick={() => { onClose(); onReject(leave) }}
                 className="h-9 px-3.5 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20 border border-destructive/20 font-semibold text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
@@ -325,14 +337,14 @@ function LeaveDetailModal({ isOpen, onClose, leave, canApprove = false, onApprov
                 <span>Tolak</span>
               </button>
             )}
-            {canApprove && isPending && onApprove && (
+            {canApprove && canActOnLeave && onApprove && (
               <button
                 onClick={() => { onClose(); onApprove(leave) }}
                 className="h-9 px-4 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
                 type="button"
               >
                 <span className="material-symbols-outlined text-[16px]">check</span>
-                <span>Setujui (Final)</span>
+                <span>{isSuperadmin ? 'Setujui (Final)' : 'Setujui (Lanjut Superadmin)'}</span>
               </button>
             )}
             <button

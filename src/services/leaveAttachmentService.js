@@ -174,6 +174,31 @@ export async function uploadLeaveAttachment(file, { staffId = 'pegawai', unitId 
   }
 }
 
+function escapeXml(unsafe) {
+  return String(unsafe ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;')
+}
+
+function wrapText(text, maxCharsPerLine = 58) {
+  const words = String(text || '').split(/\s+/)
+  const lines = []
+  let cur = ''
+  for (const word of words) {
+    if ((cur + ' ' + word).trim().length <= maxCharsPerLine) {
+      cur = (cur + ' ' + word).trim()
+    } else {
+      if (cur) lines.push(cur)
+      cur = word
+    }
+  }
+  if (cur) lines.push(cur)
+  return lines.length ? lines : ['-']
+}
+
 /**
  * Membuat preview dokumen resmi dalam bentuk SVG Data URL untuk data seed/mock
  * sehingga tidak menimbulkan 404 ketika diklik oleh Guru, Kepala Sekolah, maupun Superadmin.
@@ -187,9 +212,11 @@ export function getMockDocumentSvg(leave = {}) {
   const niy = leave.niy || (leave.staff ? leave.staff.niy : '049005000')
   const unit = leave.unitName || (leave.unit ? leave.unit.nama : 'Unit Sekolah IT Attin Sumbar')
   const dates = leave.periode || 'Periode Resmi'
-  const reason = (leave.keterangan || leave.alasan || 'Keperluan dinas / kesehatan yang telah dikonfirmasi.')
-    .replace(/[<>&"]/g, '')
-  const fileName = leave.lampiran || 'surat_keterangan.pdf'
+  const rawReason = leave.keterangan || leave.alasan || 'Keperluan dinas / kesehatan yang telah dikonfirmasi oleh pemohon.'
+  const reasonLines = wrapText(rawReason, 56)
+  const fileName = leave.lampiranNama || leave.lampiran_nama || leave.lampiran || 'surat_keterangan.pdf'
+  const docId = leave.id || '01'
+  const durasi = leave.durasi || (leave.durasi_hari ? `${leave.durasi_hari} Hari` : '1 Hari')
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1100" width="100%" height="100%">
     <defs>
@@ -216,7 +243,7 @@ export function getMockDocumentSvg(leave = {}) {
       <circle cx="45" cy="48" r="8" fill="#f59e0b"/>
 
       <text x="105" y="35" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="800" fill="#1e293b" letter-spacing="1">YAYASAN AT-TIN SUMBAR</text>
-      <text x="105" y="58" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="600" fill="#3b82f6">${unit.toUpperCase()}</text>
+      <text x="105" y="58" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="600" fill="#3b82f6">${escapeXml(unit.toUpperCase())}</text>
       <text x="105" y="78" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#64748b">Jl. Cendekia No. 41-47, Padang, Sumatera Barat • Telp: (0751) 890123</text>
       <line x1="0" y1="105" x2="680" y2="105" stroke="#323d8f" stroke-width="3"/>
       <line x1="0" y1="110" x2="680" y2="110" stroke="#cbd5e1" stroke-width="1"/>
@@ -225,7 +252,7 @@ export function getMockDocumentSvg(leave = {}) {
     <!-- Document Title -->
     <g transform="translate(400, 230)" text-anchor="middle">
       <text font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="800" fill="#0f172a" text-decoration="underline" letter-spacing="0.5">BERKAS BUKTI LAMPIRAN PENGAJUAN</text>
-      <text y="24" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="600" fill="#64748b">Nomor Dokumen: ATTIN/IZIN/2026/${leave.id || '01'}</text>
+      <text y="24" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="600" fill="#64748b">Nomor Dokumen: ATTIN/IZIN/2026/${escapeXml(docId)}</text>
     </g>
 
     <!-- Body Information Box -->
@@ -235,34 +262,32 @@ export function getMockDocumentSvg(leave = {}) {
       <text x="30" y="40" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="700" fill="#475569">DETAIL PEGAWAI PEMOHON:</text>
       
       <text x="30" y="75" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#64748b">Nama Pegawai</text>
-      <text x="180" y="75" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="700" fill="#0f172a">: ${name}</text>
+      <text x="180" y="75" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="700" fill="#0f172a">: ${escapeXml(name)}</text>
 
       <text x="30" y="105" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#64748b">NIY Pegawai</text>
-      <text x="180" y="105" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#0f172a">: ${niy}</text>
+      <text x="180" y="105" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#0f172a">: ${escapeXml(niy)}</text>
 
       <text x="30" y="135" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#64748b">Unit Kerja</text>
-      <text x="180" y="135" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#0f172a">: ${unit}</text>
+      <text x="180" y="135" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#0f172a">: ${escapeXml(unit)}</text>
 
       <text x="30" y="165" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#64748b">Jenis Permohonan</text>
-      <text x="180" y="165" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="700" fill="#2563eb">: ${title}</text>
+      <text x="180" y="165" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="700" fill="#2563eb">: ${escapeXml(title)}</text>
 
       <text x="30" y="195" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#64748b">Periode Waktu</text>
-      <text x="180" y="195" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="700" fill="#0f172a">: ${dates} (${leave.durasi || '1 Hari'})</text>
+      <text x="180" y="195" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="700" fill="#0f172a">: ${escapeXml(dates)} (${escapeXml(durasi)})</text>
 
       <text x="30" y="225" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#64748b">Nama Berkas</text>
-      <text x="180" y="225" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#059669">: ${fileName}</text>
+      <text x="180" y="225" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#059669">: ${escapeXml(fileName)}</text>
     </g>
 
     <!-- Keterangan Alasan Box -->
     <g transform="translate(70, 590)">
       <rect width="660" height="150" rx="12" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1.5"/>
-      <text x="30" y="40" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="700" fill="#166534">KETERANGAN &amp; PERNYATAAN PEMOHON:</text>
+      <text x="30" y="38" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="700" fill="#166534">KETERANGAN &amp; PERNYATAAN PEMOHON:</text>
       
-      <foreignObject x="30" y="55" width="600" height="85">
-        <div xmlns="http://www.w3.org/1999/xhtml" style="font-family: system-ui, -apple-system, sans-serif; font-size: 13px; color: #1e293b; line-height: 1.5; font-style: italic;">
-          "${reason}"
-        </div>
-      </foreignObject>
+      <text x="30" y="68" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-style="italic" fill="#1e293b">
+        ${reasonLines.map((line, idx) => `<tspan x="30" dy="${idx === 0 ? 0 : 22}">&ldquo;${escapeXml(line)}${idx === reasonLines.length - 1 ? '&rdquo;' : ''}</tspan>`).join('')}
+      </text>
     </g>
 
     <!-- Verification / Legal Seal Section -->
@@ -272,8 +297,8 @@ export function getMockDocumentSvg(leave = {}) {
         <text font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#64748b">Pemohon,</text>
         <rect y="30" width="150" height="60" fill="none"/>
         <path d="M10 65 Q 40 40 70 65 T 130 55" fill="none" stroke="#334155" stroke-width="2"/>
-        <text y="110" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="700" fill="#0f172a">${name}</text>
-        <text y="125" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#64748b">NIY. ${niy}</text>
+        <text y="110" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="700" fill="#0f172a">${escapeXml(name)}</text>
+        <text y="125" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#64748b">NIY. ${escapeXml(niy)}</text>
       </g>
 
       <!-- Signature 2: Verifikasi Unit -->

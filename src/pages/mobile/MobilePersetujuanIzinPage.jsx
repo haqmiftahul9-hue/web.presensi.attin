@@ -7,6 +7,9 @@ import {
   isLeavePending,
   isLeaveApproved,
   isLeaveRejected,
+  ikonJenis,
+  warnaJenis,
+  warnaAvatarJenis,
 } from '../../data/jenisIzinCuti.js'
 import {
   useSimPresOptional, selectLeavesEnriched, selectSelfStaff,
@@ -60,19 +63,33 @@ function MobilePersetujuanIzinPage() {
   // 2. Hitung statistik tab (Semua, Menunggu, Disetujui, Ditolak)
   const counts = useMemo(() => {
     const total = baseList.length
-    const pending = baseList.filter((l) => isLeavePending(l.status)).length
-    const approved = baseList.filter((l) => isLeaveApproved(l.status)).length
+    const pending = baseList.filter((l) => {
+      if (isSuperadmin) return isLeavePending(l.status)
+      // Untuk Kepala Sekolah, 'Menunggu' adalah pengajuan yang masih butuh tindakan Kepala Sekolah
+      return isLeavePending(l.status) && l.approvalKepsek?.status !== 'Disetujui' && l.status !== 'Menunggu Superadmin'
+    }).length
+    const approved = baseList.filter((l) => {
+      if (isSuperadmin) return isLeaveApproved(l.status)
+      // Untuk Kepala Sekolah, pengajuan yang sudah disetujui kepsek (Tahap 1 maupun Final)
+      return l.approvalKepsek?.status === 'Disetujui' || isLeaveApproved(l.status)
+    }).length
     const rejected = baseList.filter((l) => isLeaveRejected(l.status)).length
     return { total, pending, approved, rejected }
-  }, [baseList])
+  }, [baseList, isSuperadmin])
 
   // 3. Terapkan filter tab aktif dan pencarian teks
   const daftar = useMemo(() => {
     let list = baseList
     if (activeTab === 'menunggu') {
-      list = list.filter((l) => isLeavePending(l.status))
+      list = list.filter((l) => {
+        if (isSuperadmin) return isLeavePending(l.status)
+        return isLeavePending(l.status) && l.approvalKepsek?.status !== 'Disetujui' && l.status !== 'Menunggu Superadmin'
+      })
     } else if (activeTab === 'disetujui') {
-      list = list.filter((l) => isLeaveApproved(l.status))
+      list = list.filter((l) => {
+        if (isSuperadmin) return isLeaveApproved(l.status)
+        return l.approvalKepsek?.status === 'Disetujui' || isLeaveApproved(l.status)
+      })
     } else if (activeTab === 'ditolak') {
       list = list.filter((l) => isLeaveRejected(l.status))
     }
@@ -89,7 +106,7 @@ function MobilePersetujuanIzinPage() {
       )
     }
     return list
-  }, [baseList, activeTab, searchQuery])
+  }, [baseList, activeTab, searchQuery, isSuperadmin])
 
   if (!state) {
     return (
@@ -286,58 +303,90 @@ function MobilePersetujuanIzinPage() {
               const pending = isLeavePending(item.status)
               const approved = isLeaveApproved(item.status)
               const rejected = isLeaveRejected(item.status)
+              const isKepsekApproved = item.approvalKepsek?.status === 'Disetujui' || item.status === 'Menunggu Superadmin'
+              const canAct = isSuperadmin ? pending : (pending && !isKepsekApproved)
+              const initials = item.name ? item.name.split(/[\s,]+/).filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase() : '?'
 
               return (
                 <li key={item.id} className="sp-list-card flex flex-col gap-3">
+                  {/* Header Card: Avatar Guru & Identitas Pegawai */}
                   <div className="flex items-center justify-between gap-2.5">
-                    <span className="font-body-sm text-body-sm text-on-surface font-semibold truncate">{item.name}</span>
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 ${warnaAvatarJenis(item.jenis)} shadow-2xs`}>
+                        {initials}
+                      </div>
+                      <div className="min-w-0">
+                        <span className="font-body-sm text-body-sm text-on-surface font-semibold truncate block">{item.name}</span>
+                        <span className="font-label-sm text-label-sm text-on-surface-variant block">{item.niy} • {item.unitName}</span>
+                      </div>
+                    </div>
                     <BarisStatus status={item.status} />
                   </div>
-                  <div className="font-label-sm text-label-sm text-on-surface-variant">{item.niy} • {item.unitName}</div>
-                  <div className="font-body-sm text-body-sm text-on-surface">{item.jenis} • {item.periode} • {item.durasi}</div>
-                  {(item.keterangan || item.alasan) && (
-                    <p className="font-body-sm text-body-sm text-on-surface-variant leading-snug">{item.keterangan || item.alasan}</p>
-                  )}
 
-                  {/* Bukti Lampiran Surat Izin / Cuti */}
-                  {(item.lampiran || item.lampiranUrl || item.lampiran_url) && (
-                    <div className="p-2.5 rounded-xl bg-primary/5 dark:bg-card border border-primary/20 dark:border-primary-border flex items-center justify-between gap-2.5">
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
-                          <Icon name="description" className="text-[18px]" />
-                        </div>
-                        <div className="min-w-0">
-                          <span className="font-semibold text-foreground text-xs block truncate">
-                            {item.lampiranNama || item.lampiran_nama || item.lampiran}
-                          </span>
-                          <span className="text-[10.5px] text-muted-foreground block">
-                            {item.lampiranUkuran ? formatDocumentSize(item.lampiranUkuran) : 'Dokumen Bukti Resmi'}
-                          </span>
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setSelectedDocument(item)}
-                        className="px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-strong text-white font-label-sm text-xs font-semibold flex items-center gap-1 shadow-2xs active:scale-95 transition-all shrink-0 cursor-pointer"
-                      >
-                        <Icon name="visibility" className="text-[14px]" />
-                        <span>Lihat Bukti</span>
-                      </button>
+                  {/* Jenis Izin/Cuti dengan Icon Resmi & Periode */}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className={`px-2.5 py-1 rounded-full font-label-sm text-label-sm flex items-center gap-1.5 ${warnaJenis(item.jenis)}`}>
+                      <Icon name={ikonJenis(item.jenis)} className="text-[13px] shrink-0" />
+                      <span className="font-semibold">{item.jenis}</span>
+                    </span>
+                    <div className="flex items-center gap-1 text-on-surface-variant text-xs">
+                      <Icon name="calendar_month" className="text-[14px] text-primary shrink-0" />
+                      <span className="font-medium text-on-surface">{item.periode}</span>
+                      <span>•</span>
+                      <span className="font-bold text-primary">{item.durasi}</span>
+                    </div>
+                  </div>
+
+                  {/* Keterangan / Alasan Pengajuan */}
+                  {(item.keterangan || item.alasan) && (
+                    <div className="p-2.5 rounded-xl bg-muted/40 border border-border/60 text-xs text-on-surface-variant leading-relaxed">
+                      {item.keterangan || item.alasan}
                     </div>
                   )}
 
-                  {/* Info status 2 tahap */}
+                  {/* Bukti Dokumen Surat Pengajuan / Izin Cuti */}
+                  <div className="p-2.5 rounded-xl bg-primary/5 dark:bg-card border border-primary/20 dark:border-primary-border flex items-center justify-between gap-2.5">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
+                        <Icon name="description" className="text-[18px]" />
+                      </div>
+                      <div className="min-w-0">
+                        <span className="font-semibold text-foreground text-xs block truncate">
+                          {item.lampiranNama || item.lampiran_nama || item.lampiran || 'Surat Pengajuan Izin / Cuti'}
+                        </span>
+                        <span className="text-[10.5px] text-muted-foreground block">
+                          {item.lampiranUkuran ? formatDocumentSize(item.lampiranUkuran) : 'Dokumen Surat Resmi Terverifikasi'}
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedDocument(item)}
+                      className="px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-strong text-white font-label-sm text-xs font-semibold flex items-center gap-1.5 shadow-2xs active:scale-95 transition-all shrink-0 cursor-pointer"
+                    >
+                      <Icon name="visibility" className="text-[14px]" />
+                      <span>Lihat Bukti</span>
+                    </button>
+                  </div>
+
+                  {/* Info Status Alur Bertingkat 2 Tahap */}
                   <div className="p-2.5 rounded-xl bg-muted/40 border border-border/60 text-xs flex flex-col gap-1.5">
                     <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground text-[11px]">Tahap 1 (Kepala Sekolah):</span>
+                      <span className="text-muted-foreground text-[11px] flex items-center gap-1">
+                        <Icon name="school" className="text-[13px] text-muted-foreground" />
+                        Tahap 1 (Kepala Sekolah):
+                      </span>
                       <span className={`font-semibold text-[11px] ${
                         item.approvalKepsek?.status === 'Disetujui' ? 'text-emerald-600 dark:text-emerald-400' : item.approvalKepsek?.status === 'Ditolak' ? 'text-destructive' : 'text-amber-600 dark:text-amber-400'
                       }`}>
-                        {item.approvalKepsek?.status || 'Menunggu'}
+                        {item.approvalKepsek?.status || (item.status === 'Menunggu Superadmin' ? 'Disetujui' : 'Menunggu')}
                       </span>
                     </div>
                     <div className="flex items-center justify-between pt-1 border-t border-border/40">
-                      <span className="text-muted-foreground text-[11px]">Tahap 2 (Superadmin):</span>
+                      <span className="text-muted-foreground text-[11px] flex items-center gap-1">
+                        <Icon name="shield_person" className="text-[13px] text-muted-foreground" />
+                        Tahap 2 (Superadmin):
+                      </span>
                       <span className={`font-semibold text-[11px] ${
                         approved ? 'text-emerald-600 dark:text-emerald-400' : rejected ? 'text-destructive' : 'text-sky-600 dark:text-sky-400'
                       }`}>
@@ -351,23 +400,33 @@ function MobilePersetujuanIzinPage() {
                     )}
                   </div>
 
-                  {/* Tombol Aksi Verifikasi hanya untuk yang Menunggu */}
-                  {pending && canApprove ? (
+                  {/* Tombol Aksi Verifikasi: otomatis hilang setelah disetujui Kepala Sekolah */}
+                  {canAct && canApprove ? (
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
                         onClick={() => handleApprove(item.id)}
-                        className="flex-1 h-9 rounded-xl bg-status-success text-white font-label-md text-label-md px-4 py-2 shadow-2xs active:scale-95 transition-all"
+                        className="flex-1 h-9 rounded-xl bg-status-success text-white font-label-md text-label-md px-4 py-2 shadow-2xs active:scale-95 transition-all font-semibold"
                       >
                         {isSuperadmin ? 'Setujui (Final)' : 'Setujui (Lanjut Superadmin)'}
                       </button>
                       <button
                         type="button"
                         onClick={() => handleReject(item.id)}
-                        className="flex-1 h-9 rounded-xl bg-status-danger text-white font-label-md text-label-md px-4 py-2 shadow-2xs active:scale-95 transition-all"
+                        className="flex-1 h-9 rounded-xl bg-status-danger text-white font-label-md text-label-md px-4 py-2 shadow-2xs active:scale-95 transition-all font-semibold"
                       >
                         Tolak
                       </button>
+                    </div>
+                  ) : isKepsekApproved && pending ? (
+                    <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-xs flex items-center justify-between">
+                      <span className="text-emerald-700 dark:text-emerald-300 text-[11px] font-semibold flex items-center gap-1.5">
+                        <Icon name="check_circle" className="text-[15px] text-emerald-600 dark:text-emerald-400 shrink-0" />
+                        Disetujui Kepala Sekolah (Tahap 1) • Menunggu Persetujuan Superadmin
+                      </span>
+                      <span className="text-sky-600 dark:text-sky-400 font-bold text-[10px] px-2 py-0.5 rounded-md bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800 shrink-0">
+                        Tahap 2
+                      </span>
                     </div>
                   ) : approved ? (
                     <div className="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs flex items-center justify-between">

@@ -217,80 +217,126 @@ function PengajuanIzinCutiPage() {
       isOpen: true,
       leave,
       action,
-      note: action === 'approve' ? 'Disetujui penuh oleh Superadmin' : '',
+      note: action === 'approve'
+        ? (isSuperadmin ? 'Disetujui penuh oleh Superadmin' : 'Disetujui oleh Kepala Sekolah')
+        : '',
     })
   }
 
-  // Eksekusi Konfirmasi Persetujuan / Penolakan oleh Superadmin
+  // Eksekusi Konfirmasi Persetujuan / Penolakan (Superadmin atau Kepala Sekolah)
   const handleConfirmApproval = () => {
     const { leave, action, note } = approvalModal
     if (!leave) return
-    const approverName = currentUser?.name || 'Superadmin Yayasan'
+    const approverName = currentUser?.name || (isSuperadmin ? 'Superadmin Yayasan' : 'Kepala Sekolah')
 
     if (action === 'approve') {
-      // Setujui oleh Superadmin -> Status Final "Disetujui"
-      dispatch({
-        type: 'UPDATE_LEAVE_STATUS',
-        id: leave.id,
-        status: 'Disetujui',
-        tahapApproval: 3,
-        approvalSuperadmin: {
-          status: 'Disetujui',
+      if (!isSuperadmin) {
+        // Persetujuan Tahap 1 oleh Kepala Sekolah -> lanjut ke Superadmin
+        dispatch({
+          type: 'UPDATE_LEAVE_STATUS',
+          id: leave.id,
+          status: 'Menunggu Superadmin',
+          tahapApproval: 2,
+          approvalKepsek: {
+            status: 'Disetujui',
+            approverName,
+            approverRole: 'Kepala Sekolah',
+            tanggal: new Date().toISOString(),
+            catatan: note.trim() || 'Disetujui oleh Kepala Sekolah',
+          },
+        })
+        addActivityLog(
+          dispatch,
+          state,
+          'Persetujuan Tahap 1',
+          `Cuti/Izin • ${leave.name}`,
+          `Kepala Sekolah (${approverName}) menyetujui pengajuan ${leave.jenis} (${leave.durasi}) untuk ${leave.name}. Menunggu persetujuan Superadmin.${note ? ` Catatan: ${note}` : ''}`,
           approverName,
-          approverRole: 'Superadmin',
-          tanggal: new Date().toISOString(),
-          catatan: note.trim() || 'Disetujui penuh oleh Superadmin',
-        },
-        // Jika Kepsek belum sempat verifikasi, Superadmin memberikan persetujuan langsung
-        ...(leave.approvalKepsek?.status !== 'Disetujui'
-          ? {
-              approvalKepsek: {
-                ...(leave.approvalKepsek || {}),
-                status: 'Disetujui',
-                approverName: leave.approvalKepsek?.approverName || 'Disetujui langsung oleh Superadmin',
-                approverRole: 'Kepala Sekolah',
-                tanggal: new Date().toISOString(),
-                catatan: 'Disetujui langsung oleh Superadmin (Yayasan)',
-              },
-            }
-          : {}),
-      })
-      addActivityLog(
-        dispatch,
-        state,
-        'Persetujuan Final',
-        `Cuti/Izin • ${leave.name}`,
-        `Superadmin (${approverName}) menyetujui pengajuan ${leave.jenis} (${leave.durasi}) untuk ${leave.name}. Status: Disetujui Penuh.${note ? ` Catatan: ${note}` : ''}`,
-        approverName,
-        currentUserRole,
-        leave.unitId
-      )
-      setFeedbackAlert({
-        type: 'success',
-        message: `Pengajuan ${leave.jenis} untuk ${leave.name} berhasil disetujui (Status: Disetujui Penuh).`,
-      })
+          currentUserRole,
+          leave.unitId
+        )
+        setFeedbackAlert({
+          type: 'success',
+          message: `Pengajuan ${leave.jenis} untuk ${leave.name} berhasil disetujui Kepala Sekolah. Menunggu persetujuan Superadmin.`,
+        })
+      } else {
+        // Setujui oleh Superadmin -> Status Final "Disetujui"
+        dispatch({
+          type: 'UPDATE_LEAVE_STATUS',
+          id: leave.id,
+          status: 'Disetujui',
+          tahapApproval: 3,
+          approvalSuperadmin: {
+            status: 'Disetujui',
+            approverName,
+            approverRole: 'Superadmin',
+            tanggal: new Date().toISOString(),
+            catatan: note.trim() || 'Disetujui penuh oleh Superadmin',
+          },
+          // Jika Kepsek belum sempat verifikasi, Superadmin memberikan persetujuan langsung
+          ...(leave.approvalKepsek?.status !== 'Disetujui'
+            ? {
+                approvalKepsek: {
+                  ...(leave.approvalKepsek || {}),
+                  status: 'Disetujui',
+                  approverName: leave.approvalKepsek?.approverName || 'Disetujui langsung oleh Superadmin',
+                  approverRole: 'Kepala Sekolah',
+                  tanggal: new Date().toISOString(),
+                  catatan: 'Disetujui langsung oleh Superadmin (Yayasan)',
+                },
+              }
+            : {}),
+        })
+        addActivityLog(
+          dispatch,
+          state,
+          'Persetujuan Final',
+          `Cuti/Izin • ${leave.name}`,
+          `Superadmin (${approverName}) menyetujui pengajuan ${leave.jenis} (${leave.durasi}) untuk ${leave.name}. Status: Disetujui Penuh.${note ? ` Catatan: ${note}` : ''}`,
+          approverName,
+          currentUserRole,
+          leave.unitId
+        )
+        setFeedbackAlert({
+          type: 'success',
+          message: `Pengajuan ${leave.jenis} untuk ${leave.name} berhasil disetujui (Status: Disetujui Penuh).`,
+        })
+      }
     } else {
-      // Tolak oleh Superadmin -> Status Final "Ditolak"
+      // Tolak pengajuan
+      const stage = isSuperadmin ? 'superadmin' : 'kepsek'
       dispatch({
         type: 'UPDATE_LEAVE_STATUS',
         id: leave.id,
         status: 'Ditolak',
         tahapApproval: 3,
-        rejectedStage: 'superadmin',
-        approvalSuperadmin: {
-          status: 'Ditolak',
-          approverName,
-          approverRole: 'Superadmin',
-          tanggal: new Date().toISOString(),
-          catatan: note.trim() || 'Ditolak oleh Superadmin',
-        },
+        rejectedStage: stage,
+        ...(isSuperadmin
+          ? {
+              approvalSuperadmin: {
+                status: 'Ditolak',
+                approverName,
+                approverRole: 'Superadmin',
+                tanggal: new Date().toISOString(),
+                catatan: note.trim() || 'Ditolak oleh Superadmin',
+              },
+            }
+          : {
+              approvalKepsek: {
+                status: 'Ditolak',
+                approverName,
+                approverRole: 'Kepala Sekolah',
+                tanggal: new Date().toISOString(),
+                catatan: note.trim() || 'Ditolak oleh Kepala Sekolah',
+              },
+            }),
       })
       addActivityLog(
         dispatch,
         state,
-        'Penolakan Final',
+        'Penolakan',
         `Cuti/Izin • ${leave.name}`,
-        `Superadmin (${approverName}) menolak pengajuan ${leave.jenis} (${leave.durasi}) untuk ${leave.name}. Alasan: ${note || 'Tidak memenuhi ketentuan'}`,
+        `${isSuperadmin ? 'Superadmin' : 'Kepala Sekolah'} (${approverName}) menolak pengajuan ${leave.jenis} (${leave.durasi}) untuk ${leave.name}. Alasan: ${note || 'Tidak memenuhi ketentuan'}`,
         approverName,
         currentUserRole,
         leave.unitId
@@ -753,16 +799,16 @@ function PengajuanIzinCutiPage() {
                       {/* Aksi Approval */}
                       <td className="py-3.5 px-3.5 text-right whitespace-nowrap">
                         <div className="flex items-center justify-end gap-1.5">
-                          {canApproveLeave && row.isPending ? (
+                          {canApproveLeave && (isSuperadmin ? row.isPending : (row.isPending && row.approvalKepsekStatus !== 'Disetujui' && row.status !== 'Menunggu Superadmin')) ? (
                             <>
                               <button
                                 onClick={() => handleOpenApprovalModal(row, 'approve')}
                                 className="h-7.5 px-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs inline-flex items-center gap-1 shadow-2xs transition-colors cursor-pointer"
                                 type="button"
-                                title="Setujui Pengajuan Ini (Superadmin)"
+                                title={isSuperadmin ? "Setujui Pengajuan Ini (Superadmin Final)" : "Setujui Pengajuan Ini (Kepala Sekolah - Lanjut Superadmin)"}
                               >
                                 <span className="material-symbols-outlined text-[15px]">check</span>
-                                <span>Setujui</span>
+                                <span>{isSuperadmin ? 'Setujui' : 'Setujui (Lanjut Superadmin)'}</span>
                               </button>
                               <button
                                 onClick={() => handleOpenApprovalModal(row, 'reject')}
@@ -788,12 +834,12 @@ function PengajuanIzinCutiPage() {
                                 onClick={() => handleDetail(row)}
                                 className="h-7.5 px-2.5 rounded-lg bg-card hover:bg-muted text-foreground border border-border inline-flex items-center gap-1 font-medium text-xs transition-colors cursor-pointer"
                                 type="button"
-                                title="Lihat Detail"
+                                title="Lihat Berkas &amp; Detail"
                               >
                                 <span className="material-symbols-outlined text-[15px]">visibility</span>
-                                <span>Detail</span>
+                                <span>Detail &amp; Bukti</span>
                               </button>
-                              {canApproveLeave && (
+                              {canApproveLeave && isSuperadmin && (
                                 <button
                                   onClick={() => handleOpenApprovalModal(row, row.status === 'Disetujui' ? 'reject' : 'approve')}
                                   className="h-7.5 px-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted border border-border text-[11px] font-medium transition-colors cursor-pointer"
@@ -974,7 +1020,7 @@ function PengajuanIzinCutiPage() {
                   </h3>
                   <p className="text-[11px] text-muted-foreground">
                     {approvalModal.action === 'approve'
-                      ? 'Persetujuan Tingkat 2 (Final oleh Superadmin)'
+                      ? (isSuperadmin ? 'Persetujuan Tingkat 2 (Final oleh Superadmin)' : 'Persetujuan Tingkat 1 (Kepala Sekolah - Lanjut Superadmin)')
                       : 'Keputusan penolakan izin/cuti pegawai'}
                   </p>
                 </div>
@@ -1105,7 +1151,7 @@ function PengajuanIzinCutiPage() {
                 <label className="text-xs font-semibold text-foreground flex items-center justify-between">
                   <span>
                     {approvalModal.action === 'approve'
-                      ? 'Catatan Persetujuan Superadmin (Opsional):'
+                      ? (isSuperadmin ? 'Catatan Persetujuan Superadmin (Opsional):' : 'Catatan Persetujuan Kepala Sekolah (Opsional):')
                       : 'Alasan Penolakan (Wajib Diisi):'}
                   </span>
                   {approvalModal.action === 'reject' && (
@@ -1118,7 +1164,7 @@ function PengajuanIzinCutiPage() {
                   onChange={(e) => setApprovalModal(prev => ({ ...prev, note: e.target.value }))}
                   placeholder={
                     approvalModal.action === 'approve'
-                      ? 'Tambahkan pesan atau instruksi untuk guru/pegawai (opsional)...'
+                      ? (isSuperadmin ? 'Tambahkan pesan atau instruksi untuk guru/pegawai (opsional)...' : 'Catatan persetujuan Kepala Sekolah untuk Superadmin & guru...')
                       : 'Contoh: Dokumen surat dokter belum berstempel resmi, kuota cuti tahunan telah habis...'
                   }
                   className="w-full p-2.5 bg-card border border-input rounded-xl text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring resize-none leading-relaxed"
@@ -1149,7 +1195,7 @@ function PengajuanIzinCutiPage() {
                   {approvalModal.action === 'approve' ? 'check' : 'close'}
                 </span>
                 <span>
-                  {approvalModal.action === 'approve' ? 'Konfirmasi Setujui (Final)' : 'Konfirmasi Tolak'}
+                  {approvalModal.action === 'approve' ? (isSuperadmin ? 'Konfirmasi Setujui (Final)' : 'Konfirmasi Setujui (Lanjut Superadmin)') : 'Konfirmasi Tolak'}
                 </span>
               </button>
             </div>
