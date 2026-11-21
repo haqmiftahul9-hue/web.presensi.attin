@@ -260,6 +260,28 @@ export function formatDurasi(mulai, selesai) {
   return `${hitungDurasiHari(mulai, selesai)} Hari`
 }
 
+/**
+ * Id pengajuan versi aplikasi.
+ *
+ * Berbeda dengan `id` angka (yang dihitung dari max(id)+1 dan bisa bentrok
+ * antar perangkat), refId ini dibuat sekali saat pengajuan dibuat dan dipakai
+ * sebagai kunci pencocokan baris pengajuan di Supabase. Dengan begitu approval
+ * yang dilakukan Kepala Sekolah di satu perangkat menunjuk baris yang sama
+ * dengan berkas yang diunggah Guru di perangkat lain.
+ *
+ * @returns {string}
+ */
+export function buatRefIdPengajuan() {
+  try {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+      return `lv-${crypto.randomUUID()}`
+    }
+  } catch {
+    /* crypto.randomUUID tidak tersedia -> pakai fallback di bawah */
+  }
+  return `lv-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`
+}
+
 /** Bentukkan baris pengajuan lengkap dari isian form. Dipakai form mobile dan
  * modal portal admin supaya keduanya menyimpan data dengan bentuk yang sama:
  * tanggal ISO tersimpan terpisah (dipakai rekap presensi), `periode` hanya
@@ -267,6 +289,7 @@ export function formatDurasi(mulai, selesai) {
 export function buildPengajuan({ id, staffId, jenis, mulai, selesai, alasan, lampiran, lampiranUkuran, keterangan }) {
   return {
     id,
+    refId: buatRefIdPengajuan(),
     staffId,
     jenis: normalisasiJenis(jenis),
     mulai: mulai || null,

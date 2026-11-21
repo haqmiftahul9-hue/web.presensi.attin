@@ -1,4 +1,4 @@
-import { createContext, useContext, useReducer, useMemo, useEffect } from 'react'
+import { createContext, useContext, useReducer, useMemo, useEffect, useRef } from 'react'
 import {
   UNITS, STAFF, LEAVES, ADMIN_USERS, INITIAL_LOGS,
   INITIAL_SETTINGS, WEEKLY_TREND, TREND_30, HOLIDAYS, buildFullStaff, buildAttendance, initialsOf,
@@ -15,6 +15,9 @@ import {
 import {
   isLeavePending, isLeaveApproved, isLeaveRejected,
 } from '../data/jenisIzinCuti.js'
+import {
+  ambilLeaveDariSupabase, simpanLeaveKeSupabase, simpanBanyakLeaveKeSupabase, refIdLeave,
+} from '../services/leaveService.js'
 import { getPeriodeInfo } from '../utils/periodFormatter.js'
 
 // Konversi jam <-> menit sekarang milik modul jam kerja. Alias di bawah hanya
@@ -919,6 +922,174 @@ function upsertAttendanceRow(list, entry) {
   return [gabung, ...rows.filter((_, i) => i !== index)]
 }
 
+// ============================================================================
+// SINKRONISASI PENGAJUAN IZIN/CUTI KE SUPABASE
+//
+// Berkas surat izin diunggah ke Supabase Storage, sedangkan baris pengajuannya
+// hanya ada di localStorage. Tanpa jembatan ini, Kepala Sekolah / Admin Unit /
+// Superadmin yang memakai perangkat lain tidak pernah melihat berkas yang
+// diunggah Guru.
+//
+// Pola kerjanya: pengajuan yang berubah di perangkat ini diantrekan (antrean
+// di bawah), lalu provider mengirimkannya ke tabel public.leaves. Sebaliknya,
+// saat aplikasi dimuat, baris dari server dibaca dan digabung ke state lokal
+// sehingga approval di perangkat lain ikut terlihat.
+// ============================================================================
+
+/** Antrean pengajuan yang menunggu dikirim ke Supabase. */
+let antreanLeaveSync = []
+
+/**
+ * Masukkan pengajuan ke antrean kirim.
+ * @param {Object} leave
+ */
+export function antrekanLeaveSyncTambah(leave) {
+  if (!leave) return
+  antreanLeaveSync = [...antreanLeaveSync, leave]
+}
+
+/**
+ * Ambil dan kosongkan antrean kirim.
+ * @returns {Array<Object>}
+ */
+export function antreanLeaveSyncAmbil() {
+  const antrean = antreanLeaveSync
+  antreanLeaveSync = []
+  return antrean
+}
+
+/**
+ * Simpan daftar pengajuan ke localStorage.
+ *
+ * Lampiran yang diunggah tanpa Supabase tersimpan sebagai Data URL (base64)
+ * dan bisa memakan kuota localStorage. Kalau penyimpanan gagal karena kuota,
+ * data pengajuan tetap disimpan tanpa base64 itu supaya status pengajuan
+ * tidak ikut hilang. URL berkas di Supabase Storage (http/https) tidak pernah
+ * dibuang, karena di sanalah bukti surat izin disimpan.
+ *
+ * @param {Array<Object>} leaves
+ */
+function persistLeaves(leaves) {
+  if (typeof window === 'undefined') return
+  try {
+    window.localStorage.setItem(PERSISTED_LEAVES_KEY, JSON.stringify(leaves))
+    return
+  } catch {
+    /* kuota penuh atau storage diblokir -> coba versi ringan */
+  }
+  try {
+    const ringan = (leaves || []).map((l) => {
+      const url = l?.lampiranUrl || l?.lampiran_url || ''
+      if (typeof url === 'string' && url.startsWith('data:')) {
+        return { ...l, lampiranUrl: '', lampiran_url: '' }
+      }
+      return l
+    })
+    window.localStorage.setItem(PERSISTED_LEAVES_KEY, JSON.stringify(ringan))
+  } catch {
+    /* abaikan: storage penuh / diblokir */
+  }
+}
+
+/**
+ * Gabungkan pengajuan dari server dengan data lokal.
+ *
+ * Pengajuan dicocokkan lewat refId (id versi aplikasi). Baris yang belum
+ * pernah ada di perangkat ini mendapat id lokal baru; baris yang sudah ada
+ * hanya ditimpa kalau versi di server lebih baru, sehingga approval yang
+ * baru dilakukan di perangkat lain tidak tertimpa oleh data lama.
+ *
+ * @param {Array<Object>} lokal
+ * @param {Array<Object>} remote
+ * @returns {Array<Object>}
+ */
+export function gabungLeaveRemote(lokal = [], remote = []) {
+  if (!Array.isArray(remote) || remote.length === 0) return lokal
+
+  const hasil = [...lokal]
+  const posisiRef = new Map()
+  const posisiKunci = new Map()
+  hasil.forEach((l, idx) => {
+    const ref = l.refId || l.ref_id
+    if (ref) posisiRef.set(ref, idx)
+    const kunci = kunciCocokLeave(l)
+    if (kunci) posisiKunci.set(kunci, idx)
+  })
+
+  let idTerbesar = hasil.reduce((maks, l) => Math.max(maks, Number(l.id) || 0), 0)
+
+  remote.forEach((baris) => {
+    const ref = baris.refId || baris.ref_id || ''
+    const kunci = kunciCocokLeave(baris)
+    let posisi = ref ? posisiRef.get(ref) : undefined
+    if (posisi === undefined && kunci) posisi = posisiKunci.get(kunci)
+
+    // Baris tanpa ref_id adalah data lama (mis. baris contoh dari schema.sql).
+    // Baris seperti itu hanya melengkapi data lokal yang belum ada lampirannya,
+    // tanpa menimpa status/approval lokal yang sudah lebih lengkap.
+    const barisLama = !ref
+
+    if (posisi === undefined) {
+      idTerbesar += 1
+      const baru = { ...baris, id: idTerbesar }
+      if (!ref) baru.refId = refIdLeave(baris)
+      hasil.push(baru)
+      if (baru.refId) posisiRef.set(baru.refId, hasil.length - 1)
+      if (kunci) posisiKunci.set(kunci, hasil.length - 1)
+      return
+    }
+
+    const lokalIni = hasil[posisi]
+
+    if (barisLama) {
+      // Lengkapi saja: lampiran yang belum ada lokal ditambahkan.
+      const tambahan = {}
+      if (!lokalIni.lampiranUrl && !lokalIni.lampiran_url && baris.lampiranUrl) {
+        tambahan.lampiranUrl = baris.lampiranUrl
+        tambahan.lampiran_url = baris.lampiranUrl
+      }
+      if (!lokalIni.lampiranNama && !lokalIni.lampiran_nama && baris.lampiranNama) {
+        tambahan.lampiranNama = baris.lampiranNama
+        tambahan.lampiran_nama = baris.lampiranNama
+      }
+      if (Object.keys(tambahan).length > 0) {
+        hasil[posisi] = { ...lokalIni, ...tambahan }
+      }
+      return
+    }
+
+    const waktuRemote = Date.parse(baris.updatedAt || '') || 0
+    const waktuLokal = Date.parse(lokalIni.updatedAt || lokalIni.createdAt || '') || 0
+    if (waktuRemote > waktuLokal) {
+      hasil[posisi] = {
+        ...lokalIni,
+        ...baris,
+        id: lokalIni.id,
+        // Data lokal yang tidak ada di server tetap dipertahankan.
+        staffId: baris.staffId ?? lokalIni.staffId,
+      }
+    }
+  })
+
+  return hasil
+}
+
+/**
+ * Kunci pencocokan cadangan untuk pengajuan yang belum punya refId: pegawai +
+ * tanggal mulai + jenis. Dipakai untuk menyamakan baris lama di server (mis.
+ * baris contoh dari schema.sql) dengan data lokal yang sama.
+ *
+ * @param {Object} leave
+ * @returns {string}
+ */
+function kunciCocokLeave(leave = {}) {
+  const staff = leave.staffId ?? leave.staff_id
+  const mulai = leave.mulai || leave.tanggal_mulai || ''
+  const jenis = leave.jenis || ''
+  if (staff == null || !mulai || !jenis) return ''
+  return `${staff}|${mulai}|${jenis}`
+}
+
 // Reducer diekspor agar aturan reduksi bisa diuji tanpa merender provider.
 export function simPresReducer(state, action) {
   const next = reducerDasar(state, action)
@@ -947,18 +1118,50 @@ function reducerDasar(state, action) {
           status: action.status ?? extra.status ?? l.status,
           ...(action.approvalKepsek ? { approvalKepsek: { ...(l.approvalKepsek || {}), ...action.approvalKepsek } } : {}),
           ...(action.approvalSuperadmin ? { approvalSuperadmin: { ...(l.approvalSuperadmin || {}), ...action.approvalSuperadmin } } : {}),
+          updatedAt: new Date().toISOString(),
         }
         return normalizeLeaveApprovals(merged)
       })
-      writePersistedItem(PERSISTED_LEAVES_KEY, nextLeaves)
+      persistLeaves(nextLeaves)
+      antrekanLeaveSyncTambah(nextLeaves.find((l) => l.id === action.id))
       return {
         ...state,
         leaves: nextLeaves,
       }
     }
     case 'ADD_LEAVE': {
-      const nextLeaves = [...state.leaves, action.payload]
-      writePersistedItem(PERSISTED_LEAVES_KEY, nextLeaves)
+      const payload = {
+        ...action.payload,
+        updatedAt: action.payload?.updatedAt || new Date().toISOString(),
+      }
+      const nextLeaves = [...state.leaves, payload]
+      persistLeaves(nextLeaves)
+      antrekanLeaveSyncTambah(payload)
+      return { ...state, leaves: nextLeaves }
+    }
+    case 'HYDRATE_LEAVES_REMOTE': {
+      // Hasil pembacaan dari Supabase. Baris yang belum ada di perangkat ini
+      // ditambahkan; baris yang sudah ada hanya diganti kalau versi di server
+      // lebih baru (mis. sudah disetujui Superadmin di perangkat lain).
+      const gabungan = gabungLeaveRemote(state.leaves, action.payload || [])
+      if (gabungan === state.leaves) return state
+      persistLeaves(gabungan)
+      return { ...state, leaves: gabungan }
+    }
+    case 'SYNC_LEAVE_REF_IDS': {
+      // Pengajuan lama (seed / dibuat sebelum ada sinkronisasi) belum punya
+      // refId. ID itu perlu dibuat supaya pengajuan yang sama tidak terduplikasi
+      // di server saat beberapa perangkat mengirimkannya.
+      const peta = action.payload || {}
+      let berubah = false
+      const nextLeaves = state.leaves.map((l) => {
+        const ref = peta[l.id]
+        if (!ref || l.refId) return l
+        berubah = true
+        return { ...l, refId: ref }
+      })
+      if (!berubah) return state
+      persistLeaves(nextLeaves)
       return { ...state, leaves: nextLeaves }
     }
     case 'UPDATE_STAFF': {
@@ -2328,6 +2531,99 @@ export function SimPresProvider({ children }) {
     window.addEventListener('storage', handleStorageChange)
     return () => window.removeEventListener('storage', handleStorageChange)
   }, [])
+
+  // ===== Pengajuan izin/cuti <-> Supabase =====
+  //
+  // Dua arah:
+  //  1. Tarik: saat sesi aktif, baris pengajuan dari server digabung ke state
+  //     lokal supaya approval di perangkat lain (mis. disetujui Superadmin)
+  //     ikut terlihat lengkap dengan berkas lampirannya.
+  //  2. Kirim: pengajuan yang dibuat/diubah di perangkat ini diantrekan lalu
+  //     dikirim ke tabel public.leaves, sehingga Kepala Sekolah / Admin Unit /
+  //     Superadmin di perangkat lain bisa membuka berkas surat yang diunggah.
+  const staffRef = useRef(state.staff)
+  staffRef.current = state.staff
+  const sesiRef = useRef(null)
+
+  useEffect(() => {
+    if (!state.currentUser) {
+      // Keluar dari akun: sesi berikutnya menarik ulang data dari server.
+      sesiRef.current = null
+      return undefined
+    }
+    const kunciSesi = state.currentUser.id || state.currentUser.niy || state.currentUser.username
+    if (!kunciSesi || sesiRef.current === kunciSesi) return undefined
+    sesiRef.current = kunciSesi
+    let dibatalkan = false
+
+    const tarikRemote = async () => {
+      const staffIdByNiy = {}
+      ;(staffRef.current || []).forEach((s) => {
+        if (s?.niy) staffIdByNiy[s.niy] = s.id
+      })
+
+      const remote = await ambilLeaveDariSupabase({ staffIdByNiy })
+      if (!dibatalkan && remote.length) {
+        dispatch({ type: 'HYDRATE_LEAVES_REMOTE', payload: remote })
+      }
+
+      // Pengajuan yang belum pernah punya refId (data lama/seed) diberi id
+      // versi aplikasi lalu dikirim ke server, supaya perangkat lain ikut
+      // melihat berkas suratnya.
+      if (dibatalkan) return
+      const perluRef = (state.leaves || []).filter((l) => l && !l.refId)
+      if (!perluRef.length) return
+      const peta = {}
+      perluRef.forEach((l) => { peta[l.id] = refIdLeave(l) })
+      dispatch({ type: 'SYNC_LEAVE_REF_IDS', payload: peta })
+
+      const staffById = {}
+      ;(staffRef.current || []).forEach((s) => {
+        if (s?.id != null) staffById[s.id] = s
+      })
+      await simpanBanyakLeaveKeSupabase(
+        perluRef.map((l) => ({ ...l, refId: peta[l.id] })),
+        { staffById },
+      )
+    }
+
+    tarikRemote()
+    return () => { dibatalkan = true }
+  }, [state.currentUser])
+
+  // Tarik ulang data pengajuan dari server saat tab kembali aktif, supaya
+  // approver langsung melihat pengajuan baru tanpa harus memuat ulang halaman.
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined
+    const handleFocus = () => {
+      if (!state.currentUser) return
+      const staffIdByNiy = {}
+      ;(staffRef.current || []).forEach((s) => {
+        if (s?.niy) staffIdByNiy[s.niy] = s.id
+      })
+      ambilLeaveDariSupabase({ staffIdByNiy }).then((remote) => {
+        if (remote && remote.length) dispatch({ type: 'HYDRATE_LEAVES_REMOTE', payload: remote })
+      })
+    }
+    window.addEventListener('focus', handleFocus)
+    return () => window.removeEventListener('focus', handleFocus)
+  }, [state.currentUser])
+
+  // Kirim antrean pengajuan yang berubah ke server.
+  useEffect(() => {
+    const antrean = antreanLeaveSyncAmbil()
+    if (!antrean.length) return
+
+    const staffById = {}
+    ;(staffRef.current || []).forEach((s) => {
+      if (s?.id != null) staffById[s.id] = s
+    })
+
+    antrean.forEach((leave) => {
+      const staff = staffById[leave.staffId] || null
+      simpanLeaveKeSupabase(leave, { staff, unitId: leave.unitId || staff?.unitId || null })
+    })
+  }, [state.leaves])
 
   // attendance selalu turunan data pegawai (satu sumber data presensi).
   const value = useMemo(

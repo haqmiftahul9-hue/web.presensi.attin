@@ -5,14 +5,35 @@ import {
 } from '../data/jenisIzinCuti.js'
 import {
   resolveDocumentUrl,
+  getAttachmentName,
+  getAttachmentUrl,
   isImageDocument,
   isPdfDocument,
   formatDocumentSize,
 } from '../services/leaveAttachmentService.js'
+import DocumentViewerModal from './DocumentViewerModal.jsx'
 import { useSimPresOptional, selectCurrentUserRole, ROLE_SUPERADMIN } from '../store/simPresStore.jsx'
+
+/** Nama berkas lampiran yang ditampilkan ke approver. */
+function namaBerkasLampiran(leave = {}) {
+  return getAttachmentName(leave) || 'Dokumen Lampiran'
+}
+
+/** Ukuran berkas lampiran (atau string kosong bila tidak diketahui). */
+function ukuranLampiran(leave = {}) {
+  const ukuran = leave.lampiranUkuran || leave.lampiran_ukuran || null
+  return ukuran ? formatDocumentSize(ukuran) : ''
+}
 
 function LeaveDetailModal({ isOpen, onClose, leave, canApprove = false, onApprove, onReject }) {
   const [activeTab, setActiveTab] = useState('detail')
+  const [viewerTerbuka, setViewerTerbuka] = useState(false)
+
+  // Semua hook harus dipanggil sebelum keluar lebih awal: modal ini selalu
+  // dipasang di halamannya (isOpen hanya mengatur tampil/tidaknya), sehingga
+  // jumlah hook harus sama pada setiap render.
+  const ctx = useSimPresOptional()
+  const currentRole = ctx?.state ? selectCurrentUserRole(ctx.state) : ''
 
   if (!isOpen || !leave) return null
 
@@ -27,8 +48,6 @@ function LeaveDetailModal({ isOpen, onClose, leave, canApprove = false, onApprov
   const kepsekStatus = leave.approvalKepsek?.status || (leave.status === 'Disetujui' ? 'Disetujui' : leave.status === 'Menunggu Superadmin' ? 'Disetujui' : 'Menunggu')
   const superadminStatus = leave.approvalSuperadmin?.status || (leave.status === 'Disetujui' ? 'Disetujui' : 'Menunggu')
 
-  const ctx = useSimPresOptional()
-  const currentRole = ctx?.state ? selectCurrentUserRole(ctx.state) : ''
   const isSuperadmin = currentRole === ROLE_SUPERADMIN
   const isKepsekApproved = kepsekStatus === 'Disetujui' || leave.status === 'Menunggu Superadmin'
   const isPending = isLeavePending(leave.status)
@@ -233,6 +252,39 @@ function LeaveDetailModal({ isOpen, onClose, leave, canApprove = false, onApprov
                 </div>
               </div>
 
+              {/* Bukti surat: approver (Kepala Sekolah, Admin Unit, Superadmin)
+                  harus bisa membuka berkas yang diunggah pemohon langsung dari
+                  rincian pengajuan, tanpa pindah halaman. */}
+              <div className="flex flex-col gap-1">
+                <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Bukti Surat Izin / Cuti</span>
+                {leave.lampiran || leave.lampiranUrl || leave.lampiran_url ? (
+                  <div className="p-3 bg-primary/5 border border-primary/20 rounded-xl flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className="material-symbols-outlined text-[18px] text-primary shrink-0">attach_file</span>
+                      <div className="min-w-0">
+                        <span className="text-xs font-semibold text-foreground truncate block">{namaBerkasLampiran(leave)}</span>
+                        <span className="text-[11px] text-muted-foreground block">
+                          {ukuranLampiran(leave) || 'Berkas lampiran pengajuan'}
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setViewerTerbuka(true)}
+                      className="px-3 h-8 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer shrink-0"
+                      title={`Lihat bukti surat: ${namaBerkasLampiran(leave)}`}
+                    >
+                      <span className="material-symbols-outlined text-[15px]">visibility</span>
+                      <span>Lihat Bukti</span>
+                    </button>
+                  </div>
+                ) : (
+                  <div className="p-3 bg-muted/20 border border-dashed border-border rounded-xl text-xs text-muted-foreground">
+                    Pengajuan ini tidak melampirkan berkas surat.
+                  </div>
+                )}
+              </div>
+
               <div className="flex flex-col gap-1">
                 <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Diajukan Pada</span>
                 <span className="text-xs font-medium text-muted-foreground">{formatWaktu(leave.createdAt) || '-'}</span>
@@ -244,13 +296,21 @@ function LeaveDetailModal({ isOpen, onClose, leave, canApprove = false, onApprov
             <div className="space-y-4 pt-1">
               {(leave.lampiran || leave.lampiranUrl || leave.lampiran_url) ? (
                 (() => {
-                  const fileName = leave.lampiranNama || leave.lampiran_nama || leave.lampiran || 'dokumen_lampiran.pdf'
+                  const fileName = getAttachmentName(leave) || 'dokumen_lampiran.pdf'
                   const fileSize = leave.lampiranUkuran || leave.lampiran_ukuran || null
+                  const urlAsli = getAttachmentUrl(leave)
                   const docUrl = resolveDocumentUrl(leave)
-                  const isImage = isImageDocument(docUrl) || isImageDocument(fileName)
+                  const isImage = isImageDocument(docUrl) || (isImageDocument(fileName) && !isPdfDocument(fileName))
+                  const isPdf = isPdfDocument(docUrl) || (isPdfDocument(fileName) && !isImageDocument(docUrl))
+                  const adaBerkasAsli = Boolean(urlAsli)
 
                   return (
                     <div className="space-y-3">
+                      {!adaBerkasAsli && (
+                        <p className="rounded-xl bg-amber-50 text-amber-800 border border-amber-200 px-3 py-2 text-[11px] leading-snug">
+                          Pengajuan ini tidak menyimpan berkas yang diunggah pengaju. Yang tampil di bawah adalah pratinjau surat resmi, bukan lampiran asli.
+                        </p>
+                      )}
                       <div className="p-3.5 bg-muted/40 rounded-xl border border-border/60 flex items-center justify-between gap-3">
                         <div className="flex items-center gap-3 min-w-0">
                           <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0 text-primary">
@@ -265,12 +325,22 @@ function LeaveDetailModal({ isOpen, onClose, leave, canApprove = false, onApprov
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
                           <button
-                            onClick={() => window.open(docUrl, '_blank', 'noopener,noreferrer')}
+                            onClick={() => setViewerTerbuka(true)}
                             className="h-8 px-3 rounded-lg bg-primary text-primary-foreground font-semibold text-xs shadow-xs hover:bg-primary/90 transition-colors flex items-center gap-1.5 cursor-pointer"
                             type="button"
+                            title="Pratinjau dokumen layar penuh"
+                          >
+                            <span className="material-symbols-outlined text-[15px]">visibility</span>
+                            <span>Lihat Bukti</span>
+                          </button>
+                          <button
+                            onClick={() => window.open(docUrl, '_blank', 'noopener,noreferrer')}
+                            className="h-8 px-3 rounded-lg bg-card hover:bg-muted border border-border text-foreground font-semibold text-xs shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+                            type="button"
+                            title="Buka berkas di tab baru"
                           >
                             <span className="material-symbols-outlined text-[15px]">open_in_new</span>
-                            <span>Buka Tab Baru</span>
+                            <span className="hidden sm:inline">Tab Baru</span>
                           </button>
                           <button
                             onClick={() => {
@@ -283,20 +353,37 @@ function LeaveDetailModal({ isOpen, onClose, leave, canApprove = false, onApprov
                             }}
                             className="h-8 px-3 rounded-lg border border-border bg-card hover:bg-muted text-foreground font-semibold text-xs transition-colors flex items-center gap-1.5 cursor-pointer"
                             type="button"
+                            title="Unduh berkas"
                           >
                             <span className="material-symbols-outlined text-[15px]">download</span>
-                            <span>Unduh</span>
+                            <span className="hidden sm:inline">Unduh</span>
                           </button>
                         </div>
                       </div>
 
                       {/* Frame Pratinjau Dokumen Inline */}
                       <div className="p-3 bg-slate-900/10 dark:bg-black/30 rounded-xl border border-border/70 flex flex-col items-center justify-center min-h-[220px] max-h-[360px] overflow-auto">
-                        <img
-                          src={docUrl}
-                          alt={`Pratinjau ${fileName}`}
-                          className="max-h-[340px] max-w-full object-contain rounded-lg border border-border shadow-xs bg-white"
-                        />
+                        {isPdf ? (
+                          <iframe
+                            src={docUrl}
+                            title={`Dokumen PDF ${fileName}`}
+                            className="w-full h-[340px] rounded-lg border border-border shadow-xs bg-white"
+                          />
+                        ) : isImage ? (
+                          <img
+                            src={docUrl}
+                            alt={`Pratinjau ${fileName}`}
+                            className="max-h-[340px] max-w-full object-contain rounded-lg border border-border shadow-xs bg-white"
+                          />
+                        ) : (
+                          <div className="flex flex-col items-center justify-center gap-2 text-center px-4 py-6">
+                            <span className="material-symbols-outlined text-[30px] text-primary">description</span>
+                            <p className="text-xs font-semibold text-foreground">{fileName}</p>
+                            <p className="text-[11px] text-muted-foreground max-w-xs leading-snug">
+                              Format berkas ini tidak bisa ditampilkan langsung. Gunakan tombol &ldquo;Lihat Bukti&rdquo; untuk membuka pratinjau lengkap.
+                            </p>
+                          </div>
+                        )}
                       </div>
                     </div>
                   )
@@ -358,6 +445,13 @@ function LeaveDetailModal({ isOpen, onClose, leave, canApprove = false, onApprov
           </div>
         </div>
       </div>
+
+      {/* Pratinjau berkas layar penuh (bukti surat yang diunggah pengaju) */}
+      <DocumentViewerModal
+        isOpen={viewerTerbuka}
+        onClose={() => setViewerTerbuka(false)}
+        leave={leave}
+      />
     </div>
   )
 }

@@ -1088,6 +1088,85 @@ CREATE POLICY "Superadmin manage all attendance" ON public.attendance
 FOR ALL USING (public.get_current_user_role() = 'Superadmin');
 
 -- ==============================================================================
+-- 19. BUKTI SURAT IZIN/CUTI BERSAMA ANTAR PERANGKAT (Kepala Sekolah, Admin
+--     Unit, dan Superadmin)
+-- ==============================================================================
+-- LATAR BELAKANG
+--   Berkas surat izin diunggah ke Supabase Storage (bucket `leave-attachments`),
+--   sedangkan baris pengajuannya hanya tersimpan di localStorage browser.
+--   Akibatnya approver yang memakai perangkat lain tidak pernah melihat berkas
+--   yang diunggah pemohon.
+--
+--   Bagian ini membuat tabel public.leaves menjadi tempat pertukaran baris
+--   pengajuan antar perangkat. Yang perlu ditambahkan HANYA kolom kunci
+--   pencocokan; kolom lampiran_url / lampiran_nama / lampiran_tipe /
+--   lampiran_ukuran sudah ada sejak versi skema sebelumnya.
+--
+-- YANG TIDAK BERUBAH
+--   - Tabel public.leaves dipakai apa adanya (tidak ada tabel baru).
+--   - Bucket `leave-attachments` beserta policy storage-nya tetap dipakai.
+--   - Skema tetap idempotent: aman dijalankan berkali-kali di SQL Editor.
+--
+-- CATATAN KEAMANAN
+--   Aplikasi SimPres berjalan memakai anon key (kios/mobile tidak login ke
+--   Supabase Auth), jadi peran aplikasi tidak bisa dipetakan ke auth.uid().
+--   Karena itu policy di bawah mengizinkan aplikasi membaca/menulis baris
+--   pengajuan. Pembatasan unit & peran tetap ditegakkan di sisi aplikasi
+--   (selectScopedLeaves() di src/store/simPresStore.jsx). Bila aplikasi nanti
+--   memakai Supabase Auth, policy "Cuti ... aplikasi" bisa dihapus dan hanya
+--   policy berbasis peran yang dipakai.
+-- ==============================================================================
+
+-- 19.1 Kunci pencocokan antar perangkat
+--   ref_id    : id pengajuan versi aplikasi (dibuat sekali saat pengajuan
+--               dibuat). Dipakai sebagai target ON CONFLICT saat menyimpan.
+--   staff_niy : NIY pemohon. Identifier yang stabil lintas perangkat, dipakai
+--               untuk memetakan baris server ke data pegawai lokal.
+ALTER TABLE public.leaves ADD COLUMN IF NOT EXISTS ref_id TEXT;
+ALTER TABLE public.leaves ADD COLUMN IF NOT EXISTS staff_niy VARCHAR(30);
+
+-- 19.2 Relasi ke tabel staff & units dilepas
+--   Data pegawai & unit di aplikasi adalah sumber kebenaran; tabel
+--   public.staff / public.units di Supabase hanya berisi data contoh, sehingga
+--   relasi wajib akan menggagalkan penyimpanan pengajuan dari perangkat lain.
+ALTER TABLE public.leaves ALTER COLUMN staff_id DROP NOT NULL;
+ALTER TABLE public.leaves ALTER COLUMN unit_id DROP NOT NULL;
+ALTER TABLE public.leaves DROP CONSTRAINT IF EXISTS leaves_staff_id_fkey;
+ALTER TABLE public.leaves DROP CONSTRAINT IF EXISTS leaves_unit_id_fkey;
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_leaves_ref_id ON public.leaves(ref_id);
+CREATE INDEX IF NOT EXISTS idx_leaves_staff_niy ON public.leaves(staff_niy);
+CREATE INDEX IF NOT EXISTS idx_leaves_unit_status ON public.leaves(unit_id, status);
+
+-- 19.3 Policy RLS untuk pertukaran data antar perangkat
+DROP POLICY IF EXISTS "Cuti dibaca aplikasi (portal & mobile)" ON public.leaves;
+DROP POLICY IF EXISTS "Cuti ditambah aplikasi (portal & mobile)" ON public.leaves;
+DROP POLICY IF EXISTS "Cuti diubah aplikasi (portal & mobile)" ON public.leaves;
+DROP POLICY IF EXISTS "Cuti dihapus aplikasi (Superadmin & Admin Unit)" ON public.leaves;
+
+CREATE POLICY "Cuti dibaca aplikasi (portal & mobile)" ON public.leaves
+FOR SELECT USING (true);
+
+CREATE POLICY "Cuti ditambah aplikasi (portal & mobile)" ON public.leaves
+FOR INSERT WITH CHECK (true);
+
+CREATE POLICY "Cuti diubah aplikasi (portal & mobile)" ON public.leaves
+FOR UPDATE USING (true);
+
+CREATE POLICY "Cuti dihapus aplikasi (Superadmin & Admin Unit)" ON public.leaves
+FOR DELETE USING (
+  public.get_current_user_role() IN ('Superadmin', 'Admin Unit')
+  OR auth.role() = 'anon'
+);
+
+-- 19.4 Sinkronisasi urutan kolom id
+--   Kolom id tetap menjadi kunci surrogat (dikirim server), sedangkan aplikasi
+--   mencocokkan baris lewat ref_id. Tidak ada id yang diinsert manual, jadi
+--   sequence tidak perlu disentuh. Bila ada INSERT manual ke public.leaves,
+--   jalankan perintah berikut agar urutannya tetap benar:
+--   SELECT setval('public.leaves_id_seq', (SELECT COALESCE(MAX(id), 1) FROM public.leaves));
+
+-- ==============================================================================
 -- AKHIR SKEMA DATABASE SUPABASE
 -- ==============================================================================
 

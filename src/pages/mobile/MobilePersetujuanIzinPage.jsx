@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Icon from '../../components/Icon.jsx'
 import DocumentViewerModal from '../../components/DocumentViewerModal.jsx'
-import { formatDocumentSize } from '../../services/leaveAttachmentService.js'
+import { formatDocumentSize, hasAttachment, getAttachmentName } from '../../services/leaveAttachmentService.js'
 import {
   isLeavePending,
   isLeaveApproved,
@@ -16,6 +16,12 @@ import {
   addActivityLog, hasPermission, selectCurrentUserRole, ROLE_SUPERADMIN,
 } from '../../store/simPresStore.jsx'
 import { EmptyState, LoadingState } from '../../components/mobile/Feedback.jsx'
+
+/** Apakah pengajuan ini punya berkas lampiran yang bisa dibuka approver? */
+const adaLampiran = (leave) => hasAttachment(leave)
+
+/** Nama berkas lampiran untuk ditampilkan. */
+const namaLampiran = (leave) => getAttachmentName(leave) || 'Surat Pengajuan Izin / Cuti'
 
 function BarisStatus({ status }) {
   const isApproved = isLeaveApproved(status)
@@ -352,21 +358,32 @@ function MobilePersetujuanIzinPage() {
                       </div>
                       <div className="min-w-0">
                         <span className="font-semibold text-foreground text-xs block truncate">
-                          {item.lampiranNama || item.lampiran_nama || item.lampiran || 'Surat Pengajuan Izin / Cuti'}
+                          {namaLampiran(item)}
                         </span>
                         <span className="text-[10.5px] text-muted-foreground block">
-                          {item.lampiranUkuran ? formatDocumentSize(item.lampiranUkuran) : 'Dokumen Surat Resmi Terverifikasi'}
+                          {item.lampiranUkuran || item.lampiran_ukuran
+                            ? formatDocumentSize(item.lampiranUkuran || item.lampiran_ukuran)
+                            : adaLampiran(item)
+                              ? 'Berkas bukti diunggah pemohon'
+                              : 'Pemohon tidak melampirkan berkas'}
                         </span>
                       </div>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedDocument(item)}
-                      className="px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-strong text-white font-label-sm text-xs font-semibold flex items-center gap-1.5 shadow-2xs active:scale-95 transition-all shrink-0 cursor-pointer"
-                    >
-                      <Icon name="visibility" className="text-[14px]" />
-                      <span>Lihat Bukti</span>
-                    </button>
+                    {adaLampiran(item) ? (
+                      <button
+                        type="button"
+                        onClick={() => setSelectedDocument(item)}
+                        className="px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-strong text-white font-label-sm text-xs font-semibold flex items-center gap-1.5 shadow-2xs active:scale-95 transition-all shrink-0 cursor-pointer"
+                        title={`Lihat bukti surat: ${namaLampiran(item)}`}
+                      >
+                        <Icon name="visibility" className="text-[14px]" />
+                        <span>Lihat Bukti</span>
+                      </button>
+                    ) : (
+                      <span className="px-2.5 py-1 rounded-lg bg-muted text-muted-foreground font-label-sm text-[10.5px] font-semibold shrink-0">
+                        Tanpa lampiran
+                      </span>
+                    )}
                   </div>
 
                   {/* Info Status Alur Bertingkat 2 Tahap */}

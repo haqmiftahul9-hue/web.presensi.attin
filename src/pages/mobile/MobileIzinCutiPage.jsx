@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Icon from '../../components/Icon.jsx'
 import DocumentViewerModal from '../../components/DocumentViewerModal.jsx'
-import { uploadLeaveAttachment } from '../../services/leaveAttachmentService.js'
+import { uploadLeaveAttachment, getAttachmentName } from '../../services/leaveAttachmentService.js'
 import {
   useSimPresOptional, selectSelfStaff, selectSelfLeaves, selectUnitById, addActivityLog,
   selectCurrentUserRole, ROLE_SUPERADMIN, ROLE_KEPALA_SEKOLAH,
@@ -560,10 +560,12 @@ function MobileIzinCutiPage() {
                           <Icon name="attach_file" className="text-[17px] text-primary shrink-0" />
                           <div className="min-w-0">
                             <span className="font-semibold text-foreground text-xs block truncate">
-                              {item.lampiranNama || item.lampiran_nama || item.lampiran}
+                              {getAttachmentName(item) || 'Surat Pengajuan Izin / Cuti'}
                             </span>
                             <span className="text-[10.5px] text-muted-foreground block">
-                              {item.lampiranUkuran ? ukuranBerkas(item.lampiranUkuran) : 'Surat Bukti Lampiran'}
+                              {item.lampiranUkuran || item.lampiran_ukuran
+                                ? ukuranBerkas(item.lampiranUkuran || item.lampiran_ukuran)
+                                : 'Surat Bukti Lampiran'}
                             </span>
                           </div>
                         </div>
@@ -571,6 +573,7 @@ function MobileIzinCutiPage() {
                           type="button"
                           onClick={() => setSelectedLeaveDoc(item)}
                           className="px-2.5 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary font-semibold text-xs flex items-center gap-1 shrink-0 transition-colors cursor-pointer"
+                          title={`Lihat surat: ${getAttachmentName(item) || 'lampiran'}`}
                         >
                           <Icon name="visibility" className="text-[14px]" />
                           <span>Lihat Surat</span>

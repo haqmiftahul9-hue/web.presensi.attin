@@ -29,6 +29,61 @@ export function validateLeaveAttachment(file) {
 }
 
 /**
+ * Ambil URL dokumen bukti yang benar-benar bisa dibuka browser.
+ *
+ * Attention: field `lampiran` pada data lama hanya berisi NAMA berkas
+ * (mis. "surat_pengajuan.pdf"), bukan URL. Nama berkas tidak bisa
+ * dipratinjau, jadi hanya http/https/data/blob yang dianggap sebagai
+ * dokumen nyata.
+ *
+ * @param {Object} leave
+ * @returns {string} URL dokumen, atau string kosong bila tidak ada berkas nyata.
+ */
+export function getAttachmentUrl(leave = {}) {
+  const kandidat =
+    leave.lampiranUrl ||
+    leave.lampiran_url ||
+    leave.lampiran_data ||
+    leave.lampiranData ||
+    ''
+  const str = String(kandidat || '').trim()
+  return /^(https?:|data:|blob:)/i.test(str) ? str : ''
+}
+
+/**
+ * Nama berkas lampiran untuk ditampilkan. Bila `lampiran` berisi URL, nama
+ * diambil dari path URL-nya supaya tidak menampilkan tautan panjang.
+ *
+ * @param {Object} leave
+ * @returns {string}
+ */
+export function getAttachmentName(leave = {}) {
+  const eksplisit = leave.lampiranNama || leave.lampiran_nama || leave.lampiranNamaBerkas || ''
+  if (eksplisit) return eksplisit
+  const fallback = leave.lampiran || leave.lampiranUrl || leave.lampiran_url || ''
+  const str = String(fallback || '').trim()
+  if (!str) return ''
+  if (/^(https?:|data:|blob:)/i.test(str)) {
+    const tanpaQuery = str.split('?')[0].split('#')[0]
+    const basename = tanpaQuery.split('/').pop() || ''
+    return basename || 'dokumen_lampiran'
+  }
+  return str
+}
+
+/**
+ * Apakah pengajuan ini punya berkas lampiran yang bisa dibuka.
+ * @param {Object} leave
+ * @returns {boolean}
+ */
+export function hasAttachment(leave = {}) {
+  if (getAttachmentUrl(leave)) return true
+  // Berkas seed/mock belum punya URL, tapi tetap punya nama berkas sehingga
+  // halaman bisa menampilkan pratinjau surat resmi (SVG) sebagai gantinya.
+  return Boolean(getAttachmentName(leave))
+}
+
+/**
  * Deteksi apakah berkas atau URL merupakan gambar.
  * @param {string} fileOrUrl
  * @returns {boolean}
@@ -214,7 +269,7 @@ export function getMockDocumentSvg(leave = {}) {
   const dates = leave.periode || 'Periode Resmi'
   const rawReason = leave.keterangan || leave.alasan || 'Keperluan dinas / kesehatan yang telah dikonfirmasi oleh pemohon.'
   const reasonLines = wrapText(rawReason, 56)
-  const fileName = leave.lampiranNama || leave.lampiran_nama || leave.lampiran || 'surat_keterangan.pdf'
+  const fileName = getAttachmentName(leave) || 'surat_keterangan.pdf'
   const docId = leave.id || '01'
   const durasi = leave.durasi || (leave.durasi_hari ? `${leave.durasi_hari} Hari` : '1 Hari')
 
@@ -333,10 +388,8 @@ export function getMockDocumentSvg(leave = {}) {
  * @returns {string} URL yang siap dibuka di browser atau modal viewer
  */
 export function resolveDocumentUrl(leave = {}) {
-  const lampiran = leave.lampiranUrl || leave.lampiran_url || leave.lampiran
-  if (lampiran && /^(https?:|data:|blob:)/i.test(String(lampiran))) {
-    return String(lampiran)
-  }
+  const lampiran = getAttachmentUrl(leave)
+  if (lampiran) return lampiran
   // Fallback demo/mock official certificate
   return getMockDocumentSvg(leave)
 }

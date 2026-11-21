@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import Icon from './Icon.jsx'
 import {
   resolveDocumentUrl,
+  getAttachmentName,
+  getAttachmentUrl,
   isImageDocument,
   isPdfDocument,
   formatDocumentSize,
@@ -10,22 +12,30 @@ import {
 function DocumentViewerModal({ isOpen, onClose, leave }) {
   const [loading, setLoading] = useState(true)
   const [zoom, setZoom] = useState(1)
+  const [gagalMuat, setGagalMuat] = useState(false)
 
   useEffect(() => {
     if (isOpen) {
       setLoading(true)
       setZoom(1)
+      setGagalMuat(false)
     }
   }, [isOpen, leave])
 
   if (!isOpen || !leave) return null
 
-  const fileName = leave.lampiranNama || leave.lampiran_nama || leave.lampiran || 'surat_pengajuan_izin.pdf'
+  const fileName = getAttachmentName(leave) || 'surat_pengajuan_izin.pdf'
   const fileSize = leave.lampiranUkuran || leave.lampiran_ukuran || null
+  const urlAsli = getAttachmentUrl(leave)
   const documentUrl = resolveDocumentUrl(leave)
   const isSvg = documentUrl.startsWith('data:image/svg+xml') || documentUrl.endsWith('.svg')
   const isPdf = !isSvg && (isPdfDocument(documentUrl) || (isPdfDocument(fileName) && !documentUrl.startsWith('data:image/')))
-  const isImage = isSvg || isImageDocument(documentUrl) || isImageDocument(fileName)
+  const isImage = isSvg || isImageDocument(documentUrl) || (isImageDocument(fileName) && !isPdf)
+  // Berkas yang benar-benar diunggah pengguna ada di Supabase Storage. Kalau
+  // tidak ada, yang ditampilkan adalah pratinjau surat resmi (SVG) — bukan
+  // berkas yang diunggah.
+  const adaBerkasAsli = Boolean(urlAsli)
+  const bisaPratinjau = isImage || isPdf
 
   const handleDownload = () => {
     try {
@@ -148,37 +158,78 @@ function DocumentViewerModal({ isOpen, onClose, leave }) {
               <span className="text-xs text-muted-foreground font-medium">Memuat pratinjau dokumen…</span>
             </div>
           )}
-          {isImage ? (
+          {!adaBerkasAsli && (
+            <div className="absolute top-3 left-3 right-3 z-10">
+              <p className="rounded-xl bg-amber-50 text-amber-800 border border-amber-200 px-3 py-2 text-[11px] leading-snug">
+                Pengajuan ini tidak menyimpan berkas yang diunggah pengguna, jadi yang tampil adalah pratinjau surat resmi. Lampirkan berkas surat pada pengajuan agar bukti dapat diverifikasi.
+              </p>
+            </div>
+          )}
+          {gagalMuat ? (
+            <div className="flex flex-col items-center justify-center gap-2 text-center px-4">
+              <span className="material-symbols-outlined text-[34px] text-muted-foreground/70">broken_image</span>
+              <p className="text-xs font-semibold text-foreground">Berkas tidak dapat ditampilkan di pratinjau</p>
+              <p className="text-[11px] text-muted-foreground max-w-sm leading-snug">
+                Format berkas mungkin tidak didukung peramban ini. Gunakan tombol &ldquo;Buka Tab Baru&rdquo; atau &ldquo;Unduh&rdquo; untuk melihat berkas asli.
+              </p>
+            </div>
+          ) : isImage ? (
             <div className="relative max-w-full max-h-full flex items-center justify-center overflow-auto p-2">
               <img
                 src={documentUrl}
                 alt={`Lampiran ${fileName}`}
                 onLoad={() => setLoading(false)}
-                onError={() => setLoading(false)}
+                onError={() => { setLoading(false); setGagalMuat(true) }}
                 style={{ transform: `scale(${zoom})`, transformOrigin: 'center center' }}
                 className="max-w-full max-h-[65vh] object-contain rounded-lg shadow-md border border-border/60 transition-transform duration-150 bg-white"
               />
             </div>
-          ) : isPdf && !documentUrl.startsWith('data:image/') ? (
+          ) : isPdf ? (
             <div className="w-full h-[65vh] flex flex-col bg-card rounded-xl overflow-hidden border border-border/80">
               <iframe
                 src={documentUrl}
                 title={`Dokumen PDF ${fileName}`}
                 className="w-full flex-1 border-0"
                 onLoad={() => setLoading(false)}
+                onError={() => { setLoading(false); setGagalMuat(true) }}
               />
             </div>
-          ) : (
-            /* Fallback generic document preview */
+          ) : bisaPratinjau ? (
             <div className="relative max-w-full max-h-full flex items-center justify-center overflow-auto p-2">
               <img
                 src={documentUrl}
                 alt={`Lampiran ${fileName}`}
                 onLoad={() => setLoading(false)}
-                onError={() => setLoading(false)}
+                onError={() => { setLoading(false); setGagalMuat(true) }}
                 style={{ transform: `scale(${zoom})`, transformOrigin: 'center center' }}
                 className="max-w-full max-h-[65vh] object-contain rounded-lg shadow-md border border-border/60 transition-transform duration-150 bg-white"
               />
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center gap-2.5 text-center px-4">
+              <span className="material-symbols-outlined text-[36px] text-primary">description</span>
+              <p className="text-xs font-semibold text-foreground">{fileName}</p>
+              <p className="text-[11px] text-muted-foreground max-w-sm leading-snug">
+                Format berkas ini tidak bisa ditampilkan langsung. Buka tab baru atau unduh berkasnya untuk melihat isi surat.
+              </p>
+              <div className="flex items-center gap-2 mt-1">
+                <button
+                  type="button"
+                  onClick={handleOpenExternal}
+                  className="h-8 px-3 rounded-lg bg-primary hover:bg-primary-strong text-white text-[11px] font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  <Icon name="open_in_new" className="text-[14px]" />
+                  <span>Buka Tab Baru</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDownload}
+                  className="h-8 px-3 rounded-lg border border-border bg-card hover:bg-muted text-foreground text-[11px] font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  <Icon name="download" className="text-[14px]" />
+                  <span>Unduh</span>
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -187,7 +238,11 @@ function DocumentViewerModal({ isOpen, onClose, leave }) {
         <div className="px-5 py-3 border-t border-border bg-muted/30 flex items-center justify-between">
           <p className="text-[11px] text-muted-foreground flex items-center gap-1.5">
             <Icon name="verified_user" className="text-[15px] text-emerald-600 dark:text-emerald-400" />
-            <span>Dokumen bukti pengajuan terverifikasi tersimpan di sistem SIMPRES.</span>
+            <span>
+              {adaBerkasAsli
+                ? 'Berkas bukti pengajuan tersimpan di Supabase Storage dan dapat diverifikasi oleh approver.'
+                : 'Pratinjau dokumen pengajuan — belum ada berkas lampiran yang diunggah.'}
+            </span>
           </p>
           <button
             type="button"

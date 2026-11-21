@@ -7,6 +7,7 @@ import { selectLeavesByStatus, selectPendingLeaves, selectApprovedLeaves, select
 import LeaveRequestModal from '../components/LeaveRequestModal.jsx'
 import LeaveDetailModal from '../components/LeaveDetailModal.jsx'
 import DocumentViewerModal from '../components/DocumentViewerModal.jsx'
+import { hasAttachment, getAttachmentName } from '../services/leaveAttachmentService.js'
 import {
   JENIS_UTAMA, SEMUA_JENIS, kelompokIzinCuti,
   WARNA_STATUS_PORTAL, WARNA_TITIK_STATUS, hitungSisaKuota,
@@ -36,6 +37,12 @@ const statusClassMap = WARNA_STATUS_PORTAL
 const statusDotMap = WARNA_TITIK_STATUS
 const jenisClassMap = Object.fromEntries(SEMUA_JENIS.map((j) => [j.nama, j.warna]))
 const avatarClassMap = Object.fromEntries(SEMUA_JENIS.map((j) => [j.nama, j.warnaAvatar]))
+
+/** Apakah pengajuan punya berkas lampiran (nama berkas maupun URL berkas)? */
+const hasLampiran = (leave) => hasAttachment(leave)
+
+/** Nama berkas lampiran untuk ditampilkan di tabel. */
+const namaLampiran = (leave) => getAttachmentName(leave) || 'Dokumen lampiran'
 
 function PengajuanIzinCutiPage() {
   const { state, dispatch } = useSimPres()
@@ -757,16 +764,21 @@ function PengajuanIzinCutiPage() {
 
                       {/* Lampiran */}
                       <td className="py-3.5 px-3 text-center whitespace-nowrap">
-                        {row.lampiran ? (
-                          <button
-                            onClick={() => handleViewAttachment(row)}
-                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-secondary hover:bg-secondary/80 text-secondary-foreground border border-border/60 transition-colors text-xs font-medium cursor-pointer max-w-[130px] justify-center mx-auto"
-                            title={row.lampiran}
-                            type="button"
-                          >
-                            <span className="material-symbols-outlined text-[14px] shrink-0 text-primary">attach_file</span>
-                            <span className="truncate block">{row.lampiran}</span>
-                          </button>
+                        {hasLampiran(row) ? (
+                          <div className="flex flex-col items-center gap-1">
+                            <button
+                              onClick={() => handleViewAttachment(row)}
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-secondary hover:bg-secondary/80 text-secondary-foreground border border-border/60 transition-colors text-xs font-medium cursor-pointer max-w-[150px] justify-center mx-auto"
+                              title={`Lihat bukti: ${namaLampiran(row)}`}
+                              type="button"
+                            >
+                              <span className="material-symbols-outlined text-[14px] shrink-0 text-primary">visibility</span>
+                              <span className="truncate block">Lihat Bukti</span>
+                            </button>
+                            <span className="text-[10.5px] text-muted-foreground truncate max-w-[150px] inline-block">
+                              {namaLampiran(row)}
+                            </span>
+                          </div>
                         ) : (
                           <span className="text-[11px] text-muted-foreground italic">- Tidak ada -</span>
                         )}
