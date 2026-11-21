@@ -105,6 +105,14 @@ test('Admin Unit dibatasi secara ketat hanya pada unit penugasannya', () => {
   const scopedLeaves = selectScopedLeaves(stateAdminSD)
   const sdStaffIds = new Set(scopedStaff.map(s => s.id))
   assert.ok(scopedLeaves.every(l => sdStaffIds.has(l.staffId)), 'Izin/cuti hanya milik staff unit SD')
+
+  // Hak akses Admin Unit: monitoring/rekap saja, TIDAK berhak approve/edit izin cuti
+  const canApprove = hasPermission(stateAdminSD, ROLE_ADMIN_UNIT, 'pengajuanIzinCuti', 'edit')
+  assert.equal(canApprove, false, 'Admin Unit TIDAK boleh memiliki wewenang edit/approval izin/cuti')
+  const canView = hasPermission(stateAdminSD, ROLE_ADMIN_UNIT, 'pengajuanIzinCuti', 'view')
+  assert.equal(canView, true, 'Admin Unit tetap berhak melihat daftar izin/cuti')
+  const canAdd = hasPermission(stateAdminSD, ROLE_ADMIN_UNIT, 'pengajuanIzinCuti', 'add')
+  assert.equal(canAdd, true, 'Admin Unit berhak menambahkan/mendaftarkan izin cuti pegawai unitnya')
 })
 
 // 4. Kepala Sekolah Permissions & Approval

@@ -1461,7 +1461,7 @@ function RekapLaporanPage() {
   const [reportSettings, setReportSettings] = useState({
     reportType: 'presensi',
     period: 'Bulanan',
-    unit: 'all',
+    unit: canSwitchUnit ? 'all' : (selectedUnit !== ALL_UNITS ? selectedUnit : (state.currentUser?.unitId || 'sd')),
     format: 'pdf',
     customStartDate: '',
     customEndDate: '',
@@ -1469,8 +1469,16 @@ function RekapLaporanPage() {
     periodMonth: '',
     periodYear: '',
   })
-  const [exportPresensiConfig, setExportPresensiConfig] = useState({ period: 'Bulanan', unit: 'all', format: 'excel' })
-  const [exportCutiConfig, setExportCutiConfig] = useState({ period: 'Bulanan', unit: 'all', format: 'excel' })
+  const [exportPresensiConfig, setExportPresensiConfig] = useState({
+    period: 'Bulanan',
+    unit: canSwitchUnit ? 'all' : (selectedUnit !== ALL_UNITS ? selectedUnit : (state.currentUser?.unitId || 'sd')),
+    format: 'excel',
+  })
+  const [exportCutiConfig, setExportCutiConfig] = useState({
+    period: 'Bulanan',
+    unit: canSwitchUnit ? 'all' : (selectedUnit !== ALL_UNITS ? selectedUnit : (state.currentUser?.unitId || 'sd')),
+    format: 'excel',
+  })
   const [isExporting, setIsExporting] = useState(false)
   const [notification, setNotification] = useState(null)
 
@@ -1726,17 +1734,19 @@ function RekapLaporanPage() {
   )
 
   const getExportPresensiData = (period, unit) => {
+    const effUnit = canSwitchUnit ? unit : selectedUnit
     const periode = bangunPeriode(period)
-    return selectRekapReportData(state, unit === 'all' ? null : unit, period, periode.tanggal || new Date(), {
+    return selectRekapReportData(state, effUnit === 'all' ? null : effUnit, period, periode.tanggal || new Date(), {
       bulan: periode.bulan,
       tahun: periode.tahun,
     })
   }
 
   const getExportCutiData = (period, unit) => {
+    const effUnit = canSwitchUnit ? unit : selectedUnit
     let staff = state.staff.filter((s) => s.status === 'Aktif')
-    if (unit && unit !== 'all') {
-      staff = staff.filter((s) => s.unitId === unit)
+    if (effUnit && effUnit !== 'all') {
+      staff = staff.filter((s) => s.unitId === effUnit)
     }
     const leaves = state.leaves || []
     return staff.map((s, idx) => {
@@ -2112,6 +2122,11 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
         return
       }
 
+      // Enforce batasan unit untuk role tanpa hak alih unit (misal Admin Unit)
+      const targetUnit = canSwitchUnit
+        ? unit
+        : (selectedUnit !== ALL_UNITS ? selectedUnit : (state.currentUser?.unitId || 'sd'))
+
       // Formatter periode terpusat: satu sumber untuk UI, Print, PDF & Excel.
       const periode = bangunPeriode(period, customStartDate, customEndDate, {
         tanggal: periodDate || null,
@@ -2119,7 +2134,7 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
         tahun: periodYear || null,
       })
 
-      const data = getReportData(reportType, period, unit, customStartDate, customEndDate, {
+      const data = getReportData(reportType, period, targetUnit, customStartDate, customEndDate, {
         tanggal: periode.tanggal,
         bulan: periode.bulan,
         tahun: periode.tahun,
@@ -2132,11 +2147,11 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
         return
       }
 
-      const unitLabel = unit === 'all' ? 'Semua_Unit' : (state.units.find(u => u.id === unit)?.nama || 'Semua_Unit').replace(/\s+/g, '_')
+      const unitLabel = targetUnit === 'all' ? 'Semua_Unit' : (state.units.find(u => u.id === targetUnit)?.nama || 'Semua_Unit').replace(/\s+/g, '_')
 
       // Get yayasan info and signatory from global settings
       const yayasanInfo = getYayasanInfo()
-      const signatory = unit === 'all' ? getSignatoryAllUnits() : getSignatory(unit)
+      const signatory = targetUnit === 'all' ? getSignatoryAllUnits() : getSignatory(targetUnit)
 
       const reportTitle = reportType === 'presensi' ? 'Rekap Presensi' : 'Rekap Cuti/Izin'
       const judulLaporan = JUDUL_LAPORAN[reportType]
@@ -2150,12 +2165,12 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
           return
         }
 
-        const unitDisplay = unit === 'all' ? 'Semua Unit' : (state.units.find(u => u.id === unit)?.nama || 'Semua Unit')
+        const unitDisplay = targetUnit === 'all' ? 'Semua Unit' : (state.units.find(u => u.id === targetUnit)?.nama || 'Semua Unit')
         const periodDisplay = periode.header
         const now = new Date()
         const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
         const dateStr = `${now.getDate()} ${monthNames[now.getMonth()]} ${now.getFullYear()}`
-        const logoUrl = getLogoForUnit(unit, yayasanInfo)
+        const logoUrl = getLogoForUnit(targetUnit, yayasanInfo)
 
         let tableHtml = ''
         let footerHtml = ''
@@ -2335,7 +2350,9 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
     setIsExporting(true)
     try {
       const period = activePeriod
-      const unit = selectedUnit
+      const targetUnit = canSwitchUnit
+        ? (selectedUnit === ALL_UNITS ? 'all' : selectedUnit)
+        : (selectedUnit !== ALL_UNITS ? selectedUnit : (state.currentUser?.unitId || 'sd'))
 
       // Get custom dates from reportSettings if period is custom, fallback to main filter custom dates
       const customStartDate = (period === 'custom' && (reportSettings.customStartDate || mainCustomStart)) ? (reportSettings.customStartDate || mainCustomStart) : null
@@ -2344,7 +2361,7 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
       // Formatter periode terpusat (header & kolom tabel selalu spesifik).
       const periode = bangunPeriode(period, customStartDate, customEndDate)
 
-      const data = getReportData(reportType, period, unit, customStartDate, customEndDate, {
+      const data = getReportData(reportType, period, targetUnit, customStartDate, customEndDate, {
         tanggal: periode.tanggal,
         bulan: periode.bulan,
         tahun: periode.tahun,
@@ -2356,11 +2373,11 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
         return
       }
 
-      const unitLabel = unit === 'all' ? 'Semua_Unit' : (state.units.find(u => u.id === unit)?.nama || 'Semua_Unit').replace(/\s+/g, '_')
+      const unitLabel = targetUnit === 'all' ? 'Semua_Unit' : (state.units.find(u => u.id === targetUnit)?.nama || 'Semua_Unit').replace(/\s+/g, '_')
 
       // Get yayasan info and signatory from global settings
       const yayasanInfo = getYayasanInfo()
-      const signatory = unit === 'all' ? getSignatoryAllUnits() : getSignatory(unit)
+      const signatory = targetUnit === 'all' ? getSignatoryAllUnits() : getSignatory(targetUnit)
 
       if (reportType === 'presensi') {
         if (format === 'pdf') {
@@ -2472,10 +2489,23 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
                 )}
                 <div>
                   <label className="block text-xs font-semibold text-muted-foreground mb-1.5">Unit Sekolah</label>
-                  <select value={reportSettings.unit} onChange={(e) => setReportSettings(prev => ({...prev, unit: e.target.value}))} className="w-full h-9 px-3 bg-card border border-input rounded-lg text-xs text-foreground focus:ring-1 focus:ring-ring">
-                    {canSwitchUnit && <option value="all">Semua Unit Sekolah</option>}
-                    {state.units.map(u => <option key={u.id} value={u.id}>{u.nama}</option>)}
-                  </select>
+                  {canSwitchUnit ? (
+                    <select value={reportSettings.unit} onChange={(e) => setReportSettings(prev => ({...prev, unit: e.target.value}))} className="w-full h-9 px-3 bg-card border border-input rounded-lg text-xs text-foreground focus:ring-1 focus:ring-ring">
+                      <option value="all">Semua Unit Sekolah</option>
+                      {state.units.map(u => <option key={u.id} value={u.id}>{u.nama}</option>)}
+                    </select>
+                  ) : (
+                    <div className="flex items-center justify-between h-9 px-3 bg-muted border border-border rounded-lg text-xs">
+                      <div className="flex items-center gap-2 text-foreground font-semibold">
+                        <span className="material-symbols-outlined text-[16px] text-muted-foreground">domain</span>
+                        <span>{unitLabel}</span>
+                      </div>
+                      <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground bg-card border border-border/60 px-2 py-0.5 rounded-md">
+                        <span className="material-symbols-outlined text-[13px]">lock</span>
+                        Hanya unit Anda
+                      </span>
+                    </div>
+                  )}
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-muted-foreground mb-1.5">Format Output / Tindakan</label>
@@ -2644,7 +2674,7 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
                 setReportSettings({
                   reportType: 'presensi',
                   period: activePeriod,
-                  unit: selectedUnit === ALL_UNITS ? 'all' : selectedUnit,
+                  unit: canSwitchUnit ? (selectedUnit === ALL_UNITS ? 'all' : selectedUnit) : (selectedUnit !== ALL_UNITS ? selectedUnit : (state.currentUser?.unitId || 'sd')),
                   format: 'excel',
                   customStartDate: mainCustomStart,
                   customEndDate: mainCustomEnd,
@@ -2666,7 +2696,7 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
                 setReportSettings({
                   reportType: 'cuti',
                   period: activePeriod,
-                  unit: selectedUnit === ALL_UNITS ? 'all' : selectedUnit,
+                  unit: canSwitchUnit ? (selectedUnit === ALL_UNITS ? 'all' : selectedUnit) : (selectedUnit !== ALL_UNITS ? selectedUnit : (state.currentUser?.unitId || 'sd')),
                   format: 'excel',
                   customStartDate: mainCustomStart,
                   customEndDate: mainCustomEnd,
@@ -2688,7 +2718,7 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
                 setReportSettings(prev => ({
                   ...prev,
                   period: activePeriod,
-                  unit: selectedUnit === ALL_UNITS ? 'all' : selectedUnit,
+                  unit: canSwitchUnit ? (selectedUnit === ALL_UNITS ? 'all' : selectedUnit) : (selectedUnit !== ALL_UNITS ? selectedUnit : (state.currentUser?.unitId || 'sd')),
                   format: 'print',
                   customStartDate: mainCustomStart,
                   customEndDate: mainCustomEnd,
@@ -2704,7 +2734,7 @@ const getReportData = (reportType, period, unit, customStartDate = null, customE
               <span className="material-symbols-outlined text-[16px]">print</span>
               <span>Cetak</span>
             </button>
-            </div>
+          </div>
            </div>
            {activePeriod === 'custom' && (
              <div className="flex items-center gap-2 flex-wrap">

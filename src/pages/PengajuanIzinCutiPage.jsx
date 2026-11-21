@@ -64,10 +64,12 @@ function PengajuanIzinCutiPage() {
   const currentUser = state.currentUser
   const isSuperadmin = currentUserRole === 'Superadmin'
   const isKepsek = currentUserRole === 'Kepala Sekolah'
-  const canApproveLeave = isSuperadmin || isKepsek || hasPermission(state, currentUserRole, 'pengajuanIzinCuti', 'edit')
+  const isAdminUnit = currentUserRole === 'Admin Unit' || currentUserRole === 'Admin'
+  const canApproveLeave = !isAdminUnit && (isSuperadmin || isKepsek)
   const canSwitchUnit = isSuperadmin
   const userUnitId = selectActiveUnitId(state)
   const selectedUnitObj = state.units.find(u => u.id === userUnitId)
+  const unitLabel = selectedUnitObj ? selectedUnitObj.nama : 'Unit'
   const filterUnit = isSuperadmin
     ? (selectedUnitObj ? selectedUnitObj.nama : 'Semua Unit')
     : (selectedUnitObj ? selectedUnitObj.nama : 'Semua Unit')
@@ -213,6 +215,7 @@ function PengajuanIzinCutiPage() {
 
   // Buka Modal Approval (Setujui atau Tolak)
   const handleOpenApprovalModal = (leave, action) => {
+    if (!canApproveLeave) return
     setApprovalModal({
       isOpen: true,
       leave,
@@ -225,6 +228,7 @@ function PengajuanIzinCutiPage() {
 
   // Eksekusi Konfirmasi Persetujuan / Penolakan (Superadmin atau Kepala Sekolah)
   const handleConfirmApproval = () => {
+    if (!canApproveLeave) return
     const { leave, action, note } = approvalModal
     if (!leave) return
     const approverName = currentUser?.name || (isSuperadmin ? 'Superadmin Yayasan' : 'Kepala Sekolah')
@@ -447,11 +451,21 @@ function PengajuanIzinCutiPage() {
                 <span className="material-symbols-outlined text-[14px]">chevron_right</span>
                 <span className="font-semibold text-foreground">Pengajuan Izin/Cuti</span>
               </div>
-              <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
+              <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2 flex-wrap">
                 <span>Pengajuan Izin &amp; Cuti</span>
                 {isSuperadmin && (
                   <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 tracking-normal">
                     Portal Superadmin (Approval Tingkat 2)
+                  </span>
+                )}
+                {isKepsek && (
+                  <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20 tracking-normal">
+                    Portal Kepala Sekolah (Approval Tingkat 1)
+                  </span>
+                )}
+                {isAdminUnit && (
+                  <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/20 tracking-normal">
+                    Portal Admin {unitLabel} (Monitoring &amp; Rekap)
                   </span>
                 )}
               </h1>
@@ -669,9 +683,9 @@ function PengajuanIzinCutiPage() {
           <div className="bg-card rounded-xl border border-border shadow-xs overflow-hidden flex flex-col">
             {/* Banner bantuan swipe/geser untuk tampilan di mobile desktop mode */}
             <div className="px-4 py-2 bg-muted/40 border-b border-border flex items-center justify-between text-xs text-muted-foreground flex-wrap gap-2">
-              <div className="flex items-center gap-1.5 font-medium">
+              <div className="items-center gap-1.5 font-medium flex">
                 <span className="material-symbols-outlined text-[16px] text-primary">touch_app</span>
-                <span>Tabel responsif lebar penuh: Geser ke samping untuk melihat seluruh rincian dan tombol approval.</span>
+                <span>Tabel responsif lebar penuh: Geser ke samping untuk melihat seluruh rincian{canApproveLeave ? ' dan tombol approval' : ''}.</span>
               </div>
               <div className="text-[11px] font-semibold text-foreground">
                 Menampilkan {filtered.length} pengajuan
@@ -689,7 +703,7 @@ function PengajuanIzinCutiPage() {
                     <th className="py-3 px-2.5 text-center min-w-[85px] whitespace-nowrap">Durasi</th>
                     <th className="py-3 px-3 text-center min-w-[140px] whitespace-nowrap">Lampiran</th>
                     <th className="py-3 px-3 min-w-[210px] whitespace-nowrap">Status &amp; Verifikasi (2-Tahap)</th>
-                    <th className="py-3 px-3.5 text-right min-w-[170px] whitespace-nowrap">Aksi Approval</th>
+                    <th className="py-3 px-3.5 text-right min-w-[170px] whitespace-nowrap">{canApproveLeave ? 'Aksi Approval' : 'Aksi'}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/60 text-xs">

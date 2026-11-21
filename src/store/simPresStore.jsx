@@ -84,7 +84,7 @@ export const PERMISSION_MATRIX = {
     editPresensi: ['view', 'edit', 'delete'],
     rekapLaporan: ['view'],
     rankingKehadiran: ['view'],
-    pengajuanIzinCuti: ['view', 'add', 'edit'],
+    pengajuanIzinCuti: ['view', 'add'],
     logAktivitas: ['view'],
     pengaturanGlobal: [],
     berandaMobile: ['view'],
