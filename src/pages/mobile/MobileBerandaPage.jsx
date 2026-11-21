@@ -208,7 +208,7 @@ function MobileBerandaPage() {
       warna: 'bg-primary-soft text-primary',
     })
 
-    if (isAdminUnit || isSuperadmin || isPetugas) {
+    if (isPetugas) {
       items.push({
         to: '/mobile/admin-scan',
         judul: 'Scan QR Pegawai',
@@ -221,13 +221,6 @@ function MobileBerandaPage() {
         judul: 'Presensi Manual',
         sub: 'Input manual',
         ikon: 'edit_calendar',
-        warna: 'bg-primary-soft text-primary',
-      })
-      items.push({
-        to: '/mobile/riwayat',
-        judul: 'Rekap Presensi',
-        sub: 'Rekap staf',
-        ikon: 'summarize',
         warna: 'bg-primary-soft text-primary',
       })
     }
@@ -537,8 +530,8 @@ function MobileBerandaPage() {
 
             <ShortcutGrid
               items={adminQuickMenuItems}
-              columns={3}
-              compact={true}
+              columns={adminQuickMenuItems.length <= 2 ? 2 : 3}
+              compact={adminQuickMenuItems.length > 2}
             />
           </section>
         )}
