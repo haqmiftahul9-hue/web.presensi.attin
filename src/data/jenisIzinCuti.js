@@ -44,6 +44,7 @@ export const JENIS_UTAMA = [
     ikon: 'medication',
     ringkas: 'Cuti sakit',
     lampiran: 'disarankan',
+    keterangan: 'Izin sakit tidak memotong kuota cuti tahunan',
     warna: 'bg-emerald-50 text-emerald-700',
     warnaAvatar: 'bg-emerald-100 text-emerald-900',
   },
@@ -91,7 +92,8 @@ export const JENIS_UTAMA = [
 
 /** Nama lama yang masih muncul pada data tersimpan sebelum modul ini. */
 export const JENIS_LAMPAU = [
-  { nama: 'Sakit', kelompok: KELOMPOK_IZIN, ikon: 'medication', ringkas: 'Sakit', lampiran: 'disarankan', warna: 'bg-emerald-50 text-emerald-700', warnaAvatar: 'bg-emerald-100 text-emerald-900' },
+  { nama: 'Izin Sakit', kelompok: KELOMPOK_IZIN, ikon: 'medication', ringkas: 'Izin sakit', lampiran: 'disarankan', keterangan: 'Izin sakit tidak memotong kuota cuti tahunan', warna: 'bg-emerald-50 text-emerald-700', warnaAvatar: 'bg-emerald-100 text-emerald-900' },
+  { nama: 'Sakit', kelompok: KELOMPOK_IZIN, ikon: 'medication', ringkas: 'Sakit', lampiran: 'disarankan', keterangan: 'Izin sakit tidak memotong kuota cuti tahunan', warna: 'bg-emerald-50 text-emerald-700', warnaAvatar: 'bg-emerald-100 text-emerald-900' },
   { nama: 'Izin Pribadi', kelompok: KELOMPOK_IZIN, ikon: 'person', ringkas: 'Izin pribadi', lampiran: 'tidak', warna: 'bg-amber-50 text-amber-800', warnaAvatar: 'bg-amber-100 text-amber-900' },
   { nama: 'Cuti Penting', kelompok: KELOMPOK_CUTI, ikon: 'priority_high', ringkas: 'Cuti penting', lampiran: 'disarankan', warna: 'bg-indigo-50 text-indigo-700', warnaAvatar: 'bg-indigo-100 text-indigo-900' },
   { nama: 'Cuti Menikah', kelompok: KELOMPOK_CUTI, ikon: 'favorite', ringkas: 'Cuti menikah', lampiran: 'wajib', kuota: 3, satuanKuota: 'hari', warna: 'bg-rose-50 text-rose-700', warnaAvatar: 'bg-rose-100 text-rose-900' },
@@ -109,6 +111,12 @@ export const JENIS_FORM = [
 ]
 
 const PETA = new Map(SEMUA_JENIS.map((j) => [j.nama.toLowerCase(), j]))
+const defSakit = PETA.get('cuti sakit') || PETA.get('izin sakit') || PETA.get('sakit')
+if (defSakit) {
+  PETA.set('sakit', defSakit)
+  PETA.set('cuti sakit', defSakit)
+  PETA.set('izin sakit', defSakit)
+}
 
 /** Normalisasi nama jenis agar lookup tahan spasi/kapital berbeda. */
 function kunci(nama) {
@@ -239,20 +247,20 @@ export function formatPeriode(mulai, selesai) {
   return `${tanggalPendekID(mulai)} - ${tanggalPendekID(selesai)}`
 }
 
-/** Jumlah hari inklusif; dipakai untuk kolom durasi. */
+/** Jumlah hari kerja inklusif (Senin - Sabtu); hari Minggu (0) tidak dihitung. Mengembalikan 0 jika hanya hari Minggu. */
 export function hitungDurasiHari(mulai, selesai) {
-  if (!mulai) return 1
+  if (!mulai) return 0
   const akhir = selesai || mulai
   const a = new Date(`${mulai}T00:00:00`)
   const b = new Date(`${akhir}T00:00:00`)
-  if (Number.isNaN(a.getTime()) || Number.isNaN(b.getTime())) return 1
+  if (Number.isNaN(a.getTime()) || Number.isNaN(b.getTime())) return 0
   let jumlah = 0
   const cur = new Date(a)
   while (cur <= b) {
     if (cur.getDay() !== 0) jumlah += 1
     cur.setDate(cur.getDate() + 1)
   }
-  return Math.max(1, jumlah)
+  return jumlah
 }
 
 /** "1 Hari" / "3 Hari" — format yang sudah dipakai di seluruh tabel. */
@@ -338,6 +346,10 @@ export function validasiFormPengajuan({ jenis, mulai, selesai, alasan, lampiran 
   if (!jenis) return 'Jenis pengajuan wajib dipilih.'
   if (!mulai) return 'Tanggal mulai wajib diisi.'
   if (selesai && selesai < mulai) return 'Tanggal selesai tidak boleh lebih awal dari tanggal mulai.'
+  const durasi = hitungDurasiHari(mulai, selesai || mulai)
+  if (durasi === 0) {
+    return 'Tanggal pengajuan jatuh pada hari Minggu (hari libur sekolah). Silakan pilih hari kerja (Senin - Sabtu).'
+  }
   if (!String(alasan || '').trim()) return 'Alasan wajib diisi agar pengajuan bisa ditinjau.'
   const aturan = aturanLampiran(jenis)
   if (aturan === 'wajib' && !lampiran) return `${normalisasiJenis(jenis)} wajib melampirkan dokumen pendukung.`
@@ -350,12 +362,66 @@ export function kuotaJenis(nama) {
   return d?.kuota ?? null
 }
 
-/** Hitung sisa kuota cuti untuk staff berdasarkan daftar leaves (disetujui). */
+/**
+ * Memeriksa apakah izin/cuti sudah disetujui penuh oleh kedua tahap:
+ * Kepala Sekolah (Tahap 1) DAN Superadmin (Tahap 2).
+ * Kuota izin/cuti HANYA berkurang jika fungsi ini mengembalikan true.
+ */
+export function isLeaveFullyApproved(leave) {
+  if (!leave) return false
+  const status = String(leave.status || '').toLowerCase()
+  if (status !== 'disetujui' && status !== 'approved') return false
+
+  // Cek persetujuan Kepala Sekolah (Tahap 1)
+  const kepsekStatus = String(leave.approvalKepsek?.status || '').toLowerCase()
+  const isKepsekApproved = kepsekStatus === 'disetujui' || kepsekStatus === 'approved'
+
+  // Cek persetujuan Superadmin (Tahap 2)
+  const superadminStatus = String(leave.approvalSuperadmin?.status || '').toLowerCase()
+  const isSuperadminApproved = superadminStatus === 'disetujui' || superadminStatus === 'approved'
+
+  // WAJIB disetujui KEDUA-DUANYA: Kepala Sekolah DAN Superadmin
+  return isKepsekApproved && isSuperadminApproved
+}
+
+/**
+ * Hitung sisa kuota cuti untuk staff berdasarkan daftar leaves yang telah
+ * disetujui penuh oleh Kepala Sekolah DAN Superadmin.
+ *
+ * 1. Tidak menghitung hari Minggu (hanya hari kerja yang mengurangi kuota).
+ * 2. Kuota hanya berkurang jika disetujui penuh oleh kedua pihak (Kepsek DAN Superadmin).
+ * 3. Sakit (Cuti Sakit / Izin Sakit) adalah izin pribadi karena alasan sakit dan TIDAK memotong cuti tahunan.
+ */
 export function hitungSisaKuota(staffId, jenis, leaves = []) {
   const kuota = kuotaJenis(jenis)
   if (kuota === null) return null
+  const targetJenis = normalisasiJenis(jenis)
+
   const terpakai = (leaves || [])
-    .filter((l) => (l.staffId ?? l.staff_id) === staffId && normalisasiJenis(l.jenis) === normalisasiJenis(jenis) && isLeaveApproved(l.status))
-    .reduce((sum, l) => sum + (Number(l.durasi_hari ?? l.durasiHari ?? 1) || hitungDurasiHari(l.mulai ?? l.tanggal_mulai, l.selesai ?? l.tanggal_selesai)), 0)
+    .filter((l) => {
+      // 1. Harus milik staff yang bersangkutan
+      const sid = l.staffId ?? l.staff_id
+      if (sid !== staffId) return false
+
+      // 2. Jenis cuti harus cocok persis
+      const lJenis = normalisasiJenis(l.jenis)
+      if (lJenis !== targetJenis) return false
+
+      // 3. Sakit tidak memotong Cuti Tahunan (proteksi ganda)
+      if (targetJenis === 'Cuti Tahunan') {
+        const lower = String(l.jenis || '').toLowerCase()
+        if (lower.includes('sakit')) return false
+      }
+
+      // 4. Syarat mutlak: WAJIB disetujui penuh oleh Kepala Sekolah DAN Superadmin
+      return isLeaveFullyApproved(l)
+    })
+    .reduce((sum, l) => {
+      // Hitung durasi hari kerja (tanpa hari Minggu)
+      const d = Number(l.durasiHari ?? l.durasi_hari)
+      const durasi = !Number.isNaN(d) && d > 0 ? d : hitungDurasiHari(l.mulai ?? l.tanggal_mulai, l.selesai ?? l.tanggal_selesai)
+      return sum + durasi
+    }, 0)
+
   return Math.max(0, kuota - terpakai)
 }

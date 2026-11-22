@@ -271,7 +271,7 @@ function PengajuanIzinCutiPage() {
           message: `Pengajuan ${leave.jenis} untuk ${leave.name} berhasil disetujui Kepala Sekolah. Menunggu persetujuan Superadmin.`,
         })
       } else {
-        // Setujui oleh Superadmin -> Status Final "Disetujui"
+        // Setujui oleh Superadmin (Tahap 2)
         dispatch({
           type: 'UPDATE_LEAVE_STATUS',
           id: leave.id,
@@ -284,19 +284,6 @@ function PengajuanIzinCutiPage() {
             tanggal: new Date().toISOString(),
             catatan: note.trim() || 'Disetujui penuh oleh Superadmin',
           },
-          // Jika Kepsek belum sempat verifikasi, Superadmin memberikan persetujuan langsung
-          ...(leave.approvalKepsek?.status !== 'Disetujui'
-            ? {
-                approvalKepsek: {
-                  ...(leave.approvalKepsek || {}),
-                  status: 'Disetujui',
-                  approverName: leave.approvalKepsek?.approverName || 'Disetujui langsung oleh Superadmin',
-                  approverRole: 'Kepala Sekolah',
-                  tanggal: new Date().toISOString(),
-                  catatan: 'Disetujui langsung oleh Superadmin (Yayasan)',
-                },
-              }
-            : {}),
         })
         addActivityLog(
           dispatch,

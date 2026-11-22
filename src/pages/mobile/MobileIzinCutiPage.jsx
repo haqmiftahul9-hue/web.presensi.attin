@@ -138,9 +138,16 @@ export function FormPengajuan({
         </div>
       </div>
       <p className="font-label-sm text-label-sm text-on-surface-variant leading-snug">
-        Durasi: <span className="font-body-sm-medium text-body-sm-medium text-on-surface">{durasi} hari</span>
+        Durasi: <span className="font-body-sm-medium text-body-sm-medium text-on-surface">{durasi} hari kerja</span>
+        <span className="text-[11px] text-muted-foreground ml-1">(hari Minggu tidak dihitung)</span>
         {mulai && selesai && ` • ${formatPeriode(mulai, selesai)}`}
       </p>
+      {String(jenis || '').toLowerCase().includes('sakit') && (
+        <p className="text-[11.5px] text-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 dark:text-emerald-300 p-2.5 rounded-xl border border-emerald-200/80 leading-relaxed">
+          <span className="font-semibold block">ℹ️ Izin Sakit Pribadi</span>
+          Izin sakit adalah izin pribadi karena alasan kesehatan dan <strong>tidak memotong</strong> jatah Cuti Tahunan Anda.
+        </p>
+      )}
 
       <div>
         <label className={LABEL} htmlFor="izin-alasan">
@@ -318,6 +325,17 @@ function MobileIzinCutiPage() {
       setGalat(pesanValidasi)
       return
     }
+
+    const kuota = kuotaJenis(jenis)
+    if (kuota !== null) {
+      const sisa = hitungSisaKuota(staff.id, jenis, state.leaves)
+      const durasiHari = hitungDurasiHari(mulai, selesai || mulai)
+      if (sisa !== null && durasiHari > sisa) {
+        setGalat(`Sisa kuota ${jenis} Anda tinggal ${sisa} hari. Durasi pengajuan (${durasiHari} hari kerja) melebihi sisa kuota yang tersedia.`)
+        return
+      }
+    }
+
     setMengirim(true)
     setGalat('')
 

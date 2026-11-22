@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { JENIS_FORM, buildPengajuan, aturanLampiran } from '../data/jenisIzinCuti.js'
+import { JENIS_FORM, buildPengajuan, aturanLampiran, hitungDurasiHari, formatDurasi } from '../data/jenisIzinCuti.js'
 import { uploadLeaveAttachment } from '../services/leaveAttachmentService.js'
 
 // Pilihan jenis reading from the centralized list — the same list as the
@@ -23,14 +23,9 @@ function LeaveRequestModal({ isOpen, onClose, onSave, staffList, units }) {
   const selectedUnit = units.find(u => u.id === selectedStaff?.unitId)
 
   useEffect(() => {
-    if (tanggalMulai && tanggalSelesai) {
-      const start = new Date(tanggalMulai)
-      const end = new Date(tanggalSelesai)
-      const diffTime = Math.abs(end - start)
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1
-      setDurasi(`${diffDays} Hari`)
-    } else if (tanggalMulai) {
-      setDurasi('1 Hari')
+    if (tanggalMulai) {
+      const h = hitungDurasiHari(tanggalMulai, tanggalSelesai || tanggalMulai)
+      setDurasi(`${h} Hari`)
     } else {
       setDurasi('0 Hari')
     }
@@ -60,10 +55,17 @@ function LeaveRequestModal({ isOpen, onClose, onSave, staffList, units }) {
         return ''
       case 'tanggalMulai':
         if (!value) return 'Tanggal mulai wajib diisi'
+        if (tanggalSelesai && value > tanggalSelesai) return 'Tanggal mulai tidak boleh sebelum tanggal selesai'
+        if (tanggalSelesai ? hitungDurasiHari(value, tanggalSelesai) === 0 : hitungDurasiHari(value, value) === 0) {
+          return 'Tanggal pengajuan jatuh pada hari Minggu (hari libur sekolah). Silakan pilih hari kerja.'
+        }
         return ''
       case 'tanggalSelesai':
         if (!value) return 'Tanggal selesai wajib diisi'
-        if (tanggalMulai && new Date(value) < new Date(tanggalMulai)) return 'Tanggal selesai tidak boleh sebelum tanggal mulai'
+        if (tanggalMulai && value < tanggalMulai) return 'Tanggal selesai tidak boleh sebelum tanggal mulai'
+        if (tanggalMulai && hitungDurasiHari(tanggalMulai, value) === 0) {
+          return 'Tanggal pengajuan jatuh pada hari Minggu (hari libur sekolah). Silakan pilih hari kerja.'
+        }
         return ''
       case 'keterangan':
         if (!value.trim()) return 'Keterangan/alasan wajib diisi'
@@ -356,7 +358,14 @@ function LeaveRequestModal({ isOpen, onClose, onSave, staffList, units }) {
               value={durasi}
               readOnly
             />
-            <span className="text-[11px] text-muted-foreground">Dihitung otomatis dari tanggal mulai dan selesai</span>
+            <div className="flex flex-col gap-0.5 text-[11px] text-muted-foreground">
+              <span>Dihitung otomatis: hari kerja sekolah (hari Minggu tidak dihitung).</span>
+              {String(jenis || '').toLowerCase().includes('sakit') && (
+                <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+                  • Izin sakit tidak memotong kuota cuti tahunan pegawai.
+                </span>
+              )}
+            </div>
           </div>
 
           <div className="flex flex-col gap-1.5">
