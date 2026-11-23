@@ -33,6 +33,16 @@ function PengaturanGlobalPage() {
     alamatYayasan: settings.alamatYayasan || '',
     noWhatsapp: settings.noWhatsapp || '',
     zonaWaktu: settings.zonaWaktu || 'WIB',
+    niy: settings.niy || {
+      tahunBerdiriYayasan: '17',
+      panjangNomorUrut: 3,
+      kodeUnit: {
+        tk: '01',
+        sd: '02',
+        smp: '03',
+        sma: '04',
+      },
+    },
     presensi: settings.presensi
       ? { ...settings.presensi, jamKerjaPerUnit: settings.presensi.jamKerjaPerUnit || {} }
       : {
@@ -95,6 +105,9 @@ function PengaturanGlobalPage() {
   const [isSaving, setIsSaving] = useState(false)
   const [notification, setNotification] = useState(null)
   const [selectedJamUnit, setSelectedJamUnit] = useState(null)
+  const [niySimUnit, setNiySimUnit] = useState('tk')
+  const [niySimTahun, setNiySimTahun] = useState('2022')
+  const [niySimUrut, setNiySimUrut] = useState(12)
   const fileInputRef = useRef(null)
 
   const handleInputChange = (field, value) => {
@@ -1340,7 +1353,150 @@ function PengaturanGlobalPage() {
                   </div>
                 </div>
 
-                {/* 2. Konfigurasi Default */}
+                {/* 2. Pengaturan Format NIY (Nomor Induk Yayasan) */}
+                <div className="p-4 bg-muted/30 rounded-xl border border-border">
+                  <div className="flex items-center justify-between mb-3.5">
+                    <div className="flex items-center gap-2">
+                      <span className="material-symbols-outlined text-primary text-[18px]">badge</span>
+                      <h3 className="text-xs font-bold text-foreground">Pengaturan Format NIY (Nomor Induk Yayasan)</h3>
+                    </div>
+                    <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                      Standar 9 Digit
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mb-4 leading-relaxed">
+                    Format resmi NIY seluruh guru dan pegawai: <code className="text-primary font-mono font-bold bg-muted px-1.5 py-0.5 rounded text-[11px]">[Kode Unit: 2] [Tahun Yayasan: 17] [Tahun Masuk: 2] [No. Urut: 3]</code>. Nomor <strong>17</strong> wajib ada di setiap NIY sebagai tahun berdirinya yayasan.
+                  </p>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <label className="block text-[11px] font-semibold text-foreground mb-1.5">
+                        Tahun Berdiri Yayasan <span className="text-destructive">*</span>
+                      </label>
+                      <input
+                        className="w-full h-9 text-xs text-foreground bg-card border border-input rounded-lg px-3 focus:outline-none focus:ring-1 focus:ring-ring transition-all font-mono"
+                        type="text"
+                        maxLength={2}
+                        value={formData.niy?.tahunBerdiriYayasan || '17'}
+                        onChange={(e) => handleInputChange('niy.tahunBerdiriYayasan', e.target.value.replace(/\D/g, ''))}
+                      />
+                      <span className="text-[11px] text-muted-foreground mt-1 block">
+                        Wajib tercantum di setiap NIY pegawai (default: 17).
+                      </span>
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-semibold text-foreground mb-1.5">
+                        Panjang Nomor Urut Pegawai
+                      </label>
+                      <input
+                        className="w-full h-9 text-xs text-foreground bg-card border border-input rounded-lg px-3 focus:outline-none focus:ring-1 focus:ring-ring transition-all font-mono opacity-80"
+                        type="number"
+                        disabled
+                        value={formData.niy?.panjangNomorUrut || 3}
+                      />
+                      <span className="text-[11px] text-muted-foreground mt-1 block">
+                        Standar 3 digit (001 s/d 999) sesuai urutan masuk di unit.
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Pemetaan Kode Unit */}
+                  <div className="mb-4">
+                    <label className="block text-[11px] font-semibold text-foreground mb-2">
+                      Pemetaan Kode Unit Sekolah (2 Digit)
+                    </label>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                      {[
+                        { key: 'tk', label: 'TK (TKIT)' },
+                        { key: 'sd', label: 'SD (SDIT)' },
+                        { key: 'smp', label: 'SMP (SMPIT)' },
+                        { key: 'sma', label: 'SMA (SMAIT)' },
+                      ].map((u) => (
+                        <div key={u.key} className="p-2.5 rounded-lg bg-card border border-border">
+                          <span className="text-[11px] font-semibold text-foreground block mb-1">{u.label}</span>
+                          <input
+                            type="text"
+                            maxLength={2}
+                            className="w-full h-8 text-xs font-mono font-bold text-center text-primary bg-muted/40 border border-input rounded focus:outline-none focus:ring-1 focus:ring-ring"
+                            value={formData.niy?.kodeUnit?.[u.key] ?? (u.key === 'tk' ? '01' : u.key === 'sd' ? '02' : u.key === 'smp' ? '03' : '04')}
+                            onChange={(e) => handleInputChange(`niy.kodeUnit.${u.key}`, e.target.value.replace(/\D/g, ''))}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Simulasi Live Generator */}
+                  <div className="p-3.5 bg-primary/5 rounded-xl border border-primary/20 space-y-3">
+                    <div className="flex items-center gap-1.5 text-primary">
+                      <span className="material-symbols-outlined text-[16px]">calculate</span>
+                      <span className="text-xs font-bold">Simulasi Live Generator NIY</span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                      <div>
+                        <label className="block text-[10px] font-semibold text-muted-foreground mb-1">Unit</label>
+                        <select
+                          className="w-full h-8 text-xs bg-card border border-input rounded px-2 text-foreground"
+                          value={niySimUnit}
+                          onChange={(e) => setNiySimUnit(e.target.value)}
+                        >
+                          <option value="tk">TK (01)</option>
+                          <option value="sd">SD (02)</option>
+                          <option value="smp">SMP (03)</option>
+                          <option value="sma">SMA (04)</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-semibold text-muted-foreground mb-1">Tahun Masuk</label>
+                        <input
+                          type="number"
+                          className="w-full h-8 text-xs bg-card border border-input rounded px-2 text-foreground font-mono"
+                          value={niySimTahun}
+                          onChange={(e) => setNiySimTahun(e.target.value)}
+                          placeholder="2022"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-semibold text-muted-foreground mb-1">Nomor Urut</label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="999"
+                          className="w-full h-8 text-xs bg-card border border-input rounded px-2 text-foreground font-mono"
+                          value={niySimUrut}
+                          onChange={(e) => setNiySimUrut(parseInt(e.target.value) || 1)}
+                          placeholder="12"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Live Result Badge */}
+                    <div className="pt-2 border-t border-primary/10 flex flex-col sm:flex-row items-center justify-between gap-2">
+                      <span className="text-[11px] text-muted-foreground">Hasil NIY Resmi:</span>
+                      <div className="flex items-center gap-1 font-mono text-xs font-bold bg-card px-3 py-1.5 rounded-lg border border-primary/30 shadow-xs">
+                        <span className="text-blue-600 dark:text-blue-400 bg-blue-500/10 px-1 rounded" title="Kode Unit">
+                          {formData.niy?.kodeUnit?.[niySimUnit] || (niySimUnit === 'tk' ? '01' : niySimUnit === 'sd' ? '02' : niySimUnit === 'smp' ? '03' : '04')}
+                        </span>
+                        <span className="text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1 rounded" title="Tahun Berdiri Yayasan">
+                          {formData.niy?.tahunBerdiriYayasan || '17'}
+                        </span>
+                        <span className="text-amber-600 dark:text-amber-400 bg-amber-500/10 px-1 rounded" title="Tahun Masuk">
+                          {String(niySimTahun || '22').slice(-2)}
+                        </span>
+                        <span className="text-purple-600 dark:text-purple-400 bg-purple-500/10 px-1 rounded" title="Nomor Urut Pegawai">
+                          {String(niySimUrut || 1).padStart(3, '0').slice(-3)}
+                        </span>
+                        <span className="text-muted-foreground text-[10px] ml-1.5 font-sans font-normal">
+                          ({niySimUnit.toUpperCase()}, Yayasan 17, Masuk &apos;{String(niySimTahun || '22').slice(-2)}, Pegawai #{niySimUrut})
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 3. Konfigurasi Default */}
                 <div className="p-4 bg-muted/30 rounded-xl border border-border">
                   <div className="flex items-center gap-2 mb-3.5">
                     <span className="material-symbols-outlined text-primary text-[18px]">settings</span>

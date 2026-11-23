@@ -2,6 +2,7 @@ import * as XLSX from 'xlsx'
 import {
   EMPLOYEE_COLUMNS, normalizeHeader, validateEmployee,
 } from './employeeSchema.js'
+import { generateNiy } from './niyHelper.js'
 
 const MAX_SIZE = 10 * 1024 * 1024
 
@@ -100,7 +101,21 @@ export function validateImport(file, state) {
 
     if (!Object.values(draft).some((v) => String(v).trim() !== '')) return
 
-    const found = validateEmployee(draft, { staff: state.staff, units: state.units })
+    // Jika kolom NIY kosong, otomatis buatkan NIY resmi mengikuti aturan yayasan
+    if (!draft.niy && draft.unitId) {
+      draft.niy = generateNiy({
+        unitId: draft.unitId,
+        tanggalMasuk: draft.tanggalMasuk,
+        staffList: [...state.staff, ...valid.map((v) => v.draft)],
+        settings: state.settings,
+      })
+    }
+
+    const found = validateEmployee(draft, {
+      staff: state.staff,
+      units: state.units,
+      settings: state.settings,
+    })
     for (const [field, message] of Object.entries(found)) {
       if (field === 'unitId' && errors.some((e) => e.startsWith(`Baris ${rowNum}: Unit`))) continue
       errors.push(`Baris ${rowNum}: ${message}`)

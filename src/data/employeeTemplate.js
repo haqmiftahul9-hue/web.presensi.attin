@@ -5,7 +5,7 @@ import { EMPLOYEE_COLUMNS, toExcelRow } from './employeeSchema.js'
 const PANDUAN = [
   ['SimPres — Template Import Data Pegawai'],
   ['Isi baris mulai baris ke-4. Jangan mengubah nama kolom pada baris ke-3.'],
-  ['Kolom bertanda * wajib diisi. Unit Sekolah harus sama persis dengan nama unit di sistem.'],
+  ['Format NIY (9 digit): [Kode Unit: TK=01, SD=02, SMP=03, SMA=04] + [Tahun Yayasan: 17] + [Tahun Masuk: 2 digit, cth: 22] + [No. Urut: 3 digit, cth: 012]. Contoh: 011722012. Jika kolom NIY dikosongkan, sistem akan otomatis membuatkan NIY resmi.'],
 ]
 
 // Template dibuat dari EMPLOYEE_COLUMNS, jadi kolomnya selalu sama dengan form.
@@ -19,7 +19,7 @@ export function buildTemplateSheet(state) {
   const headers = EMPLOYEE_COLUMNS.map((c) => (c.required ? `${c.label} *` : c.label))
   const sample = toExcelRow(
     {
-      niy: '049001234',
+      niy: '011722012',
       name: 'Budi Santoso, S.Pd',
       gelar: 'S.Pd',
       pendidikanAsal: 'Universitas Negeri Padang',
@@ -27,11 +27,11 @@ export function buildTemplateSheet(state) {
       tempatLahir: 'Jakarta',
       tanggalLahir: '1985-01-01',
       alamat: state.units[0]?.alamat || '',
-      unitId: state.units[0]?.id,
+      unitId: state.units[0]?.id || 'tk',
       role: 'Guru Kelas',
       status: 'Aktif',
       statusPegawai: 'Guru Tetap Yayasan',
-      tanggalMasuk: '2015-07-01',
+      tanggalMasuk: '2022-07-01',
       pendTerakhir: 'S1 Pendidikan Guru Sekolah Dasar',
       jurusan: 'Pendidikan Guru Sekolah Dasar',
       kontak: '081234567890',

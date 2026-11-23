@@ -186,14 +186,20 @@ function ImportModal({ show, onClose, onImported }) {
             </div>
           )}
 
-          <div className="p-4 rounded-xl bg-muted/40 border border-border text-muted-foreground flex flex-col gap-2">
+          <div className="p-4 rounded-xl bg-muted/40 border border-border text-muted-foreground flex flex-col gap-2.5">
             <div className="flex items-center gap-1.5 text-foreground font-semibold text-xs">
               <span className="material-symbols-outlined text-[16px] text-primary">info</span>
-              <span>Ketentuan Berkas Template:</span>
+              <span>Ketentuan Format Berkas &amp; Standar NIY:</span>
             </div>
             <ul className="text-[11px] text-muted-foreground list-disc pl-5 space-y-1">
-              <li>Kolom <strong className="text-foreground">NIY</strong> dan <strong className="text-foreground">Nama Lengkap</strong> wajib terisi dan NIY bersifat unik.</li>
-              <li>Kolom <strong className="text-foreground">Unit Sekolah</strong> harus persis sesuai daftar unit terdaftar di sistem.</li>
+              <li>
+                <strong className="text-foreground">Format NIY (9 digit):</strong> <code className="font-mono text-primary font-semibold">[Kode Unit][17][Tahun Masuk][No Urut]</code>.
+                Kode: TK (01), SD (02), SMP (03), SMA (04). Contoh: <strong className="font-mono text-foreground">011722012</strong>. Angka <strong>17</strong> wajib ada sebagai tahun berdiri yayasan.
+              </li>
+              <li>
+                <strong className="text-emerald-600 dark:text-emerald-400 font-semibold">Fitur Cerdas NIY:</strong> Kolom NIY di Excel <em>boleh dikosongkan</em>. Sistem akan otomatis membuatkan NIY resmi berurutan sesuai unit dan tahun masuk.
+              </li>
+              <li>Kolom <strong className="text-foreground">Nama Lengkap</strong> dan <strong className="text-foreground">Unit Sekolah</strong> wajib diisi persis sesuai unit di sistem.</li>
               <li>Jabatan default &quot;Guru&quot; jika kosong, Status default &quot;Aktif&quot;.</li>
             </ul>
             <div className="pt-2 border-t border-border/60 flex items-center justify-between">
@@ -203,7 +209,7 @@ function ImportModal({ show, onClose, onImported }) {
                 type="button"
               >
                 <span className="material-symbols-outlined text-[15px]">file_download</span>
-                <span>Unduh Template Format Excel</span>
+                <span>Unduh Template Format Excel (Contoh NIY 011722012)</span>
               </button>
             </div>
           </div>

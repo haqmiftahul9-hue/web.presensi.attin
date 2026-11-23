@@ -77,17 +77,23 @@ console.log('   OK: EMPTY_EMPLOYEE bersih.')
 // 4. Verifikasi validateEmployee
 console.log('4. validateEmployee verification...')
 const mockDraft = {
-  niy: '999000111',
+  niy: '011722012',
   name: 'Ahmad Dahlan',
   unitId: UNITS[0].id,
   role: 'Guru Fisika Eksperimental', // manual input jabatan
   status: 'Aktif',
   statusPegawai: 'Guru Kontrak',
+  tanggalMasuk: '2022-01-01',
   pendidikanAsal: 'Universitas Negeri Padang', // bebas teks, tanpa validasi NIK 16 digit
   email: 'ahmad@simpres.sch.id',
 }
 const valErrors = validateEmployee(mockDraft, { staff: STAFF, units: UNITS })
 assert.deepEqual(valErrors, {}, 'Valid employee draft should have 0 errors')
+
+// Test invalid NIY format (tahun yayasan salah)
+const badNiyDraft = { ...mockDraft, niy: '011822012' }
+const badNiyErrors = validateEmployee(badNiyDraft, { staff: STAFF, units: UNITS })
+assert.ok(badNiyErrors.niy, 'Tahun yayasan bukan 17 harus menghasilkan error')
 
 // Test invalid email
 const badEmailDraft = { ...mockDraft, email: 'not-an-email' }

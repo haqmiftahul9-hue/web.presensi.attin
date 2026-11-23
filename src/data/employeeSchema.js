@@ -1,3 +1,5 @@
+import { validateNiy } from './niyHelper.js'
+
 // Skema data pegawai: SATU sumber definisi kolom untuk form Tambah/Edit,
 // template Excel, dan pembacaan file Import. Form dan template tidak akan
 // pernah berbeda karena keduanya memakai EMPLOYEE_COLUMNS yang sama.
@@ -131,7 +133,10 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
 
 // Validasi satu baris form/import. Mengembalikan { errors, staff }.
-export function validateEmployee(draft, { staff = [], excludeId = null, units = [] } = {}) {
+export function validateEmployee(
+  draft,
+  { staff = [], excludeId = null, units = [], settings = null, strictNiy = true } = {},
+) {
   const errors = {}
   const value = (k) => String(draft[k] ?? '').trim()
 
@@ -152,11 +157,30 @@ export function validateEmployee(draft, { staff = [], excludeId = null, units = 
   if (value('unitId') && !units.some((u) => u.id === value('unitId'))) {
     errors.unitId = 'Unit sekolah tidak terdaftar'
   }
-  const dup = staff.find(
-    (s) => String(s.niy).trim() === value('niy') && s.id !== excludeId,
-  )
-  if (value('niy') && dup) {
-    errors.niy = `NIY ${value('niy')} sudah dipakai ${dup.name}`
+
+  // Validasi format NIY Yayasan
+  if (value('niy')) {
+    if (strictNiy) {
+      const niyRes = validateNiy({
+        niy: value('niy'),
+        unitId: value('unitId'),
+        tanggalMasuk: value('tanggalMasuk'),
+        staffList: staff,
+        excludeId,
+        settings,
+      })
+      if (!niyRes.valid) {
+        errors.niy = niyRes.error
+      }
+    } else {
+      const dup = staff.find(
+        (s) => String(s.niy).trim() === value('niy') && s.id !== excludeId,
+      )
+      if (dup) {
+        errors.niy = `NIY ${value('niy')} sudah dipakai ${dup.name}`
+      }
+    }
   }
+
   return errors
 }

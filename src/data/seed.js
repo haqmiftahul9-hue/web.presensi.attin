@@ -235,6 +235,16 @@ export const INITIAL_SETTINGS = {
   alamatYayasan: 'Jl. Raya Cendekia No. 45, Jakarta Selatan',
   noWhatsapp: '+62 811-9876-5432',
   zonaWaktu: 'WIB',
+  niy: {
+    tahunBerdiriYayasan: '17',
+    panjangNomorUrut: 3,
+    kodeUnit: {
+      tk: '01',
+      sd: '02',
+      smp: '03',
+      sma: '04',
+    },
+  },
   presensi: {
     // ATURAN JAM KERJA GLOBAL — lihat data/jamKerja.js (sumber kebenaran).
     //   Senin - Kamis : jam masuk 07:10, jam pulang 16:00
