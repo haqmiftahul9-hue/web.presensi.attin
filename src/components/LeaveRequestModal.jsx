@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react'
-import { JENIS_FORM, buildPengajuan, aturanLampiran, hitungDurasiHari, formatDurasi } from '../data/jenisIzinCuti.js'
+import {
+  JENIS_FORM, buildPengajuan, aturanLampiran, hitungDurasiHari, formatDurasi,
+  isFormCutiEligible, isSakit, hitungTanggalMasukKembali, JENIS_CUTI_DISPENSASI,
+} from '../data/jenisIzinCuti.js'
 import { uploadLeaveAttachment } from '../services/leaveAttachmentService.js'
 
 // Pilihan jenis reading from the centralized list — the same list as the
@@ -16,6 +19,11 @@ function LeaveRequestModal({ isOpen, onClose, onSave, staffList, units }) {
   const [durasi, setDurasi] = useState('0 Hari')
   const [keterangan, setKeterangan] = useState('')
   const [lampiran, setLampiran] = useState(null)
+  const [tanggalMasukKembali, setTanggalMasukKembali] = useState('')
+  const [alamatCuti, setAlamatCuti] = useState('')
+  const [telpCuti, setTelpCuti] = useState('')
+  const [subJenisDispensasi, setSubJenisDispensasi] = useState('Pernikahan Karyawan')
+  const [anakKe, setAnakKe] = useState('')
   const [errors, setErrors] = useState({})
   const [touched, setTouched] = useState({})
 
@@ -23,9 +31,17 @@ function LeaveRequestModal({ isOpen, onClose, onSave, staffList, units }) {
   const selectedUnit = units.find(u => u.id === selectedStaff?.unitId)
 
   useEffect(() => {
+    if (selectedStaff) {
+      if (selectedStaff.alamat) setAlamatCuti(selectedStaff.alamat)
+      if (selectedStaff.kontak) setTelpCuti(selectedStaff.kontak)
+    }
+  }, [selectedStaff])
+
+  useEffect(() => {
     if (tanggalMulai) {
       const h = hitungDurasiHari(tanggalMulai, tanggalSelesai || tanggalMulai)
       setDurasi(`${h} Hari`)
+      setTanggalMasukKembali(hitungTanggalMasukKembali(tanggalSelesai || tanggalMulai))
     } else {
       setDurasi('0 Hari')
     }
@@ -40,6 +56,11 @@ function LeaveRequestModal({ isOpen, onClose, onSave, staffList, units }) {
       setDurasi('0 Hari')
       setKeterangan('')
       setLampiran(null)
+      setTanggalMasukKembali('')
+      setAlamatCuti('')
+      setTelpCuti('')
+      setSubJenisDispensasi('Pernikahan Karyawan')
+      setAnakKe('')
       setErrors({})
       setTouched({})
     }
@@ -72,10 +93,11 @@ function LeaveRequestModal({ isOpen, onClose, onSave, staffList, units }) {
         if (value.trim().length < 5) return 'Keterangan minimal 5 karakter'
         return ''
       case 'lampiran':
-        // Aturan sama dengan form mobile: wajib hanya untuk jenis yang
-        // memang butuh bukti (mis. Cuti Melahirkan). Untuk yang lain lampiran
-        // tetap opsional, supaya form tidak terlalu Berat untuk izin pribadi.
-        if (!value && aturanLampiran(jenis) === 'wajib') return 'Lampiran wajib diunggah untuk jenis ini'
+        // Cuti resmi menghasilkan PDF formulir cuti otomatis, jadi tidak memerlukan upload berkas.
+        if (isFormCutiEligible(jenis)) return ''
+        if (!value && aturanLampiran(jenis) === 'wajib') {
+          return isSakit(jenis) ? 'Surat Keterangan Dokter wajib diunggah' : 'Lampiran wajib diunggah untuk jenis ini'
+        }
         return ''
       default:
         return ''
@@ -120,7 +142,7 @@ function LeaveRequestModal({ isOpen, onClose, onSave, staffList, units }) {
       tanggalMulai: validateField('tanggalMulai', tanggalMulai),
       tanggalSelesai: validateField('tanggalSelesai', tanggalSelesai),
       keterangan: validateField('keterangan', keterangan),
-      lampiran: validateField('lampiran', lampiran),
+      lampiran: isFormCutiEligible(jenis) ? '' : validateField('lampiran', lampiran),
     }
     setErrors(newErrors)
     setTouched({
@@ -168,6 +190,11 @@ function LeaveRequestModal({ isOpen, onClose, onSave, staffList, units }) {
         alasan: keterangan,
         lampiran: fileMeta.lampiranNama || fileMeta.lampiran,
         lampiranUkuran: fileMeta.lampiranUkuran,
+        tanggalMasukKembali,
+        alamatCuti,
+        telpCuti,
+        subJenisDispensasi: isFormCutiEligible(jenis) && String(jenis).toLowerCase().includes('dispensasi') ? subJenisDispensasi : null,
+        anakKe: anakKe || null,
       })
 
       onSave({
@@ -368,6 +395,100 @@ function LeaveRequestModal({ isOpen, onClose, onSave, staffList, units }) {
             </div>
           </div>
 
+          {/* Rincian Tambahan Khusus Cuti (Sesuai Form Cuti Resmi) */}
+          {isFormCutiEligible(jenis) && (
+            <div className="space-y-4 p-4 rounded-xl bg-muted/30 border border-border/80">
+              <div className="flex items-center gap-2 text-xs font-bold text-foreground">
+                <span className="material-symbols-outlined text-[18px] text-primary">description</span>
+                <span>Data Isian Formulir Permohonan Cuti Resmi</span>
+              </div>
+
+              {String(jenis || '').toLowerCase().includes('dispensasi') && (
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-semibold text-foreground/90" htmlFor="selectDispensasi">
+                    Sub-Jenis Cuti Dispensasi
+                  </label>
+                  <select
+                    className={getInputClass('subJenisDispensasi') + ' pr-8 cursor-pointer'}
+                    id="selectDispensasi"
+                    value={subJenisDispensasi}
+                    onChange={(e) => setSubJenisDispensasi(e.target.value)}
+                  >
+                    {JENIS_CUTI_DISPENSASI.map((disp) => (
+                      <option key={disp.id} value={disp.label}>
+                        {disp.label} ({disp.hari} hari)
+                      </option>
+                    ))}
+                  </select>
+                  {String(subJenisDispensasi || '').toLowerCase().includes('melahirkan') && (
+                    <div className="mt-1">
+                      <label className="text-[11px] font-semibold text-foreground/90 block mb-1">
+                        Melahirkan Anak ke-
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="15"
+                        placeholder="Contoh: 1, 2, dst"
+                        value={anakKe}
+                        onChange={(e) => setAnakKe(e.target.value)}
+                        className={getInputClass('anakKe')}
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-semibold text-foreground/90" htmlFor="inputMasukKembali">
+                    Tanggal Masuk Kerja Kembali
+                  </label>
+                  <input
+                    className={getInputClass('tanggalMasukKembali')}
+                    id="inputMasukKembali"
+                    type="date"
+                    value={tanggalMasukKembali}
+                    min={tanggalSelesai || tanggalMulai}
+                    onChange={(e) => setTanggalMasukKembali(e.target.value)}
+                  />
+                  <span className="text-[10.5px] text-muted-foreground">Hari kerja setelah cuti selesai (Minggu dilewati)</span>
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-semibold text-foreground/90" htmlFor="inputTelpCuti">
+                    No. Telp/HP Selama Cuti
+                  </label>
+                  <input
+                    className={getInputClass('telpCuti')}
+                    id="inputTelpCuti"
+                    type="tel"
+                    placeholder="08xxxxxxxxxx"
+                    value={telpCuti}
+                    onChange={(e) => setTelpCuti(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-foreground/90" htmlFor="inputAlamatCuti">
+                  Alamat Lengkap Selama Cuti
+                </label>
+                <textarea
+                  className={getTextareaClass('alamatCuti')}
+                  id="inputAlamatCuti"
+                  rows={2}
+                  placeholder="Alamat domisili atau tujuan selama menjalankan cuti..."
+                  value={alamatCuti}
+                  onChange={(e) => setAlamatCuti(e.target.value)}
+                />
+              </div>
+
+              <p className="text-[11px] text-muted-foreground bg-primary/5 p-2.5 rounded-lg border border-primary/20 leading-relaxed">
+                ℹ️ Sistem akan otomatis menghasilkan file PDF formulir permohonan cuti resmi Yayasan At-Tin Indonesia lengkap dengan 4 penandatangan (Yayasan, Bagian Presensi, Kepala Sekolah, Karyawan).
+              </p>
+            </div>
+          )}
+
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-semibold text-foreground/90" htmlFor="inputKeterangan">
               Keterangan / Alasan <span className="text-destructive">*</span>
@@ -386,50 +507,52 @@ function LeaveRequestModal({ isOpen, onClose, onSave, staffList, units }) {
             )}
           </div>
 
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-foreground/90">
-              Upload Lampiran {aturanLampiran(jenis) === 'wajib' && <span className="text-destructive">*</span>}
-            </label>
-            <div className="relative">
-              <input
-                type="file"
-                id="inputLampiran"
-                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                onChange={handleFileChange}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-              />
-              <div
-                className={`w-full py-4 px-4 border-2 border-dashed rounded-xl flex flex-col items-center justify-center gap-1.5 cursor-pointer transition-all ${
-                  lampiran ? 'border-emerald-500/50 bg-emerald-500/10' : 'border-border hover:border-primary hover:bg-muted/40 bg-muted/20'
-                }`}
-              >
-                {lampiran ? (
-                  <>
-                    <span className="material-symbols-outlined text-emerald-600 dark:text-emerald-400 text-[26px]">check_circle</span>
-                    <span className="text-xs font-medium text-emerald-800 dark:text-emerald-300">{lampiran.name}</span>
-                    <span className="text-[11px] text-muted-foreground">
-                      {(lampiran.size / 1024).toFixed(1)} KB
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center text-muted-foreground mb-0.5">
-                      <span className="material-symbols-outlined text-[20px]">cloud_upload</span>
-                    </div>
-                    <span className="text-xs font-medium text-foreground">
-                      Pilih berkas atau seret ke sini
-                    </span>
-                    <span className="text-[11px] text-muted-foreground">
-                      PDF, DOC, DOCX, JPG, PNG (Maks 5MB)
-                    </span>
-                  </>
-                )}
+          {!isFormCutiEligible(jenis) && (
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold text-foreground/90">
+                {isSakit(jenis) ? 'Upload Surat Keterangan Dokter' : 'Upload Lampiran'} {aturanLampiran(jenis) === 'wajib' && <span className="text-destructive">*</span>}
+              </label>
+              <div className="relative">
+                <input
+                  type="file"
+                  id="inputLampiran"
+                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                  onChange={handleFileChange}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                />
+                <div
+                  className={`w-full py-4 px-4 border-2 border-dashed rounded-xl flex flex-col items-center justify-center gap-1.5 cursor-pointer transition-all ${
+                    lampiran ? 'border-emerald-500/50 bg-emerald-500/10' : 'border-border hover:border-primary hover:bg-muted/40 bg-muted/20'
+                  }`}
+                >
+                  {lampiran ? (
+                    <>
+                      <span className="material-symbols-outlined text-emerald-600 dark:text-emerald-400 text-[26px]">check_circle</span>
+                      <span className="text-xs font-medium text-emerald-800 dark:text-emerald-300">{lampiran.name}</span>
+                      <span className="text-[11px] text-muted-foreground">
+                        {(lampiran.size / 1024).toFixed(1)} KB
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center text-muted-foreground mb-0.5">
+                        <span className="material-symbols-outlined text-[20px]">cloud_upload</span>
+                      </div>
+                      <span className="text-xs font-medium text-foreground">
+                        {isSakit(jenis) ? 'Pilih berkas Surat Dokter atau seret ke sini' : 'Pilih berkas atau seret ke sini'}
+                      </span>
+                      <span className="text-[11px] text-muted-foreground">
+                        PDF, DOC, DOCX, JPG, PNG (Maks 5MB)
+                      </span>
+                    </>
+                  )}
+                </div>
               </div>
+              {errors.lampiran && touched.lampiran && (
+                <span className="text-xs text-destructive mt-0.5">{errors.lampiran}</span>
+              )}
             </div>
-            {errors.lampiran && touched.lampiran && (
-              <span className="text-xs text-destructive mt-0.5">{errors.lampiran}</span>
-            )}
-          </div>
+          )}
         </div>
 
         <div className="px-6 py-3.5 bg-muted/30 border-t border-border flex items-center justify-end gap-2.5">

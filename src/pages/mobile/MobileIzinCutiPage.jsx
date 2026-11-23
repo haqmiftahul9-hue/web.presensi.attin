@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Icon from '../../components/Icon.jsx'
 import DocumentViewerModal from '../../components/DocumentViewerModal.jsx'
@@ -15,7 +15,9 @@ import {
   buildPengajuan, validasiFormPengajuan, formatPeriode, hitungDurasiHari,
   MAKS_LAMPIRAN, hitungSisaKuota, kuotaJenis,
   isLeavePending, isLeaveApproved, isLeaveRejected,
+  JENIS_CUTI_DISPENSASI, isFormCutiEligible, isSakit, hitungTanggalMasukKembali,
 } from '../../data/jenisIzinCuti.js'
+import { downloadFormCutiPDF } from '../../utils/generateFormCutiPDF.js'
 import StaffAvatar from '../../components/mobile/StaffAvatar.jsx'
 import { SectionTitle } from '../../components/mobile/AppShell.jsx'
 import { EmptyState, ErrorState, LoadingState, Spinner } from '../../components/mobile/Feedback.jsx'
@@ -65,9 +67,13 @@ function BarisStatus({ status }) {
  */
 export function FormPengajuan({
   jenis, mulai, selesai, alasan, lampiran, galat, mengirim, durasi, inputLampiran,
+  tanggalMasukKembali, alamatCuti, telpCuti, subJenisDispensasi, anakKe,
   onUbahJenis, onUbahMulai, onUbahSelesai, onUbahAlasan, onUbahBerkas, onBatal, onKirim, onHapusLampiran,
+  onUbahTanggalMasukKembali, onUbahAlamatCuti, onUbahTelpCuti, onUbahSubJenisDispensasi, onUbahAnakKe,
 }) {
   const aturan = aturanLampiran(jenis)
+  const isCuti = isFormCutiEligible(jenis)
+  const isCutiDispensasi = String(jenis || '').toLowerCase().includes('dispensasi')
 
   return (
     <form onSubmit={onKirim} className="sp-card p-4 flex flex-col gap-4 animate-sp-rise" noValidate>
@@ -109,7 +115,9 @@ export function FormPengajuan({
                         {item}
                       </span>
                       {aturanLampiran(item) === 'wajib' && (
-                        <span className="block font-label-sm text-label-sm text-status-danger-text mt-1">Lampiran wajib</span>
+                        <span className="block font-label-sm text-label-sm text-status-danger-text mt-1">
+                          {isSakit(item) ? 'Surat dokter wajib' : 'Lampiran wajib'}
+                        </span>
                       )}
                     </button>
                   )
@@ -119,6 +127,53 @@ export function FormPengajuan({
           ))}
         </div>
       </div>
+
+      {/* Jika jenis Cuti Dispensasi, tampilkan checklist 7 sub-jenis resmi dari formulir */}
+      {isCutiDispensasi && (
+        <div className="flex flex-col gap-2 p-3 bg-slate-50 dark:bg-card border border-slate-200/80 dark:border-primary-border rounded-xl">
+          <span className="font-label-sm text-label-sm font-semibold text-foreground">Sub-Jenis Cuti Dispensasi Resmi</span>
+          <div className="grid grid-cols-1 gap-1.5">
+            {JENIS_CUTI_DISPENSASI.map((disp) => {
+              const aktif = subJenisDispensasi === disp.label
+              return (
+                <button
+                  key={disp.id}
+                  type="button"
+                  onClick={() => onUbahSubJenisDispensasi(disp.label)}
+                  className={`flex items-center justify-between px-3 py-2 rounded-lg text-left text-xs transition-all ${
+                    aktif
+                      ? 'bg-rose-100 text-rose-900 dark:bg-rose-950/60 dark:text-rose-200 font-bold border border-rose-300 dark:border-rose-800'
+                      : 'hover:bg-slate-100 dark:hover:bg-muted text-slate-700 dark:text-foreground border border-transparent'
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <span className={`w-4 h-4 rounded-sm border flex items-center justify-center text-[11px] ${aktif ? 'border-rose-600 bg-rose-600 text-white font-bold' : 'border-slate-400'}`}>
+                      {aktif ? '✓' : ''}
+                    </span>
+                    <span>{disp.label}</span>
+                  </span>
+                  <span className="text-[11px] font-semibold text-muted-foreground">{disp.hari} hari</span>
+                </button>
+              )
+            })}
+          </div>
+          {String(subJenisDispensasi || '').toLowerCase().includes('melahirkan') && (
+            <div className="mt-2 pt-2 border-t border-slate-200 dark:border-primary-border">
+              <label className={LABEL} htmlFor="izin-anak-ke">Melahirkan Anak ke- <span className="text-status-danger-text">*</span></label>
+              <input
+                id="izin-anak-ke"
+                type="number"
+                min="1"
+                max="15"
+                placeholder="Contoh: 1, 2, dst"
+                value={anakKe}
+                onChange={(e) => onUbahAnakKe(e.target.value)}
+                className={FIELD}
+              />
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="grid grid-cols-2 gap-3">
         <div>
@@ -142,54 +197,109 @@ export function FormPengajuan({
         <span className="text-[11px] text-muted-foreground ml-1">(hari Minggu tidak dihitung)</span>
         {mulai && selesai && ` • ${formatPeriode(mulai, selesai)}`}
       </p>
-      {String(jenis || '').toLowerCase().includes('sakit') && (
+
+      {/* Rincian Tambahan Khusus Cuti (Sesuai Form Cuti Resmi) */}
+      {isCuti && (
+        <div className="flex flex-col gap-3 pt-1 border-t border-slate-200/80 dark:border-primary-border">
+          <div>
+            <label className={LABEL} htmlFor="izin-masuk-kembali">Tanggal Masuk Kerja Kembali</label>
+            <input
+              id="izin-masuk-kembali"
+              type="date"
+              value={tanggalMasukKembali}
+              min={selesai || mulai}
+              onChange={(e) => onUbahTanggalMasukKembali(e.target.value)}
+              className={FIELD}
+            />
+            <span className="text-[11px] text-muted-foreground mt-1 block">Hari kerja pertama setelah cuti selesai (hari Minggu dilewati otomatis).</span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className={LABEL} htmlFor="izin-telp">No. Telp/HP Selama Cuti</label>
+              <input
+                id="izin-telp"
+                type="tel"
+                value={telpCuti}
+                onChange={(e) => onUbahTelpCuti(e.target.value)}
+                placeholder="08xxxxxxxxxx"
+                className={FIELD}
+              />
+            </div>
+            <div>
+              <label className={LABEL} htmlFor="izin-alamat">Alamat Selama Cuti</label>
+              <textarea
+                id="izin-alamat"
+                rows={2}
+                value={alamatCuti}
+                onChange={(e) => onUbahAlamatCuti(e.target.value)}
+                placeholder="Alamat domisili/tujuan selama cuti"
+                className={`${FIELD} resize-none`}
+              />
+            </div>
+          </div>
+
+          <div className="p-3 bg-indigo-50/80 dark:bg-indigo-950/40 rounded-xl border border-indigo-200/80 text-[12px] text-indigo-900 dark:text-indigo-200 flex items-start gap-2.5 leading-relaxed">
+            <Icon name="description" className="text-[18px] text-indigo-600 dark:text-indigo-400 mt-0.5 shrink-0" />
+            <div>
+              <span className="font-semibold block">Format Cuti Otomatis (PDF)</span>
+              Pengajuan cuti tidak memerlukan unggah berkas surat terpisah. Formulir permohonan cuti resmi Yayasan Islam At-Tin Indonesia akan terisi secara otomatis dan dapat langsung Anda unduh dalam format PDF setelah pengajuan dikirim.
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Informasi Khusus Izin Sakit */}
+      {isSakit(jenis) && (
         <p className="text-[11.5px] text-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 dark:text-emerald-300 p-2.5 rounded-xl border border-emerald-200/80 leading-relaxed">
           <span className="font-semibold block">ℹ️ Izin Sakit Pribadi</span>
-          Izin sakit adalah izin pribadi karena alasan kesehatan dan <strong>tidak memotong</strong> jatah Cuti Tahunan Anda.
+          Izin sakit adalah izin pribadi karena alasan kesehatan dan <strong>tidak memotong</strong> jatah Cuti Tahunan Anda. Wajib melampirkan Surat Keterangan Dokter pada isian lampiran di bawah.
         </p>
       )}
 
       <div>
         <label className={LABEL} htmlFor="izin-alasan">
-          Alasan <span className="text-status-danger-text">*</span>
+          {isCuti ? 'Keperluan Cuti / Alasan' : 'Alasan'} <span className="text-status-danger-text">*</span>
         </label>
         <textarea
           id="izin-alasan"
           rows={3}
           value={alasan}
           onChange={(e) => onUbahAlasan(e.target.value)}
-          placeholder="Contoh: perlu istirahat sesuai surat dokter, acara keluarga, surat tugas dinas…"
+          placeholder={isCuti ? 'Tuliskan keperluan cuti Anda...' : 'Contoh: perlu istirahat sesuai surat dokter, acara keluarga, surat tugas dinas…'}
           className={`${FIELD} resize-none`}
         />
       </div>
 
-      <div>
-        <label className={LABEL} htmlFor="izin-lampiran">
-          Lampiran dokumen
-          {aturan === 'wajib' && <span className="text-status-danger-text"> *</span>}
-          {aturan === 'disarankan' && <span className="text-on-surface-variant"> (disarankan)</span>}
-        </label>
-        <div className="flex flex-col gap-2">
-          <input
-            ref={inputLampiran}
-            id="izin-lampiran"
-            type="file"
-            accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-            onChange={onUbahBerkas}
-            className="w-full text-body-sm text-body-sm text-on-surface-variant file:mr-3 file:rounded-lg file:border-0 file:bg-surface-container file:px-3.5 file:py-2.5 file:font-label-md file:text-label-md file:text-on-surface"
-          />
-          {lampiran && (
-            <p className="flex items-center gap-1.5 font-label-sm text-label-sm text-on-surface-variant">
-              <Icon name="attach_file" className="text-[15px] shrink-0" />
-              <span className="truncate">{lampiran.name}</span>
-              <span className="shrink-0">{ukuranBerkas(lampiran.size)}</span>
-              <button type="button" onClick={onHapusLampiran} className="shrink-0 -mr-2 px-2 py-1.5 rounded-lg text-status-danger-text font-label-sm text-label-sm">
-                Hapus
-              </button>
-            </p>
-          )}
+      {!isCuti && (
+        <div>
+          <label className={LABEL} htmlFor="izin-lampiran">
+            {isSakit(jenis) ? 'Surat Keterangan Dokter' : 'Lampiran dokumen'}
+            {aturan === 'wajib' && <span className="text-status-danger-text"> *</span>}
+            {aturan === 'disarankan' && <span className="text-on-surface-variant"> (disarankan)</span>}
+          </label>
+          <div className="flex flex-col gap-2">
+            <input
+              ref={inputLampiran}
+              id="izin-lampiran"
+              type="file"
+              accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+              onChange={onUbahBerkas}
+              className="w-full text-body-sm text-body-sm text-on-surface-variant file:mr-3 file:rounded-lg file:border-0 file:bg-surface-container file:px-3.5 file:py-2.5 file:font-label-md file:text-label-md file:text-on-surface"
+            />
+            {lampiran && (
+              <p className="flex items-center gap-1.5 font-label-sm text-label-sm text-on-surface-variant">
+                <Icon name="attach_file" className="text-[15px] shrink-0" />
+                <span className="truncate">{lampiran.name}</span>
+                <span className="shrink-0">{ukuranBerkas(lampiran.size)}</span>
+                <button type="button" onClick={onHapusLampiran} className="shrink-0 -mr-2 px-2 py-1.5 rounded-lg text-status-danger-text font-label-sm text-label-sm">
+                  Hapus
+                </button>
+              </p>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {galat && (
         <p role="alert" className="rounded-2xl bg-status-danger-soft text-status-danger-bright border border-status-danger-border px-3.5 py-3 font-body-sm text-body-sm flex items-start gap-2 leading-snug">
@@ -237,13 +347,27 @@ function MobileIzinCutiPage() {
   const [selesai, setSelesai] = useState(() => isoHariIni())
   const [alasan, setAlasan] = useState('')
   const [lampiran, setLampiran] = useState(null)
+  const [tanggalMasukKembali, setTanggalMasukKembali] = useState(() => hitungTanggalMasukKembali(isoHariIni()))
+  const [alamatCuti, setAlamatCuti] = useState('')
+  const [telpCuti, setTelpCuti] = useState('')
+  const [subJenisDispensasi, setSubJenisDispensasi] = useState('Pernikahan Karyawan')
+  const [anakKe, setAnakKe] = useState('')
   const [pesan, setPesan] = useState('')
   const [galat, setGalat] = useState('')
   const [mengirim, setMengirim] = useState(false)
   const [selectedLeaveDoc, setSelectedLeaveDoc] = useState(null)
+  const [pengajuanCutiBaru, setPengajuanCutiBaru] = useState(null)
+  const [downloadingPdf, setDownloadingPdf] = useState(false)
   const inputLampiran = useRef(null)
 
   const durasi = hitungDurasiHari(mulai, selesai)
+
+  useEffect(() => {
+    if (staff) {
+      if (!alamatCuti && staff.alamat) setAlamatCuti(staff.alamat)
+      if (!telpCuti && (staff.kontak || staff.telepon)) setTelpCuti(staff.kontak || staff.telepon)
+    }
+  }, [staff])
 
   function resetForm() {
     setJenis('Cuti Tahunan')
@@ -251,7 +375,29 @@ function MobileIzinCutiPage() {
     setSelesai(isoHariIni())
     setAlasan('')
     setLampiran(null)
+    setTanggalMasukKembali(hitungTanggalMasukKembali(isoHariIni()))
+    setSubJenisDispensasi('Pernikahan Karyawan')
+    setAnakKe('')
     setGalat('')
+  }
+
+  async function handleDownloadPDF(leaveItem) {
+    if (!leaveItem) return
+    setDownloadingPdf(true)
+    try {
+      await downloadFormCutiPDF({
+        leave: leaveItem,
+        staff,
+        unit,
+        settings: state?.settings || {},
+        allStaff: state?.staff || [],
+      })
+    } catch (err) {
+      console.error('Gagal unduh form cuti:', err)
+      alert('Gagal mengunduh dokumen formulir cuti: ' + (err?.message || err))
+    } finally {
+      setDownloadingPdf(false)
+    }
   }
 
   if (!state) {
@@ -347,7 +493,7 @@ function MobileIzinCutiPage() {
       lampiranTipe: lampiran?.type || '',
     }
 
-    if (lampiran) {
+    if (lampiran && !isFormCutiEligible(jenis)) {
       const uploadRes = await uploadLeaveAttachment(lampiran, {
         staffId: staff.id,
         unitId: staff.unitId,
@@ -376,6 +522,11 @@ function MobileIzinCutiPage() {
       alasan,
       lampiran: fileMeta.lampiranNama || fileMeta.lampiran,
       lampiranUkuran: fileMeta.lampiranUkuran,
+      tanggalMasukKembali,
+      alamatCuti,
+      telpCuti,
+      subJenisDispensasi: isFormCutiEligible(jenis) && String(jenis).toLowerCase().includes('dispensasi') ? subJenisDispensasi : null,
+      anakKe: anakKe || null,
     })
 
     const pengajuan = {
@@ -399,6 +550,9 @@ function MobileIzinCutiPage() {
       staff.unitId,
     )
 
+    if (isFormCutiEligible(pengajuan.jenis)) {
+      setPengajuanCutiBaru(pengajuan)
+    }
     resetForm()
     if (inputLampiran.current) inputLampiran.current.value = ''
     setMengirim(false)
@@ -486,6 +640,36 @@ function MobileIzinCutiPage() {
           </p>
         )}
 
+        {pengajuanCutiBaru && (
+          <div className="sp-card p-4 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800 rounded-2xl flex flex-col gap-3 animate-sp-rise">
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex items-center gap-2 text-emerald-800 dark:text-emerald-300 font-bold text-sm">
+                <Icon name="check_circle" className="text-[20px] text-emerald-600" />
+                <span>Pengajuan Cuti Berhasil Dikirim!</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPengajuanCutiBaru(null)}
+                className="text-emerald-700 hover:text-emerald-900 dark:text-emerald-300 text-xs font-semibold px-2 py-1 cursor-pointer"
+              >
+                Tutup
+              </button>
+            </div>
+            <p className="text-xs text-emerald-900/80 dark:text-emerald-200 leading-relaxed">
+              Dokumen Formulir Permohonan Cuti resmi ({pengajuanCutiBaru.jenis}) telah otomatis terisi. Anda dapat langsung mengunduhnya sekarang dalam format PDF.
+            </p>
+            <button
+              type="button"
+              onClick={() => handleDownloadPDF(pengajuanCutiBaru)}
+              disabled={downloadingPdf}
+              className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-xl shadow-xs flex items-center justify-center gap-2 active:scale-98 transition-all disabled:opacity-50 cursor-pointer"
+            >
+              <Icon name="download" className="text-[17px]" />
+              <span>{downloadingPdf ? 'Menyiapkan Dokumen PDF...' : 'Download Form Cuti (PDF)'}</span>
+            </button>
+          </div>
+        )}
+
         {formTerbuka && (
           <FormPengajuan
             jenis={jenis}
@@ -497,14 +681,29 @@ function MobileIzinCutiPage() {
             mengirim={mengirim}
             durasi={durasi}
             inputLampiran={inputLampiran}
+            tanggalMasukKembali={tanggalMasukKembali}
+            alamatCuti={alamatCuti}
+            telpCuti={telpCuti}
+            subJenisDispensasi={subJenisDispensasi}
+            anakKe={anakKe}
             onUbahJenis={setJenis}
             onUbahMulai={(v) => {
               setMulai(v)
+              const tglAkhir = selesai < v ? v : selesai
               if (selesai < v) setSelesai(v)
+              setTanggalMasukKembali(hitungTanggalMasukKembali(tglAkhir))
             }}
-            onUbahSelesai={setSelesai}
+            onUbahSelesai={(v) => {
+              setSelesai(v)
+              setTanggalMasukKembali(hitungTanggalMasukKembali(v))
+            }}
             onUbahAlasan={setAlasan}
             onUbahBerkas={pilihBerkas}
+            onUbahTanggalMasukKembali={setTanggalMasukKembali}
+            onUbahAlamatCuti={setAlamatCuti}
+            onUbahTelpCuti={setTelpCuti}
+            onUbahSubJenisDispensasi={setSubJenisDispensasi}
+            onUbahAnakKe={setAnakKe}
             onHapusLampiran={() => {
               setLampiran(null)
               if (inputLampiran.current) inputLampiran.current.value = ''
@@ -572,17 +771,44 @@ function MobileIzinCutiPage() {
                     {(item.keterangan || item.alasan) && (
                       <p className="font-body-sm text-body-sm text-on-surface-variant leading-snug">{item.keterangan || item.alasan}</p>
                     )}
+                    {isFormCutiEligible(item.jenis) && (
+                      <div className="p-2.5 rounded-xl bg-indigo-50/70 dark:bg-indigo-950/30 border border-indigo-200/80 dark:border-indigo-800/60 flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <Icon name="picture_as_pdf" className="text-[18px] text-indigo-600 dark:text-indigo-400 shrink-0" />
+                          <div className="min-w-0">
+                            <span className="font-semibold text-foreground text-xs block truncate">
+                              Formulir Permohonan Cuti (PDF)
+                            </span>
+                            <span className="text-[10.5px] text-muted-foreground block truncate">
+                              Format resmi Yayasan At-Tin Indonesia
+                            </span>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleDownloadPDF(item)}
+                          disabled={downloadingPdf}
+                          className="px-2.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs flex items-center gap-1.5 shrink-0 transition-colors cursor-pointer disabled:opacity-50"
+                          title="Unduh Formulir Cuti PDF"
+                        >
+                          <Icon name="download" className="text-[14px]" />
+                          <span>Unduh PDF</span>
+                        </button>
+                      </div>
+                    )}
                     {(item.lampiran || item.lampiranUrl || item.lampiran_url) && (
                       <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-card border border-slate-200/80 dark:border-primary-border flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2 min-w-0">
                           <Icon name="attach_file" className="text-[17px] text-primary shrink-0" />
                           <div className="min-w-0">
                             <span className="font-semibold text-foreground text-xs block truncate">
-                              {getAttachmentName(item) || 'Surat Pengajuan Izin / Cuti'}
+                              {getAttachmentName(item) || (isSakit(item.jenis) ? 'Surat Keterangan Dokter' : 'Surat Pengajuan Izin')}
                             </span>
                             <span className="text-[10.5px] text-muted-foreground block">
                               {item.lampiranUkuran || item.lampiran_ukuran
                                 ? ukuranBerkas(item.lampiranUkuran || item.lampiran_ukuran)
+                                : isSakit(item.jenis)
+                                ? 'Surat Keterangan Dokter'
                                 : 'Surat Bukti Lampiran'}
                             </span>
                           </div>
@@ -594,7 +820,7 @@ function MobileIzinCutiPage() {
                           title={`Lihat surat: ${getAttachmentName(item) || 'lampiran'}`}
                         >
                           <Icon name="visibility" className="text-[14px]" />
-                          <span>Lihat Surat</span>
+                          <span>{isSakit(item.jenis) ? 'Lihat Surat Dokter' : 'Lihat Surat'}</span>
                         </button>
                       </div>
                     )}

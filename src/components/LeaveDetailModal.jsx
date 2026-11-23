@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import {
   SEMUA_JENIS, WARNA_STATUS_PORTAL, WARNA_TITIK_STATUS, LABEL_STATUS_PANJANG,
-  isLeavePending,
+  isLeavePending, isFormCutiEligible,
 } from '../data/jenisIzinCuti.js'
+import { downloadFormCutiPDF } from '../utils/generateFormCutiPDF.js'
 import {
   resolveDocumentUrl,
   getAttachmentName,
@@ -28,12 +29,41 @@ function ukuranLampiran(leave = {}) {
 function LeaveDetailModal({ isOpen, onClose, leave, canApprove = false, onApprove, onReject }) {
   const [activeTab, setActiveTab] = useState('detail')
   const [viewerTerbuka, setViewerTerbuka] = useState(false)
+  const [downloadingPdf, setDownloadingPdf] = useState(false)
 
   // Semua hook harus dipanggil sebelum keluar lebih awal: modal ini selalu
   // dipasang di halamannya (isOpen hanya mengatur tampil/tidaknya), sehingga
   // jumlah hook harus sama pada setiap render.
   const ctx = useSimPresOptional()
   const currentRole = ctx?.state ? selectCurrentUserRole(ctx.state) : ''
+
+  const handleDownloadFormCuti = async () => {
+    if (!leave) return
+    setDownloadingPdf(true)
+    try {
+      const staff = ctx?.state?.staff?.find((s) => s.id === leave.staffId) || {
+        id: leave.staffId,
+        name: leave.name || leave.staffName || 'Pegawai',
+        role: leave.role || leave.jabatan || 'Guru',
+        unitId: leave.unitId,
+        kontak: leave.telpCuti,
+        alamat: leave.alamatCuti,
+      }
+      const unit = ctx?.state?.units?.find((u) => u.id === (staff.unitId || leave.unitId))
+      await downloadFormCutiPDF({
+        leave,
+        staff,
+        unit,
+        settings: ctx?.state?.settings || {},
+        allStaff: ctx?.state?.staff || [],
+      })
+    } catch (err) {
+      console.error('Gagal unduh form cuti:', err)
+      alert('Gagal mengunduh dokumen formulir cuti: ' + (err?.message || err))
+    } finally {
+      setDownloadingPdf(false)
+    }
+  }
 
   if (!isOpen || !leave) return null
 
@@ -255,8 +285,35 @@ function LeaveDetailModal({ isOpen, onClose, leave, canApprove = false, onApprov
               {/* Bukti surat: approver (Kepala Sekolah, Admin Unit, Superadmin)
                   harus bisa membuka berkas yang diunggah pemohon langsung dari
                   rincian pengajuan, tanpa pindah halaman. */}
+              {isFormCutiEligible(leave.jenis) && (
+                <div className="flex flex-col gap-1">
+                  <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Formulir Cuti Resmi (PDF)</span>
+                  <div className="p-3 bg-emerald-500/10 border border-emerald-500/25 rounded-xl flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className="material-symbols-outlined text-[20px] text-emerald-600 shrink-0">picture_as_pdf</span>
+                      <div className="min-w-0">
+                        <span className="text-xs font-bold text-foreground truncate block">Formulir Permohonan Cuti</span>
+                        <span className="text-[11px] text-muted-foreground block truncate">
+                          Format resmi Yayasan At-Tin Indonesia terisi otomatis
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleDownloadFormCuti}
+                      disabled={downloadingPdf}
+                      className="px-3 h-8 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer shrink-0 disabled:opacity-50"
+                      title="Unduh Formulir Permohonan Cuti PDF"
+                    >
+                      <span className="material-symbols-outlined text-[15px]">download</span>
+                      <span>{downloadingPdf ? 'Mengunduh...' : 'Unduh Form Cuti'}</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
               <div className="flex flex-col gap-1">
-                <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Bukti Surat Izin / Cuti</span>
+                <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Bukti Surat Izin / Lampiran</span>
                 {leave.lampiran || leave.lampiranUrl || leave.lampiran_url ? (
                   <div className="p-3 bg-primary/5 border border-primary/20 rounded-xl flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2.5 min-w-0">
@@ -277,6 +334,10 @@ function LeaveDetailModal({ isOpen, onClose, leave, canApprove = false, onApprov
                       <span className="material-symbols-outlined text-[15px]">visibility</span>
                       <span>Lihat Bukti</span>
                     </button>
+                  </div>
+                ) : isFormCutiEligible(leave.jenis) ? (
+                  <div className="p-3 bg-muted/20 border border-dashed border-border rounded-xl text-xs text-muted-foreground">
+                    Pengajuan cuti tidak memerlukan lampiran berkas surat karena Formulir Permohonan Cuti resmi (PDF) dihasilkan secara otomatis di atas.
                   </div>
                 ) : (
                   <div className="p-3 bg-muted/20 border border-dashed border-border rounded-xl text-xs text-muted-foreground">
@@ -388,6 +449,25 @@ function LeaveDetailModal({ isOpen, onClose, leave, canApprove = false, onApprov
                     </div>
                   )
                 })()
+              ) : isFormCutiEligible(leave.jenis) ? (
+                <div className="p-8 text-center text-muted-foreground text-xs bg-muted/20 rounded-xl border border-dashed border-border space-y-3">
+                  <span className="material-symbols-outlined text-[32px] text-emerald-600 dark:text-emerald-400 mb-1 block">description</span>
+                  <div>
+                    <span className="font-bold text-foreground text-xs block">Formulir Permohonan Cuti Resmi (PDF)</span>
+                    <span className="text-[11px] text-muted-foreground block mt-0.5">
+                      Pengajuan cuti tidak memerlukan upload berkas surat terpisah karena formulir resmi dihasilkan otomatis oleh sistem.
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleDownloadFormCuti}
+                    disabled={downloadingPdf}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs shadow-xs transition-colors cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-[15px]">download</span>
+                    <span>{downloadingPdf ? 'Mengunduh...' : 'Unduh Form Cuti PDF'}</span>
+                  </button>
+                </div>
               ) : (
                 <div className="p-8 text-center text-muted-foreground text-xs bg-muted/20 rounded-xl border border-dashed border-border">
                   <span className="material-symbols-outlined text-[28px] text-muted-foreground/60 mb-1 block">attachment_off</span>

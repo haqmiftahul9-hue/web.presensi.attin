@@ -27,7 +27,12 @@ const storageApi = {
   removeItem: (k) => memory.delete(k),
   clear: () => memory.clear(),
 }
-globalThis.window = { localStorage: storageApi, sessionStorage: storageApi }
+globalThis.window = {
+  localStorage: storageApi,
+  sessionStorage: storageApi,
+  atob: (s) => Buffer.from(s, 'base64').toString('binary'),
+  btoa: (s) => Buffer.from(s, 'binary').toString('base64'),
+}
 
 let lulus = 0
 let gagal = 0

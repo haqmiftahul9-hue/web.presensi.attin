@@ -31,7 +31,12 @@ function pasangSesi(niy = NIY_GURU) {
     setItem: (k, v) => isi.set(k, String(v)),
     removeItem: (k) => isi.delete(k),
   }
-  globalThis.window = { sessionStorage: storage, localStorage: storage }
+  globalThis.window = {
+    sessionStorage: storage,
+    localStorage: storage,
+    atob: (s) => Buffer.from(s, 'base64').toString('binary'),
+    btoa: (s) => Buffer.from(s, 'binary').toString('base64'),
+  }
 }
 
 pasangSesi()

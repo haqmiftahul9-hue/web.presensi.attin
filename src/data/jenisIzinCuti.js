@@ -25,6 +25,17 @@
 export const KELOMPOK_CUTI = 'Cuti'
 export const KELOMPOK_IZIN = 'Izin'
 
+/** Daftar sub-jenis cuti dispensasi resmi sesuai formulir cuti yayasan. */
+export const JENIS_CUTI_DISPENSASI = [
+  { id: 'nikah_karyawan', label: 'Pernikahan Karyawan', hari: 3 },
+  { id: 'nikah_anak', label: 'Pernikahan Anak Karyawan', hari: 2 },
+  { id: 'melahirkan', label: 'Melahirkan', hari: 90, butuhAnakKe: true },
+  { id: 'istri_melahirkan', label: 'Istri Karyawan Melahirkan', hari: 2 },
+  { id: 'kematian_keluarga_inti', label: 'Kematian Suami/Istri/Anak', hari: 3 },
+  { id: 'kematian_ortu_mertua', label: 'Kematian Orang Tua/Mertua', hari: 3 },
+  { id: 'khitanan_anak', label: 'Khitanan Anak', hari: 2 },
+]
+
 /** Lima jenis utama yang dipakai form pengajuan. */
 export const JENIS_UTAMA = [
   {
@@ -32,7 +43,7 @@ export const JENIS_UTAMA = [
     kelompok: KELOMPOK_CUTI,
     ikon: 'luggage',
     ringkas: 'Cuti tahunan',
-    lampiran: 'wajib',
+    lampiran: 'tidak',
     kuota: 7,
     satuanKuota: 'hari/tahun',
     warna: 'bg-indigo-50 text-indigo-700',
@@ -43,17 +54,27 @@ export const JENIS_UTAMA = [
     kelompok: KELOMPOK_IZIN,
     ikon: 'medication',
     ringkas: 'Cuti sakit',
-    lampiran: 'disarankan',
-    keterangan: 'Izin sakit tidak memotong kuota cuti tahunan',
+    lampiran: 'wajib',
+    keterangan: 'Izin sakit tidak memotong kuota cuti tahunan. Wajib melampirkan Surat Keterangan Dokter.',
     warna: 'bg-emerald-50 text-emerald-700',
     warnaAvatar: 'bg-emerald-100 text-emerald-900',
+  },
+  {
+    nama: 'Cuti Dispensasi',
+    kelompok: KELOMPOK_CUTI,
+    ikon: 'event_available',
+    ringkas: 'Cuti dispensasi',
+    lampiran: 'tidak',
+    keterangan: 'Cuti dispensasi tidak mengurangi hak cuti tahunan',
+    warna: 'bg-rose-50 text-rose-700',
+    warnaAvatar: 'bg-rose-100 text-rose-900',
   },
   {
     nama: 'Cuti Menikah',
     kelompok: KELOMPOK_CUTI,
     ikon: 'favorite',
     ringkas: 'Cuti menikah',
-    lampiran: 'wajib',
+    lampiran: 'tidak',
     kuota: 3,
     satuanKuota: 'hari',
     warna: 'bg-rose-50 text-rose-700',
@@ -64,7 +85,7 @@ export const JENIS_UTAMA = [
     kelompok: KELOMPOK_CUTI,
     ikon: 'child_care',
     ringkas: 'Cuti melahirkan',
-    lampiran: 'wajib',
+    lampiran: 'tidak',
     kuota: 90,
     satuanKuota: 'hari (3 bulan)',
     warna: 'bg-rose-50 text-rose-700',
@@ -92,12 +113,12 @@ export const JENIS_UTAMA = [
 
 /** Nama lama yang masih muncul pada data tersimpan sebelum modul ini. */
 export const JENIS_LAMPAU = [
-  { nama: 'Izin Sakit', kelompok: KELOMPOK_IZIN, ikon: 'medication', ringkas: 'Izin sakit', lampiran: 'disarankan', keterangan: 'Izin sakit tidak memotong kuota cuti tahunan', warna: 'bg-emerald-50 text-emerald-700', warnaAvatar: 'bg-emerald-100 text-emerald-900' },
-  { nama: 'Sakit', kelompok: KELOMPOK_IZIN, ikon: 'medication', ringkas: 'Sakit', lampiran: 'disarankan', keterangan: 'Izin sakit tidak memotong kuota cuti tahunan', warna: 'bg-emerald-50 text-emerald-700', warnaAvatar: 'bg-emerald-100 text-emerald-900' },
+  { nama: 'Izin Sakit', kelompok: KELOMPOK_IZIN, ikon: 'medication', ringkas: 'Izin sakit', lampiran: 'wajib', keterangan: 'Izin sakit tidak memotong kuota cuti tahunan. Wajib melampirkan Surat Dokter.', warna: 'bg-emerald-50 text-emerald-700', warnaAvatar: 'bg-emerald-100 text-emerald-900' },
+  { nama: 'Sakit', kelompok: KELOMPOK_IZIN, ikon: 'medication', ringkas: 'Sakit', lampiran: 'wajib', keterangan: 'Izin sakit tidak memotong kuota cuti tahunan. Wajib melampirkan Surat Dokter.', warna: 'bg-emerald-50 text-emerald-700', warnaAvatar: 'bg-emerald-100 text-emerald-900' },
   { nama: 'Izin Pribadi', kelompok: KELOMPOK_IZIN, ikon: 'person', ringkas: 'Izin pribadi', lampiran: 'tidak', warna: 'bg-amber-50 text-amber-800', warnaAvatar: 'bg-amber-100 text-amber-900' },
-  { nama: 'Cuti Penting', kelompok: KELOMPOK_CUTI, ikon: 'priority_high', ringkas: 'Cuti penting', lampiran: 'disarankan', warna: 'bg-indigo-50 text-indigo-700', warnaAvatar: 'bg-indigo-100 text-indigo-900' },
-  { nama: 'Cuti Menikah', kelompok: KELOMPOK_CUTI, ikon: 'favorite', ringkas: 'Cuti menikah', lampiran: 'wajib', kuota: 3, satuanKuota: 'hari', warna: 'bg-rose-50 text-rose-700', warnaAvatar: 'bg-rose-100 text-rose-900' },
-  { nama: 'Cuti Bersalin', kelompok: KELOMPOK_CUTI, ikon: 'child_care', ringkas: 'Cuti bersalin', lampiran: 'wajib', kuota: 90, satuanKuota: 'hari (3 bulan)', warna: 'bg-rose-50 text-rose-700', warnaAvatar: 'bg-rose-100 text-rose-900' },
+  { nama: 'Cuti Penting', kelompok: KELOMPOK_CUTI, ikon: 'priority_high', ringkas: 'Cuti penting', lampiran: 'tidak', warna: 'bg-indigo-50 text-indigo-700', warnaAvatar: 'bg-indigo-100 text-indigo-900' },
+  { nama: 'Cuti Menikah', kelompok: KELOMPOK_CUTI, ikon: 'favorite', ringkas: 'Cuti menikah', lampiran: 'tidak', kuota: 3, satuanKuota: 'hari', warna: 'bg-rose-50 text-rose-700', warnaAvatar: 'bg-rose-100 text-rose-900' },
+  { nama: 'Cuti Bersalin', kelompok: KELOMPOK_CUTI, ikon: 'child_care', ringkas: 'Cuti bersalin', lampiran: 'tidak', kuota: 90, satuanKuota: 'hari (3 bulan)', warna: 'bg-rose-50 text-rose-700', warnaAvatar: 'bg-rose-100 text-rose-900' },
   { nama: 'Tugas Luar', kelompok: KELOMPOK_IZIN, ikon: 'hiking', ringkas: 'Tugas luar', lampiran: 'tidak', warna: 'bg-secondary-fixed text-on-secondary-fixed', warnaAvatar: 'bg-secondary-fixed text-on-secondary-fixed' },
 ]
 
@@ -156,8 +177,9 @@ export function kelompokIzinCuti(nama) {
   return KELOMPOK_IZIN
 }
 
-/** 'wajib' | 'disarankan' | 'tidak' untuk sebuah jenis. */
+/** 'wajib' | 'disarankan' | 'tidak' untuk sebuah jenis. Cuti resmi selalu 'tidak' karena otomatis menghasilkan Form Cuti PDF. */
 export function aturanLampiran(nama) {
+  if (isFormCutiEligible(nama)) return 'tidak'
   return jenisIzinCuti(nama)?.lampiran || 'tidak'
 }
 
@@ -268,6 +290,35 @@ export function formatDurasi(mulai, selesai) {
   return `${hitungDurasiHari(mulai, selesai)} Hari`
 }
 
+/** Hitung perkiraan tanggal masuk kerja kembali (hari kerja berikutnya setelah tanggal selesai, Minggu dilewati). */
+export function hitungTanggalMasukKembali(selesai) {
+  if (!selesai) return ''
+  const tgl = new Date(`${selesai}T00:00:00`)
+  if (Number.isNaN(tgl.getTime())) return ''
+  tgl.setDate(tgl.getDate() + 1)
+  if (tgl.getDay() === 0) {
+    tgl.setDate(tgl.getDate() + 1)
+  }
+  const yyyy = tgl.getFullYear()
+  const mm = String(tgl.getMonth() + 1).padStart(2, '0')
+  const dd = String(tgl.getDate()).padStart(2, '0')
+  return `${yyyy}-${mm}-${dd}`
+}
+
+/** Cek apakah pengajuan berhak/memerlukan Form Cuti resmi (bukan Sakit/Izin). */
+export function isFormCutiEligible(jenis) {
+  if (!jenis) return false
+  const s = String(jenis).toLowerCase()
+  if (s.includes('sakit')) return false
+  return s.includes('cuti') || s.includes('dispensasi')
+}
+
+/** Cek apakah pengajuan adalah Izin Sakit. */
+export function isSakit(jenis) {
+  if (!jenis) return false
+  return String(jenis).toLowerCase().includes('sakit')
+}
+
 /**
  * Id pengajuan versi aplikasi.
  *
@@ -294,18 +345,42 @@ export function buatRefIdPengajuan() {
  * modal portal admin supaya keduanya menyimpan data dengan bentuk yang sama:
  * tanggal ISO tersimpan terpisah (dipakai rekap presensi), `periode` hanya
  * untuk tampilan. */
-export function buildPengajuan({ id, staffId, jenis, mulai, selesai, alasan, lampiran, lampiranUkuran, keterangan }) {
+export function buildPengajuan({
+  id,
+  staffId,
+  jenis,
+  mulai,
+  selesai,
+  alasan,
+  lampiran,
+  lampiranUkuran,
+  keterangan,
+  tanggalMasukKembali,
+  alamatCuti,
+  telpCuti,
+  kategoriCuti,
+  subJenisDispensasi,
+  anakKe,
+  hakCuti,
+  durasiDiambil,
+  sisaCuti,
+}) {
+  const normJenis = normalisasiJenis(jenis)
+  const isCuti = isFormCutiEligible(normJenis)
+  const autoMasuk = selesai ? hitungTanggalMasukKembali(selesai) : null
+  const durasiHari = hitungDurasiHari(mulai, selesai || mulai)
+
   return {
     id,
     refId: buatRefIdPengajuan(),
     staffId,
-    jenis: normalisasiJenis(jenis),
+    jenis: normJenis,
     mulai: mulai || null,
     selesai: selesai || mulai || null,
     periode: formatPeriode(mulai, selesai || mulai),
     durasi: formatDurasi(mulai, selesai || mulai),
-    durasiHari: hitungDurasiHari(mulai, selesai || mulai),
-    durasi_hari: hitungDurasiHari(mulai, selesai || mulai),
+    durasiHari,
+    durasi_hari: durasiHari,
     alasan: (alasan || '').trim() || null,
     keterangan: (keterangan || alasan || '').trim() || '',
     lampiran: lampiran || '',
@@ -326,6 +401,16 @@ export function buildPengajuan({ id, staffId, jenis, mulai, selesai, alasan, lam
       tanggal: null,
       catatan: null,
     },
+    // Form Cuti fields:
+    tanggalMasukKembali: tanggalMasukKembali || autoMasuk,
+    alamatCuti: alamatCuti || null,
+    telpCuti: telpCuti || null,
+    kategoriCuti: kategoriCuti || (normJenis.toLowerCase().includes('tahunan') ? 'tahunan' : (isCuti ? 'dispensasi' : null)),
+    subJenisDispensasi: subJenisDispensasi || null,
+    anakKe: anakKe || null,
+    hakCuti: hakCuti ?? (normJenis.toLowerCase().includes('tahunan') ? 7 : null),
+    durasiDiambil: durasiDiambil ?? durasiHari,
+    sisaCuti: sisaCuti ?? null,
     createdAt: new Date().toISOString(),
   }
 }
@@ -351,8 +436,17 @@ export function validasiFormPengajuan({ jenis, mulai, selesai, alasan, lampiran 
     return 'Tanggal pengajuan jatuh pada hari Minggu (hari libur sekolah). Silakan pilih hari kerja (Senin - Sabtu).'
   }
   if (!String(alasan || '').trim()) return 'Alasan wajib diisi agar pengajuan bisa ditinjau.'
+  // Cuti resmi menghasilkan dokumen Formulir Cuti (PDF) otomatis setelah submit,
+  // sehingga tidak memerlukan formulir unggah lampiran dokumen.
+  if (isFormCutiEligible(jenis)) {
+    return ''
+  }
   const aturan = aturanLampiran(jenis)
-  if (aturan === 'wajib' && !lampiran) return `${normalisasiJenis(jenis)} wajib melampirkan dokumen pendukung.`
+  if (aturan === 'wajib' && !lampiran) {
+    return isSakit(jenis)
+      ? 'Izin sakit wajib melampirkan Surat Keterangan Dokter.'
+      : `${normalisasiJenis(jenis)} wajib melampirkan dokumen pendukung.`
+  }
   if (lampiran?.size > MAKS_LAMPIRAN) return 'Ukuran lampiran maksimal 5 MB.'
   return ''
 }

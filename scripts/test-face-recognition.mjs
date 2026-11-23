@@ -23,6 +23,8 @@ import {
 // Mock environment browser
 const storage = new Map()
 globalThis.window = {
+  atob: (s) => Buffer.from(s, 'base64').toString('binary'),
+  btoa: (s) => Buffer.from(s, 'binary').toString('base64'),
   localStorage: {
     getItem: (k) => storage.get(k) || null,
     setItem: (k, v) => storage.set(k, String(v)),

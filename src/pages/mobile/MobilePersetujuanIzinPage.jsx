@@ -10,7 +10,9 @@ import {
   ikonJenis,
   warnaJenis,
   warnaAvatarJenis,
+  isFormCutiEligible,
 } from '../../data/jenisIzinCuti.js'
+import { downloadFormCutiPDF } from '../../utils/generateFormCutiPDF.js'
 import {
   useSimPresOptional, selectLeavesEnriched, selectSelfStaff,
   addActivityLog, hasPermission, selectCurrentUserRole, ROLE_SUPERADMIN,
@@ -51,6 +53,31 @@ function MobilePersetujuanIzinPage() {
   const isSuperadmin = currentRole === ROLE_SUPERADMIN
 
   const canApprove = state ? (isSuperadmin || hasPermission(state, currentRole, 'pengajuanIzinCuti', 'edit')) : false
+
+  const handleDownloadFormCuti = async (leaveItem) => {
+    if (!leaveItem) return
+    try {
+      const staff = state?.staff?.find((s) => s.id === leaveItem.staffId) || {
+        id: leaveItem.staffId,
+        name: leaveItem.name || leaveItem.staffName || 'Pegawai',
+        role: leaveItem.role || leaveItem.jabatan || 'Guru',
+        unitId: leaveItem.unitId,
+        kontak: leaveItem.telpCuti,
+        alamat: leaveItem.alamatCuti,
+      }
+      const unit = state?.units?.find((u) => u.id === (staff.unitId || leaveItem.unitId))
+      await downloadFormCutiPDF({
+        leave: leaveItem,
+        staff,
+        unit,
+        settings: state?.settings || {},
+        allStaff: state?.staff || [],
+      })
+    } catch (err) {
+      console.error('Gagal unduh form cuti:', err)
+      alert('Gagal mengunduh dokumen formulir cuti: ' + (err?.message || err))
+    }
+  }
 
   // 1. Ambil seluruh data izin sesuai wewenang role (Superadmin = semua unit, Kepala Sekolah = unitnya)
   const baseList = useMemo(() => {
@@ -347,6 +374,34 @@ function MobilePersetujuanIzinPage() {
                   {(item.keterangan || item.alasan) && (
                     <div className="p-2.5 rounded-xl bg-muted/40 border border-border/60 text-xs text-on-surface-variant leading-relaxed">
                       {item.keterangan || item.alasan}
+                    </div>
+                  )}
+
+                  {/* Formulir Permohonan Cuti Resmi (PDF) */}
+                  {isFormCutiEligible(item.jenis) && (
+                    <div className="p-2.5 rounded-xl bg-emerald-50/80 dark:bg-emerald-950/30 border border-emerald-200/80 dark:border-emerald-800/60 flex items-center justify-between gap-2.5">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
+                          <Icon name="picture_as_pdf" className="text-[18px]" />
+                        </div>
+                        <div className="min-w-0">
+                          <span className="font-semibold text-foreground text-xs block truncate">
+                            Formulir Cuti Resmi (PDF)
+                          </span>
+                          <span className="text-[10.5px] text-muted-foreground block truncate">
+                            Format resmi Yayasan At-Tin Indonesia
+                          </span>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleDownloadFormCuti(item)}
+                        className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-label-sm text-xs font-semibold flex items-center gap-1.5 shadow-2xs active:scale-95 transition-all shrink-0 cursor-pointer"
+                        title="Unduh Formulir Permohonan Cuti PDF"
+                      >
+                        <Icon name="download" className="text-[14px]" />
+                        <span>Unduh PDF</span>
+                      </button>
                     </div>
                   )}
 

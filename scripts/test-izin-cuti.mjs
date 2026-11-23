@@ -66,10 +66,10 @@ uji('Normalisasi huruf besar', normalisasiJenis('cuti melahirkan'), 'Cuti Melahi
 uji('Normalisasi nama tak dikenal dipertahankan', normalisasiJenis('Cuti Istirahat'), 'Cuti Istirahat')
 uji('Normalisasi kosong -> default', normalisasiJenis(''), 'Izin Pribadi')
 
-// Aturan lampiran: wajib hanya untuk Cuti Melahirkan.
-uji('Cuti Melahirkan wajib lampiran', aturanLampiran('Cuti Melahirkan'), 'wajib')
-uji('Cuti Sakit lampiran disarankan', aturanLampiran('Cuti Sakit'), 'disarankan')
-uji('Cuti Tahunan wajib lampiran', aturanLampiran('Cuti Tahunan'), 'wajib')
+// Aturan lampiran: Cuti tidak perlu lampiran karena menghasilkan PDF formulir cuti otomatis. Cuti Sakit wajib lampiran surat dokter.
+uji('Cuti Melahirkan tanpa lampiran (otomatis PDF)', aturanLampiran('Cuti Melahirkan'), 'tidak')
+uji('Cuti Sakit wajib lampiran surat dokter', aturanLampiran('Cuti Sakit'), 'wajib')
+uji('Cuti Tahunan tanpa lampiran (otomatis PDF)', aturanLampiran('Cuti Tahunan'), 'tidak')
 uji('Izin Pribadi tanpa lampiran', aturanLampiran('Izin Pribadi'), 'tidak')
 uji('Izin Dinas lampiran disarankan', aturanLampiran('Izin Dinas'), 'disarankan')
 
@@ -181,7 +181,12 @@ function pasangSesi(niy) {
     setItem: (k, v) => isi.set(k, String(v)),
     removeItem: (k) => isi.delete(k),
   }
-  globalThis.window = { sessionStorage: storage, localStorage: storage }
+  globalThis.window = {
+    sessionStorage: storage,
+    localStorage: storage,
+    atob: (s) => Buffer.from(s, 'base64').toString('binary'),
+    btoa: (s) => Buffer.from(s, 'binary').toString('base64'),
+  }
 }
 pasangSesi('049001054') // Wisna Yunita, S.Pd — guru SD
 
@@ -338,19 +343,23 @@ for (const nama of NAMA_WAJIB) {
 }
 ujiBenar('Form menampilkan field Tanggal mulai', htmlForm.includes('Tanggal mulai'))
 ujiBenar('Form menampilkan field Tanggal selesai', htmlForm.includes('Tanggal selesai'))
-ujiBenar('Form menampilkan field Alasan', htmlForm.includes('Alasan'))
-ujiBenar('Form menampilkan field Lampiran dokumen', htmlForm.includes('Lampiran dokumen'))
-ujiBenar('Form punya input berkas', htmlForm.includes('type="file"'))
-ujiBenar('Cuti Melahirkan menandai "Lampiran wajib"', htmlForm.includes('Lampiran wajib'))
+ujiBenar('Form menampilkan field Keperluan Cuti / Alasan', htmlForm.includes('Keperluan Cuti / Alasan'))
+ujiBenar('Form Cuti Melahirkan menampilkan info Format Cuti Otomatis (PDF)', htmlForm.includes('Format Cuti Otomatis (PDF)'))
+ujiBenar('Form Cuti Melahirkan TIDAK menampilkan input berkas lampiran', !htmlForm.includes('type="file"'))
 ujiBenar('Form menampilkan tombol Kirim Pengajuan', htmlForm.includes('Kirim Pengajuan'))
 ujiBenar('Form menampilkan tombol Batalkan', htmlForm.includes('Batalkan'))
 
+// Form Cuti Sakit menampilkan input berkas dan label Surat Keterangan Dokter
+const htmlFormSakit = renderToString(h(FormPengajuan, { ...formProps, jenis: 'Cuti Sakit' }))
+ujiBenar('Form Cuti Sakit menampilkan field Surat Keterangan Dokter', htmlFormSakit.includes('Surat Keterangan Dokter'))
+ujiBenar('Form Cuti Sakit punya input berkas', htmlFormSakit.includes('type="file"'))
+
 // Jenis izin pribadi tidak ikut menandai lampiran wajib.
 const htmlFormIzin = renderToString(h(FormPengajuan, { ...formProps, jenis: 'Izin Pribadi' }))
-// Chip jenis selalu menandai mana yang butuh lampiran, apa pun jenis terpilih.
+// Chip jenis selalu menandai mana yang butuh lampiran: Cuti Sakit menandai "Surat dokter wajib".
 const hitungChip = (html, teks) => html.split(teks).length - 1
-uji('Label "Lampiran wajib" muncul 3x (Cuti Tahunan, Menikah, Melahirkan)', hitungChip(htmlForm, 'Lampiran wajib'), 3)
-uji('Label "Lampiran wajib" tetap 3x saat jenis lain dipilih', hitungChip(htmlFormIzin, 'Lampiran wajib'), 3)
+uji('Label "Surat dokter wajib" muncul 1x (Cuti Sakit)', hitungChip(htmlForm, 'Surat dokter wajib'), 1)
+uji('Label "Surat dokter wajib" tetap 1x saat jenis lain dipilih', hitungChip(htmlFormIzin, 'Surat dokter wajib'), 1)
 
 // Pesan galat tampil apa adanya.
 const htmlFormGalat = renderToString(h(FormPengajuan, { ...formProps, galat: 'Alasan wajib diisi' }))
@@ -375,13 +384,18 @@ uji(
   'Alasan wajib diisi agar pengajuan bisa ditinjau.',
 )
 uji(
-  'Validasi: Cuti Melahirkan tanpa lampiran ditolak',
+  'Validasi: Cuti Melahirkan tanpa lampiran diterima (otomatis dibuatkan PDF)',
   validasiFormPengajuan({ ...DASAR, jenis: 'Cuti Melahirkan', alasan: 'Persalinan', lampiran: null }),
-  'Cuti Melahirkan wajib melampirkan dokumen pendukung.',
+  '',
 )
 uji(
-  'Validasi: Cuti Melahirkan lengkap diterima',
-  validasiFormPengajuan({ ...DASAR, jenis: 'Cuti Melahirkan', alasan: 'Persalinan', lampiran: { name: 'RS.pdf', size: 1000 } }),
+  'Validasi: Cuti Sakit tanpa lampiran Surat Dokter ditolak',
+  validasiFormPengajuan({ ...DASAR, jenis: 'Cuti Sakit', alasan: 'Demam tinggi', lampiran: null }),
+  'Izin sakit wajib melampirkan Surat Keterangan Dokter.',
+)
+uji(
+  'Validasi: Cuti Sakit dengan lampiran Surat Dokter diterima',
+  validasiFormPengajuan({ ...DASAR, jenis: 'Cuti Sakit', alasan: 'Demam tinggi', lampiran: { name: 'dokter.pdf', size: 1000 } }),
   '',
 )
 uji(

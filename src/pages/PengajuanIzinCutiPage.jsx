@@ -12,7 +12,9 @@ import {
   JENIS_UTAMA, SEMUA_JENIS, kelompokIzinCuti,
   WARNA_STATUS_PORTAL, WARNA_TITIK_STATUS, hitungSisaKuota,
   isLeavePending, isLeaveApproved, isLeaveRejected, ikonJenis, LABEL_STATUS_PANJANG,
+  isFormCutiEligible,
 } from '../data/jenisIzinCuti.js'
+import { downloadFormCutiPDF } from '../utils/generateFormCutiPDF.js'
 import { rentangPengajuan } from '../data/presensiMobile.js'
 
 const statusTabs = [
@@ -361,6 +363,31 @@ function PengajuanIzinCutiPage() {
 
   const handleViewAttachment = (leave) => {
     setViewerLeave(leave)
+  }
+
+  const handleDownloadFormCuti = async (leave) => {
+    if (!leave) return
+    try {
+      const staff = state?.staff?.find((s) => s.id === leave.staffId) || {
+        id: leave.staffId,
+        name: leave.name || leave.staffName || 'Pegawai',
+        role: leave.role || leave.jabatan || 'Guru',
+        unitId: leave.unitId,
+        kontak: leave.telpCuti,
+        alamat: leave.alamatCuti,
+      }
+      const unit = state?.units?.find((u) => u.id === (staff.unitId || leave.unitId))
+      await downloadFormCutiPDF({
+        leave,
+        staff,
+        unit,
+        settings: state?.settings || {},
+        allStaff: state?.staff || [],
+      })
+    } catch (err) {
+      console.error('Gagal unduh form cuti:', err)
+      alert('Gagal mengunduh dokumen formulir cuti: ' + (err?.message || err))
+    }
   }
 
   const handleExportExcel = () => {
@@ -749,26 +776,39 @@ function PengajuanIzinCutiPage() {
                         </span>
                       </td>
 
-                      {/* Lampiran */}
+                      {/* Lampiran / Dokumen */}
                       <td className="py-3.5 px-3 text-center whitespace-nowrap">
-                        {hasLampiran(row) ? (
-                          <div className="flex flex-col items-center gap-1">
+                        <div className="flex flex-col items-center gap-1.5">
+                          {isFormCutiEligible(row.jenis) && (
                             <button
-                              onClick={() => handleViewAttachment(row)}
-                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-secondary hover:bg-secondary/80 text-secondary-foreground border border-border/60 transition-colors text-xs font-medium cursor-pointer max-w-[150px] justify-center mx-auto"
-                              title={`Lihat bukti: ${namaLampiran(row)}`}
+                              onClick={() => handleDownloadFormCuti(row)}
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-50 hover:bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 dark:hover:bg-emerald-900/50 border border-emerald-300 dark:border-emerald-800 transition-colors text-xs font-semibold cursor-pointer max-w-[150px] justify-center mx-auto"
+                              title="Unduh Formulir Permohonan Cuti Resmi (PDF)"
                               type="button"
                             >
-                              <span className="material-symbols-outlined text-[14px] shrink-0 text-primary">visibility</span>
-                              <span className="truncate block">Lihat Bukti</span>
+                              <span className="material-symbols-outlined text-[15px] shrink-0 text-emerald-600 dark:text-emerald-400">picture_as_pdf</span>
+                              <span className="truncate block">Form Cuti (PDF)</span>
                             </button>
-                            <span className="text-[10.5px] text-muted-foreground truncate max-w-[150px] inline-block">
-                              {namaLampiran(row)}
-                            </span>
-                          </div>
-                        ) : (
-                          <span className="text-[11px] text-muted-foreground italic">- Tidak ada -</span>
-                        )}
+                          )}
+                          {hasLampiran(row) ? (
+                            <>
+                              <button
+                                onClick={() => handleViewAttachment(row)}
+                                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-secondary hover:bg-secondary/80 text-secondary-foreground border border-border/60 transition-colors text-xs font-medium cursor-pointer max-w-[150px] justify-center mx-auto"
+                                title={`Lihat bukti: ${namaLampiran(row)}`}
+                                type="button"
+                              >
+                                <span className="material-symbols-outlined text-[14px] shrink-0 text-primary">visibility</span>
+                                <span className="truncate block">Lihat Bukti</span>
+                              </button>
+                              <span className="text-[10.5px] text-muted-foreground truncate max-w-[150px] inline-block">
+                                {namaLampiran(row)}
+                              </span>
+                            </>
+                          ) : !isFormCutiEligible(row.jenis) ? (
+                            <span className="text-[11px] text-muted-foreground italic">- Tidak ada -</span>
+                          ) : null}
+                        </div>
                       </td>
 
                       {/* Status & Verifikasi (2-Tahap) */}
