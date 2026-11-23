@@ -316,6 +316,16 @@ CREATE TABLE IF NOT EXISTS public.leaves (
   approval_superadmin JSONB DEFAULT '{"status": "Menunggu", "approverName": null, "approverRole": "Superadmin", "tanggal": null, "catatan": null}'::jsonb,
   rejected_stage VARCHAR(50),
   catatan_penolakan TEXT,
+  -- Kolom data formulir permohonan cuti resmi (PDF)
+  tanggal_masuk_kembali DATE,
+  alamat_cuti TEXT,
+  telp_cuti VARCHAR(30),
+  kategori_cuti VARCHAR(30),
+  sub_jenis_dispensasi VARCHAR(100),
+  anak_ke INTEGER,
+  hak_cuti INTEGER,
+  durasi_diambil INTEGER,
+  sisa_cuti INTEGER,
   approved_by UUID REFERENCES public.users(id) ON DELETE SET NULL,
   approved_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -330,6 +340,16 @@ ALTER TABLE public.leaves ADD COLUMN IF NOT EXISTS tahap_approval INTEGER NOT NU
 ALTER TABLE public.leaves ADD COLUMN IF NOT EXISTS approval_kepsek JSONB DEFAULT '{"status": "Menunggu", "approverName": null, "approverRole": "Kepala Sekolah", "tanggal": null, "catatan": null}'::jsonb;
 ALTER TABLE public.leaves ADD COLUMN IF NOT EXISTS approval_superadmin JSONB DEFAULT '{"status": "Menunggu", "approverName": null, "approverRole": "Superadmin", "tanggal": null, "catatan": null}'::jsonb;
 ALTER TABLE public.leaves ADD COLUMN IF NOT EXISTS rejected_stage VARCHAR(50);
+-- Kolom data formulir permohonan cuti resmi (PDF)
+ALTER TABLE public.leaves ADD COLUMN IF NOT EXISTS tanggal_masuk_kembali DATE;
+ALTER TABLE public.leaves ADD COLUMN IF NOT EXISTS alamat_cuti TEXT;
+ALTER TABLE public.leaves ADD COLUMN IF NOT EXISTS telp_cuti VARCHAR(30);
+ALTER TABLE public.leaves ADD COLUMN IF NOT EXISTS kategori_cuti VARCHAR(30);
+ALTER TABLE public.leaves ADD COLUMN IF NOT EXISTS sub_jenis_dispensasi VARCHAR(100);
+ALTER TABLE public.leaves ADD COLUMN IF NOT EXISTS anak_ke INTEGER;
+ALTER TABLE public.leaves ADD COLUMN IF NOT EXISTS hak_cuti INTEGER;
+ALTER TABLE public.leaves ADD COLUMN IF NOT EXISTS durasi_diambil INTEGER;
+ALTER TABLE public.leaves ADD COLUMN IF NOT EXISTS sisa_cuti INTEGER;
 
 CREATE INDEX IF NOT EXISTS idx_leaves_staff_id ON public.leaves(staff_id);
 CREATE INDEX IF NOT EXISTS idx_leaves_unit_id ON public.leaves(unit_id);
