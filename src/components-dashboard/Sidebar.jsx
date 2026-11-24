@@ -21,7 +21,7 @@ function SidebarNav() {
               <img src="/icons/logo-simpeg.png" alt="SIMPEG" className="w-full h-full object-contain" />
             </div>
             <div className="flex flex-col">
-              <span className="font-headline-sm text-headline-sm text-on-primary tracking-tight leading-tight">SimPres</span>
+              <span className="font-headline-sm text-headline-sm text-on-primary tracking-tight leading-tight">SIMPEG</span>
               <span className="font-label-sm text-label-sm text-on-primary-container leading-tight mt-1">Multi-Unit System</span>
             </div>
           </div>
@@ -67,7 +67,7 @@ function SidebarNav() {
           </div>
           <div className="flex flex-col min-w-0 flex-1">
             <span className="font-body-sm-medium text-body-sm-medium text-on-primary truncate">Superadmin Pusat</span>
-            <span className="font-label-sm text-label-sm text-on-primary-container truncate">superadmin@simpres.sch.id</span>
+            <span className="font-label-sm text-label-sm text-on-primary-container truncate">superadmin@simpeg.sch.id</span>
           </div>
           <button className="text-on-primary-container hover:text-on-primary transition-colors p-1">
             <span className="material-symbols-outlined text-[18px]">logout</span>

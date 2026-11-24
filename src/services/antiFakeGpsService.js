@@ -1,6 +1,6 @@
 /**
  * ANTI-FAKE GPS & MOCK LOCATION SECURITY SERVICE
- * SIMPRES ATTIN SUMBAR
+ * SIMPEG ATTIN SUMBAR
  *
  * Mendeteksi manipulasi lokasi, penggunaan Mock Location Android,
  * ekstensi browser (Location Guard, GPS spoofer), Chrome DevTools sensor injection,

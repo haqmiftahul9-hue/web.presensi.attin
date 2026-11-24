@@ -136,7 +136,7 @@ function DetailEmployeeModal({ staff, onClose }) {
 
           {staff.unitId && (
             <p className="text-[11px] text-muted-foreground">
-              Data bersumber dari store SimPres &middot; Unit: {unitName}.
+              Data bersumber dari store SIMPEG &middot; Unit: {unitName}.
             </p>
           )}
         </div>

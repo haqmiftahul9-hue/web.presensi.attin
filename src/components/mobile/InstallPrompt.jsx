@@ -29,7 +29,7 @@ function InstallPrompt() {
         </span>
 
         <div className="flex flex-col gap-1 min-w-0 flex-1">
-          <span className="font-body-md-medium text-body-md-medium">Pasang SimPres</span>
+          <span className="font-body-md-medium text-body-md-medium">Pasang SIMPEG</span>
           {perluPetunjukIos ? (
             <span className="font-body-sm text-body-sm text-on-primary-container">
               Ketuk Bagikan lalu pilih &ldquo;Tambahkan ke Layar Utama&rdquo; agar bisa dibuka seperti

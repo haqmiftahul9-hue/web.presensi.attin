@@ -43,7 +43,7 @@ export default function MobileAdminScanPage() {
     facingMode: facing,
     aktif: true,
     onQrValue: (value) => {
-      const cleaned = String(value || '').replace(/^SIMPRESPEG-/i, '').trim()
+      const cleaned = String(value || '').replace(/^(SIMPEG-|SIMPRESPEG-)/i, '').trim()
       setCode(cleaned)
       if (state) {
         const found = resolveStaff(state, cleaned)

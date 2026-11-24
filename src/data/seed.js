@@ -1,4 +1,4 @@
-// Single source of truth SimPres.
+// Single source of truth SIMPEG.
 // Empat unit terdaftar: TK 1 + SD 6 + SMP 1 + SMA 0 = 10 pegawai (data uji coba sekolah).
 // Data sintetis (buildFullStaff) tidak lagi dihasilkan; hanya STAFF di atas yang digunakan.
 //
@@ -270,7 +270,7 @@ export const INITIAL_SETTINGS = {
     // Format nomor laporan
     formatNomorLaporan: 'LPR/{UNIT}/{TAHUN}/{BULAN}/{URUT:04d}',
     // Prefix dokumen
-    prefixDokumen: 'SIMPRES',
+    prefixDokumen: 'SIMPEG',
     // Default periode laporan
     defaultPeriodeLaporan: 'Bulanan',
   },
@@ -427,6 +427,6 @@ export function buildAttendance(staff, tanggal = new Date()) {
   })
 }
 
-// Catatan arsitektur: seed.js adalah SATU-SATUNYA sumber data kanonis SimPres.
+// Catatan arsitektur: seed.js adalah SATU-SATUNYA sumber data kanonis SIMPEG.
 // Pegawai (STAFF), Unit (UNITS), Izin/Cuti (LEAVES), Log (INITIAL_LOGS), dan
 // Libur (HOLIDAYS) hanya hidup di sini. Tidak ada alias ekspor lain.

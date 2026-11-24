@@ -2,7 +2,7 @@
   "id": "/mobile/home",
   "name": "SIMPEG",
   "short_name": "SIMPEG",
-  "description": "Presensi digital Guru dan Pegawai SimPres: ambil presensi wajah/barcode, riwayat kehadiran, dan pengajuan izin.",
+  "description": "Presensi digital Guru dan Pegawai SIMPEG: ambil presensi wajah/barcode, riwayat kehadiran, dan pengajuan izin.",
   "lang": "id",
   "dir": "ltr",
   "start_url": "/mobile/home",

@@ -362,7 +362,7 @@ export function getMockDocumentSvg(leave = {}) {
         <!-- Stamp Circle -->
         <circle cx="75" cy="60" r="42" fill="none" stroke="#2563eb" stroke-width="2.5" opacity="0.75" stroke-dasharray="8,4"/>
         <text x="75" y="55" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="800" fill="#2563eb" text-anchor="middle" opacity="0.85">TERVERIFIKASI</text>
-        <text x="75" y="70" font-family="system-ui, -apple-system, sans-serif" font-size="8.5" font-weight="600" fill="#2563eb" text-anchor="middle" opacity="0.85">SIMPRES AT-TIN</text>
+        <text x="75" y="70" font-family="system-ui, -apple-system, sans-serif" font-size="8.5" font-weight="600" fill="#2563eb" text-anchor="middle" opacity="0.85">SIMPEG AT-TIN</text>
         
         <path d="M30 65 Q 60 30 100 65 T 140 50" fill="none" stroke="#1d4ed8" stroke-width="2"/>
         <text y="110" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="700" fill="#0f172a">Kepala Sekolah / Yayasan</text>
@@ -372,7 +372,7 @@ export function getMockDocumentSvg(leave = {}) {
 
     <!-- Footer Note -->
     <g transform="translate(400, 1030)" text-anchor="middle">
-      <text font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#94a3b8">Dokumen digital ini sah dan diterbitkan melalui Sistem Informasi Presensi (SIMPRES) At-Tin Sumbar.</text>
+      <text font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#94a3b8">Dokumen digital ini sah dan diterbitkan melalui Sistem Informasi Kepegawaian (SIMPEG) At-Tin Sumbar.</text>
     </g>
   </svg>`
 

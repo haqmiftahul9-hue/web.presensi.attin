@@ -8,7 +8,7 @@ const MAX_SIZE = 10 * 1024 * 1024
 
 // Header unik per baris; import milik template resmi ada 3 baris panduan di atas.
 const GUIDE_ROWS = [
-  /simpres\s*[-–—]\s*template/i,
+  /sim(pres|peg)\s*[-–—]\s*template/i,
   /^isi baris mulai baris ke-/i,
   /^kolom bertanda/i,
 ]
@@ -38,7 +38,7 @@ export async function readSpreadsheet(file) {
     headerIndex = aoa.findIndex((r) => r.filter((c) => normalizeHeader(c)).length >= 2)
   }
   if (headerIndex === -1) {
-    throw new Error('Header kolom tidak dikenali. Gunakan template resmi SimPres.')
+    throw new Error('Header kolom tidak dikenali. Gunakan template resmi SIMPEG.')
   }
 
   const headerRow = aoa[headerIndex].map((h) => String(h ?? '').trim())

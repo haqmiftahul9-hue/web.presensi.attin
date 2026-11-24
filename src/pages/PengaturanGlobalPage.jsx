@@ -60,7 +60,7 @@ function PengaturanGlobalPage() {
         },
     rekap: settings.rekap || {
       formatNomorLaporan: 'LPR/{UNIT}/{TAHUN}/{BULAN}/{URUT:04d}',
-      prefixDokumen: 'SIMPRES',
+      prefixDokumen: 'SIMPEG',
       defaultPeriodeLaporan: 'Bulanan',
     },
     notifikasi: settings.notifikasi || {
@@ -254,7 +254,7 @@ function PengaturanGlobalPage() {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `simpres-backup-${new Date().toISOString().slice(0, 10)}.json`
+    a.download = `simpeg-backup-${new Date().toISOString().slice(0, 10)}.json`
     document.body.appendChild(a)
     a.click()
     a.remove()
@@ -884,7 +884,7 @@ function PengaturanGlobalPage() {
               <div className="border-b border-border pb-4 mb-6">
                 <h2 className="text-sm font-bold text-foreground tracking-tight">Parameter Operasional</h2>
                 <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
-                  Aturan jam kerja global SimPres, radius geofence, dan validasi lokasi presensi.
+                  Aturan jam kerja global SIMPEG, radius geofence, dan validasi lokasi presensi.
                 </p>
               </div>
 
@@ -1568,7 +1568,7 @@ function PengaturanGlobalPage() {
                       <input
                         className="w-full h-9 text-xs text-foreground bg-card border border-input rounded-lg px-3 focus:outline-none focus:ring-1 focus:ring-ring transition-all"
                         type="text"
-                        value={formData.rekap?.prefixDokumen || 'SIMPRES'}
+                        value={formData.rekap?.prefixDokumen || 'SIMPEG'}
                         onChange={(e) => handleInputChange('rekap.prefixDokumen', e.target.value)}
                       />
                     </div>
@@ -1860,7 +1860,7 @@ function PengaturanGlobalPage() {
             <div>
               <p className="text-xs font-semibold text-foreground">Rekap Laporan</p>
               <p className="text-[11px] text-muted-foreground mt-0.5">
-                Prefix: {formData.rekap?.prefixDokumen || 'SIMPRES'} | {formData.rekap?.defaultPeriodeLaporan || 'Bulanan'}
+                Prefix: {formData.rekap?.prefixDokumen || 'SIMPEG'} | {formData.rekap?.defaultPeriodeLaporan || 'Bulanan'}
               </p>
             </div>
             <span className="px-2 py-0.5 text-[11px] font-semibold rounded-full bg-primary/10 text-primary border border-primary/20">

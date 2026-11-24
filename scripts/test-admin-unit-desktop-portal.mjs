@@ -169,7 +169,7 @@ async function run() {
     assert.equal(displayName, 'Fajar Pratama, S.Kom', 'Nama akun harus nama Admin Unit')
     assert.notEqual(displayName, 'Superadmin', 'Nama akun TIDAK boleh "Superadmin"')
     assert.equal(displayIdentifier, 'adminsd1', 'Identifier harus adminsd1 (username Admin Unit)')
-    assert.notEqual(displayIdentifier, 'superadmin@simpres.sch.id',
+    assert.ok(!displayIdentifier.includes('superadmin@'),
       'Identifier TIDAK boleh default superadmin')
     console.log('✅ LULUS: Footer sidebar menampilkan Admin Unit (Fajar Pratama, adminsd1, ikon admin_panel_settings, biru)')
 

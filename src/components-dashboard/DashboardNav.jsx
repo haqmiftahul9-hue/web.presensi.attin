@@ -145,7 +145,7 @@ function UserMenu() {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
 
   const displayName = currentUser?.name || selfStaff?.name || (currentRole === ROLE_SUPERADMIN ? 'Superadmin' : currentRole)
-  const displayIdentifier = currentUser?.username || currentUser?.niy || currentUser?.email || selfStaff?.niy || selfStaff?.email || (currentRole === ROLE_SUPERADMIN ? 'superadmin@simpres.sch.id' : '-')
+  const displayIdentifier = currentUser?.username || currentUser?.niy || currentUser?.email || selfStaff?.niy || selfStaff?.email || (currentRole === ROLE_SUPERADMIN ? 'superadmin@simpeg.sch.id' : '-')
 
   const confirmLogout = () => {
     setShowLogoutConfirm(false)
@@ -250,7 +250,7 @@ function DashboardNav({ open = false, onTutup } = {}) {
   }
   const r = roleMap[currentRole] || roleMap['Kepala Sekolah'] || roleMap.Guru
   const displayName = currentUser?.name || selfStaff?.name || (currentRole === ROLE_SUPERADMIN ? 'Superadmin' : currentRole)
-  const displayIdentifier = currentUser?.username || currentUser?.niy || currentUser?.email || selfStaff?.niy || selfStaff?.email || (currentRole === ROLE_SUPERADMIN ? 'superadmin@simpres.sch.id' : '-')
+  const displayIdentifier = currentUser?.username || currentUser?.niy || currentUser?.email || selfStaff?.niy || selfStaff?.email || (currentRole === ROLE_SUPERADMIN ? 'superadmin@simpeg.sch.id' : '-')
 
   return (
     <aside

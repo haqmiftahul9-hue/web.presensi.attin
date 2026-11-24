@@ -25,7 +25,7 @@ function AccessDeniedPage() {
           Akun <strong className="text-foreground font-semibold">{user?.name || 'ini'}</strong> ({role || 'tanpa role'}) belum memiliki hak akses ke halaman manapun pada mode aplikasi yang sedang aktif.
         </p>
         <p className="mt-1 text-xs text-muted-foreground/80 leading-relaxed">
-          Hubungi Superadmin SimPres untuk memeriksa konfigurasi peran dan unit kerja Anda.
+          Hubungi Superadmin SIMPEG untuk memeriksa konfigurasi peran dan unit kerja Anda.
         </p>
         <div className="mt-6 flex flex-col gap-2.5">
           <Link

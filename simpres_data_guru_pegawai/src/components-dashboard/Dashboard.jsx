@@ -33,7 +33,7 @@ function Dashboard() {
               <span className="material-symbols-outlined text-[18px]">verified_user</span>
             </div>
             <div className="font-body-md text-body-md text-on-primary-fixed">
-              <span className="font-body-md-medium text-body-md-medium">Assalamualaikum, Super Admin.</span> Selamat datang di SimPres — Sistem Informasi Presensi Multi-Unit Sekolah.
+              <span className="font-body-md-medium text-body-md-medium">Assalamualaikum, Super Admin.</span> Selamat datang di SIMPEG — Sistem Informasi Presensi Multi-Unit Sekolah.
             </div>
           </div>
           <div className="flex items-center gap-space-md text-on-surface-variant self-end lg:self-auto">

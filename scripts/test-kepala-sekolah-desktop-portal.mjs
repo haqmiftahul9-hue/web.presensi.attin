@@ -131,7 +131,7 @@ async function run() {
     assert.equal(displayName, 'Drs. H. Ahmad Fauzi, M.Pd', 'Nama akun harus nama Kepala Sekolah')
     assert.notEqual(displayName, 'Superadmin', 'Nama akun TIDAK boleh "Superadmin"')
     assert.equal(displayIdentifier, 'kepalasd', 'Identifier akun harus kepalasd')
-    assert.notEqual(displayIdentifier, 'superadmin@simpres.sch.id', 'Email/Identifier TIDAK boleh default superadmin')
+    assert.ok(!displayIdentifier.includes('superadmin@'), 'Email/Identifier TIDAK boleh default superadmin')
     console.log('✅ LULUS: Footer sidebar menampilkan Kepala Sekolah (Drs. H. Ahmad Fauzi, M.Pd, kepalasd, ikon school)')
 
     // 4. Verifikasi Navigasi Kembali ke Mobile

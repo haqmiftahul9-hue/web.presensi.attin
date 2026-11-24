@@ -50,7 +50,7 @@ function DashboardPage() {
             <div className="flex flex-col">
               <div className="flex items-center gap-2">
                 <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground leading-tight">
-                  {settings.namaAplikasi || 'SimPres'}
+                  {settings.namaAplikasi || 'SIMPEG'}
                 </h1>
                 <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-primary/10 text-primary border border-primary/20">
                   {currentRole}

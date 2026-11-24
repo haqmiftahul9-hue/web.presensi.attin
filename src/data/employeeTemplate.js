@@ -3,7 +3,7 @@ import { downloadBlob } from '../utils/download.js'
 import { EMPLOYEE_COLUMNS, toExcelRow } from './employeeSchema.js'
 
 const PANDUAN = [
-  ['SimPres — Template Import Data Pegawai'],
+  ['SIMPEG — Template Import Data Pegawai'],
   ['Isi baris mulai baris ke-4. Jangan mengubah nama kolom pada baris ke-3.'],
   ['Format NIY (9 digit): [Kode Unit: TK=01, SD=02, SMP=03, SMA=04] + [Tahun Yayasan: 17] + [Tahun Masuk: 2 digit, cth: 22] + [No. Urut: 3 digit, cth: 012]. Contoh: 011722012. Jika kolom NIY dikosongkan, sistem akan otomatis membuatkan NIY resmi.'],
 ]

@@ -30,7 +30,7 @@ test.describe('SIMPEG Attin - Sistem Presensi E2E', () => {
     test('Superadmin login berhasil', async ({ page }) => {
       await login(page, CREDENTIALS.superadmin);
       await expect(page).toHaveURL(`${BASE_URL}/dashboard`);
-      await expect(page.locator('h1')).toContainText('SimPres');
+      await expect(page.locator('h1')).toContainText('SIMPEG');
     });
 
     test('Admin Unit login berhasil', async ({ page }) => {
@@ -129,7 +129,7 @@ test.describe('SIMPEG Attin - Sistem Presensi E2E', () => {
     test('Admin Unit dapat mengakses dashboard', async ({ page }) => {
       await login(page, CREDENTIALS.adminSD);
       await expect(page).toHaveURL(`${BASE_URL}/dashboard`);
-      await expect(page.locator('h1')).toContainText('SimPres');
+      await expect(page.locator('h1')).toContainText('SIMPEG');
     });
 
     test('Admin Unit tidak dapat mengakses Pengaturan Global (403)', async ({ page }) => {

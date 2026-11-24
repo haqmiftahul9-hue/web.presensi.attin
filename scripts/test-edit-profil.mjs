@@ -253,7 +253,7 @@ uji('d. Superadmin melihat foto baru', selectStaffById(setelahFoto, idGuru).foto
 const barisKartu = selectCardRows(setelahFoto, [guruFoto])[0]
 uji('d. Kartu ID memakai nama baru', barisKartu.staff.name, 'Erianto Adi, S.Ag, M.Pd.I')
 uji('d. Kartu ID memakai foto baru', cardPhotoOf(barisKartu.staff), FOTO_BARU)
-uji('d. QR kartu tetap terikat NIY', barisKartu.qr, `SIMPRESPEG-${staff0.niy}`)
+uji('d. QR kartu tetap terikat NIY', barisKartu.qr, `SIMPEG-${staff0.niy}`)
 
 // --- 4d. SUPERADMIN MENGUBAH -> MOBILE IKUT BERUBAH ------------------------
 const adminUbah = simPresReducer(setelahFoto, {

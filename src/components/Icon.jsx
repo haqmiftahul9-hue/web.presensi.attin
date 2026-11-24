@@ -4,7 +4,7 @@
  * Alasan: ikon berbasis font (Material Symbols) memunculkan NAMA ligature-nya
  * sebagai tulisan biasa bila font gagal dimuat, terutama di HP tanpa koneksi.
  * SVG(path) selalu tampil sebagai gambar, online maupun offline, dan warnanya
- * mengikuti `currentColor` sehingga tetap cocok dengan tema navy SimPres.
+ * mengikuti `currentColor` sehingga tetap cocok dengan tema navy SIMPEG.
  *
  * Pemakaian:
  *   <Icon name="home" className="text-[20px]" />

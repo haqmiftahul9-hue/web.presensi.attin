@@ -123,7 +123,7 @@ function DetailEmployeeModal({ staff, onClose }) {
 
           {staff.unitId && (
             <p className={VALUE_CLASS}>
-              Data bersumber dari store SimPres. Unit: {unitName}. Terakhir diubah pada data sesi ini.
+              Data bersumber dari store SIMPEG. Unit: {unitName}. Terakhir diubah pada data sesi ini.
             </p>
           )}
         </div>

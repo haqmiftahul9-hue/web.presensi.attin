@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react'
 
 export const COLOR_THEMES = [
-  { id: 'blue', label: 'Biru SimPres (Utama)', swatch: '#323d8f' },
+  { id: 'blue', label: 'Biru SIMPEG (Utama)', swatch: '#323d8f' },
   { id: 'green', label: 'Hijau Emerald', swatch: '#16a34a' },
   { id: 'rose', label: 'Merah Delima', swatch: '#e11d48' },
   { id: 'amber', label: 'Amber Emas', swatch: '#d97706' },

@@ -48,12 +48,12 @@ const CONTOH = [
   { id: 12, niy: '', nip: '', nama: 'Tanpa NIY dan NIP' },
 ]
 
-uji('Prefix QR', CARD_QR_PREFIX, 'SIMPRESPEG-')
-uji('Label prefix QR', CARD_QR_PREFIX_LABEL, 'SIMPRESPEG')
-uji('Payload pakai NIY', employeeQrPayload(CONTOH[0]), 'SIMPRESPEG-049005069')
-uji('Payload pakai NIY (guru kedua)', employeeQrPayload(CONTOH[1]), 'SIMPRESPEG-049001054')
-uji('Cadangan ke NIP saat NIY kosong', employeeQrPayload(CONTOH[2]), 'SIMPRESPEG-198003032001031003')
-uji('Cadangan ke id saat NIY & NIP kosong', employeeQrPayload(CONTOH[3]), 'SIMPRESPEG-12')
+uji('Prefix QR', CARD_QR_PREFIX, 'SIMPEG-')
+uji('Label prefix QR', CARD_QR_PREFIX_LABEL, 'SIMPEG')
+uji('Payload pakai NIY', employeeQrPayload(CONTOH[0]), 'SIMPEG-049005069')
+uji('Payload pakai NIY (guru kedua)', employeeQrPayload(CONTOH[1]), 'SIMPEG-049001054')
+uji('Cadangan ke NIP saat NIY kosong', employeeQrPayload(CONTOH[2]), 'SIMPEG-198003032001031003')
+uji('Cadangan ke id saat NIY & NIP kosong', employeeQrPayload(CONTOH[3]), 'SIMPEG-12')
 uji('Pegawai null -> payload kosong', employeeQrPayload(null), '')
 
 // employeeQrInfo memecah payload untuk ditampilkan, tanpa mengubah isinya.
@@ -150,8 +150,8 @@ ujiBenar('Halaman QR: barcode cadangan', htmlQr.includes('Barcode'))
 // QRCodeSvg menulis <title>{value}</title>, jadi nilai QR bisa dibaca langsung
 // dari markup — tanpa perlu menebak dari teks UI.
 function nilaiQrDalamMarkup(html) {
-  const cocok = html.match(/<title>SIMPRESPEG-([^<]*)<\/title>/)
-  return cocok ? `SIMPRESPEG-${cocok[1]}` : null
+  const cocok = html.match(/<title>SIMPEG-([^<]*)<\/title>/)
+  return cocok ? `SIMPEG-${cocok[1]}` : null
 }
 
 const qrDiKartu = nilaiQrDalamMarkup(htmlKartu)
@@ -160,11 +160,11 @@ const qrDiHalamanQr = nilaiQrDalamMarkup(htmlQr)
 uji('Nilai QR terbaca dari markup Kartu ID', qrDiKartu, employeeQrPayload(staff))
 uji('Nilai QR terbaca dari markup QR Presensi', qrDiHalamanQr, employeeQrPayload(staff))
 uji('QR kartu = QR presensi', qrDiKartu, qrDiHalamanQr)
-uji('Payload unik pegawai ini', qrDiKartu, 'SIMPRESPEG-049005069')
+uji('Payload unik pegawai ini', qrDiKartu, 'SIMPEG-049005069')
 
 // Halaman QR menampilkan payload penuh sebagai teks, jadi pengguna bisa
 // mencocokkannya dengan kartu.
-ujiBenar('Halaman QR: payload tertulis', htmlQr.includes('SIMPRESPEG-049005069'))
+ujiBenar('Halaman QR: payload tertulis', htmlQr.includes('SIMPEG-049005069'))
 
 // ============================================================================
 // 5. KARTU MOBILE = KARTU SUPERADMIN
@@ -215,7 +215,7 @@ const employeeCardSrc = readFileSync('src/data/employeeCard.js', 'utf8')
 const cetakSrc = readFileSync('src/pages/CetakKartuIdPage.jsx', 'utf8')
 
 for (const [nama, src] of [['Halaman QR', halamanQrSrc], ['Halaman Kartu', kartuSrc], ['Halaman Cetak Superadmin', cetakSrc]]) {
-  ujiBenar(`${nama} tidak merangkai prefix QR sendiri`, !/SIMPRESPEG-/.test(src))
+  ujiBenar(`${nama} tidak merangkai prefix QR sendiri`, !/SIMPEG-/.test(src))
   ujiBenar(`${nama} tidak menggabungkan prefix dengan sendirinya`, !/\$\{CARD_QR_PREFIX\}/.test(src))
 }
 // employeeCard.js punya satu-satunya perangkai; halaman Cetak Superadmin

@@ -139,7 +139,7 @@ function UserMenu() {
   const isSuperadmin = currentRole === ROLE_SUPERADMIN
 
   const displayName = currentUser?.name || selfStaff?.name || (currentRole === ROLE_SUPERADMIN ? 'Superadmin' : currentRole)
-  const displayIdentifier = currentUser?.username || currentUser?.niy || currentUser?.email || selfStaff?.niy || selfStaff?.email || (currentRole === ROLE_SUPERADMIN ? 'superadmin@simpres.sch.id' : '-')
+  const displayIdentifier = currentUser?.username || currentUser?.niy || currentUser?.email || selfStaff?.niy || selfStaff?.email || (currentRole === ROLE_SUPERADMIN ? 'superadmin@simpeg.sch.id' : '-')
 
   const [open, setOpen] = useState(false)
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
@@ -322,7 +322,7 @@ function SidebarNav({ open = false, onTutup } = {}) {
   }
   const r = roleMap[currentRole] || roleMap['Kepala Sekolah'] || roleMap.Guru
   const displayName = currentUser?.name || selfStaff?.name || (currentRole === ROLE_SUPERADMIN ? 'Superadmin' : currentRole)
-  const displayIdentifier = currentUser?.username || currentUser?.niy || currentUser?.email || selfStaff?.niy || selfStaff?.email || (currentRole === ROLE_SUPERADMIN ? 'superadmin@simpres.sch.id' : '-')
+  const displayIdentifier = currentUser?.username || currentUser?.niy || currentUser?.email || selfStaff?.niy || selfStaff?.email || (currentRole === ROLE_SUPERADMIN ? 'superadmin@simpeg.sch.id' : '-')
 
   return (
     <>

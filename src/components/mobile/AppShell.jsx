@@ -45,7 +45,7 @@ export function AppBackground({ children }) {
 }
 
 /**
- * Bar atas melayang: logo SimPres, notifikasi, dan tombol profil.
+ * Bar atas melayang: logo SIMPEG, notifikasi, dan tombol profil.
  * Transparan karena hero setiap halaman berwarna gelap, jadi kontrasnya
  * selalu aman tanpa perlu varian lain.
  */

@@ -18,7 +18,7 @@ const {
 await server.close()
 
 console.log('='.repeat(80))
-console.log('TESTING KOMPREHENSIF SELURUH CRUD & SEMUA ROLE (SIMPRES)')
+console.log('TESTING KOMPREHENSIF SELURUH CRUD & SEMUA ROLE (SIMPEG)')
 console.log('='.repeat(80))
 
 let passed = 0

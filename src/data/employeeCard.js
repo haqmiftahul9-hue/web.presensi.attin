@@ -19,8 +19,8 @@
 
 import { getEmployeeGreeting } from './sapaanPegawai.js'
 
-export const CARD_QR_PREFIX = 'SIMPRESPEG-'
-export const CARD_QR_PREFIX_LABEL = 'SIMPRESPEG'
+export const CARD_QR_PREFIX = 'SIMPEG-'
+export const CARD_QR_PREFIX_LABEL = 'SIMPEG'
 
 // Ukuran kartu PVC CR80 (ID-1) — standar printer kartu & referensi kiosk.
 export const CARD_SIZE_MM = { width: 85.6, height: 53.98 }

@@ -1,7 +1,7 @@
 // ============================================================================
 // ATURAN JAM KERJA GLOBAL + PENENTUAN STATUS PRESENSI
 //
-// Ini adalah SATU-SUMBER-KEBENARAN aturan presensi SimPres. Konsep shift
+// Ini adalah SATU-SUMBER-KEBENARAN aturan presensi SIMPEG. Konsep shift
 // (Shift Pagi/Siang/Sore, jadwal shift per unit, toleransi shift) sudah
 // dihapus: presensi cukup dijawab oleh tanggal -> hari -> jam kerja.
 //
@@ -178,7 +178,7 @@ export function calculateAttendanceStatus(tanggal = new Date(), jamMasuk = null,
       ...dasar,
       status: STATUS_HARI_LIBUR,
       label: 'Hari libur',
-      keterangan: `${rules.hari} bukan hari kerja SimPres.`,
+      keterangan: `${rules.hari} bukan hari kerja SIMPEG.`,
     }
   }
 

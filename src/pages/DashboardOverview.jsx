@@ -76,12 +76,12 @@ function TopBar({ onBukaMenu }) {
           <div className="w-7 h-7 rounded-lg bg-white p-1 shadow-2xs flex items-center justify-center border border-border/40 shrink-0">
             <img
               src={settings?.logo || '/icons/logo-simpeg.png'}
-              alt={settings?.namaAplikasi || 'SimPres'}
+              alt={settings?.namaAplikasi || 'SIMPEG'}
               className="w-full h-full object-contain"
             />
           </div>
           <div className="hidden lg:flex flex-col text-left">
-            <span className="text-xs font-semibold text-foreground leading-tight">{settings?.namaAplikasi || 'SimPres'}</span>
+            <span className="text-xs font-semibold text-foreground leading-tight">{settings?.namaAplikasi || 'SIMPEG'}</span>
             <span className="text-[11px] font-medium text-muted-foreground leading-tight">
               {selectIsAllUnits(state) ? (settings?.namaYayasan || 'Yayasan Pendidikan') : selectActiveUnitLabel(state)}
             </span>
@@ -136,7 +136,7 @@ function DashboardOverview() {
                 <div className="flex flex-col">
                   <div className="flex items-center gap-2">
                     <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground leading-tight">
-                      {settings.namaAplikasi || 'SimPres'}
+                      {settings.namaAplikasi || 'SIMPEG'}
                     </h1>
                     <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-primary/10 text-primary border border-primary/20">
                       Overview

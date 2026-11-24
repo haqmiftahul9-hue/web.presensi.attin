@@ -220,7 +220,7 @@ function MobileSlipPage() {
           )}
 
           <p className="font-label-sm text-label-sm text-primary-muted leading-snug">
-            Jam kerja global {zonaWaktu}: {ringkasanJamKerja} Slip ini dihasilkan langsung dari data presensi SimPres.
+            Jam kerja global {zonaWaktu}: {ringkasanJamKerja} Slip ini dihasilkan langsung dari data presensi SIMPEG.
           </p>
 
           <div className="grid grid-cols-2 gap-4 text-center pt-2">

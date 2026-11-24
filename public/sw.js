@@ -1,5 +1,5 @@
 const SW_VERSION = "5.1.0";
-const CACHE_NAME = "simpres-attin-v" + SW_VERSION;
+const CACHE_NAME = "simpeg-attin-v" + SW_VERSION;
 const OFFLINE_URL = "/offline.html";
 
 self.addEventListener("install", (event) => {
@@ -115,7 +115,7 @@ self.addEventListener("push", (event) => {
     body: data.body || "Ada notifikasi baru dari sistem presensi.",
     icon: "/icons/pwa-icon.png",
     badge: "/icons/favicon-32.png",
-    tag: data.tag || "simpres-notification",
+    tag: data.tag || "simpeg-notification",
     data: data.data || {},
     actions: data.actions || [
       { action: "open", title: "Buka Aplikasi" },

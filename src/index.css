@@ -672,7 +672,7 @@ main > :last-child {
   --mobile-line: rgba(197, 198, 206, 0.55);
 }
 
-/* Kartu putih seragam: radius 20px + shadow lembut, sesuai tema SimPres.
+/* Kartu putih seragam: radius 20px + shadow lembut, sesuai tema SIMPEG.
  * Mobile: width 100%, box-sizing border-box.
  *
  * Padding horizontal dimiliki kartu (bukan utility per komponen) supaya tidak
@@ -794,7 +794,7 @@ main > :last-child {
 /* ============================================================================
    DESAIN APLIKASI MOBILE (GURU/PEGAWAI)
    ----------------------------------------------------------------------------
-   Prinsipnya: navy SimPres sebagai warna identitas, putih dan abu soft sebagai
+   Prinsipnya: navy SIMPEG sebagai warna identitas, putih dan abu soft sebagai
    latar baca, dan bentuk-bentuk dekoratif yang tidak pernah mengurangi
    keterbacaan teks.
 
@@ -1836,7 +1836,7 @@ html.dark {
 /* ============================================================
    SISTEM TEMA WARNA & FONT LENGKAP (AppearanceContext)
    ------------------------------------------------------------
-   - Biru (#323d8f): Warna utama SimPres original (default).
+   - Biru (#323d8f): Warna utama SIMPEG original (default).
    - Hijau (#15803d): Emerald Islami profesional & segar.
    - Rose (#be123c): Merah delima berwibawa & elegan.
    - Amber (#b45309): Emas/bronze hangat & berkelas.
@@ -1846,7 +1846,7 @@ html.dark {
    kontras tinggi, teks muted terbaca, dan token mobile/desktop.
    ============================================================ */
 
-/* --- 1. DEFAULT & TEMA BIRU (SIMPRES ORIGINAL) --- */
+/* --- 1. DEFAULT & TEMA BIRU (SIMPEG ORIGINAL) --- */
 :root,
 :root[data-color-theme='blue'] {
   --primary: #323d8f;

@@ -1,4 +1,4 @@
-# Panduan Instalasi & Eksekusi Skema Supabase SimPres Attin
+# Panduan Instalasi & Eksekusi Skema Supabase SIMPEG Attin
 
 Skema database lengkap telah dibuat pada berkas [`supabase/schema.sql`](./schema.sql). Skema ini siap dieksekusi langsung pada **SQL Editor** di dashboard Supabase Anda.
 

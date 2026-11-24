@@ -376,7 +376,7 @@ function LogAktivitasPage() {
   const handleExportCSV = () => {
     const now = new Date()
     const dateStr = `${String(now.getDate()).padStart(2, '0')}${String(now.getMonth() + 1).padStart(2, '0')}${now.getFullYear()}`
-    const filename = `Log_Aktivitas_SimPres_${dateStr}.csv`
+    const filename = `Log_Aktivitas_SIMPEG_${dateStr}.csv`
 
     const headers = ['No', 'Tanggal', 'Waktu', 'User', 'Role', 'Unit', 'Jenis Aksi', 'Target/Objek', 'Keterangan']
 

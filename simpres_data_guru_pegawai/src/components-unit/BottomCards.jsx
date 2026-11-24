@@ -81,7 +81,7 @@ function BottomCards() {
               <span className="text-on-surface font-body-md-medium">H. Ahmad Fauzi, M.Pd</span>
             </div>
             <div className="flex items-center justify-between py-1 border-b border-surface-variant/30">
-              <span className="text-on-surface-variant">Operator SimPres:</span>
+              <span className="text-on-surface-variant">Operator SIMPEG:</span>
               <span className="text-on-surface font-body-md-medium">Bustanul Abidin, S.Pd</span>
             </div>
             <div className="flex items-center justify-between py-1">

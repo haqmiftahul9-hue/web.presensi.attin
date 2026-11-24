@@ -12,7 +12,7 @@ const { simPresReducer, initialState } = store
 await server.close()
 
 console.log('='.repeat(80))
-console.log('UJI SISTEM PERHITUNGAN IZIN/CUTI SIMPRES (ATURAN MINGGU, APPROVAL, & SAKIT)')
+console.log('UJI SISTEM PERHITUNGAN IZIN/CUTI SIMPEG (ATURAN MINGGU, APPROVAL, & SAKIT)')
 console.log('='.repeat(80))
 
 let passCount = 0

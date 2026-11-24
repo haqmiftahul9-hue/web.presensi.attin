@@ -1032,7 +1032,7 @@ function PengajuanIzinCutiPage() {
               </div>
               <div className="mt-4 p-2.5 rounded-lg bg-muted/40 border border-border/60 flex items-center gap-2 text-xs text-muted-foreground">
                 <span className="material-symbols-outlined text-emerald-600 text-[17px]">sync</span>
-                <span>Sinkronisasi Data SimPres: <strong className="text-foreground">Aktif</strong></span>
+                <span>Sinkronisasi Data SIMPEG: <strong className="text-foreground">Aktif</strong></span>
               </div>
             </div>
           </div>

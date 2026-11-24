@@ -1,5 +1,5 @@
 -- ==============================================================================
--- SIMPRES ATTIN - SKEMA DATABASE SUPABASE LENGKAP & IDEMPOTENT (POSTGRESQL)
+-- SIMPEG ATTIN - SKEMA DATABASE SUPABASE LENGKAP & IDEMPOTENT (POSTGRESQL)
 -- ==============================================================================
 -- Skema ini dirancang khusus agar aman dijalankan berkali-kali (Re-run Safe /
 -- Idempotent) di Supabase SQL Editor tanpa error "already exists".
@@ -405,7 +405,7 @@ CREATE TABLE IF NOT EXISTS public.global_settings (
   }'::jsonb,
   rekap_settings JSONB NOT NULL DEFAULT '{
     "formatNomorLaporan": "LPR/{UNIT}/{TAHUN}/{BULAN}/{URUT:04d}",
-    "prefixDokumen": "SIMPRES",
+    "prefixDokumen": "SIMPEG",
     "defaultPeriodeLaporan": "Bulanan"
   }'::jsonb,
   notifikasi_settings JSONB NOT NULL DEFAULT '{
@@ -1128,7 +1128,7 @@ FOR ALL USING (public.get_current_user_role() = 'Superadmin');
 --   - Skema tetap idempotent: aman dijalankan berkali-kali di SQL Editor.
 --
 -- CATATAN KEAMANAN
---   Aplikasi SimPres berjalan memakai anon key (kios/mobile tidak login ke
+--   Aplikasi SIMPEG berjalan memakai anon key (kios/mobile tidak login ke
 --   Supabase Auth), jadi peran aplikasi tidak bisa dipetakan ke auth.uid().
 --   Karena itu policy di bawah mengizinkan aplikasi membaca/menulis baris
 --   pengajuan. Pembatasan unit & peran tetap ditegakkan di sisi aplikasi

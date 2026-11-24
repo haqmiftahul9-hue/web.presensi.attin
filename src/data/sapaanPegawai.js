@@ -1,7 +1,7 @@
 // ============================================================================
 // SAPAAN PEGAWAI — FUNGSI TERPUSAT
 //
-// Dua hal yang tidak boleh terjadi di SimPres:
+// Dua hal yang tidak boleh terjadi di SIMPEG:
 //   1. Kata sapaan ditulis manual di tiap halaman ("Bapak", "Ibu", "Umi"…).
 //      Kalau nanti aturan berubah, semua halaman harus ikut berubah.
 //   2. Sapaan mengarang jenis kelamin. Ini aplikasi sekolah Islam, dan

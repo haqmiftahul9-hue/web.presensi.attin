@@ -922,7 +922,7 @@ function MobilePresensiPage() {
     event.preventDefault()
     const kode = kodeManual.trim().toUpperCase()
     if (!kode) {
-      setPesanKode('Masukkan kode pada kartu ID, contoh SIMPRESPEG-NIY.')
+      setPesanKode('Masukkan kode pada kartu ID, contoh SIMPEG-NIY.')
       return
     }
     const kodeLengkap = kode.startsWith(CARD_QR_PREFIX) ? kode : `${CARD_QR_PREFIX}${kode}`

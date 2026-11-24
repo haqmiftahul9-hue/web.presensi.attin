@@ -32,7 +32,7 @@ class MobileErrorBoundary extends Component {
 
   componentDidCatch(error, info) {
     // Dicatat ke console agar mudah ditelusuri saat pengembangan.
-    console.error('[SimPres Mobile] render gagal:', error, info?.componentStack)
+    console.error('[SIMPEG Mobile] render gagal:', error, info?.componentStack)
   }
 
   render() {

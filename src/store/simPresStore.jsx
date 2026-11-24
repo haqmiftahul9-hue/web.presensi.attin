@@ -525,12 +525,12 @@ export const AUTH_ERRORS = {
   NOT_FOUND: 'Akun tidak ditemukan. Periksa kembali username, NIY, atau email dinas Anda.',
   WRONG_PASSWORD: 'Kata sandi salah. Silakan ulangi atau hubungi administrator unit.',
   INACTIVE: 'Akun Anda sedang nonaktif. Hubungi administrator unit untuk mengaktifkannya kembali.',
-  NO_PERMISSION: 'Akun Anda belum memiliki hak akses pada modul SimPres.',
+  NO_PERMISSION: 'Akun Anda belum memiliki hak akses pada modul SIMPEG.',
   // Penyebab tambahan yang perlu dibedakan agarPegawai tidak bingung.
   ACCOUNT_NOT_LINKED:
     'Data pegawai Anda ditemukan, tetapi akun login belum dibuat. Hubungi administrator unit untuk membuatkannya.',
   ROLE_UNAVAILABLE:
-    'Peran akun ini belum dikenali sistem. Hubungi administrator SimPres untuk memeriksa konfigurasi peran.',
+    'Peran akun ini belum dikenali sistem. Hubungi administrator SIMPEG untuk memeriksa konfigurasi peran.',
   UNIT_NOT_FOUND:
     'Unit kerja akun ini tidak ditemukan. Hubungi administrator unit agar penugasan dapat diperbaiki.',
   PASSWORD_TOO_SHORT: 'Kata sandi baru belum memenuhi minimal panjang yang diwajibkan.',
@@ -554,7 +554,7 @@ export const AUTH_ERROR_CODES = {
 // Pesan khusus saat role mencoba mengganti kata sandi lewat jalur yang tidak
 // diberikan haknya (mis. Superadmin, atau aksi yang dikirim langsung ke store).
 export const PASSWORD_CHANGE_FORBIDDEN =
-  'Peran Anda tidak diizinkan mengganti kata sandi dari menu pengguna. Hubungi pengelola sistem SimPres.'
+  'Peran Anda tidak diizinkan mengganti kata sandi dari menu pengguna. Hubungi pengelola sistem SIMPEG.'
 
 // Nilai khusus "melihat seluruh unit" (hanya Superadmin).
 export const ALL_UNITS = 'all'

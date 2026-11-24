@@ -28,7 +28,7 @@ async function checkServerVersion(reg) {
     if (!res.ok) return
     const data = await res.json()
     if (data?.version && CURRENT_VERSION !== 'dev' && data.version !== CURRENT_VERSION) {
-      console.log(`[SimPres PWA] Versi baru server terdeteksi (${data.version} vs running ${CURRENT_VERSION}). Memperbarui aplikasi...`)
+      console.log(`[SIMPEG PWA] Versi baru server terdeteksi (${data.version} vs running ${CURRENT_VERSION}). Memperbarui aplikasi...`)
       isReloading = true
 
       // Trigger pembaruan service worker
@@ -126,7 +126,7 @@ export function registerServiceWorker() {
           if (!newWorker) return
           newWorker.addEventListener('statechange', () => {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              console.log('[SimPres PWA] Service Worker versi baru telah diinstal, mengaktifkan...')
+              console.log('[SIMPEG PWA] Service Worker versi baru telah diinstal, mengaktifkan...')
               newWorker.postMessage('skipWaiting')
             }
           })
@@ -145,7 +145,7 @@ export function registerServiceWorker() {
         })
       })
       .catch((salah) => {
-        console.warn('[SimPres] service worker tidak terdaftar:', salah?.message || salah)
+        console.warn('[SIMPEG] service worker tidak terdaftar:', salah?.message || salah)
       })
   })
 }

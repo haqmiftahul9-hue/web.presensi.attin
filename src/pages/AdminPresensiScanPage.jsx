@@ -62,7 +62,7 @@ function AdminPresensiScanPage() {
     facingMode: facing,
     aktif: true,
     onQrValue: (value) => {
-      const cleaned = String(value || '').replace(/^SIMPRESPEG-/i, '').trim()
+      const cleaned = String(value || '').replace(/^(SIMPEG-|SIMPRESPEG-)/i, '').trim()
       setCode(cleaned)
       const found = resolveStaff(state, cleaned)
       if (found) {

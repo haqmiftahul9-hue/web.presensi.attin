@@ -1,4 +1,4 @@
-// Modul Utilitas NIY (Nomor Induk Yayasan) SimPres Attin
+// Modul Utilitas NIY (Nomor Induk Yayasan) SIMPEG Attin
 // Format 9 Digit: [Kode Unit: 2 digit][Tahun Berdiri Yayasan: 17][Tahun Masuk: 2 digit][Nomor Urut: 3 digit]
 // Contoh resmi: 011722012 (01 = TK, 17 = Yayasan, 22 = Masuk 2022, 012 = Urutan ke-12 di unit TK)
 
