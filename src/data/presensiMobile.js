@@ -43,6 +43,16 @@ export function jarakKeUnit(posisi, unit) {
   return jarakMeter(posisi.latitude, posisi.longitude, unit.latitude, unit.longitude)
 }
 
+/** Helper tunggal penentu radius geofence unit (Single Source of Truth) */
+export function getUnitEffectiveRadius(unit, settings) {
+  const presensi = settings?.presensi || {}
+  return unit?.radius
+    ?? presensi.radiusGeofencePerUnit?.[unit?.id]
+    ?? unit?.radius_meter
+    ?? presensi.radiusGeofenceDefault
+    ?? 50
+}
+
 export function formatMeter(meter) {
   if (!Number.isFinite(meter)) return '-'
   return meter >= 1000 ? `${(meter / 1000).toFixed(1)} km` : `${meter} m`

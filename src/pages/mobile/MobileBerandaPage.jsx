@@ -20,6 +20,7 @@ import { loadAnnouncements, subscribeAnnouncements } from '../../services/announ
 import StaffAvatar from '../../components/mobile/StaffAvatar.jsx'
 import { SectionTitle, ShortcutGrid } from '../../components/mobile/AppShell.jsx'
 import { ErrorState, LoadingState } from '../../components/mobile/Feedback.jsx'
+import { prewarmGeolocation } from '../../hooks/useGeofence.js'
 
 const QUICK_MENU = [
   {
@@ -98,6 +99,7 @@ function MobileBerandaPage() {
   const [jam, setJam] = useState(() => new Date())
 
   useEffect(() => {
+    prewarmGeolocation()
     const id = setInterval(() => setJam(new Date()), 1000)
     return () => clearInterval(id)
   }, [])

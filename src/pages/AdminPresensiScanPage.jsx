@@ -102,7 +102,7 @@ function AdminPresensiScanPage() {
         Math.sin(dLon / 2)
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
     const jarak = R * c
-    const radius = unit.radius_meter || 50
+    const radius = unit.radius ?? unit.radius_meter ?? 50
     return {
       ok: jarak <= radius,
       detail: `Jarak ${jarak.toFixed(0)} m dari titik presensi (radius ${radius} m)`,
@@ -428,7 +428,7 @@ function AdminPresensiScanPage() {
           {unit && (
             <div className="p-2.5 bg-primary-soft rounded-lg border border-primary-border text-xs">
               <span className="block text-[11px] text-primary font-medium">Unit: {unit.nama}</span>
-              <span className="block text-[10px] text-primary-muted">Radius: {unit.radius_meter}m</span>
+              <span className="block text-[10px] text-primary-muted">Radius: {unit.radius ?? unit.radius_meter ?? 50}m</span>
             </div>
           )}
 

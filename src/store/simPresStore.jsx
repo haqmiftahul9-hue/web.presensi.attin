@@ -1391,9 +1391,21 @@ function reducerDasar(state, action) {
         u.id === action.payload.id ? { ...u, ...action.payload } : u,
       )
       writePersistedItem(PERSISTED_UNITS_KEY, nextUnits)
+      const nextSettings = {
+        ...state.settings,
+        presensi: {
+          ...(state.settings?.presensi || {}),
+          radiusGeofencePerUnit: {
+            ...(state.settings?.presensi?.radiusGeofencePerUnit || {}),
+            ...(action.payload.radius != null ? { [action.payload.id]: Number(action.payload.radius) } : {}),
+          },
+        },
+      }
+      writePersistedItem(PERSISTED_SETTINGS_KEY, nextSettings)
       return {
         ...state,
         units: nextUnits,
+        settings: nextSettings,
       }
     }
     case 'ADD_UNIT': {
@@ -1772,11 +1784,26 @@ logs: [
           ...(state.settings?.logoPerUnit || {}),
           ...(action.payload?.logoPerUnit || {}),
         },
+        presensi: {
+          ...(state.settings?.presensi || {}),
+          ...(action.payload?.presensi || {}),
+          radiusGeofencePerUnit: {
+            ...(state.settings?.presensi?.radiusGeofencePerUnit || {}),
+            ...(action.payload?.presensi?.radiusGeofencePerUnit || {}),
+          },
+        },
       }
       writePersistedItem(PERSISTED_SETTINGS_KEY, nextSettings)
+      const perUnit = nextSettings.presensi?.radiusGeofencePerUnit || {}
+      const nextUnits = (state.units || []).map((u) => {
+        const rad = perUnit[u.id] ?? u.radius ?? nextSettings.presensi?.radiusGeofenceDefault ?? 50
+        return { ...u, radius: Number(rad) }
+      })
+      writePersistedItem(PERSISTED_UNITS_KEY, nextUnits)
       return {
         ...state,
         settings: nextSettings,
+        units: nextUnits,
       }
     }
     case 'SYNC_STORAGE_UNITS':
@@ -3996,6 +4023,11 @@ export function selectSelfStaff(state) {
 // "07:15" -> 435 dan sebaliknya sudah didefinisikan di data/jamKerja.js
 // (dialiaskan sebagai jamToMenit / menitKeJam pada bagian atas file ini).
 
+import { getUnitEffectiveRadius } from '../data/presensiMobile.js'
+
+// Helper tunggal penentu radius geofence unit (Single Source of Truth)
+export { getUnitEffectiveRadius }
+
 // Aturan presensi untuk satu tanggal: jam kerja global berdasarkan hari
 // (Senin-Kamis 07:10-16:00, Jumat 07:10 tanpa batas pulang, Sabtu 07:30-13:00)
 // ditambah radius geofence unit. Tidak ada lagi jam operasional/toleransi
@@ -4004,10 +4036,7 @@ export function selectSelfStaff(state) {
 export function selectPresensiRules(state, unitId, tanggal = new Date()) {
   const presensi = state.settings?.presensi || {}
   const unit = selectUnitById(state, unitId)
-  const radius = presensi.radiusGeofencePerUnit?.[unitId]
-    ?? unit?.radius
-    ?? presensi.radiusGeofenceDefault
-    ?? 50
+  const radius = getUnitEffectiveRadius(unit, state.settings)
   const jamKerja = jamKerjaRules(tanggal, unitId, state.settings)
   return {
     ...jamKerja,

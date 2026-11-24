@@ -972,7 +972,7 @@ function PengaturanGlobalPage() {
                 <div className="p-4 bg-muted/30 rounded-xl border border-border">
                   <div className="flex items-center gap-2 mb-3.5">
                     <span className="material-symbols-outlined text-primary text-[18px]">how_to_reg</span>
-                    <h3 className="text-xs font-bold text-foreground">Presensi & Validasi Lokasi</h3>
+                    <h3 className="text-xs font-bold text-foreground">Presensi, Validasi Lokasi & Anti-Fake GPS</h3>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -985,9 +985,22 @@ function PengaturanGlobalPage() {
                         value={formData.presensi?.radiusGeofenceDefault || 50}
                         onChange={(e) => handleInputChange('presensi.radiusGeofenceDefault', parseInt(e.target.value) || 0)}
                       />
+                      <span className="text-[10px] text-muted-foreground mt-1 block">Radius acuan default untuk unit baru (10 - 500 meter).</span>
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-foreground mb-1.5">Toleransi Akurasi GPS Maksimal (meter)</label>
+                      <input
+                        className="w-full h-9 text-xs text-foreground bg-card border border-input rounded-lg px-3 focus:outline-none focus:ring-1 focus:ring-ring transition-all"
+                        type="number"
+                        min="20"
+                        max="200"
+                        value={formData.presensi?.toleransiAkurasiGps || 100}
+                        onChange={(e) => handleInputChange('presensi.toleransiAkurasiGps', parseInt(e.target.value) || 100)}
+                      />
+                      <span className="text-[10px] text-muted-foreground mt-1 block">Tolak presensi jika galat satelit GPS perangkat melebihi batas ini.</span>
                     </div>
                   </div>
-                  <div className="mt-3.5 flex items-center gap-4">
+                  <div className="mt-3.5 grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-2 border-t border-border/60">
                     <label className="flex items-center gap-2.5 cursor-pointer">
                       <input
                         type="checkbox"
@@ -997,41 +1010,78 @@ function PengaturanGlobalPage() {
                       />
                       <span className="text-xs font-medium text-foreground">Aktifkan Validasi Lokasi Presensi (GPS / Geofence)</span>
                     </label>
+                    <label className="flex items-center gap-2.5 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.presensi?.antiFakeGpsAktif !== false}
+                        onChange={(e) => handleInputChange('presensi.antiFakeGpsAktif', e.target.checked)}
+                        className="w-4 h-4 text-primary border-input rounded focus:ring-ring cursor-pointer accent-primary"
+                      />
+                      <span className="text-xs font-medium text-foreground">Blokir & Laporkan Fake GPS / Mock Location</span>
+                    </label>
                   </div>
 
                   {/* Daftar Titik Koordinat Unit Terdaftar */}
                   <div className="mt-4 pt-4 border-t border-border">
                     <div className="flex items-center justify-between mb-2.5">
-                      <span className="text-[11px] font-bold text-foreground uppercase tracking-wider">
-                        Titik Koordinat & Radius Terkoneksi Per Unit
-                      </span>
+                      <div>
+                        <span className="text-[11px] font-bold text-foreground uppercase tracking-wider block">
+                          Titik Koordinat & Radius Terkoneksi Per Unit
+                        </span>
+                        <span className="text-[10px] text-muted-foreground">
+                          Superadmin dapat langsung mengatur radius masing-masing unit di bawah ini:
+                        </span>
+                      </div>
                       <Link
                         to="/unit-sd-islam-rj"
-                        className="text-[11px] font-semibold text-primary hover:underline flex items-center gap-1"
+                        className="text-[11px] font-semibold text-primary hover:underline flex items-center gap-1 shrink-0"
                       >
                         <span className="material-symbols-outlined text-[14px]">edit_location_alt</span>
-                        <span>Edit di Manajemen Unit</span>
+                        <span>Edit Titik di Manajemen Unit</span>
                       </Link>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                      {(state.units || []).map((u) => (
-                        <div key={u.id} className="p-2.5 rounded-lg bg-card border border-border flex items-center justify-between gap-2 shadow-2xs">
-                          <div className="flex items-center gap-2 min-w-0">
-                            <span className="material-symbols-outlined text-primary text-[18px] shrink-0">location_on</span>
-                            <div className="flex flex-col min-w-0">
-                              <span className="text-xs font-semibold text-foreground truncate">{u.nama}</span>
-                              <span className="text-[11px] font-mono text-muted-foreground truncate">
-                                {Number(u.latitude || 0).toFixed(5)}, {Number(u.longitude || 0).toFixed(5)}
+                      {(state.units || []).map((u) => {
+                        const currentRadius = formData.presensi?.radiusGeofencePerUnit?.[u.id] ?? u.radius ?? formData.presensi?.radiusGeofenceDefault ?? 50
+                        return (
+                          <div key={u.id} className="p-3 rounded-lg bg-card border border-border flex flex-col gap-2 shadow-2xs">
+                            <div className="flex items-center justify-between gap-2 min-w-0">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <span className="material-symbols-outlined text-primary text-[18px] shrink-0">location_on</span>
+                                <div className="flex flex-col min-w-0">
+                                  <span className="text-xs font-semibold text-foreground truncate">{u.nama}</span>
+                                  <span className="text-[11px] font-mono text-muted-foreground truncate">
+                                    {Number(u.latitude || 0).toFixed(5)}, {Number(u.longitude || 0).toFixed(5)}
+                                  </span>
+                                </div>
+                              </div>
+                              <span className={`px-2 py-0.5 rounded text-[10px] font-semibold shrink-0 ${
+                                u.geofenceActive !== false ? 'bg-emerald-500/10 text-emerald-600' : 'bg-muted text-muted-foreground'
+                              }`}>
+                                {u.geofenceActive !== false ? 'Geofence Aktif' : 'Bebas Radius'}
                               </span>
                             </div>
+                            <div className="flex items-center justify-between gap-2 pt-1 border-t border-border/40 text-xs">
+                              <label htmlFor={`radius-unit-${u.id}`} className="text-[11px] text-muted-foreground font-medium">Batas Radius Unit:</label>
+                              <div className="flex items-center gap-1">
+                                <input
+                                  id={`radius-unit-${u.id}`}
+                                  type="number"
+                                  min="10"
+                                  max="500"
+                                  value={currentRadius}
+                                  onChange={(e) => {
+                                    const val = parseInt(e.target.value) || 50
+                                    handleInputChange(`presensi.radiusGeofencePerUnit.${u.id}`, val)
+                                  }}
+                                  className="w-16 h-7 text-xs text-foreground bg-background border border-input rounded px-2 font-semibold text-right focus:outline-none focus:ring-1 focus:ring-ring"
+                                />
+                                <span className="text-[11px] font-semibold text-muted-foreground">Meter</span>
+                              </div>
+                            </div>
                           </div>
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-semibold shrink-0 ${
-                            u.geofenceActive !== false ? 'bg-emerald-500/10 text-emerald-600' : 'bg-muted text-muted-foreground'
-                          }`}>
-                            {u.radius || 50}m {u.geofenceActive !== false ? 'Aktif' : 'Nonaktif'}
-                          </span>
-                        </div>
-                      ))}
+                        )
+                      })}
                     </div>
                   </div>
                 </div>

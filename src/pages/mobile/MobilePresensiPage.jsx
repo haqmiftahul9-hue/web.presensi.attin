@@ -378,10 +378,47 @@ function MobilePresensiPage() {
         detail: 'Validasi radius dinonaktifkan oleh administrator unit',
       }
     }
+
+    // 1. Cek Fake GPS / Mock Location
+    if (geofence.isFakeGps) {
+      return {
+        ok: false,
+        dalam: false,
+        detail: `Fake GPS Terdeteksi: ${geofence.fakeReason || 'Aplikasi pemalsu lokasi aktif'}. Matikan aplikasi untuk presensi.`,
+      }
+    }
+
+    // 2. Cek apakah GPS aktif & ada koordinat
+    if (!geofence.posisi) {
+      return {
+        ok: false,
+        dalam: false,
+        detail: geofence.errorGps || 'GPS tidak aktif. Mohon aktifkan izin lokasi/GPS pada perangkat Anda.',
+      }
+    }
+
+    // 3. Cek batas toleransi akurasi GPS (jika > 120m, sinyal satelit belum terkunci)
+    if (geofence.akurasi != null && geofence.akurasi > 120) {
+      return {
+        ok: false,
+        dalam: false,
+        detail: `Akurasi sinyal GPS lemah (±${geofence.akurasi}m). Mohon dekati area terbuka agar terkunci satelit.`,
+      }
+    }
+
+    // 4. Cek radius
+    if (!geofence.dalamRadius) {
+      return {
+        ok: false,
+        dalam: false,
+        detail: `${formatMeter(geofence.jarak)} dari titik presensi (di luar batas radius ${rules.radius} m)`,
+      }
+    }
+
     return {
-      ok: geofence.dalamRadius,
-      dalam: geofence.dalamRadius,
-      detail: `${formatMeter(geofence.jarak)} dari titik presensi (radius ${rules.radius} m)`,
+      ok: true,
+      dalam: true,
+      detail: `${formatMeter(geofence.jarak)} dari titik presensi (radius ${rules.radius} m, GPS ±${geofence.akurasi ?? '-'}m)`,
     }
   }
 
@@ -547,10 +584,12 @@ function MobilePresensiPage() {
                     faceConfidence: finalComp.confidence,
                     photoBucket: uploadRes.bucket,
                     coordinates: {
-                      latitude: geofence.coords?.latitude,
-                      longitude: geofence.coords?.longitude,
+                      latitude: geofence.posisi?.latitude ?? geofence.latitude,
+                      longitude: geofence.posisi?.longitude ?? geofence.longitude,
                       distance: geofence.jarak,
                       outsideRadius: !geofence.dalamRadius,
+                      accuracy: geofence.akurasi,
+                      isMockDetected: Boolean(geofence.isFakeGps),
                     },
                   })
                 }
@@ -766,10 +805,12 @@ function MobilePresensiPage() {
 
     const presensiId = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : `${staff.id}-${Date.now()}-${Math.random().toString(36).slice(2)}`
     const coordinates = {
-      latitude: geofence.coords?.latitude,
-      longitude: geofence.coords?.longitude,
+      latitude: geofence.posisi?.latitude ?? geofence.latitude,
+      longitude: geofence.posisi?.longitude ?? geofence.longitude,
       distance: geofence.jarak,
       outsideRadius: !geofence.dalamRadius,
+      accuracy: geofence.akurasi,
+      isMockDetected: Boolean(geofence.isFakeGps),
     }
 
     // Upload foto scan wajah presensi pulang jika mode face & kamera aktif
@@ -901,7 +942,7 @@ function MobilePresensiPage() {
   // presensi masuk tercatat. Hari lain baru terbuka 1 jam sebelum jam pulang.
   const jendelaPulangTerbuka = rules.pulangBebas
     || jamMenitDariDate(now) >= (rules.jamPulangMenit ?? 15 * 60) - 60
-  const geofenceOk = !rules.lokasiAktif || unit?.geofenceActive === false || geofence.dalamRadius
+  const geofenceOk = !rules.lokasiAktif || unit?.geofenceActive === false || (!geofence.isFakeGps && geofence.dalamRadius)
 
   // Indikator antrian offline: tampilkan badge jika ada presensi menunggu sinkronisasi
   const offlineQueueCount = (() => {

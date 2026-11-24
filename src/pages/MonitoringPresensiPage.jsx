@@ -35,9 +35,11 @@ function MonitoringPresensiPage() {
   const presensiConfig = settings.presensi || {}
   const zonaWaktu = settings.zonaWaktu || 'WIB'
   
-  // Helper untuk mendapatkan radius geofence per unit
+  // Helper untuk mendapatkan radius geofence per unit (prioritas unit.radius, lalu settings override, lalu default)
   const getRadiusUnit = (unitId) => {
-    return presensiConfig.radiusGeofencePerUnit?.[unitId] 
+    const targetUnit = state.units?.find((u) => u.id === unitId)
+    return targetUnit?.radius
+      ?? presensiConfig.radiusGeofencePerUnit?.[unitId] 
       ?? presensiConfig.radiusGeofenceDefault 
       ?? 50
   }

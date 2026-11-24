@@ -59,6 +59,8 @@ function MobileLayout() {
   useEffect(() => {
     document.documentElement.classList.add('sp-mobile-active')
     document.body.classList.add('sp-mobile-active')
+    // Prapemanasan satelit GPS di latar belakang agar presensi berlangsung instan
+    prewarmGeolocation()
     return () => {
       document.documentElement.classList.remove('sp-mobile-active')
       document.body.classList.remove('sp-mobile-active')
