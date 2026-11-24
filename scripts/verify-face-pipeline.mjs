@@ -111,6 +111,7 @@ const hasil = await page.evaluate(async (daftar) => {
         ? window.__live.analyzeFacePose(landmarksOnly.landmarks)
         : null,
       ear: landmarksOnly.landmarks ? window.__live.hitungEAR(landmarksOnly.landmarks) : null,
+      smile: landmarksOnly.landmarks ? window.__live.hitungSmileScore(landmarksOnly.landmarks) : null,
     })
   }
   return out
@@ -121,7 +122,7 @@ for (const h of hasil) {
   console.log(
     `  sample${h.nomor}: terdeteksi=${h.terdeteksi} skor=${h.skor?.toFixed(3)} ` +
     `deskriptor=${h.panjangDescriptor}d pose=${h.pose?.valid ? `${h.pose.arah}(frontal=${h.pose.frontal}, side=${h.pose.side})` : 'tidak valid'} ` +
-    `EAR=${h.ear?.toFixed(3)}`,
+    `EAR=${h.ear?.toFixed(3)} Senyum=${h.smile?.valid ? `${(h.smile.score * 100).toFixed(0)}%(isSmiling=${h.smile.isSmiling})` : 'tidak valid'}`,
   )
 }
 console.log('')
@@ -139,6 +140,7 @@ uji('Descriptor selalu berukuran 128 dimensi', hasil.every((h) => h.panjangDescr
 uji('Landmark 68 titik tersedia untuk analisis pose', terdeteksi.every((h) => h.landmarks?.length === 68))
 uji('Analisis pose valid pada landmark nyata', terdeteksi.every((h) => h.pose?.valid === true))
 uji('EAR terbaca pada landmark nyata', terdeteksi.every((h) => typeof h.ear === 'number' && h.ear > 0))
+uji('Kalkulasi senyuman terbaca pada landmark nyata', terdeteksi.every((h) => h.smile?.valid === true && typeof h.smile.score === 'number'))
 
 // --- Kotak deteksi harus berada di ruang piksel gambar asli -----------------
 const kotakDalamBatas = hasil.filter((h) => h.box).every((h) =>

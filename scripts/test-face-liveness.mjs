@@ -16,6 +16,8 @@ import {
   analyzeFacePose,
   hitungEAR,
   createBlinkTracker,
+  hitungSmileScore,
+  createSmileTracker,
   AMBANG_DEPAN,
   AMBANG_SAMPING,
   UKURAN_WAJAH_MIN,
@@ -49,6 +51,10 @@ function buatWajah({
   rahangKiri = 290,
   rahangKanan = 430,
   ear = 0.3,
+  bibirKiri = { x: 312, y: 320 },
+  bibirKanan = { x: 408, y: 320 },
+  bibirAtas = { x: 360, y: 315 },
+  bibirBawah = { x: 360, y: 328 },
 } = {}) {
   const lm = new Array(68).fill(null).map(() => ({ x: 0, y: 0 }))
 
@@ -76,6 +82,11 @@ function buatWajah({
   lm[16] = { x: rahangKanan, y: 500 }
   lm[30] = { x: ujungHidung, y: 380 }
   lm[27] = { x: ujungHidung, y: 300 }
+
+  lm[48] = { ...bibirKiri }
+  lm[54] = { ...bibirKanan }
+  lm[51] = { ...bibirAtas }
+  lm[57] = { ...bibirBawah }
 
   return lm
 }
@@ -251,7 +262,102 @@ uji('Rata-rata satu descriptor tetap 128 dimensi', averageFaceDescriptors([d1]).
 uji('Rata-rata tanpa input valid menghasilkan null', averageFaceDescriptors([]) === null)
 uji('Rata-rata menolak descriptor berukuran salah', averageFaceDescriptors([new Array(64).fill(1)]) === null)
 
-// --- 14. UKURAN_WAJAH_MIN_EXPORTED ------------------------------------------
+// --- 14. Deteksi Senyuman (hitungSmileScore) ---------------------------------
+const wajahNetral = buatWajah({
+  bibirKiri: { x: 312, y: 320 },
+  bibirKanan: { x: 408, y: 320 },
+  bibirAtas: { x: 360, y: 315 },
+  bibirBawah: { x: 360, y: 328 },
+})
+const skorNetral = hitungSmileScore(wajahNetral)
+uji('Wajah netral tidak terdeteksi senyum', skorNetral.valid && !skorNetral.isSmiling && skorNetral.score < 0.35, `score=${skorNetral.score}`)
+
+const wajahSenyum = buatWajah({
+  bibirKiri: { x: 295, y: 308 },
+  bibirKanan: { x: 425, y: 308 },
+  bibirAtas: { x: 360, y: 316 },
+  bibirBawah: { x: 360, y: 334 },
+})
+const skorSenyum = hitungSmileScore(wajahSenyum)
+uji('Wajah tersenyum terdeteksi valid dan isSmiling === true', skorSenyum.valid && skorSenyum.isSmiling && skorSenyum.score >= 0.70, `score=${skorSenyum.score}`)
+uji('Rasio lebar mulut meningkat saat senyum', skorSenyum.widthRatio > skorNetral.widthRatio, `senyum=${skorSenyum.widthRatio} netral=${skorNetral.widthRatio}`)
+uji('Sudut bibir terangkat (cornerLift) positif saat senyum', skorSenyum.cornerLift > 0.08, `lift=${skorSenyum.cornerLift}`)
+
+// Invarian rotasi kemiringan kepala (tilt -20° s.d. +20°)
+function putarLandmarks(landmarks, angleDeg, cx = 360, cy = 300) {
+  const rad = (angleDeg * Math.PI) / 180
+  const cos = Math.cos(rad)
+  const sin = Math.sin(rad)
+  return landmarks.map((p) => {
+    if (!p) return p
+    const dx = p.x - cx
+    const dy = p.y - cy
+    return {
+      x: cx + dx * cos - dy * sin,
+      y: cy + dx * sin + dy * cos,
+    }
+  })
+}
+
+const senyumMiringKanan = putarLandmarks(wajahSenyum, 18)
+const senyumMiringKiri = putarLandmarks(wajahSenyum, -20)
+const skorMiringKanan = hitungSmileScore(senyumMiringKanan)
+const skorMiringKiri = hitungSmileScore(senyumMiringKiri)
+uji('Deteksi senyum invarian terhadap kemiringan kepala miring kanan', skorMiringKanan.isSmiling && Math.abs(skorMiringKanan.score - skorSenyum.score) < 0.01)
+uji('Deteksi senyum invarian terhadap kemiringan kepala miring kiri', skorMiringKiri.isSmiling && Math.abs(skorMiringKiri.score - skorSenyum.score) < 0.01)
+
+// Invarian skala ukuran wajah
+function skalaLandmarks(landmarks, faktor, cx = 360, cy = 300) {
+  return landmarks.map((p) => {
+    if (!p) return p
+    return {
+      x: cx + (p.x - cx) * faktor,
+      y: cy + (p.y - cy) * faktor,
+    }
+  })
+}
+const senyumKecil = skalaLandmarks(wajahSenyum, 0.6)
+const senyumBesar = skalaLandmarks(wajahSenyum, 2.5)
+const skorKecil = hitungSmileScore(senyumKecil)
+const skorBesar = hitungSmileScore(senyumBesar)
+uji('Deteksi senyum invarian terhadap ukuran wajah (skala kecil vs besar)', skorKecil.isSmiling && skorBesar.isSmiling && Math.abs(skorKecil.score - skorBesar.score) < 0.01)
+
+// Penolakan menguap / membuka mulut tanpa senyum
+const wajahMenguap = buatWajah({
+  bibirKiri: { x: 325, y: 330 },
+  bibirKanan: { x: 395, y: 330 },
+  bibirAtas: { x: 360, y: 305 },
+  bibirBawah: { x: 360, y: 355 },
+})
+const skorMenguap = hitungSmileScore(wajahMenguap)
+uji('Buka mulut/menguap ditolak (tidak salah deteksi sebagai senyum)', skorMenguap.valid && !skorMenguap.isSmiling && skorMenguap.score <= 0.25, `score=${skorMenguap.score}`)
+
+// Landmark null atau tidak lengkap ditolak dengan aman
+uji('hitungSmileScore null ditolak dengan aman', hitungSmileScore(null).valid === false)
+uji('hitungSmileScore landmark kurang dari 68 titik ditolak', hitungSmileScore(new Array(40).fill({ x: 1, y: 1 })).valid === false)
+
+// --- 15. Smile Tracker (Multi-frame verification) ---------------------------
+const smileTracker = createSmileTracker({ consecutiveThreshold: 3, scoreThreshold: 0.65 })
+uji('Smile tracker awal belum tersenyum', smileTracker.smiled === false && smileTracker.consecutiveFrames === 0)
+
+// 1 frame senyum belum meloloskan
+const frame1 = smileTracker.update(wajahSenyum)
+uji('1 frame senyum belum meloloskan (tahan sesaat)', frame1.siap && !frame1.smiling && frame1.consecutive === 1)
+
+// 2 frame senyum belum meloloskan
+const frame2 = smileTracker.update(wajahSenyum)
+uji('2 frame senyum belum meloloskan', !frame2.smiling && frame2.consecutive === 2)
+
+// 3 frame senyum berturut-turut meloloskan
+const frame3 = smileTracker.update(wajahSenyum)
+uji('3 frame senyum berturut-turut meloloskan liveness', frame3.smiling === true && smileTracker.smiled === true)
+
+// Menoleh samping saat mencoba senyum ditolak oleh tracker
+const smileTrackerSide = createSmileTracker()
+const frameSide = smileTrackerSide.update(wajahSenyum, { valid: true, side: true })
+uji('Tracker menolak jika wajah menoleh ke samping saat senyum', frameSide.smiling === false && frameSide.consecutive === 0 && frameSide.message.includes('depan'))
+
+// --- 16. UKURAN_WAJAH_MIN_EXPORTED ------------------------------------------
 uji('Ambang ukuran wajah minimum diekspor', typeof UKURAN_WAJAH_MIN === 'number' && UKURAN_WAJAH_MIN > 0)
 
 console.log('='.repeat(80))

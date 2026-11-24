@@ -147,11 +147,11 @@ uji('Kios admin membandingkan descriptor wajah terdaftar',
   sumberKios.includes('compareFaceDescriptors'))
 uji('Absen pulang juga memverifikasi wajah',
   sumberPresensi.includes('Verifikasi wajah (pulang) gagal'))
-uji('Modal pendaftaran memakai 3 tahap liveness (depan, samping, berkedip)',
+uji('Modal pendaftaran memakai 3 tahap liveness (depan, samping, tersenyum)',
   sumberEnrollment.includes('AMBAH') === false
     && sumberEnrollment.includes('analyzeFacePose')
-    && sumberEnrollment.includes('hitungEAR')
-    && sumberEnrollment.includes('createBlinkTracker'))
+    && sumberEnrollment.includes('hitungSmileScore')
+    && sumberEnrollment.includes('createSmileTracker'))
 uji('Modal pendaftaran tidak lagi memakai ambang mutlak pixel untuk pose',
   !sumberEnrollment.includes('eyeDist <= 10'))
 

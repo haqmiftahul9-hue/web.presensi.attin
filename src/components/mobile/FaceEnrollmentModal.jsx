@@ -12,14 +12,13 @@ import {
 } from '../../services/faceRecognitionService.js'
 import {
   analyzeFacePose,
-  hitungEAR,
-  createBlinkTracker,
+  hitungSmileScore,
+  createSmileTracker,
 } from '../../services/faceLivenessService.js'
 
 /**
  * Berapa frame berturut-turut pose/gerakan tertentu harus bertahan sebelum
- * dianggap sah. Dengan tiga frame, satu frame noise (mis. berkedip sesaat
- * saat menoleh) tidak menggagalkan langkah.
+ * dianggap sah. Dengan tiga frame, satu frame noise tidak menggagalkan langkah.
  */
 const FRAME_KEBERHASILAN = 3
 const FRAME_KEBERHASILAN_SAMPING = 2
@@ -60,26 +59,55 @@ function PoseGauge({ pose, aktif }) {
 }
 
 /**
- * Indikator keterbukaan mata untuk langkah kedip.
+ * Indikator ekspresi senyuman untuk langkah 3/3 liveness.
  */
-function EyeIndicator({ blink, siap }) {
-  const tertutup = blink?.phase === 'terkedip'
-  const ratio = blink?.ratio
+function SmileIndicator({ smile, siap }) {
+  const score = Math.round((smile?.score || 0) * 100)
+  const isSmiling = smile?.smiling
+  const message = smile?.message || 'Silakan tersenyum ke kamera 😊'
+
   return (
-    <div className="flex items-center justify-center gap-2">
-      <span className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-150 ${
-        tertutup ? 'bg-status-warning/20' : 'bg-status-success/20'
-      }`}>
-        <Icon name="visibility" className={`text-[16px] ${tertutup ? 'text-status-warning-text' : 'text-status-success-text'}`} />
-      </span>
-      <span className="font-label-sm text-[11px] text-slate-600">
-        {!siap
-          ? 'Menyiapkan pemantau kedip...'
-          : tertutup
-            ? 'Mata terdeteksi tertutup...'
-            : 'Mata terbuka - silakan berkedip'}
-        {ratio ? ` (${Math.round(ratio * 100)}%)` : ''}
-      </span>
+    <div className="w-full flex flex-col items-center gap-1.5 max-w-[280px]">
+      <div className="flex items-center justify-center gap-2">
+        <span
+          className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 ${
+            isSmiling
+              ? 'bg-status-success text-white ring-2 ring-status-success/30 scale-110'
+              : score >= 40
+                ? 'bg-status-warning/20 text-status-warning-text'
+                : 'bg-slate-100 text-slate-500'
+          }`}
+        >
+          <Icon
+            name={isSmiling ? 'mood' : score >= 40 ? 'sentiment_satisfied' : 'sentiment_neutral'}
+            className="text-[18px]"
+          />
+        </span>
+        <span className="font-label-sm text-[11px] font-semibold text-slate-700">
+          {!siap ? 'Menyiapkan deteksi senyuman...' : message}
+        </span>
+      </div>
+
+      {/* Progress Bar Persentase Senyuman */}
+      {siap && (
+        <div className="w-full flex items-center gap-2">
+          <div className="flex-1 h-2 rounded-full bg-slate-200/80 overflow-hidden border border-slate-300/60">
+            <div
+              className={`h-full transition-all duration-150 rounded-full ${
+                isSmiling
+                  ? 'bg-status-success'
+                  : score >= 50
+                    ? 'bg-status-warning'
+                    : 'bg-primary'
+              }`}
+              style={{ width: `${Math.min(100, Math.max(0, score))}%` }}
+            />
+          </div>
+          <span className="font-mono text-[10px] font-bold text-slate-500 w-8 text-right">
+            {score}%
+          </span>
+        </div>
+      )}
     </div>
   )
 }
@@ -87,7 +115,7 @@ function EyeIndicator({ blink, siap }) {
 /**
  * Modal Pendaftaran Wajah (Face Enrollment).
  * Menggunakan alur kamera instan, jeda fokus 1-2 detik, loop requestAnimationFrame,
- * dan verifikasi liveness 3 tahap: Hadap Depan (1/3) -> Hadap Samping (2/3) -> Berkedip (3/3).
+ * dan verifikasi liveness 3 tahap: Hadap Depan (1/3) -> Hadap Samping (2/3) -> Tersenyum (3/3).
  */
 export function FaceEnrollmentModal({
   terbuka,
@@ -114,11 +142,11 @@ export function FaceEnrollmentModal({
   const [successData, setSuccessData] = useState(null)
 
   // Tahap Verifikasi 3 Langkah
-  const [livenessStep, setLivenessStep] = useState(1) // 1: Depan, 2: Samping, 3: Berkedip, 4: Selesai
+  const [livenessStep, setLivenessStep] = useState(1) // 1: Depan, 2: Samping, 3: Tersenyum, 4: Selesai
   const [livenessPassed, setLivenessPassed] = useState(false)
   const [livenessInstruction, setLivenessInstruction] = useState('Langkah 1/3: Silakan hadap wajah tegak ke depan.')
   const [poseInfo, setPoseInfo] = useState(null)
-  const [blinkInfo, setBlinkInfo] = useState(null)
+  const [smileInfo, setSmileInfo] = useState(null)
 
   // Refs untuk loop dan timeout
   const rafRef = useRef(null)
@@ -129,8 +157,8 @@ export function FaceEnrollmentModal({
   const frontalDescriptorsRef = useRef([])
   // Foto bukti diambil satu kali, saat wajah sedang menghadap depan
   const photoRef = useRef(null)
-  // Tracker kedip mata dengan baseline EAR dinamis
-  const blinkTrackerRef = useRef(createBlinkTracker())
+  // Tracker senyuman dengan verifikasi multi-frame
+  const smileTrackerRef = useRef(createSmileTracker())
 
   // Hubungkan stream kamera ke elemen video
   const attachStreamToVideo = useCallback((videoEl, streamToAttach) => {
@@ -189,9 +217,9 @@ export function FaceEnrollmentModal({
     sideCountRef.current = 0
     frontalDescriptorsRef.current = []
     photoRef.current = null
-    blinkTrackerRef.current = createBlinkTracker()
+    smileTrackerRef.current = createSmileTracker()
     setPoseInfo(null)
-    setBlinkInfo(null)
+    setSmileInfo(null)
 
     // Panggil getUserMedia langsung seketika
     const startCameraImmediately = async () => {
@@ -301,8 +329,8 @@ export function FaceEnrollmentModal({
         try {
           // Tahap 1 butuh descriptor (data acuan biometrik) sehingga memakai
           // jalur lengkap. Tahap 2 & 3 cukup landmark — jauh lebih ringan dan
-          // menjaga frame rate tinggi supaya kedip mata (~100 ms) tidak
-          // terlewat di ponsel.
+          // menjaga frame rate tinggi supaya proses deteksi liveness tetap
+          // responsif dan mulus di ponsel.
           const butuhDescriptor = livenessStep === 1
           const result = butuhDescriptor
             ? await detectSingleFaceAndDescriptor(video, { inputSize: 320, scoreThreshold: 0.4 })
@@ -355,10 +383,10 @@ export function FaceEnrollmentModal({
                       if (sideCountRef.current >= FRAME_KEBERHASILAN_SAMPING) {
                         sideCountRef.current = 0
                         frontalCountRef.current = 0
-                        blinkTrackerRef.current = createBlinkTracker()
-                        setBlinkInfo(null)
+                        smileTrackerRef.current = createSmileTracker()
+                        setSmileInfo(null)
                         setLivenessStep(3)
-                        setLivenessInstruction('Langkah 3/3: Hadap depan kembali lalu berkedipkan mata sekali.')
+                        setLivenessInstruction('Langkah 3/3: Hadap depan kembali lalu berikan senyuman.')
                       }
                     } else {
                       setLivenessInstruction(
@@ -369,15 +397,14 @@ export function FaceEnrollmentModal({
                     }
                   }
 
-                  // ---- TAHAP 3: Berkedip ----
+                  // ---- TAHAP 3: Tersenyum ----
                   else if (livenessStep === 3) {
-                    const ear = hitungEAR(landmarks)
-                    const status = blinkTrackerRef.current.update(ear)
-                    setBlinkInfo(status)
-                    if (status.blinked) {
+                    const status = smileTrackerRef.current.update(landmarks, pose)
+                    setSmileInfo(status)
+                    if (status.smiling) {
                       setLivenessPassed(true)
                       setLivenessStep(4)
-                      setLivenessInstruction('Verifikasi 3/3 selesai! Wajah terverifikasi asli.')
+                      setLivenessInstruction('Verifikasi 3/3 selesai! Wajah dan senyuman terverifikasi asli.')
                     }
                   }
                 }
@@ -416,9 +443,9 @@ export function FaceEnrollmentModal({
     sideCountRef.current = 0
     frontalDescriptorsRef.current = []
     photoRef.current = null
-    blinkTrackerRef.current = createBlinkTracker()
+    smileTrackerRef.current = createSmileTracker()
     setPoseInfo(null)
-    setBlinkInfo(null)
+    setSmileInfo(null)
     setLivenessStep(1)
     setLivenessPassed(false)
     setLivenessInstruction('Langkah 1/3: Silakan hadap wajah tegak ke depan.')
@@ -582,7 +609,7 @@ export function FaceEnrollmentModal({
                       ? 'bg-primary text-white border-primary shadow-xs'
                       : 'bg-slate-100 text-slate-400 border-slate-200'
                 }`}>
-                  3. Berkedip {livenessPassed && '✓'}
+                  3. Tersenyum {livenessPassed && '✓'}
                 </div>
               </div>
 
@@ -686,7 +713,7 @@ export function FaceEnrollmentModal({
                             : livenessStep === 2
                               ? 'swap_horiz'
                               : livenessStep === 3
-                                ? 'visibility'
+                                ? 'mood'
                                 : faceDetected
                                   ? 'face'
                                   : 'search'
@@ -704,7 +731,7 @@ export function FaceEnrollmentModal({
                             ? 'Langkah 1/3: Hadap Depan'
                             : livenessStep === 2
                               ? 'Langkah 2/3: Hadap Samping'
-                              : 'Langkah 3/3: Silakan Berkedip'}
+                              : 'Langkah 3/3: Silakan Tersenyum'}
                   </span>
                 </span>
               </div>
@@ -734,7 +761,7 @@ export function FaceEnrollmentModal({
                         ? 'Posisikan wajah tepat di tengah oval menghadap lurus ke kamera.'
                         : livenessStep === 2
                           ? 'Tolehkan wajah Anda ke samping (kiri atau kanan) sampai jarum di gauge bergerak ke area amber.'
-                          : 'Tatap kamera dan berkedipkan mata Anda sekali.'}
+                          : 'Tatap kamera dan berikan senyuman terbaik Anda.'}
                 </span>
 
                 {/* Indikator kemiringan kepala: bantu pengguna pada langkah "hadap samping". */}
@@ -744,9 +771,9 @@ export function FaceEnrollmentModal({
                   </div>
                 )}
 
-                {/* Indikator keterbukaan mata: bantu pengguna pada langkah "berkedip". */}
+                {/* Indikator ekspresi senyuman: bantu pengguna pada langkah "tersenyum". */}
                 {cameraStage === 'ready' && !modelLoading && !livenessPassed && livenessStep === 3 && (
-                  <EyeIndicator blink={blinkInfo} siap={Boolean(blinkInfo?.siap)} />
+                  <SmileIndicator smile={smileInfo} siap={Boolean(smileInfo?.siap)} />
                 )}
 
                 {/* Tombol mulai ulang verification */}
