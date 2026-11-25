@@ -677,7 +677,7 @@ function MobileLoginForm({
           <div className="p-3 rounded-xl bg-primary-soft border border-primary-border text-primary text-xs leading-relaxed flex items-start gap-2 animate-fade-in">
             <span className="material-symbols-outlined text-[16px] text-primary shrink-0 mt-0.5">info</span>
             <p className="text-[11px]">
-              Silakan hubungi administrator Tata Usaha (TU) unit sekolah atau HRD untuk melakukan reset kata sandi akun Anda.
+              Silakan hubungi Superadmin untuk melakukan reset kata sandi akun Anda.
             </p>
           </div>
         )}
