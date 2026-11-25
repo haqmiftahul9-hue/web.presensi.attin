@@ -13,22 +13,47 @@ import { buildUserMenuItems } from './userMenuItems.js'
 // Sidebar hanya milik aplikasi desktop. Role Guru/Pegawai tidak pernah
 // merendernya: Layout mengarahkan role mobile ke /mobile/* sebelum sidebar
 // tampil, dan tiap item tetap disaring lewat hasMenuPermission.
-const navItems = [
-  { path: 'BERANDA', label: 'Dashboard', icon: 'dashboard', menuKey: 'dashboard' },
-  { path: '/unit-sd-islam-rj', label: 'Manajemen Unit', icon: 'apartment', activePath: '/unit-sd-islam-rj', menuKey: 'manajemenUnit' },
-  { path: '/manajemen-admin-user', label: 'Manajemen Admin', icon: 'manage_accounts', activePath: '/manajemen-admin-user', menuKey: 'manajemenAdminUser' },
-  { path: '/data-guru-dan-pegawai', label: 'Data Guru/Pegawai', icon: 'badge', activePath: '/data-guru-dan-pegawai', menuKey: 'dataGuruPegawai' },
-  { path: '/cetak-kartu-id', label: 'Cetak Kartu ID', icon: 'contact_page', activePath: '/cetak-kartu-id', menuKey: 'cetakKartuId' },
-  { path: '/presensi', label: 'Presensi', icon: 'timer', activePath: '/presensi', menuKey: 'presensi' },
-  { path: '/presensi-scan', label: 'Scan Presensi (Kios)', icon: 'qr_code_scanner', activePath: '/presensi-scan', menuKey: 'presensi', allowedRoles: [ROLE_SUPERADMIN, ROLE_ADMIN_UNIT, ROLE_PETUGAS_PRESENSI] },
-  { path: '/rekap-dan-laporan', label: 'Rekap & Laporan', icon: 'summarize', activePath: '/rekap-dan-laporan', menuKey: 'rekapLaporan', allowedRoles: [ROLE_SUPERADMIN, ROLE_ADMIN_UNIT, ROLE_PETUGAS_PRESENSI] },
-  { path: '/ranking-kehadiran', label: 'Ranking Kehadiran', icon: 'leaderboard', activePath: '/ranking-kehadiran', menuKey: 'rankingKehadiran' },
-  { path: '/pengajuan-izin-dan-cuti', label: 'Pengajuan Izin/Cuti', icon: 'event_available', activePath: '/pengajuan-izin-dan-cuti', menuKey: 'pengajuanIzinCuti' },
-  { path: '/presensi-manual', label: 'Presensi Manual', icon: 'edit_calendar', activePath: '/presensi-manual', menuKey: 'presensiManual' },
-  { path: '/attendance-approvals', label: 'Persetujuan Presensi', icon: 'check_circle', activePath: '/attendance-approvals', menuKey: 'attendanceApprovals', onlyRole: 'Superadmin' },
-  { path: '/edit-presensi', label: 'Edit Presensi', icon: 'edit', activePath: '/edit-presensi', menuKey: 'editPresensi' },
-  { path: '/log-aktivitas', label: 'Log Aktivitas', icon: 'history', activePath: '/log-aktivitas', menuKey: 'logAktivitas' },
-  { path: '/pengaturan-global', label: 'Pengaturan Global', icon: 'settings', activePath: '/pengaturan-global', menuKey: 'pengaturanGlobal' },
+const navSections = [
+  {
+    label: 'Utama',
+    items: [
+      { path: 'BERANDA', label: 'Dashboard', icon: 'dashboard', menuKey: 'dashboard' },
+    ],
+  },
+  {
+    label: 'Manajemen Data',
+    items: [
+      { path: '/unit-sd-islam-rj', label: 'Manajemen Unit', icon: 'apartment', activePath: '/unit-sd-islam-rj', menuKey: 'manajemenUnit' },
+      { path: '/manajemen-admin-user', label: 'Manajemen Admin', icon: 'manage_accounts', activePath: '/manajemen-admin-user', menuKey: 'manajemenAdminUser' },
+      { path: '/data-guru-dan-pegawai', label: 'Data Guru/Pegawai', icon: 'badge', activePath: '/data-guru-dan-pegawai', menuKey: 'dataGuruPegawai' },
+      { path: '/cetak-kartu-id', label: 'Cetak Kartu ID', icon: 'contact_page', activePath: '/cetak-kartu-id', menuKey: 'cetakKartuId' },
+    ],
+  },
+  {
+    label: 'Presensi',
+    items: [
+      { path: '/presensi', label: 'Presensi', icon: 'timer', activePath: '/presensi', menuKey: 'presensi' },
+      { path: '/presensi-scan', label: 'Scan Presensi (Kios)', icon: 'qr_code_scanner', activePath: '/presensi-scan', menuKey: 'presensi', allowedRoles: [ROLE_SUPERADMIN, ROLE_ADMIN_UNIT, ROLE_PETUGAS_PRESENSI] },
+      { path: '/presensi-manual', label: 'Presensi Manual', icon: 'edit_calendar', activePath: '/presensi-manual', menuKey: 'presensiManual' },
+      { path: '/attendance-approvals', label: 'Persetujuan Presensi', icon: 'check_circle', activePath: '/attendance-approvals', menuKey: 'attendanceApprovals', onlyRole: 'Superadmin' },
+      { path: '/edit-presensi', label: 'Edit Presensi', icon: 'edit', activePath: '/edit-presensi', menuKey: 'editPresensi' },
+    ],
+  },
+  {
+    label: 'Laporan & Izin',
+    items: [
+      { path: '/rekap-dan-laporan', label: 'Rekap & Laporan', icon: 'summarize', activePath: '/rekap-dan-laporan', menuKey: 'rekapLaporan', allowedRoles: [ROLE_SUPERADMIN, ROLE_ADMIN_UNIT, ROLE_PETUGAS_PRESENSI] },
+      { path: '/ranking-kehadiran', label: 'Ranking Kehadiran', icon: 'leaderboard', activePath: '/ranking-kehadiran', menuKey: 'rankingKehadiran' },
+      { path: '/pengajuan-izin-dan-cuti', label: 'Pengajuan Izin/Cuti', icon: 'event_available', activePath: '/pengajuan-izin-dan-cuti', menuKey: 'pengajuanIzinCuti' },
+    ],
+  },
+  {
+    label: 'Sistem',
+    items: [
+      { path: '/log-aktivitas', label: 'Log Aktivitas', icon: 'history', activePath: '/log-aktivitas', menuKey: 'logAktivitas' },
+      { path: '/pengaturan-global', label: 'Pengaturan Global', icon: 'settings', activePath: '/pengaturan-global', menuKey: 'pengaturanGlobal' },
+    ],
+  },
 ]
 
 function UnitScopeSelector() {
@@ -291,27 +316,32 @@ function SidebarNav({ open = false, onTutup } = {}) {
   // Item beranda memakai path mode milik role: Superadmin -> /superadmin,
   // Admin Unit & Petugas & Kepala Sekolah -> /dashboard.
   const berandaPath = currentRole === ROLE_SUPERADMIN ? '/superadmin' : '/dashboard'
-  const visibleItems = navItems
-    .filter((item) => {
-      if (!hasMenuPermission(state, item.menuKey)) return false
-      if (item.onlyRole && item.onlyRole !== currentRole) return false
-      if (item.allowedRoles && !item.allowedRoles.includes(currentRole)) return false
-      return true
-    })
-    .map((item) => {
-      const path = item.path === 'BERANDA' ? berandaPath : item.path
-      let label = item.label
-      if (currentRole === ROLE_KEPALA_SEKOLAH) {
-        if (item.path === '/presensi') label = 'Monitoring Presensi'
-        if (item.path === '/pengajuan-izin-dan-cuti') label = 'Persetujuan Izin/Cuti'
-      }
-      return {
-        ...item,
-        path,
-        activePath: path,
-        label,
-      }
-    })
+  const visibleSections = navSections
+    .map((section) => ({
+      ...section,
+      items: section.items
+        .filter((item) => {
+          if (!hasMenuPermission(state, item.menuKey)) return false
+          if (item.onlyRole && item.onlyRole !== currentRole) return false
+          if (item.allowedRoles && !item.allowedRoles.includes(currentRole)) return false
+          return true
+        })
+        .map((item) => {
+          const path = item.path === 'BERANDA' ? berandaPath : item.path
+          let label = item.label
+          if (currentRole === ROLE_KEPALA_SEKOLAH) {
+            if (item.path === '/presensi') label = 'Monitoring Presensi'
+            if (item.path === '/pengajuan-izin-dan-cuti') label = 'Persetujuan Izin/Cuti'
+          }
+          return {
+            ...item,
+            path,
+            activePath: path,
+            label,
+          }
+        }),
+    }))
+    .filter((section) => section.items.length > 0)
 
   const roleMap = {
     Superadmin: { roleBg: 'bg-purple-950/80 border border-purple-800/60', roleText: 'text-purple-300', roleDot: 'bg-purple-400', icon: 'shield_person', avatarBg: 'bg-purple-700 text-white' },
@@ -356,26 +386,37 @@ function SidebarNav({ open = false, onTutup } = {}) {
 
           <UnitScopeSelector />
 
-          <div className="px-4 pt-3 pb-1">
-            <span className="text-[10px] font-bold text-sidebar-foreground/60 uppercase tracking-wider">Navigasi Utama</span>
-          </div>
-
-          <nav className="flex flex-col gap-1 px-2.5 py-1">
-            {visibleItems.map((item) => (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                className={({ isActive }) =>
-                  `flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
-                    isActive
-                      ? 'bg-sidebar-accent text-sidebar-accent-foreground shadow-2xs font-semibold'
-                      : 'text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent/60'
-                  }`
-                }
-              >
-                <span className="material-symbols-outlined text-[19px] shrink-0 opacity-90">{item.icon}</span>
-                <span className="truncate">{item.label}</span>
-              </NavLink>
+          <nav className="flex flex-col gap-4 px-2.5 py-2">
+            {visibleSections.map((section) => (
+              <div key={section.label}>
+                <div className="px-3 pb-1.5">
+                  <span className="text-[10px] font-bold text-sidebar-foreground/55 uppercase tracking-[0.14em]">
+                    {section.label}
+                  </span>
+                </div>
+                <div className="flex flex-col gap-1">
+                  {section.items.map((item) => (
+                    <NavLink
+                      key={item.path}
+                      to={item.path}
+                      className={({ isActive }) =>
+                        `group relative flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs transition-all duration-150 ${
+                          isActive
+                            ? 'bg-primary text-primary-foreground shadow-sm font-semibold ring-1 ring-primary/40 before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-1 before:rounded-r-full before:bg-primary-foreground/90'
+                            : 'text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent/70 font-medium'
+                        }`
+                      }
+                    >
+                      {({ isActive }) => (
+                        <>
+                          <span className={`material-symbols-outlined text-[19px] shrink-0 transition-opacity ${isActive ? 'opacity-100' : 'opacity-80 group-hover:opacity-100'}`}>{item.icon}</span>
+                          <span className="truncate">{item.label}</span>
+                        </>
+                      )}
+                    </NavLink>
+                  ))}
+                </div>
+              </div>
             ))}
           </nav>
 

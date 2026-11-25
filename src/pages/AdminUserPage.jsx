@@ -452,7 +452,7 @@ function AdminUserPage() {
                   <th className="py-3 px-3.5">Role</th>
                   <th className="py-3 px-3.5">Unit</th>
                   <th className="py-3 px-3.5">Status</th>
-                  <th className="py-3 px-3.5 text-right w-48">Aksi</th>
+                  <th className="py-3 px-3.5 text-right w-48 whitespace-nowrap">Aksi</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/60">
@@ -493,52 +493,56 @@ function AdminUserPage() {
                         {user.status}
                       </span>
                     </td>
-                    <td className="py-3 px-3.5 text-right">
-                      <div className="flex items-center justify-end gap-2">
+                    <td className="py-3 px-3.5 text-right whitespace-nowrap">
+                      <div className="inline-flex items-center justify-end gap-1.5 shrink-0">
                         <button
                           onClick={() => openDetail(user)}
-                          className="w-8 h-8 rounded-md bg-card hover:bg-muted border border-border text-foreground flex items-center justify-center transition-colors cursor-pointer"
+                          className="w-8 h-8 rounded-lg bg-card hover:bg-muted border border-border text-muted-foreground hover:text-foreground flex items-center justify-center transition-all duration-150 shadow-2xs hover:shadow-xs active:scale-95 cursor-pointer shrink-0"
                           title="Detail Pengguna"
+                          aria-label="Detail Pengguna"
                           type="button"
                         >
-                          <span className="material-symbols-outlined text-[16px]">visibility</span>
+                          <span className="material-symbols-outlined text-[16px] leading-none select-none">visibility</span>
                         </button>
                         <button
                           onClick={() => handleBatalkanAdmin(user)}
-                          className="w-8 h-8 rounded-md bg-destructive/10 hover:bg-destructive/20 text-destructive border border-destructive/20 flex items-center justify-center transition-colors cursor-pointer"
-                          title="Batalkan Admin"
+                          className="w-8 h-8 rounded-lg bg-destructive/10 hover:bg-destructive/20 text-destructive border border-destructive/20 hover:border-destructive/30 flex items-center justify-center transition-all duration-150 shadow-2xs hover:shadow-xs active:scale-95 cursor-pointer shrink-0"
+                          title="Batalkan Hak Admin"
+                          aria-label="Batalkan Hak Admin"
                           type="button"
                         >
-                          <span className="material-symbols-outlined text-[16px]">admin_panel_settings</span>
-                          <span className="hidden sm:inline">Batalkan</span>
+                          <span className="material-symbols-outlined text-[16px] leading-none select-none">admin_panel_settings</span>
                         </button>
                         {user.status === 'Aktif' ? (
                           <button
                             onClick={() => handleToggleStatus(user)}
-                            className="w-8 h-8 rounded-md bg-destructive/10 hover:bg-destructive/20 text-destructive border border-destructive/20 flex items-center justify-center transition-colors cursor-pointer"
+                            className="w-8 h-8 rounded-lg bg-destructive/10 hover:bg-destructive/20 text-destructive border border-destructive/20 hover:border-destructive/30 flex items-center justify-center transition-all duration-150 shadow-2xs hover:shadow-xs active:scale-95 cursor-pointer shrink-0"
                             title="Nonaktifkan Akun"
+                            aria-label="Nonaktifkan Akun"
                             type="button"
                           >
-                            <span className="material-symbols-outlined text-[16px]">block</span>
+                            <span className="material-symbols-outlined text-[16px] leading-none select-none">block</span>
                           </button>
                         ) : (
                           <button
                             onClick={() => handleToggleStatus(user)}
-                            className="w-8 h-8 rounded-md bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center justify-center transition-colors cursor-pointer"
-                            title="Aktifkan Kembali"
+                            className="w-8 h-8 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 hover:border-emerald-500/30 flex items-center justify-center transition-all duration-150 shadow-2xs hover:shadow-xs active:scale-95 cursor-pointer shrink-0"
+                            title="Aktifkan Kembali Akun"
+                            aria-label="Aktifkan Kembali Akun"
                             type="button"
                           >
-                            <span className="material-symbols-outlined text-[16px]">check_circle</span>
+                            <span className="material-symbols-outlined text-[16px] leading-none select-none">check_circle</span>
                           </button>
                         )}
                         {currentRole === ROLE_SUPERADMIN && (
                           <button
                             onClick={() => openResetPassword(user)}
-                          className="w-8 h-8 rounded-md bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center justify-center transition-colors cursor-pointer"
-                          title="Reset Password"
+                            className="w-8 h-8 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/20 hover:border-amber-500/30 flex items-center justify-center transition-all duration-150 shadow-2xs hover:shadow-xs active:scale-95 cursor-pointer shrink-0"
+                            title="Reset Kata Sandi"
+                            aria-label="Reset Kata Sandi"
                             type="button"
                           >
-                            <span className="material-symbols-outlined text-[16px]">lock_reset</span>
+                            <span className="material-symbols-outlined text-[16px] leading-none select-none">lock_reset</span>
                           </button>
                         )}
                       </div>
