@@ -458,7 +458,7 @@ function DesktopLoginForm({
           <div className="p-2.5 rounded-xl bg-indigo-950/60 border border-indigo-400/30 text-indigo-100 text-xs leading-relaxed flex items-start gap-2 animate-fade-in">
             <span className="material-symbols-outlined text-[15px] text-indigo-300 shrink-0 mt-0.5">info</span>
             <p className="text-[11px]">
-              Silakan hubungi administrator Tata Usaha (TU) unit sekolah atau HRD untuk melakukan reset kata sandi akun Anda.
+              Silakan hubungi Superadmin untuk melakukan reset kata sandi akun Anda.
             </p>
           </div>
         )}
